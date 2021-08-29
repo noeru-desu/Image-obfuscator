@@ -14,8 +14,8 @@ img = Image.open(program.parameter['path'])
 size = img.size
 program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 
-w = program.parameter['col'] if 'col' in program.parameter else 10
-h = program.parameter['row'] if 'row' in program.parameter else 10
+w = program.parameter['col'] if 'col' in program.parameter else 25
+h = program.parameter['row'] if 'row' in program.parameter else 25
 pw = program.parameter['password'] if 'password' in program.parameter else 100
 
 weight = ceil(size[0] / w)
