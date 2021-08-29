@@ -42,4 +42,5 @@ for y in range(w):
 
 program.logger.info('完成')
 name, suffix = splitext(program.parameter['path'])
+name.replace('-decrypted', '')
 new_image.save(name + '-encrypted' + suffix)

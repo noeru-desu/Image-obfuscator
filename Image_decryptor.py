@@ -45,4 +45,5 @@ for i in keys:
 
 program.logger.info('完成')
 name, suffix = splitext(program.parameter['path'])
+name.replace('-encrypted', '')
 new_image.save(name + '-decrypted' + suffix)
