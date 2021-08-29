@@ -1,8 +1,10 @@
-from PIL import Image
-from random import shuffle, seed
-from modules.loader import get_instances
 from math import ceil
 from os.path import normpath, splitext
+from numpy.random import seed, shuffle
+
+from PIL import Image
+
+from modules.loader import get_instances
 
 program = get_instances()
 
@@ -25,6 +27,7 @@ program.logger.info('正在处理')
 
 regions = []
 keys = []
+
 for y in range(h):
     for x in range(w):
         keys.append((x * weight, y * height))
@@ -43,7 +46,7 @@ for i in keys:
     index += 1
     new_image.paste(regions[index], i)
 
-program.logger.info('完成')
+program.logger.info('完成，正在保存文件')
 name, suffix = splitext(program.parameter['path'])
-name.replace('-encrypted', '')
-new_image.save(name + '-decrypted' + suffix)
+name = name.replace('-encrypted', '')
+new_image.save(name + '-decrypted' + suffix, quality=95)
