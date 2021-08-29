@@ -33,7 +33,7 @@ class Logger:
         self.ch = StreamHandler()
         self.ch.setFormatter(console_fmt)
         self.logger.addHandler(self.ch)
-        self.logger.warning('You are using Image encryptor BETA 1')
+        self.logger.warning('You are using Image encryptor BETA 2')
         self.logger.warning('Open source at https://github.com/noeru-desu/Image-encryptor')
         self.ch.setLevel(initial_level)
 

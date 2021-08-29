@@ -1,10 +1,20 @@
+from base64 import encodebytes as base64_encodebytes
 from math import ceil
-from os.path import normpath, splitext
-from numpy.random import seed, shuffle
+from os.path import join, normpath, split, splitext
+from random import seed, shuffle
 
+from Crypto.Cipher import AES
 from PIL import Image
 
 from modules.loader import get_instances
+
+
+def add_to_16(par):
+    par = par.encode()
+    while len(par) % 16 != 0:
+        par += b'\x00'
+    return par
+
 
 program = get_instances()
 
@@ -16,13 +26,15 @@ img = Image.open(program.parameter['path'])
 size = img.size
 program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 
-w = program.parameter['col'] if 'col' in program.parameter else 25
-h = program.parameter['row'] if 'row' in program.parameter else 25
+w = int(program.parameter['col']) if 'col' in program.parameter else 25
+h = int(program.parameter['row']) if 'row' in program.parameter else 25
 pw = program.parameter['password'] if 'password' in program.parameter else 100
+pw = 100 if pw == '100' else pw
+has_pw = True if pw != 100 else False
 
 weight = ceil(size[0] / w)
 height = ceil(size[1] / h)
-program.logger.info(f'单位大小：{weight}x{height}')
+program.logger.info(f'分块数量：{w}x{h}; 分块大小：{weight}x{height}')
 program.logger.info('正在处理')
 
 regions = []
@@ -42,7 +54,19 @@ for y in range(h):
         index += 1
         new_image.paste(regions[index], (x * weight, y * height))
 
+
 program.logger.info('完成，正在保存文件')
 name, suffix = splitext(program.parameter['path'])
-name = name.replace('-decrypted', '')
-new_image.save(name + '-encrypted' + suffix, quality=95)
+name = name.replace('-decrypted', '') + '-encrypted' + suffix
+path, file = split(program.parameter['path'])
+new_image.save(name, quality=100)
+if has_pw:
+    aes = AES.new(add_to_16(pw), AES.MODE_ECB)
+    en_text = aes.encrypt(add_to_16('PASS'))
+    base64 = base64_encodebytes(en_text)
+    print(base64.decode())
+with open(join(path, name), "a") as f:
+    if has_pw:
+        f.write('\n' + f'{size[0]},{size[1]},{w},{h},T,{base64.decode()}')
+    else:
+        f.write('\n' + f'{size[0]},{size[1]},{w},{h},F,0')

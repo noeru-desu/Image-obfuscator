@@ -1,10 +1,20 @@
+from base64 import encodebytes as base64_encodebytes
 from math import ceil
 from os.path import normpath, splitext
-from numpy.random import seed, shuffle
+from random import seed, shuffle
 
+from Crypto.Cipher import AES
 from PIL import Image
 
 from modules.loader import get_instances
+
+
+def add_to_16(par):
+    par = par.encode()
+    while len(par) % 16 != 0:
+        par += b'\x00'
+    return par
+
 
 program = get_instances()
 
@@ -15,14 +25,44 @@ program.parameter['path'] = normpath(program.parameter['path'])
 img = Image.open(program.parameter['path'])
 size = img.size
 program.logger.info(f'导入大小：{size[0]}x{size[1]}')
+data = None
 
-w = program.parameter['col'] if 'col' in program.parameter else 25
-h = program.parameter['row'] if 'row' in program.parameter else 25
-pw = program.parameter['password'] if 'password' in program.parameter else 100
+with open(program.parameter['path'], 'rb') as f:
+    offset = -25
+    while True:
+        f.seek(offset, 2)
+        lines = f.readlines()
+        if len(lines) >= 2:
+            last_line = lines[-1]
+            break
+        offset *= 2
+    data = last_line.decode()
 
-weight = ceil(size[0] / w)
+
+o_width, o_height, w, h, has_pw, o_base64 = data.split(',')
+o_base64 = o_base64.replace('\r', '').replace('\n', '')
+pw = 100
+if has_pw == 'T':
+    input_pw = ''
+    while True:
+        input_pw = input('需要解密的图片被密码保护，请输入密码：')
+        if input_pw == '':
+            continue
+        aes = AES.new(add_to_16(input_pw), AES.MODE_ECB)
+        en_text = aes.encrypt(add_to_16('PASS'))
+        base64 = base64_encodebytes(en_text).replace(b'\n', b'')
+        if base64.decode() == o_base64:
+            break
+        else:
+            program.logger.warning('密码错误！')
+    pw = input_pw
+w = int(w)
+h = int(h)
+program.logger.info(f'原始图片信息：大小：{o_width}x{o_height}; 分块数量：{w}x{h}')
+
+width = ceil(size[0] / w)
 height = ceil(size[1] / h)
-program.logger.info(f'单位大小：{weight}x{height}')
+program.logger.info(f'单位大小：{width}x{height}')
 program.logger.info('正在处理')
 
 regions = []
@@ -30,23 +70,24 @@ keys = []
 
 for y in range(h):
     for x in range(w):
-        keys.append((x * weight, y * height))
+        keys.append((x * width, y * height))
 
 seed(pw)
 shuffle(keys)
 
 for j in range(h):
     for i in range(w):
-        box = (weight * i, height * j, weight * (i + 1), height * (j + 1))
+        box = (width * i, height * j, width * (i + 1), height * (j + 1))
         regions.append(img.crop(box))
 
 index = -1
-new_image = Image.new('RGB', (weight * w, height * h))
+new_image = Image.new('RGB', (width * w, height * h))
 for i in keys:
     index += 1
     new_image.paste(regions[index], i)
 
 program.logger.info('完成，正在保存文件')
+original_image = new_image.crop((0, 0, int(o_width), int(o_height)))
 name, suffix = splitext(program.parameter['path'])
 name = name.replace('-encrypted', '')
-new_image.save(name + '-decrypted' + suffix, quality=95)
+original_image.save(name + '-decrypted' + suffix, quality=100)
