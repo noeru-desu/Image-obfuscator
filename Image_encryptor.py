@@ -35,8 +35,8 @@ shuffle(regions)
 index = -1
 new_image = Image.new('RGB', (weight * w, height * h))
 program.logger.info(f'补全后大小：{weight * w}x{height * h}')
-for y in range(w):
-    for x in range(h):
+for y in range(h):
+    for x in range(w):
         index += 1
         new_image.paste(regions[index], (x * weight, y * height))
 
