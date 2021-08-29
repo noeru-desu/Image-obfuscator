@@ -1,0 +1,49 @@
+name: CI
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+#    - name: Set up MinGW
+#      uses: egor-tensin/setup-mingw@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install pyinstaller
+    - name: Build artifacts with Pyinstaller
+      run: |
+        pyinstaller -F Image_encryptor.py
+        pyinstaller -F Image_decryptor.py
+#    - name: Install Nuitka
+#      run: |
+#        pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
+#    - name: Build artifacts with Nuitka
+#      run: |
+#        nuitka --mingw64 --standalone --assume-yes-for-downloads --windows-icon-from-ico=icon.ico --output-dir=build MC_Mod_Downloader.py
+    - name: Upload artifacts built by Pyinstaller
+      uses: actions/upload-artifact@v2
+      with:
+        name: artifacts-built-by-pyinstaller
+        path: dist
+#    - name: Upload artifacts built by Nuitka
+#      uses: actions/upload-artifact@v2
+#      with:
+#        name: artifacts-built-by-nuitka
+#        path: build/MC_Mod_Downloader.dist/

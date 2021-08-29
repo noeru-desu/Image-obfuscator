@@ -1,0 +1,1 @@
+pyinstaller --upx-dir assets -F -i icon.ico MC_Mod_Downloader.py
