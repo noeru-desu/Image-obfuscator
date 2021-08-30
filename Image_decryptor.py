@@ -8,14 +8,6 @@ from PIL import Image
 from modules.AES import decrypt
 from modules.loader import get_instances
 
-
-def add_to_16(par):
-    par = par.encode()
-    while len(par) % 16 != 0:
-        par += b'\x00'
-    return par
-
-
 program = get_instances()
 
 if 'path' not in program.parameter:
@@ -61,7 +53,7 @@ program.logger.info(f'原始图片信息：大小：{o_width}x{o_height}; 分块
 
 width = ceil(size[0] / w)
 height = ceil(size[1] / h)
-program.logger.info(f'单位大小：{width}x{height}')
+program.logger.info(f'分块大小：{width}x{height}')
 program.logger.info('正在处理')
 
 regions = []

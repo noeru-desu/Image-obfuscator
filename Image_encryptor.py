@@ -8,14 +8,6 @@ from PIL import Image
 from modules.AES import encrypt
 from modules.loader import get_instances
 
-
-def add_to_16(par):
-    par = par.encode()
-    while len(par) % 16 != 0:
-        par += b'\x00'
-    return par
-
-
 program = get_instances()
 
 if 'path' not in program.parameter:
