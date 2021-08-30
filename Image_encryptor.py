@@ -1,4 +1,3 @@
-from base64 import encodebytes as base64_encodebytes
 from math import ceil
 from os.path import join, normpath, split, splitext
 from random import seed, shuffle
@@ -6,6 +5,7 @@ from random import seed, shuffle
 from Crypto.Cipher import AES
 from PIL import Image
 
+from modules.AES import encrypt
 from modules.loader import get_instances
 
 
@@ -73,12 +73,8 @@ name, suffix = splitext(program.parameter['path'])
 name = name.replace('-decrypted', '') + '-encrypted' + suffix
 path, file = split(program.parameter['path'])
 new_image.save(name, quality=100)
-if has_pw:
-    aes = AES.new(add_to_16(pw), AES.MODE_ECB)
-    en_text = aes.encrypt(add_to_16('PASS'))
-    base64 = base64_encodebytes(en_text)
 with open(join(path, name), "a") as f:
     if has_pw:
-        f.write('\n' + f'{size[0]},{size[1]},{w},{h},T,{base64.decode()}')
+        f.write('\n' + f"{size[0]},{size[1]},{w},{h},T,{encrypt(AES.MODE_CFB, pw, 'PASS', str(size[0]) + str(size[1]), True)}")
     else:
         f.write('\n' + f'{size[0]},{size[1]},{w},{h},F,0')

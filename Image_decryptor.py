@@ -1,4 +1,3 @@
-from base64 import encodebytes as base64_encodebytes
 from math import ceil
 from os.path import normpath, splitext
 from random import seed, shuffle
@@ -6,6 +5,7 @@ from random import seed, shuffle
 from Crypto.Cipher import AES
 from PIL import Image
 
+from modules.AES import decrypt
 from modules.loader import get_instances
 
 
@@ -40,7 +40,6 @@ with open(program.parameter['path'], 'rb') as f:
 
 
 o_width, o_height, w, h, has_pw, o_base64 = data.split(',')
-o_base64 = o_base64.replace('\r', '').replace('\n', '')
 pw = 100
 if has_pw == 'T':
     input_pw = ''
@@ -48,12 +47,12 @@ if has_pw == 'T':
         input_pw = input('需要解密的图片被密码保护，请输入密码：')
         if input_pw == '':
             continue
-        aes = AES.new(add_to_16(input_pw), AES.MODE_ECB)
-        en_text = aes.encrypt(add_to_16('PASS'))
-        base64 = base64_encodebytes(en_text).replace(b'\n', b'')
-        if base64.decode() == o_base64:
-            break
-        else:
+        try:
+            if decrypt(AES.MODE_CFB, input_pw, o_base64, o_width + o_height, True) == 'PASS':
+                break
+            else:
+                program.logger.warning('密码错误！')
+        except UnicodeDecodeError:
             program.logger.warning('密码错误！')
     pw = input_pw
 w = int(w)
