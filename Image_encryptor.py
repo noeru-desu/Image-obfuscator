@@ -38,13 +38,19 @@ program.logger.info(f'分块数量：{w}x{h}; 分块大小：{weight}x{height}')
 program.logger.info('正在处理')
 
 regions = []
+flip_list = []
+num = 0
 for j in range(h):
     for i in range(w):
+        num += 1
+        flip_list.append(num % 4)
         box = (weight * i, height * j, weight * (i + 1), height * (j + 1))
         regions.append(img.crop(box))
 
 seed(pw)
 shuffle(regions)
+seed(pw)
+shuffle(flip_list)
 
 new_image = Image.new('RGB', (weight * w, height * h))
 program.logger.info(f'补全后大小：{weight * w}x{height * h}')
@@ -52,6 +58,13 @@ index = -1
 for y in range(h):
     for x in range(w):
         index += 1
+        if flip_list[index] == 1:
+            regions[index] = regions[index].transpose(Image.FLIP_LEFT_RIGHT)
+        elif flip_list[index] == 2:
+            regions[index] = regions[index].transpose(Image.FLIP_TOP_BOTTOM)
+        elif flip_list[index] == 3:
+            regions[index] = regions[index].transpose(Image.FLIP_LEFT_RIGHT)
+            regions[index] = regions[index].transpose(Image.FLIP_TOP_BOTTOM)
         new_image.paste(regions[index], (x * weight, y * height))
 
 
@@ -64,7 +77,6 @@ if has_pw:
     aes = AES.new(add_to_16(pw), AES.MODE_ECB)
     en_text = aes.encrypt(add_to_16('PASS'))
     base64 = base64_encodebytes(en_text)
-    print(base64.decode())
 with open(join(path, name), "a") as f:
     if has_pw:
         f.write('\n' + f'{size[0]},{size[1]},{w},{h},T,{base64.decode()}')

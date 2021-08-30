@@ -67,13 +67,19 @@ program.logger.info('正在处理')
 
 regions = []
 keys = []
+flip_list = []
 
+num = 0
 for y in range(h):
     for x in range(w):
+        num += 1
+        flip_list.append(num % 4)
         keys.append((x * width, y * height))
 
 seed(pw)
 shuffle(keys)
+seed(pw)
+shuffle(flip_list)
 
 for j in range(h):
     for i in range(w):
@@ -84,6 +90,13 @@ index = -1
 new_image = Image.new('RGB', (width * w, height * h))
 for i in keys:
     index += 1
+    if flip_list[index] == 1:
+        regions[index] = regions[index].transpose(Image.FLIP_LEFT_RIGHT)
+    elif flip_list[index] == 2:
+        regions[index] = regions[index].transpose(Image.FLIP_TOP_BOTTOM)
+    elif flip_list[index] == 3:
+        regions[index] = regions[index].transpose(Image.FLIP_LEFT_RIGHT)
+        regions[index] = regions[index].transpose(Image.FLIP_TOP_BOTTOM)
     new_image.paste(regions[index], i)
 
 program.logger.info('完成，正在保存文件')
