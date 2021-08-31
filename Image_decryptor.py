@@ -1,6 +1,7 @@
 from json import loads
 from math import ceil
 from os.path import normpath, splitext
+from sys import exit
 
 from Crypto.Cipher import AES
 from PIL import Image

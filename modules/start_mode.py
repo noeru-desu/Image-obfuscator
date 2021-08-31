@@ -1,6 +1,6 @@
-from getopt import getopt, GetoptError
+from getopt import GetoptError, getopt
 from os.path import isfile
-
+from sys import exit
 
 help_msg = """
 <filename> [--nm] [-pw password] [-r row] [-c column] [-f file_format]
