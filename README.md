@@ -25,4 +25,4 @@ Image_encryptor.exe <文件路径> [附加参数]
 
 无需更改参数时，直接将文件拖放到exe上即可
 
-BETA版与开发版的exe文件可在Actions页面的CI中下载
+BETA版与开发版的exe文件可在Actions页面的CI中下载(Pyinstaller构建的版本)
