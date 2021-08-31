@@ -3,7 +3,7 @@ name: CI
 on: [ push, pull_request ]
 
 jobs:
-  Build by Pyinstaller:
+  Build-by-Pyinstaller:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -32,7 +32,7 @@ jobs:
       with:
         name: by-pyinstaller
         path: dist
-  Build by Nuitka:
+  Build-by-Nuitka:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
