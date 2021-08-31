@@ -3,9 +3,10 @@ from os.path import isfile
 
 
 help_msg = """
-<filename> [--nm] [-pw password] [-r row] [-c column]
+<filename> [--nm] [-pw password] [-r row] [-c column] [-f file_format]
 
 <filename> 图片路径
+可选参数：
 --nm / --not_mapping 关闭RGB通道映射
 --pw password / --password password 密码
 -r row / --row row 分割行数
@@ -15,7 +16,10 @@ help_msg = """
 
 
 def check_start_mode(argv):
-    if not isfile(argv[0]):
+    if argv[0] in ("-h", "--help"):
+        print(help_msg)
+        exit()
+    elif not isfile(argv[0]):
         print('没有提供文件或文件不存在')
         exit(2)
     parameter = {
