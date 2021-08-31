@@ -16,7 +16,7 @@ help_msg = """
 
 
 def check_start_mode(argv):
-    if argv[0] in ("-h", "--help"):
+    if not argv or argv[0] in ("-h", "--help"):
         print(help_msg)
         exit()
     elif not isfile(argv[0]):

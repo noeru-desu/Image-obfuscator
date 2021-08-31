@@ -1,4 +1,4 @@
 pillow
 colorlog
 pycryptodome
-progressbar
+progressbar2
