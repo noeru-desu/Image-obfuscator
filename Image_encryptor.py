@@ -1,11 +1,13 @@
+from json import dumps
 from math import ceil
 from os.path import join, normpath, split, splitext
-from random import seed, shuffle
 
 from Crypto.Cipher import AES
 from PIL import Image
+from progressbar import AdaptiveETA, Bar, Percentage, ProgressBar, SimpleProgress, Timer
 
 from modules.AES import encrypt
+from modules.encrypt_image import generate_encrypted_image, get_encrypted_lists
 from modules.loader import get_instances
 
 program = get_instances()
@@ -18,55 +20,46 @@ img = Image.open(program.parameter['path'])
 size = img.size
 program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 
-w = int(program.parameter['col']) if 'col' in program.parameter else 25
-h = int(program.parameter['row']) if 'row' in program.parameter else 25
-pw = program.parameter['password'] if 'password' in program.parameter else 100
-pw = 100 if pw == '100' else pw
+rgb_mapping = program.parameter['mapping']
+col = program.parameter['col']
+row = program.parameter['row']
+pw = program.parameter['password']
 has_pw = True if pw != 100 else False
-
-weight = ceil(size[0] / w)
-height = ceil(size[1] / h)
-program.logger.info(f'分块数量：{w}x{h}; 分块大小：{weight}x{height}')
-program.logger.info('正在处理')
-
-regions = []
-flip_list = []
-num = 0
-for j in range(h):
-    for i in range(w):
-        num += 1
-        flip_list.append(num % 4)
-        box = (weight * i, height * j, weight * (i + 1), height * (j + 1))
-        regions.append(img.crop(box))
-
-seed(pw)
-shuffle(regions)
-seed(pw)
-shuffle(flip_list)
-
-new_image = Image.new('RGB', (weight * w, height * h))
-program.logger.info(f'补全后大小：{weight * w}x{height * h}')
-index = -1
-for y in range(h):
-    for x in range(w):
-        index += 1
-        if flip_list[index] == 1:
-            regions[index] = regions[index].transpose(Image.FLIP_LEFT_RIGHT)
-        elif flip_list[index] == 2:
-            regions[index] = regions[index].transpose(Image.FLIP_TOP_BOTTOM)
-        elif flip_list[index] == 3:
-            regions[index] = regions[index].transpose(Image.FLIP_LEFT_RIGHT)
-            regions[index] = regions[index].transpose(Image.FLIP_TOP_BOTTOM)
-        new_image.paste(regions[index], (x * weight, y * height))
-
-
-program.logger.info('完成，正在保存文件')
 name, suffix = splitext(program.parameter['path'])
-name = name.replace('-decrypted', '') + '-encrypted' + suffix
+suffix = program.parameter['format'] if 'format' in program.parameter else 'png'
+suffix.strip('.')
+if rgb_mapping and suffix.upper() in ['JPG', 'JPEG', 'WMF', 'WEBP']:
+    rgb_mapping = False
+    program.logger.warning('你指定了一个有损压缩的图像格式来保存文件，已自动关闭通道映射')
+
+block_width = ceil(size[0] / col)
+block_height = ceil(size[1] / row)
+program.logger.info(f'分块数量：{col}x{row}; 分块大小：{block_width}x{block_height}')
+widgets = [Percentage(), ' ', SimpleProgress(), ' ', Bar('█'), ' ', Timer(), ' ', AdaptiveETA()]
+program.logger.info('开始处理')
+program.logger.info('正在分割原图')
+
+bar = ProgressBar(max_value=col * row, widgets=widgets)
+regions, flip_list = get_encrypted_lists(img, pw, row, col, block_width, block_height, bar=bar)
+
+program.logger.info(f'分割完成，补全后大小：{block_width * col}x{block_height * row}')
+
+program.logger.info('正在重组')
+bar = ProgressBar(max_value=col * row, widgets=widgets)
+new_image = generate_encrypted_image(regions, flip_list, rgb_mapping, row, col, block_width, block_height, bar=bar)
+
+program.logger.info('重组完成，正在保存文件')
+name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
 path, file = split(program.parameter['path'])
-new_image.save(name, quality=100)
+new_image.save(name, format='jpeg' if suffix == 'jpg' else suffix, quality=100)
+json = {
+    'width': size[0],
+    'height': size[1],
+    'col': col,
+    'row': row,
+    'has_password': has_pw,
+    'password_base64': encrypt(AES.MODE_CFB, pw, 'PASS', str(size[0]) + str(size[1]), True) if has_pw else 0,
+    'rgb_mapping': rgb_mapping
+}
 with open(join(path, name), "a") as f:
-    if has_pw:
-        f.write('\n' + f"{size[0]},{size[1]},{w},{h},T,{encrypt(AES.MODE_CFB, pw, 'PASS', str(size[0]) + str(size[1]), True)}")
-    else:
-        f.write('\n' + f'{size[0]},{size[1]},{w},{h},F,0')
+    f.write('\n' + dumps(json, separators=(',', ':')))

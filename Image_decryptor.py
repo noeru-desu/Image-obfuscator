@@ -1,11 +1,13 @@
+from json import loads
 from math import ceil
 from os.path import normpath, splitext
-from random import seed, shuffle
 
 from Crypto.Cipher import AES
 from PIL import Image
+from progressbar import AdaptiveETA, Bar, Percentage, ProgressBar, SimpleProgress, Timer
 
 from modules.AES import decrypt
+from modules.encrypt_image import generate_decrypted_image, get_mapping_lists
 from modules.loader import get_instances
 
 program = get_instances()
@@ -20,7 +22,7 @@ program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 data = None
 
 with open(program.parameter['path'], 'rb') as f:
-    offset = -25
+    offset = -35
     while True:
         f.seek(offset, 2)
         lines = f.readlines()
@@ -30,68 +32,41 @@ with open(program.parameter['path'], 'rb') as f:
         offset *= 2
     data = last_line.decode()
 
-
-o_width, o_height, w, h, has_pw, o_base64 = data.split(',')
+image_data = loads(data)
 pw = 100
-if has_pw == 'T':
+if image_data['has_password']:
     input_pw = ''
     while True:
         input_pw = input('需要解密的图片被密码保护，请输入密码：')
         if input_pw == '':
             continue
         try:
-            if decrypt(AES.MODE_CFB, input_pw, o_base64, o_width + o_height, True) == 'PASS':
+            if decrypt(AES.MODE_CFB, input_pw, image_data['password_base64'], str(image_data['width']) + str(image_data['height']), True) == 'PASS':
                 break
             else:
                 program.logger.warning('密码错误！')
         except UnicodeDecodeError:
             program.logger.warning('密码错误！')
     pw = input_pw
-w = int(w)
-h = int(h)
-program.logger.info(f'原始图片信息：大小：{o_width}x{o_height}; 分块数量：{w}x{h}')
+program.logger.info(f"原始图片信息：大小：{image_data['width']}x{image_data['height']}; 分块数量：{image_data['col']}x{image_data['row']}")
 
-width = ceil(size[0] / w)
-height = ceil(size[1] / h)
-program.logger.info(f'分块大小：{width}x{height}')
+block_width = ceil(size[0] / image_data['col'])
+block_height = ceil(size[1] / image_data['row'])
+program.logger.info(f'分块大小：{block_width}x{block_height}')
+widgets = [Percentage(), ' ', SimpleProgress(), ' ', Bar('█'), ' ', Timer(), ' ', AdaptiveETA()]
 program.logger.info('正在处理')
+program.logger.info('正在生成映射列表')
 
-regions = []
-keys = []
-flip_list = []
+bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
+regions, pos_list, flip_list = get_mapping_lists(img, pw, image_data['row'], image_data['col'], block_width, block_height, bar=bar)
 
-num = 0
-for y in range(h):
-    for x in range(w):
-        num += 1
-        flip_list.append(num % 4)
-        keys.append((x * width, y * height))
+program.logger.info('正在重组')
 
-seed(pw)
-shuffle(keys)
-seed(pw)
-shuffle(flip_list)
+bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
+new_image = generate_decrypted_image(regions, pos_list, flip_list, image_data['rgb_mapping'], image_data['row'], image_data['col'], block_width, block_height, bar=bar)
 
-for j in range(h):
-    for i in range(w):
-        box = (width * i, height * j, width * (i + 1), height * (j + 1))
-        regions.append(img.crop(box))
-
-index = -1
-new_image = Image.new('RGB', (width * w, height * h))
-for i in keys:
-    index += 1
-    if flip_list[index] == 1:
-        regions[index] = regions[index].transpose(Image.FLIP_LEFT_RIGHT)
-    elif flip_list[index] == 2:
-        regions[index] = regions[index].transpose(Image.FLIP_TOP_BOTTOM)
-    elif flip_list[index] == 3:
-        regions[index] = regions[index].transpose(Image.FLIP_LEFT_RIGHT)
-        regions[index] = regions[index].transpose(Image.FLIP_TOP_BOTTOM)
-    new_image.paste(regions[index], i)
-
-program.logger.info('完成，正在保存文件')
-original_image = new_image.crop((0, 0, int(o_width), int(o_height)))
+program.logger.info('正在保存文件')
+original_image = new_image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
 name, suffix = splitext(program.parameter['path'])
 name = name.replace('-encrypted', '')
 original_image.save(name + '-decrypted' + suffix, quality=100)

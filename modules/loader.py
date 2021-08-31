@@ -8,9 +8,8 @@ class program_instances:
     def __init__(self):
         # 注册logger
         self.logger = Logger()
-        self.logger.info('正在启动...')
         # 检查启动参数
-        self.parameter = check_start_mode(argv)
+        self.parameter = check_start_mode(argv[1:])
         if not self.parameter:
             self.logger.error('未知的启动属性或未给出启动属性')
             exit()
