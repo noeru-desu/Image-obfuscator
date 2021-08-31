@@ -59,9 +59,10 @@ jobs:
       run: |
         nuitka --mingw64 --standalone --assume-yes-for-downloads --output-dir=build Image_encryptor.py
         nuitka --mingw64 --standalone --assume-yes-for-downloads --output-dir=build Image_decryptor.py
-        Move-Item build/Image_encryptor.dist/Image_encryptor.exe dist
-        Move-Item build/Image_decryptor.dist/Image_decryptor.exe dist
+        Move-Item build/Image_encryptor.dist/Image_encryptor.exe nuitka_dist
+        Move-Item build/Image_decryptor.dist/Image_decryptor.exe nuitka_dist
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: by-nuitka
+        path: nuitka_dist
