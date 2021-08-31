@@ -17,7 +17,7 @@ if 'path' not in program.parameter:
     program.logger.error('没有输入文件')
     exit()
 program.parameter['path'] = normpath(program.parameter['path'])
-img = Image.open(program.parameter['path'])
+img = Image.open(program.parameter['path']).convert('RGBA')
 size = img.size
 program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 

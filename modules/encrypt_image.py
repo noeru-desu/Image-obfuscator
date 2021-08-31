@@ -32,24 +32,24 @@ def generate_encrypted_image(regions, flip_list, rgb_mapping, row, col, block_wi
             if flip_list[index] == 0:
                 if custom_func is not None:
                     regions[index] = custom_func(regions[index], block_width, block_height)
-                r, g, b = regions[index].split()
-                regions[index] = Image.merge("RGB", (g, b, r))
+                r, g, b, a = regions[index].split()
+                regions[index] = Image.merge("RGBA", (g, b, r, a))
             elif flip_list[index] == 1:
                 regions[index] = regions[index].transpose(Image.FLIP_LEFT_RIGHT)
                 if rgb_mapping:
-                    r, g, b = regions[index].split()
-                    regions[index] = Image.merge("RGB", (g, r, b))
+                    r, g, b, a = regions[index].split()
+                    regions[index] = Image.merge("RGBA", (g, r, b, a))
             elif flip_list[index] == 2:
                 regions[index] = regions[index].transpose(Image.FLIP_TOP_BOTTOM)
                 if rgb_mapping:
-                    r, g, b = regions[index].split()
-                    regions[index] = Image.merge("RGB", (b, g, r))
+                    r, g, b, a = regions[index].split()
+                    regions[index] = Image.merge("RGBA", (b, g, r, a))
             elif flip_list[index] == 3:
                 regions[index] = regions[index].transpose(Image.FLIP_LEFT_RIGHT)
                 regions[index] = regions[index].transpose(Image.FLIP_TOP_BOTTOM)
                 if rgb_mapping:
-                    r, g, b = regions[index].split()
-                    regions[index] = Image.merge("RGB", (b, r, g))
+                    r, g, b, a = regions[index].split()
+                    regions[index] = Image.merge("RGBA", (b, r, g, a))
             image.paste(regions[index], (x * block_width, y * block_height))
             if bar is not None:
                 bar.update(index + 1)
@@ -89,24 +89,24 @@ def generate_decrypted_image(regions, pos_list, flip_list, rgb_mapping, row, col
             if custom_func is not None:
                 regions[index] = custom_func(regions[index], block_width, block_height)
             if rgb_mapping:
-                g, b, r = regions[index].split()
-                regions[index] = Image.merge("RGB", (r, g, b))
+                g, b, r, a = regions[index].split()
+                regions[index] = Image.merge("RGBA", (r, g, b, a))
         elif flip_list[index] == 1:
             regions[index] = regions[index].transpose(Image.FLIP_LEFT_RIGHT)
             if rgb_mapping:
-                g, r, b = regions[index].split()
-                regions[index] = Image.merge("RGB", (r, g, b))
+                g, r, b, a = regions[index].split()
+                regions[index] = Image.merge("RGBA", (r, g, b, a))
         elif flip_list[index] == 2:
             regions[index] = regions[index].transpose(Image.FLIP_TOP_BOTTOM)
             if rgb_mapping:
-                b, g, r = regions[index].split()
-                regions[index] = Image.merge("RGB", (r, g, b))
+                b, g, r, a = regions[index].split()
+                regions[index] = Image.merge("RGBA", (r, g, b, a))
         elif flip_list[index] == 3:
             regions[index] = regions[index].transpose(Image.FLIP_LEFT_RIGHT)
             regions[index] = regions[index].transpose(Image.FLIP_TOP_BOTTOM)
             if rgb_mapping:
-                b, r, g = regions[index].split()
-                regions[index] = Image.merge("RGB", (r, g, b))
+                b, r, g, a = regions[index].split()
+                regions[index] = Image.merge("RGBA", (r, g, b, a))
         image.paste(regions[index], i)
         if bar is not None:
             bar.update(index + 1)
