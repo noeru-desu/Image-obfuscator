@@ -54,6 +54,7 @@ jobs:
       run: |
         pip install -r requirements.txt
         pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
+        pip install markupsafe
     - name: Build artifacts
       run: |
         nuitka --mingw64 --standalone --assume-yes-for-downloads --output-dir=build Image_encryptor.py
