@@ -11,7 +11,9 @@ Image_encryptor.exe <文件路径> [附加参数]
 
 附加参数如下：
 
-`--nm`或`--not_mapping` 关闭RGB通道映射
+`--nm`或`--not_mapping` 关闭RGB通道随机映射与异或加密
+
+`--xa`或`--xor_alpha` 在异或加密时同时异或透明度
 
 `--pw <password>`或`--password <password>` 设置密码
 
