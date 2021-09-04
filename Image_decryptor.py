@@ -8,7 +8,7 @@ from PIL import Image
 from progressbar import AdaptiveETA, Bar, Percentage, ProgressBar, SimpleProgress, Timer
 
 from modules.AES import decrypt
-from modules.encrypt_image import generate_decrypted_image, get_mapping_lists
+from modules.image_cryptor import generate_decrypted_image, get_mapping_lists
 from modules.loader import get_instances
 
 program = get_instances()
@@ -64,7 +64,7 @@ regions, pos_list, flip_list = get_mapping_lists(img, pw, image_data['row'], ima
 program.logger.info('正在重组')
 
 bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
-new_image = generate_decrypted_image(regions, pos_list, flip_list, image_data['rgb_mapping'], image_data['row'], image_data['col'], block_width, block_height, bar=bar)
+new_image = generate_decrypted_image(regions, pos_list, flip_list, pw, image_data['row'], image_data['col'], block_width, block_height, image_data['rgb_mapping'], image_data['xor_alpha'], bar=bar)
 
 program.logger.info('正在保存文件')
 original_image = new_image.crop((0, 0, int(image_data['width']), int(image_data['height'])))

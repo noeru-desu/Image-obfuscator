@@ -2,3 +2,4 @@ pillow
 colorlog
 pycryptodome
 progressbar2
+numpy
