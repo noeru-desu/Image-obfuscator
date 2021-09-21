@@ -17,9 +17,9 @@ Image_encryptor.exe <文件路径> [附加参数]
 
 `--pw <password>`或`--password <password>` 设置密码
 
-`-r <row>`或`--row <row>` 设置分割行数
+`-r <row>`或`--row <row>` 设置分割行数，默认为25
 
-`-c <column>`或`--col <column>` 或`--column <column>` 设置分割列数默认为25
+`-c <column>`或`--col <column>` 或`--column <column>` 设置分割列数，默认为25
 
 `-f <file_format>`或`--format <file_format>` 指定保存的文件格式，默认为png
 

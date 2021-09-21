@@ -4,11 +4,11 @@ from os.path import normpath, splitext
 from sys import exit
 
 from Crypto.Cipher import AES
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from modules.AES import decrypt
-from modules.image_cryptor import generate_decrypted_image, get_mapping_lists, XOR_image
+from modules.image_cryptor import XOR_image, generate_decrypted_image, get_mapping_lists
 from modules.loader import get_instances
 
 program = get_instances()
@@ -17,7 +17,14 @@ if 'path' not in program.parameter:
     program.logger.error('没有输入文件')
     exit()
 program.parameter['path'] = normpath(program.parameter['path'])
-img = Image.open(program.parameter['path']).convert('RGBA')
+try:
+    img = Image.open(program.parameter['path']).convert('RGBA')
+except FileNotFoundError:
+    program.logger.error('文件不存在')
+    exit()
+except UnidentifiedImageError:
+    program.logger.error('无法打开或识别图像格式，或输入了不受支持的格式')
+    exit()
 size = img.size
 program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 data = None
@@ -67,7 +74,7 @@ bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widge
 new_image = generate_decrypted_image(regions, pos_list, flip_list, image_data['row'], image_data['col'], block_width, block_height, image_data['rgb_mapping'], bar)
 
 if image_data['rgb_mapping']:
-    program.logger.info('正在异或加密')
+    program.logger.info('正在异或解密，性能较低，请耐心等待')
     size = new_image.size
     bar = ProgressBar(max_value=size[0] * size[1], widgets=widgets)
     new_image = XOR_image(new_image, pw, image_data['xor_alpha'], bar)
