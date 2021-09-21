@@ -1,10 +1,9 @@
 from random import randrange, seed, shuffle
 
-import numpy as np
 from PIL import Image
 
 
-def get_encrypted_lists(image, random_seed, row, col, block_width, block_height, bar=None):
+def get_encrypted_lists(image, random_seed, row, col, block_width, block_height, bar):
     regions = []
     flip_list = []
     num = 0
@@ -12,20 +11,17 @@ def get_encrypted_lists(image, random_seed, row, col, block_width, block_height,
         for i in range(col):
             num += 1
             flip_list.append(num % 4)
-            box = (block_width * i, block_height * j, block_width * (i + 1), block_height * (j + 1))
-            regions.append(image.crop(box))
-            if bar is not None:
-                bar.update(num)
+            regions.append(image.crop((block_width * i, block_height * j, block_width * (i + 1), block_height * (j + 1))))
+            bar.update(num)
     seed(random_seed)
     shuffle(regions)
     seed(random_seed)
     shuffle(flip_list)
-    if bar is not None:
-        bar.finish()
+    bar.finish()
     return regions, flip_list
 
 
-def generate_encrypted_image(regions, flip_list, random_seed, row, col, block_width, block_height, rgb_mapping, xor_alpha, bar=None):
+def generate_encrypted_image(regions, flip_list, row, col, block_width, block_height, rgb_mapping, bar):
     image = Image.new('RGBA', (block_width * col, block_height * row))
     index = -1
     for y in range(row):
@@ -49,28 +45,31 @@ def generate_encrypted_image(regions, flip_list, random_seed, row, col, block_wi
             if rgb_mapping:
                 regions[index] = Image.merge('RGBA', (r, g, b, a))
             image.paste(regions[index], (x * block_width, y * block_height))
-            if bar is not None:
-                bar.update(index + 1)
-    if rgb_mapping:
-        seed(random_seed)
-        image = XOR_image(image, randrange(256), xor_alpha)
-    if bar is not None:
-        bar.finish()
+            bar.update(index + 1)
+    bar.finish()
     return image
 
 
-def XOR_image(region, xor_num: int, xor_alpha):
-    region = np.array(region, np.uint8)
-    if not xor_alpha:
-        region_alpha = region[:, :, 3]
-        region = region[:, :, :3]
-    region ^= xor_num
-    if not xor_alpha:
-        region = np.dstack((region, region_alpha))
-    return Image.fromarray(region)
+def XOR_image(region, random_seed, xor_alpha, bar):
+    seed(random_seed)
+    xor_num = randrange(256)
+    pixel_list = list(region.getdata())
+    if xor_alpha:
+        for num, i in enumerate(pixel_list):
+            r, g, b, a = i
+            i = (r ^ xor_num, g ^ xor_num, b ^ xor_num, a ^ xor_num)
+            bar.update(num + 1)
+    else:
+        for num, i in enumerate(pixel_list):
+            r, g, b, a = i
+            i = (r ^ xor_num, g ^ xor_num, b ^ xor_num, a)
+            bar.update(num + 1)
+    region.putdata(pixel_list)
+    bar.finish()
+    return region
 
 
-def get_mapping_lists(image, random_seed, row, col, block_width, block_height, bar=None):
+def get_mapping_lists(image, random_seed, row, col, block_width, block_height, bar):
     regions = []
     pos_list = []
     flip_list = []
@@ -81,18 +80,16 @@ def get_mapping_lists(image, random_seed, row, col, block_width, block_height, b
             flip_list.append(num % 4)
             pos_list.append((x * block_width, y * block_height))
             regions.append(image.crop((block_width * x, block_height * y, block_width * (x + 1), block_height * (y + 1))))
-            if bar is not None:
-                bar.update(num)
+            bar.update(num)
     seed(random_seed)
     shuffle(pos_list)
     seed(random_seed)
     shuffle(flip_list)
-    if bar is not None:
-        bar.finish()
+    bar.finish()
     return regions, pos_list, flip_list
 
 
-def generate_decrypted_image(regions, pos_list, flip_list, random_seed, row, col, block_width, block_height, rgb_mapping, xor_alpha, bar=None):
+def generate_decrypted_image(regions, pos_list, flip_list, row, col, block_width, block_height, rgb_mapping, bar):
     image = Image.new('RGBA', (block_width * col, block_height * row))
     index = -1
     for i in pos_list:
@@ -115,11 +112,6 @@ def generate_decrypted_image(regions, pos_list, flip_list, random_seed, row, col
         if rgb_mapping:
             regions[index] = Image.merge('RGBA', (r, g, b, a))
         image.paste(regions[index], i)
-        if bar is not None:
-            bar.update(index + 1)
-    if rgb_mapping:
-        seed(random_seed)
-        image = XOR_image(image, randrange(256), xor_alpha)
-    if bar is not None:
-        bar.finish()
+        bar.update(index + 1)
+    bar.finish()
     return image
