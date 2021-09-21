@@ -57,12 +57,12 @@ jobs:
         pip install markupsafe
     - name: Build artifacts
       run: |
-        nuitka --mingw64 --onefile --python-flag=no_site --assume-yes-for-downloads --plugin-enable numpy --output-dir=build Image_encryptor.py
-        nuitka --mingw64 --onefile --python-flag=no_site --assume-yes-for-downloads --plugin-enable numpy --output-dir=build Image_decryptor.py
+        nuitka --mingw64 --onefile --python-flag=no_site --assume-yes-for-downloads --output-dir=build Image_encryptor.py
+        nuitka --mingw64 --onefile --python-flag=no_site --assume-yes-for-downloads --output-dir=build Image_decryptor.py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: by-nuitka
         path: |
-          build/Image_encryptor.dist/Image_encryptor.exe
-          build/Image_decryptor.dist/Image_decryptor.exe
+          build/Image_encryptor.dist/
+          build/Image_decryptor.dist/
