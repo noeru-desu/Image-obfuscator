@@ -57,12 +57,12 @@ def XOR_image(region, random_seed, xor_alpha, bar):
     if xor_alpha:
         for num, i in enumerate(pixel_list):
             r, g, b, a = i
-            i = (r ^ xor_num, g ^ xor_num, b ^ xor_num, a ^ xor_num)
+            pixel_list[num] = (r ^ xor_num, g ^ xor_num, b ^ xor_num, a ^ xor_num)
             bar.update(num + 1)
     else:
         for num, i in enumerate(pixel_list):
             r, g, b, a = i
-            i = (r ^ xor_num, g ^ xor_num, b ^ xor_num, a)
+            pixel_list[num] = (r ^ xor_num, g ^ xor_num, b ^ xor_num, a)
             bar.update(num + 1)
     region.putdata(pixel_list)
     bar.finish()

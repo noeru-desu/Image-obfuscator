@@ -73,7 +73,7 @@ program.logger.info('正在重组')
 bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
 new_image = generate_decrypted_image(regions, pos_list, flip_list, image_data['row'], image_data['col'], block_width, block_height, image_data['rgb_mapping'], bar)
 
-if image_data['rgb_mapping']:
+if image_data['xor_rgb']:
     program.logger.info('正在异或解密，性能较低，请耐心等待')
     size = new_image.size
     bar = ProgressBar(max_value=size[0] * size[1], widgets=widgets)

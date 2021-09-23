@@ -28,9 +28,11 @@ except UnidentifiedImageError:
 size = img.size
 program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 
-rgb_mapping = program.parameter['mapping']
 col = program.parameter['col']
 row = program.parameter['row']
+rgb_mapping = program.parameter['mapping']
+xor_rgb = program.parameter['xor_rgb']
+xor_alpha = program.parameter['xor_alpha']
 pw = program.parameter['password']
 has_pw = True if pw != 100 else False
 name, suffix = splitext(program.parameter['path'])
@@ -56,11 +58,11 @@ program.logger.info('正在重组')
 bar = ProgressBar(max_value=col * row, widgets=widgets)
 new_image = generate_encrypted_image(regions, flip_list, row, col, block_width, block_height, rgb_mapping, bar)
 
-if rgb_mapping:
+if xor_rgb:
     program.logger.info('正在异或加密，性能较低，请耐心等待')
     size = new_image.size
     bar = ProgressBar(max_value=size[0] * size[1], widgets=widgets)
-    new_image = XOR_image(new_image, pw, program.parameter['xor_alpha'], bar)
+    new_image = XOR_image(new_image, pw, xor_alpha, bar)
 
 program.logger.info('完成，正在保存文件')
 name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
@@ -74,7 +76,8 @@ json = {
     'has_password': has_pw,
     'password_base64': encrypt(AES.MODE_CFB, pw, 'PASS', str(size[0]) + str(size[1]), True) if has_pw else 0,
     'rgb_mapping': rgb_mapping,
-    'xor_alpha': program.parameter['xor_alpha']
+    'xor_rgb': xor_rgb,
+    'xor_alpha': xor_alpha
 }
 with open(join(path, name), "a") as f:
     f.write('\n' + dumps(json, separators=(',', ':')))
