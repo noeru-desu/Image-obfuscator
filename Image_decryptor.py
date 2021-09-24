@@ -1,4 +1,3 @@
-from json import loads
 from math import ceil
 from os.path import normpath, splitext
 from sys import exit
@@ -10,38 +9,35 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 from modules.AES import decrypt
 from modules.image_cryptor import XOR_image, generate_decrypted_image, get_mapping_lists
 from modules.loader import get_instances
+from modules.utils import pause
+from modules.version_adapter import load_encryption_attributes
 
 program = get_instances()
 
 if 'path' not in program.parameter:
     program.logger.error('没有输入文件')
+    pause()
     exit()
+
 program.parameter['path'] = normpath(program.parameter['path'])
+
 try:
     img = Image.open(program.parameter['path']).convert('RGBA')
 except FileNotFoundError:
     program.logger.error('文件不存在')
+    pause()
     exit()
 except UnidentifiedImageError:
     program.logger.error('无法打开或识别图像格式，或输入了不受支持的格式')
+    pause()
     exit()
+
 size = img.size
 program.logger.info(f'导入大小：{size[0]}x{size[1]}')
-data = None
 
-with open(program.parameter['path'], 'rb') as f:
-    offset = -35
-    while True:
-        f.seek(offset, 2)
-        lines = f.readlines()
-        if len(lines) >= 2:
-            last_line = lines[-1]
-            break
-        offset *= 2
-    data = last_line.decode()
-
-image_data = loads(data)
+image_data = load_encryption_attributes()
 pw = 100
+
 if image_data['has_password']:
     input_pw = ''
     while True:
@@ -81,6 +77,12 @@ if image_data['xor_rgb']:
 
 program.logger.info('正在保存文件')
 original_image = new_image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
+
 name, suffix = splitext(program.parameter['path'])
+suffix = program.parameter['format'] if program.parameter['format'] != 'normal' else suffix
+suffix.strip('.')
+if suffix.upper() in ['JPG', 'JPEG']:
+    original_image = original_image.convert('RGB')
 name = name.replace('-encrypted', '')
-original_image.save(name + '-decrypted' + suffix, quality=100)
+
+original_image.save(name + '-decrypted.' + suffix, quality=100)

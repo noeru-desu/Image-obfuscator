@@ -2,6 +2,8 @@ from getopt import GetoptError, getopt
 from os.path import isfile
 from sys import exit
 
+from PIL.Image import EXTENSION
+
 help_msg = '''
 <filename> [--nm] [-pw password] [-r row] [-c column] [-f file_format]
 
@@ -25,7 +27,7 @@ def check_start_mode(logger, argv):
         exit(2)
     parameter = {
         'path': argv[0],
-        'format': 'png',
+        'format': 'normal',
         'mapping': True,
         'xor_rgb': False,
         'xor_alpha': False,
@@ -43,8 +45,12 @@ def check_start_mode(logger, argv):
             logger.info(help_msg)
             exit()
         elif opt in ('-f', '--format'):
-            logger.info(f'指定保存格式为 {arg}')
-            parameter['format'] = arg
+            if arg.lower() not in EXTENSION:
+                logger.error(f'不支持指定的格式：{arg}')
+                logger.error('自动使用默认格式：png')
+            else:
+                logger.info(f'指定保存格式为 {arg}')
+                parameter['format'] = arg
         elif opt in ('--nm', '--not_mapping'):
             logger.info('已关闭RGB随机映射')
             parameter['mapping'] = False
