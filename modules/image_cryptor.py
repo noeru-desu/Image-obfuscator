@@ -53,17 +53,18 @@ def generate_encrypted_image(regions, flip_list, row, col, block_width, block_he
 def XOR_image(region, random_seed, xor_alpha, bar):
     seed(random_seed)
     xor_num = randrange(256)
-    pixel_list = list(region.getdata())
+    pixel_data = region.getdata()
+    pixel_list = []
     if xor_alpha:
-        for num, i in enumerate(pixel_list):
+        for num, i in enumerate(pixel_data):
             r, g, b, a = i
-            pixel_list[num] = (r ^ xor_num, g ^ xor_num, b ^ xor_num, a ^ xor_num)
-            bar.update(num + 1)
+            pixel_list.append((r ^ xor_num, g ^ xor_num, b ^ xor_num, a ^ xor_num))
+            bar.update(num)
     else:
-        for num, i in enumerate(pixel_list):
+        for num, i in enumerate(pixel_data):
             r, g, b, a = i
-            pixel_list[num] = (r ^ xor_num, g ^ xor_num, b ^ xor_num, a)
-            bar.update(num + 1)
+            pixel_list.append((r ^ xor_num, g ^ xor_num, b ^ xor_num, a))
+            bar.update(num)
     region.putdata(pixel_list)
     bar.finish()
     return region
