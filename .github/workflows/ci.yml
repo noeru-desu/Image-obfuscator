@@ -36,8 +36,8 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Set up MinGW
-      uses: egor-tensin/setup-mingw@v2
+    # - name: Set up MinGW
+    #   uses: egor-tensin/setup-mingw@v2
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
@@ -57,8 +57,8 @@ jobs:
         pip install markupsafe
     - name: Build artifacts
       run: |
-        nuitka --mingw64 --onefile --python-flag=no_site --assume-yes-for-downloads --output-dir=build Image_encryptor.py
-        nuitka --mingw64 --onefile --python-flag=no_site --assume-yes-for-downloads --output-dir=build Image_decryptor.py
+        nuitka --onefile --python-flag=no_site --assume-yes-for-downloads --output-dir=build Image_encryptor.py
+        nuitka --onefile --python-flag=no_site --assume-yes-for-downloads --output-dir=build Image_decryptor.py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
