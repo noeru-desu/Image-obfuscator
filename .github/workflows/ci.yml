@@ -57,12 +57,14 @@ jobs:
         pip install markupsafe
     - name: Build artifacts
       run: |
-        nuitka --mingw64 --lto no --onefile --python-arch=x86 --assume-yes-for-downloads --output-dir=build Image_encryptor.py
-        nuitka --mingw64 --lto no --onefile --python-arch=x86 --assume-yes-for-downloads --output-dir=build Image_decryptor.py
+        New-Item C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\lib\bfd-plugins -type Directory
+        Move-Item C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\libexec\gcc\x86_64-w64-mingw32\8.1.0\liblto_plugin-0.dll C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\lib\bfd-plugins\
+        nuitka --mingw64 --lto yes --onefile --python-arch=x86 --assume-yes-for-downloads --output-dir=build Image_encryptor.py
+        nuitka --mingw64 --lto yes --onefile --python-arch=x86 --assume-yes-for-downloads --output-dir=build Image_decryptor.py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: by-nuitka
         path: |
-          build/Image_encryptor.dist/
-          build/Image_decryptor.dist/
+          build/Image_encryptor.exe
+          build/Image_decryptor.exe
