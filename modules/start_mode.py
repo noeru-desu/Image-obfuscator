@@ -3,7 +3,7 @@ from multiprocessing import cpu_count
 from os.path import isfile
 from sys import exit
 
-from PIL.Image import EXTENSION
+from PIL.Image import EXTENSION, init as PIL_init
 
 help_msg = '''
 <filename> [--nm] [-pw password] [-r row] [-c column] [-f file_format]
@@ -19,6 +19,8 @@ help_msg = '''
 --pc process_count / --process-count process_count 指定用于异或加密的进程池大小，可使用运算符。提供{cpu_count}，表示cpu数量(每个cpu的核数之和)
 '''
 CPU_COUNT = cpu_count()
+if not EXTENSION:
+    PIL_init()
 
 
 def check_start_mode(logger, argv):
@@ -37,7 +39,7 @@ def check_start_mode(logger, argv):
         'password': 100,
         'row': 25,
         'col': 25,
-        'process_count': CPU_COUNT - 2
+        'process_count': 1 if CPU_COUNT < 3 else CPU_COUNT - 2
     }
     try:
         opts, args = getopt(argv[1:], 'hf:r:c:x:', ['help', 'format=', 'pw=', 'password=', 'row=', 'col=', 'column=', 'rm', 'rgb-mapping', 'xor=', 'pc=', 'process-count='])
@@ -49,8 +51,9 @@ def check_start_mode(logger, argv):
             logger.info(help_msg)
             exit()
         elif opt in ('-f', '--format'):
-            if arg.lower() not in EXTENSION:
+            if '.' + arg.lower() not in EXTENSION:
                 logger.error(f'不支持指定的格式：{arg}')
+                logger.error(f"支持的格式：{', '.join(EXTENSION)}")
             else:
                 logger.info(f'指定保存格式为 {arg}')
                 parameter['format'] = arg

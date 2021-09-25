@@ -17,10 +17,17 @@ class program_instances:
             exit()
         if self.parameter['xor_rgb']:
             self.process_pool = ProcessPoolExecutor(self.parameter['process_count'])
+        else:
+            self.process_pool = None
 
 
 def get_instances():
     return program
+
+
+def create_process_pool():
+    if program.process_pool is None:
+        program.process_pool = ProcessPoolExecutor(program.parameter['process_count'])
 
 
 program = program_instances()
@@ -28,7 +35,7 @@ program = program_instances()
 
 @register
 def at_exit():
-    if program.parameter['xor_rgb']:
+    if program.process_pool is not None:
         program.logger.info('程序退出，正在清理进程池')
         program.process_pool.shutdown(wait=False, cancel_futures=True)
         program.logger.info('完成')

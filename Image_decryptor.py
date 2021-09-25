@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     from modules.AES import decrypt
     from modules.image_cryptor import XOR_image, generate_decrypted_image, get_mapping_lists
-    from modules.loader import get_instances
+    from modules.loader import get_instances, create_process_pool
     from modules.utils import pause
     from modules.version_adapter import load_encryption_attributes
 
@@ -71,18 +71,18 @@ if __name__ == '__main__':
     new_image = generate_decrypted_image(regions, pos_list, flip_list, image_data['row'], image_data['col'], block_width, block_height, image_data['rgb_mapping'], bar)
 
     if image_data['xor_rgb']:
+        create_process_pool()
         program.logger.info('正在异或解密，性能较低，请耐心等待')
         size = new_image.size
-        bar = ProgressBar(max_value=size[0] * size[1], widgets=widgets)
-        new_image = XOR_image(new_image, pw, image_data['xor_alpha'], bar)
+        new_image = XOR_image(new_image, pw, image_data['xor_alpha'], program.process_pool, program.parameter['process_count'])
 
     program.logger.info('正在保存文件')
     original_image = new_image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
 
     name, suffix = splitext(program.parameter['path'])
     suffix = program.parameter['format'] if program.parameter['format'] != 'normal' else suffix
-    suffix.strip('.')
-    if suffix.upper() in ['JPG', 'JPEG']:
+    suffix = suffix.strip('.')
+    if suffix.lower() in ['jpg', 'jpeg']:
         original_image = original_image.convert('RGB')
     name = name.replace('-encrypted', '')
 

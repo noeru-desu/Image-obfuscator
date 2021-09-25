@@ -44,10 +44,12 @@ if __name__ == '__main__':
     has_pw = True if pw != 100 else False
     name, suffix = splitext(program.parameter['path'])
     suffix = program.parameter['format'] if program.parameter['format'] != 'normal' else 'png'
-    suffix.strip('.')
+    suffix = suffix.strip('.')
 
-    if rgb_mapping and suffix.upper() in ['JPG', 'JPEG', 'WMF', 'WEBP']:
+    if (rgb_mapping or xor_rgb) and suffix.upper() in ['JPG', 'JPEG', 'WMF', 'WEBP']:
         rgb_mapping = False
+        xor_rgb = False
+        xor_alpha = False
         program.logger.warning('你指定了一个有损压缩的图像格式来保存文件，已自动关闭RGB随机映射与异或加密')
 
     block_width = ceil(size[0] / col)
@@ -69,13 +71,12 @@ if __name__ == '__main__':
     if xor_rgb:
         program.logger.info('正在异或加密，性能较低，请耐心等待')
         size = new_image.size
-        bar = ProgressBar(max_value=size[0] * size[1], widgets=widgets)
         new_image = XOR_image(new_image, pw, xor_alpha, program.process_pool, program.parameter['process_count'])
 
     program.logger.info('完成，正在保存文件')
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
     path, file = split(program.parameter['path'])
-    if suffix.upper() in ['JPG', 'JPEG']:
+    if suffix.lower() in ['jpg', 'jpeg']:
         new_image = new_image.convert('RGB')
 
     new_image.save(name, quality=100)
