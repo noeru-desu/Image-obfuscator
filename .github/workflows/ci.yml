@@ -36,8 +36,9 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Set up MinGW
-      uses: egor-tensin/setup-mingw@v2
+    - uses: ilammy/msvc-dev-cmd@v1
+    # - name: Set up MinGW
+    #   uses: egor-tensin/setup-mingw@v2
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
@@ -59,8 +60,8 @@ jobs:
       run: |
         New-Item C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\lib\bfd-plugins -type Directory
         Move-Item -path C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\libexec\gcc\x86_64-w64-mingw32\8.1.0\liblto_plugin-0.dll -destination C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\lib\bfd-plugins\
-        nuitka --msvc=MSVC --lto yes --onefile --assume-yes-for-downloads --output-dir=build Image_encryptor.py
-        nuitka --msvc=MSVC --lto yes --onefile --assume-yes-for-downloads --output-dir=build Image_decryptor.py
+        nuitka --msvc=14.0 --lto yes --onefile --assume-yes-for-downloads --output-dir=build Image_encryptor.py
+        nuitka --msvc=14.0 --lto yes --onefile --assume-yes-for-downloads --output-dir=build Image_decryptor.py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
