@@ -18,6 +18,7 @@ help_msg = '''
 -f file_format / --format file_format 指定保存的文件格式
 --pc process_count / --process-count process_count 指定用于异或加密的进程池大小，可使用运算符。提供{cpu_count}，表示cpu数量(每个cpu的核数之和)
 '''
+CPU_COUNT = cpu_count()
 
 
 def check_start_mode(logger, argv):
