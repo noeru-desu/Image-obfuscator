@@ -1,3 +1,4 @@
+from math import ceil
 from random import randrange, seed, shuffle
 
 from PIL import Image
@@ -50,23 +51,35 @@ def generate_encrypted_image(regions, flip_list, row, col, block_width, block_he
     return image
 
 
-def XOR_image(region, random_seed, xor_alpha, bar):
-    seed(random_seed)
-    xor_num = randrange(256)
-    pixel_data = region.getdata()
+def xor(xor_num, xor_alpha, pixel_data):
     pixel_list = []
     if xor_alpha:
-        for num, i in enumerate(pixel_data):
+        for i in pixel_data:
             r, g, b, a = i
             pixel_list.append((r ^ xor_num, g ^ xor_num, b ^ xor_num, a ^ xor_num))
-            bar.update(num)
     else:
-        for num, i in enumerate(pixel_data):
+        for i in pixel_data:
             r, g, b, a = i
             pixel_list.append((r ^ xor_num, g ^ xor_num, b ^ xor_num, a))
-            bar.update(num)
+    return pixel_list
+
+
+def XOR_image(region, random_seed, xor_alpha, process_pool, process_count):
+    seed(random_seed)
+    xor_num = randrange(256)
+    pixel_list = list(region.getdata())
+    future_list = []
+    num = 0
+    for i in range(0, len(pixel_list), ceil(len(pixel_list) / process_count)):
+        if i == 0:
+            continue
+        future_list.append(process_pool.submit(xor, xor_num, xor_alpha, pixel_list[num:i]))
+        num = i + 1
+    future_list.append(process_pool.submit(xor, xor_num, xor_alpha, pixel_list[num:]))
+    pixel_list = []
+    for i in future_list:
+        pixel_list.extend(i.result())
     region.putdata(pixel_list)
-    bar.finish()
     return region
 
 

@@ -1,3 +1,5 @@
+from atexit import register
+from concurrent.futures import ProcessPoolExecutor
 from sys import argv, exit
 
 from .logger import Logger
@@ -13,6 +15,8 @@ class program_instances:
         if not self.parameter:
             self.logger.error('未知的启动属性或未给出启动属性')
             exit()
+        if self.parameter['xor_rgb']:
+            self.process_pool = ProcessPoolExecutor(self.parameter['process_count'])
 
 
 def get_instances():
@@ -20,3 +24,11 @@ def get_instances():
 
 
 program = program_instances()
+
+
+@register
+def at_exit():
+    if program.parameter['xor_rgb']:
+        program.logger.info('程序退出，正在清理进程池')
+        program.process_pool.shutdown(wait=False, cancel_futures=True)
+        program.logger.info('完成')

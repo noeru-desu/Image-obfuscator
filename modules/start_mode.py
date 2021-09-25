@@ -1,4 +1,5 @@
 from getopt import GetoptError, getopt
+from multiprocessing import cpu_count
 from os.path import isfile
 from sys import exit
 
@@ -9,12 +10,13 @@ help_msg = '''
 
 <filename> 图片路径
 可选参数：
---nm / --not_mapping 关闭RGB随机映射
---xa / --xor_alpha 在异或加密图像时将透明度也进行异或
+--rm / --rgb-mapping 启用RGB随机映射
+-x rgb/rgba / --xor rgb/rgba 异或加密rgb/rgba通道
 --pw password / --password password 密码
 -r row / --row row 分割行数
 -c column / --col column / --column column 分割列数
 -f file_format / --format file_format 指定保存的文件格式
+--pc process_count / --process-count process_count 指定用于异或加密的进程池大小，可使用运算符。提供{cpu_count}，表示cpu数量(每个cpu的核数之和)
 '''
 
 
@@ -28,15 +30,16 @@ def check_start_mode(logger, argv):
     parameter = {
         'path': argv[0],
         'format': 'normal',
-        'mapping': True,
+        'mapping': False,
         'xor_rgb': False,
         'xor_alpha': False,
         'password': 100,
         'row': 25,
-        'col': 25
+        'col': 25,
+        'process_count': CPU_COUNT - 2
     }
     try:
-        opts, args = getopt(argv[1:], 'hf:r:c:x:', ['help', 'format=', 'pw=', 'password=', 'row=', 'col=', 'column=', 'nm', 'not_mapping', 'xor='])
+        opts, args = getopt(argv[1:], 'hf:r:c:x:', ['help', 'format=', 'pw=', 'password=', 'row=', 'col=', 'column=', 'rm', 'rgb-mapping', 'xor=', 'pc=', 'process-count='])
     except GetoptError:
         logger.warning(help_msg)
         exit(2)
@@ -47,18 +50,17 @@ def check_start_mode(logger, argv):
         elif opt in ('-f', '--format'):
             if arg.lower() not in EXTENSION:
                 logger.error(f'不支持指定的格式：{arg}')
-                logger.error('自动使用默认格式：png')
             else:
                 logger.info(f'指定保存格式为 {arg}')
                 parameter['format'] = arg
-        elif opt in ('--nm', '--not_mapping'):
-            logger.info('已关闭RGB随机映射')
-            parameter['mapping'] = False
+        elif opt in ('--rm', '--rgb-mapping'):
+            logger.info('已启用RGB随机映射')
+            parameter['mapping'] = True
         elif opt in ('-x', '--xor'):
-            if arg.upper() == 'RGB':
+            if arg.lower() == 'rgb':
                 logger.info('已启用异或加密(不包括透明通道)')
                 parameter['xor_rgb'] = True
-            if arg.upper() == 'RGBA':
+            if arg.lower() == 'rgba':
                 logger.info('已启用异或加密(包括透明通道)')
                 parameter['xor_rgb'] = True
                 parameter['xor_alpha'] = True
@@ -69,12 +71,33 @@ def check_start_mode(logger, argv):
             try:
                 parameter['row'] = int(arg)
                 logger.info(f'已指定切割行数为 {arg}')
-            except TypeError:
-                logger.warning('指定的切割行数不为纯数字')
+            except ValueError:
+                logger.error('指定的切割行数不为纯数字')
         elif opt in ('-c', '--col', '--column'):
             try:
                 parameter['col'] = int(arg)
                 logger.info(f'已指定切割列数为 {arg}')
-            except TypeError:
-                logger.warning('指定的切割列数不为纯数字')
+            except ValueError:
+                logger.error('指定的切割列数不为纯数字')
+        elif opt in ('--pc', '--process-count'):
+            try:
+                process_count = int(eval(arg.format(cpu_count=CPU_COUNT)))
+            except SyntaxError:
+                logger.error("指定的进程池大小算式格式错误")
+            except NameError:
+                logger.error("指定的进程池大小不为纯数字")
+            except KeyError as e:
+                logger.error(f"未知的变量：{str(e)}。当前支持：cpu_count")
+            except Exception as e:
+                logger.error("指定的进程池大小运算出现错误")
+                logger.error(repr(e))
+            else:
+                if process_count <= 0 or process_count > 61:
+                    logger.error("指定的进程池大小不符合标准")
+                elif process_count > CPU_COUNT:
+                    logger.warning(f"设置的进程池大小({parameter['process_count']})大于本机cpu数量({CPU_COUNT})，性能可能会有所下降")
+                    parameter['process_count'] = process_count
+                else:
+                    logger.info(f"已设置进程池大小为 {parameter['process_count']}")
+                    parameter['process_count'] = process_count
     return parameter

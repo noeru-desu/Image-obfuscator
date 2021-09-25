@@ -1,0 +1,2 @@
+pyinstaller -F --distpath build/pyinstaller/dist --workpath build/pyinstaller/build Image_encryptor.py
+pyinstaller -F --distpath build/pyinstaller/dist --workpath build/pyinstaller/build Image_decryptor.py
