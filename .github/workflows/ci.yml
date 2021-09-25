@@ -59,8 +59,8 @@ jobs:
       run: |
         New-Item C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\lib\bfd-plugins -type Directory
         Move-Item -path C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\libexec\gcc\x86_64-w64-mingw32\8.1.0\liblto_plugin-0.dll -destination C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\lib\bfd-plugins\
-        nuitka --mingw64 --lto yes --onefile --assume-yes-for-downloads --output-dir=build Image_encryptor.py
-        nuitka --mingw64 --lto yes --onefile --assume-yes-for-downloads --output-dir=build Image_decryptor.py
+        nuitka --msvc=MSVC --lto yes --onefile --assume-yes-for-downloads --output-dir=build Image_encryptor.py
+        nuitka --msvc=MSVC --lto yes --onefile --assume-yes-for-downloads --output-dir=build Image_decryptor.py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
