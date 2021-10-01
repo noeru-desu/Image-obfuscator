@@ -51,9 +51,10 @@ def parsing_parameters(logger, argv):
     if not EXTENSION:
         PIL_init()
     try:
-        opts, args = getopt(argv[1:], 'hf:r:c:x:', ['help', 'format=', 'pw=', 'password=', 'row=', 'col=', 'column=', 'rm', 'rgb-mapping', 'xor=', 'pc=', 'process-count='])
-    except GetoptError:
-        logger.warning(help_msg)
+        opts, args = getopt(argv[1:], 'edhf:r:c:x:', ['help', 'format=', 'pw=', 'password=', 'row=', 'col=', 'column=', 'rm', 'rgb-mapping', 'xor=', 'pc=', 'process-count='])
+    except GetoptError as e:
+        logger.error(f'未知的参数：{e.opt}')
+        logger.info(help_msg)
         exit(2)
     for opt, arg in opts:
         if opt in ('-h', '--help'):
