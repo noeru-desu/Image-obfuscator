@@ -10,11 +10,16 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 from modules.AES import encrypt
 from modules.image_cryptor import XOR_image, generate_encrypted_image, get_encrypted_lists
 from modules.loader import load_program
-from modules.utils import pause
+from modules.utils import is_using, pause
 
 
 def main():
     program = load_program()
+
+    if is_using(program.parameters['path']):
+        program.logger.error('文件正在被使用')
+        pause()
+        exit()
 
     try:
         img = Image.open(program.parameters['path']).convert('RGBA')
@@ -45,11 +50,14 @@ def main():
     suffix = program.parameters['format'] if program.parameters['format'] != 'normal' else 'png'
     suffix = suffix.strip('.')
 
-    if (rgb_mapping or xor_rgb) and suffix.upper() in ['JPG', 'JPEG', 'WMF', 'WEBP']:
-        rgb_mapping = False
-        xor_rgb = False
-        xor_alpha = False
-        program.logger.warning('你指定了一个有损压缩的图像格式来保存文件，已自动关闭RGB随机映射与异或加密')
+    if suffix in ('jpg', 'jpeg', 'wmf', 'webp'):
+        program.logger.warning('当前保存格式为有损压缩格式')
+        if rgb_mapping:
+            program.logger.warning('在此情况下，使用RGB(A)随机映射会导致图片在解密后出现轻微的分界线，按任意键确定')
+            pause()
+        if xor_rgb:
+            program.logger.warning('在此情况下，使用异或加密会导致图片解密后出现严重失真，按任意键确定')
+            pause()
 
     block_width = ceil(size[0] / col)
     block_height = ceil(size[1] / row)

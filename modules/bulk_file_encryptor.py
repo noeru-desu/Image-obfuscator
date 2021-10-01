@@ -13,7 +13,7 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 from modules.AES import encrypt
 from modules.image_cryptor import XOR_image, generate_encrypted_image, get_encrypted_lists
 from modules.loader import load_program
-from modules.utils import fake_bar, pause
+from modules.utils import fake_bar, is_using, pause
 
 
 def encrypt_image(path, parameters):
@@ -37,11 +37,6 @@ def encrypt_image(path, parameters):
     name, suffix = splitext(path)
     suffix = parameters['format'] if parameters['format'] != 'normal' else 'png'
     suffix = suffix.strip('.')
-
-    if (rgb_mapping or xor_rgb) and suffix.upper() in ['JPG', 'JPEG', 'WMF', 'WEBP']:
-        rgb_mapping = False
-        xor_rgb = False
-        xor_alpha = False
 
     block_width = ceil(size[0] / col)
     block_height = ceil(size[1] / row)
@@ -88,14 +83,27 @@ def main():
         pause()
         exit()
 
+    if program.parameters['format'] in ('jpg', 'jpeg', 'wmf', 'webp'):
+        program.logger.warning('当前保存格式为有损压缩格式')
+        if program.parameters['mapping']:
+            program.logger.warning('在此情况下，使用RGB(A)随机映射会导致图片在解密后出现轻微的分界线，按任意键确定')
+            pause()
+        if program.parameters['xor_rgb']:
+            program.logger.warning('在此情况下，使用异或加密会导致图片解密后出现严重失真，按任意键确定')
+            pause()
+
     future_list = []
 
     if not EXTENSION:
         PIL_init()
     for file in files:
+        path = f"{program.parameters['path']}/{file}"
+        if is_using(path):
+            program.logger.warning(f'文件[{file}]正在被使用，跳过处理')
+            continue
         name, suffix = splitext(file)
         if suffix in EXTENSION and not (name.endswith('-encrypted') or name.endswith('-decrypted')):
-            future_list.append(program.process_pool.submit(encrypt_image, f"{program.parameters['path']}/{file}", program.parameters))
+            future_list.append(program.process_pool.submit(encrypt_image, path, program.parameters))
 
     if future_list:
         widgets = [Percentage(), ' ', SimpleProgress(), ' ', Bar('█'), ' ']

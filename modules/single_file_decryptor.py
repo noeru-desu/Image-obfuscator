@@ -7,11 +7,16 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from modules.image_cryptor import XOR_image, generate_decrypted_image, get_mapping_lists
 from modules.loader import create_process_pool, load_program
-from modules.utils import check_password, pause
+from modules.utils import check_password, is_using, pause
 
 
 def main():
     program = load_program()
+
+    if is_using(program.parameters['path']):
+        program.logger.error('文件正在被使用')
+        pause()
+        exit()
 
     try:
         img = Image.open(program.parameters['path']).convert('RGBA')

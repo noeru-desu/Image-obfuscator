@@ -1,6 +1,7 @@
 from os import system
 
 from Crypto.Cipher import AES
+from win32file import FILE_ATTRIBUTE_NORMAL, GENERIC_READ, INVALID_HANDLE_VALUE, OPEN_EXISTING, CloseHandle, CreateFile
 
 from modules.AES import encrypt
 from modules.loader import load_program
@@ -17,6 +18,17 @@ class fake_bar():
 
 def pause():
     system('pause>nul')
+
+
+def is_using(path):
+    try:
+        vHandle = CreateFile(path, GENERIC_READ, 0, None, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, None)
+        if int(vHandle) == INVALID_HANDLE_VALUE:
+            return True
+        CloseHandle(vHandle)
+    except Exception as e:
+        print(e)
+        return True
 
 
 def check_password(path, extra_info='', auto_check_password_set: set = None):

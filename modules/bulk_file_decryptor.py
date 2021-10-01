@@ -10,7 +10,7 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from modules.image_cryptor import XOR_image, generate_decrypted_image, get_mapping_lists
 from modules.loader import load_program
-from modules.utils import check_password, fake_bar, pause
+from modules.utils import check_password, fake_bar, is_using, pause
 
 
 def decrypt_image(path, parameters, image_data):
@@ -64,12 +64,15 @@ def main():
     password_set = set()
     for file in files:
         name, suffix = splitext(file)
+        path = f"{program.parameters['path']}/{file}"
+        if is_using(path):
+            program.logger.warning(f'文件[{file}]正在被使用，跳过处理')
+            continue
         if suffix not in EXTENSION or name.endswith('-decrypted'):
             continue
-        path = f"{program.parameters['path']}/{file}"
         image_data, password_base64 = check_password(path, f'[{file}]', password_set)
         if isinstance(image_data, str):
-            program.logger.warning(f'[跳过处理{file}]{image_data}')
+            program.logger.warning(f'跳过处理[{file}]{image_data}')
             continue
         if image_data['password'] != 100 and password_base64 != 0:
             password_set.add((password_base64, image_data['password']))

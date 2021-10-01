@@ -93,7 +93,8 @@ def parsing_parameters(logger, argv):
             logger.info(f'已设置密码为 {arg}')
             parameter['password'] = arg
         elif opt in ('-f', '--format'):
-            if '.' + arg.lower() not in EXTENSION:
+            arg = arg.lower()
+            if '.' + arg not in EXTENSION:
                 logger.error(f'不支持指定的格式：{arg}')
                 logger.error(f"支持的格式：{', '.join(EXTENSION)}")
             else:
