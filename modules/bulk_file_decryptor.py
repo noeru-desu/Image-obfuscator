@@ -44,7 +44,7 @@ def decrypt_image(path, parameters, image_data):
         original_image = original_image.convert('RGB')
     name = name.replace('-encrypted', '')
 
-    original_image.save(f'{name}-decrypted.{suffix}', quality=100)
+    original_image.save(f'{name}-decrypted.{suffix}', quality=95, subsampling=0)
 
 
 def main():

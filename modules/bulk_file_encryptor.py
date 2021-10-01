@@ -59,7 +59,7 @@ def encrypt_image(path, parameters):
     if suffix.lower() in ['jpg', 'jpeg']:
         new_image = new_image.convert('RGB')
 
-    new_image.save(name, quality=100)
+    new_image.save(name, quality=95, subsampling=0)
 
     json = {
         'width': size[0],
