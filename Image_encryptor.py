@@ -3,7 +3,6 @@ import modules.bulk_file_encryptor as bulk_encryptor
 import modules.single_file_decryptor as single_decryptor
 import modules.single_file_encryptor as single_encryptor
 from modules.loader import load_program
-from traceback import print_exc
 
 if __name__ == '__main__':
     program = None
