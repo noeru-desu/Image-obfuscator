@@ -64,21 +64,24 @@ def xor(xor_num, xor_alpha, pixel_data):
     return pixel_list
 
 
-def XOR_image(region, random_seed, xor_alpha, process_pool, process_count):
+def XOR_image(region, random_seed, xor_alpha, process_pool=None, process_count=None):
     seed(random_seed)
     xor_num = randrange(256)
     pixel_list = list(region.getdata())
     future_list = []
     num = 0
-    for i in range(0, len(pixel_list), ceil(len(pixel_list) / process_count)):
-        if i == 0:
-            continue
-        future_list.append(process_pool.submit(xor, xor_num, xor_alpha, pixel_list[num:i]))
-        num = i + 1
-    future_list.append(process_pool.submit(xor, xor_num, xor_alpha, pixel_list[num:]))
-    pixel_list = []
-    for i in future_list:
-        pixel_list.extend(i.result())
+    if process_pool is None:
+        pixel_list = xor(xor_num, xor_alpha, pixel_list)
+    else:
+        for i in range(0, len(pixel_list), ceil(len(pixel_list) / process_count)):
+            if i == 0:
+                continue
+            future_list.append(process_pool.submit(xor, xor_num, xor_alpha, pixel_list[num:i]))
+            num = i + 1
+        future_list.append(process_pool.submit(xor, xor_num, xor_alpha, pixel_list[num:]))
+        pixel_list = []
+        for i in future_list:
+            pixel_list.extend(i.result())
     region.putdata(pixel_list)
     return region
 

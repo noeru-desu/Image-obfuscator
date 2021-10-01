@@ -26,7 +26,6 @@ jobs:
     - name: Build artifacts
       run: |
         pyinstaller -F Image_encryptor.py
-        pyinstaller -F Image_decryptor.py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
@@ -60,11 +59,8 @@ jobs:
     - name: Build artifacts
       run: |
         nuitka --lto yes --onefile --assume-yes-for-downloads --output-dir=build Image_encryptor.py
-        nuitka --lto yes --onefile --assume-yes-for-downloads --output-dir=build Image_decryptor.py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: by-nuitka
-        path: |
-          build/Image_encryptor.exe
-          build/Image_decryptor.exe
+        path: build/Image_encryptor.exe
