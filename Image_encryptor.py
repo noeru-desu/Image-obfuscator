@@ -3,16 +3,24 @@ import modules.bulk_file_encryptor as bulk_encryptor
 import modules.single_file_decryptor as single_decryptor
 import modules.single_file_encryptor as single_encryptor
 from modules.loader import load_program
+from traceback import print_exc
 
 if __name__ == '__main__':
-    program = load_program()
-    if program.parameters['mode'] == 'e':
-        if program.parameters['type'] == 'f':
-            single_encryptor.main()
+    program = None
+    try:
+        program = load_program()
+        if program.parameters['mode'] == 'e':
+            if program.parameters['type'] == 'f':
+                single_encryptor.main()
+            else:
+                bulk_encryptor.main()
         else:
-            bulk_encryptor.main()
-    else:
-        if program.parameters['type'] == 'f':
-            single_decryptor.main()
+            if program.parameters['type'] == 'f':
+                single_decryptor.main()
+            else:
+                bulk_decryptor.main()
+    except KeyboardInterrupt:
+        if program:
+            program.logger.error('已强制退出')
         else:
-            bulk_decryptor.main()
+            print('\n已强制退出')

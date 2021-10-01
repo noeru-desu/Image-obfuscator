@@ -85,7 +85,7 @@ def main():
         'col': col,
         'row': row,
         'has_password': has_password,
-        'password_base64': encrypt(AES.MODE_CFB, password, 'PASS', str(size[0]) + str(size[1]), True) if has_password else 0,
+        'password_base64': encrypt(AES.MODE_CFB, password, 'PASS', base64=True) if has_password else 0,
         'rgb_mapping': rgb_mapping,
         'xor_rgb': xor_rgb,
         'xor_alpha': xor_alpha,

@@ -67,12 +67,12 @@ def main():
         if suffix not in EXTENSION or name.endswith('-decrypted'):
             continue
         path = f"{program.parameters['path']}/{file}"
-        image_data = check_password(path, f'[{file}]', password_set)
+        image_data, password_base64 = check_password(path, f'[{file}]', password_set)
         if isinstance(image_data, str):
             program.logger.warning(f'[跳过处理{file}]{image_data}')
             continue
-        if image_data['password'] != 100:
-            password_set.add(image_data['password'])
+        if image_data['password'] != 100 and password_base64 != 0:
+            password_set.add((password_base64, image_data['password']))
         future_list.append(program.process_pool.submit(decrypt_image, path, program.parameters, image_data))
 
     if future_list:

@@ -31,7 +31,7 @@ def main():
     size = img.size
     program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 
-    image_data = check_password()
+    image_data, _ = check_password(program.parameters['path'])
     if isinstance(image_data, str):
         program.logger.error(image_data)
         pause()

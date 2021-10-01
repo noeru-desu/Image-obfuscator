@@ -2,7 +2,7 @@ from os import system
 
 from Crypto.Cipher import AES
 
-from modules.AES import decrypt
+from modules.AES import encrypt
 from modules.loader import load_program
 from modules.version_adapter import load_encryption_attributes
 
@@ -23,20 +23,22 @@ def check_password(path, extra_info='', auto_check_password_set: set = None):
     program = load_program()
     image_data = load_encryption_attributes(path)
     if isinstance(image_data, str):
-        return image_data
+        return image_data, 0
     password = 100
-    auto_check_password_set = {} if auto_check_password_set is None else auto_check_password_set
+    password_base64 = 0
+    auto_check_password_set = set() if auto_check_password_set is None else auto_check_password_set
 
     if image_data['has_password']:
         password = ''
+        '''
         if program.parameters['password'] != 100:
-            auto_check_password_set.add(program.parameters['password'])
-
+            auto_check_password_set.add(base64, program.parameters['password'])
+        '''
         if auto_check_password_set:
-            for i in auto_check_password_set:
+            for b, p in auto_check_password_set:
                 try:
-                    if decrypt(AES.MODE_CFB, i, image_data['password_base64'], str(image_data['width']) + str(image_data['height']), True) == 'PASS':
-                        password = i
+                    if b == image_data['password_base64']:
+                        password = p
                         break
                 except UnicodeDecodeError:
                     continue
@@ -48,7 +50,8 @@ def check_password(path, extra_info='', auto_check_password_set: set = None):
                     continue
 
                 try:
-                    if decrypt(AES.MODE_CFB, password, image_data['password_base64'], str(image_data['width']) + str(image_data['height']), True) == 'PASS':
+                    password_base64 = encrypt(AES.MODE_CFB, password, 'PASS', base64=True)
+                    if password_base64 == image_data['password_base64']:
                         break
                     else:
                         program.logger.warning('密码错误！')
@@ -56,4 +59,4 @@ def check_password(path, extra_info='', auto_check_password_set: set = None):
                     program.logger.warning('密码错误！')
 
     image_data['password'] = password
-    return image_data
+    return image_data, password_base64
