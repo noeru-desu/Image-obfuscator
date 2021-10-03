@@ -55,6 +55,8 @@ def parsing_parameters(logger, argv):
     if isfile(path):
         parameter['type'] = 'f'
     elif isdir(path):
+        if skip_argv == 1:
+            parameter['save_path'] = save_path = path
         parameter['type'] = 'd'
     else:
         logger.error('没有提供文件或文件不存在')
