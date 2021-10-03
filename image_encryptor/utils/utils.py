@@ -5,7 +5,6 @@ from Crypto.Cipher import AES
 from image_encryptor.modules.loader import load_program
 from image_encryptor.modules.version_adapter import load_encryption_attributes
 from image_encryptor.utils.AES import encrypt
-from win32file import FILE_ATTRIBUTE_NORMAL, GENERIC_READ, INVALID_HANDLE_VALUE, OPEN_EXISTING, CloseHandle, CreateFile
 
 
 class fake_bar():
@@ -20,6 +19,7 @@ def pause():
     system('pause>nul')
 
 
+'''from win32file import FILE_ATTRIBUTE_NORMAL, GENERIC_READ, INVALID_HANDLE_VALUE, OPEN_EXISTING, CloseHandle, CreateFile
 def is_using(path):
     return False  # 暂时禁用
     try:
@@ -29,7 +29,7 @@ def is_using(path):
         CloseHandle(vHandle)
     except Exception as e:
         print(e)
-        return True
+        return True'''
 
 
 def walk_file(path, topdown=False):
