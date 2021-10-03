@@ -7,10 +7,10 @@ from Crypto.Cipher import AES
 from PIL import Image, UnidentifiedImageError
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
-from modules.AES import encrypt
-from modules.image_cryptor import XOR_image, generate_encrypted_image, get_encrypted_lists
-from modules.loader import load_program
-from modules.utils import is_using, pause
+from image_encryptor.utils.AES import encrypt
+from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, get_encrypted_lists
+from image_encryptor.modules.loader import load_program
+from image_encryptor.utils.utils import is_using, pause
 
 
 def main():
@@ -31,6 +31,10 @@ def main():
         program.logger.error('无法打开或识别图像格式，或输入了不受支持的格式')
         pause()
         exit()
+    except Image.DecompressionBombWarning:
+        program.logger.error('图片像素量过多，为防止被解压炸弹DOS攻击，不进行处理')
+        pause()
+        exit()
     except Exception as e:
         program.logger.error(repr(e))
         pause()
@@ -46,7 +50,7 @@ def main():
     xor_alpha = program.parameters['xor_alpha']
     password = program.parameters['password']
     has_password = True if password != 100 else False
-    name, suffix = splitext(program.parameters['path'])
+    name, suffix = splitext(split(program.parameters['path'])[1])
     suffix = program.parameters['format'] if program.parameters['format'] != 'normal' else 'png'
     suffix = suffix.strip('.')
 
@@ -81,11 +85,11 @@ def main():
 
     program.logger.info('完成，正在保存文件')
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
-    path, file = split(program.parameters['path'])
+    save_path = join(program.parameters['save_path'], name)
     if suffix.lower() in ['jpg', 'jpeg']:
         new_image = new_image.convert('RGB')
 
-    new_image.save(name, quality=95, subsampling=0)
+    new_image.save(save_path, quality=95, subsampling=0)
 
     json = {
         'width': size[0],
@@ -100,5 +104,5 @@ def main():
         'version': 1
     }
 
-    with open(join(path, name), "a") as f:
+    with open(save_path, "a") as f:
         f.write('\n' + dumps(json, separators=(',', ':')))

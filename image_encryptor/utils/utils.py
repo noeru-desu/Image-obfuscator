@@ -1,11 +1,11 @@
-from os import system
+from os import system, walk
+from os.path import normpath
 
 from Crypto.Cipher import AES
+from image_encryptor.modules.loader import load_program
+from image_encryptor.modules.version_adapter import load_encryption_attributes
+from image_encryptor.utils.AES import encrypt
 from win32file import FILE_ATTRIBUTE_NORMAL, GENERIC_READ, INVALID_HANDLE_VALUE, OPEN_EXISTING, CloseHandle, CreateFile
-
-from modules.AES import encrypt
-from modules.loader import load_program
-from modules.version_adapter import load_encryption_attributes
 
 
 class fake_bar():
@@ -21,6 +21,7 @@ def pause():
 
 
 def is_using(path):
+    return False  # 暂时禁用
     try:
         vHandle = CreateFile(path, GENERIC_READ, 0, None, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, None)
         if int(vHandle) == INVALID_HANDLE_VALUE:
@@ -29,6 +30,13 @@ def is_using(path):
     except Exception as e:
         print(e)
         return True
+
+
+def walk_file(path, topdown=False):
+    path = normpath(path)
+    path_len = len(path) + 1
+    for top, dirs, files in walk(path, topdown):
+        yield top[path_len:], files
 
 
 def check_password(path, extra_info='', auto_check_password_set: set = None):

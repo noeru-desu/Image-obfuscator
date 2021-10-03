@@ -1,18 +1,20 @@
 from getopt import GetoptError, getopt
 from multiprocessing import cpu_count
-from os.path import isdir, isfile, normpath
+from os.path import isdir, isfile, normpath, split
 from sys import exit
 
 from PIL.Image import EXTENSION
 from PIL.Image import init as PIL_init
 
 help_msg = '''
-<path> [--nm] [-pw password] [-r row] [-c column] [-f file_format]
+<path> <save-path> [--nm] [-pw password] [-r row] [-c column] [-f file_format]
 
 <path> 图片/文件夹 路径
+<save-path> 保存路径
 可选参数：
--e 加密模式
--d 解密模式
+-e / --encrypt 加密模式
+-d / --decrypt 解密模式
+-t / --topdown 批量加解密时不仅遍历表层文件夹，同时遍历所有文件夹内的文件夹
 --rm / --rgb-mapping 启用RGB随机映射
 -x rgb/rgba / --xor rgb/rgba 异或加密rgb/rgba通道
 --pw password / --password password 密码
@@ -28,10 +30,19 @@ def parsing_parameters(logger, argv):
         logger.info(help_msg)
         exit()
     CPU_COUNT = cpu_count()
+    path = normpath(argv[0])
+    if len(argv) == 1 or argv[1].startswith('-'):
+        save_path = split(path)[0]
+        skip_argv = 1
+    else:
+        save_path = normpath(argv[1])
+        skip_argv = 2
     parameter = {
         'mode': None,
         'type': None,
-        'path': normpath(argv[0]),
+        'topdown': False,
+        'path': path,
+        'save_path': save_path,
         'format': 'normal',
         'mapping': False,
         'xor_rgb': False,
@@ -41,17 +52,20 @@ def parsing_parameters(logger, argv):
         'col': 25,
         'process_count': 1 if CPU_COUNT < 3 else CPU_COUNT - 2
     }
-    if isfile(argv[0]):
+    if isfile(path):
         parameter['type'] = 'f'
-    elif isdir(argv[0]):
+    elif isdir(path):
         parameter['type'] = 'd'
     else:
-        logger.warning('没有提供文件或文件不存在')
+        logger.error('没有提供文件或文件不存在')
+        exit(2)
+    if not isdir(save_path):
+        logger.error('提供的保存位置不是文件夹或文件夹不存在')
         exit(2)
     if not EXTENSION:
         PIL_init()
     try:
-        opts, args = getopt(argv[1:], 'edhf:r:c:x:', ['help', 'format=', 'pw=', 'password=', 'row=', 'col=', 'column=', 'rm', 'rgb-mapping', 'xor=', 'pc=', 'process-count='])
+        opts, args = getopt(argv[skip_argv:], 'edthf:r:c:x:', ['help', 'encrypt', 'decrypt', 'topdown', 'format=', 'pw=', 'password=', 'row=', 'col=', 'column=', 'rm', 'rgb-mapping', 'xor=', 'pc=', 'process-count='])
     except GetoptError as e:
         logger.error(f'未知的参数：{e.opt}')
         logger.info(help_msg)
@@ -60,10 +74,12 @@ def parsing_parameters(logger, argv):
         if opt in ('-h', '--help'):
             logger.info(help_msg)
             exit()
-        elif opt == '-e':
+        elif opt in ('-e', '--encrypt'):
             parameter['mode'] = 'e'
-        elif opt == '-d':
+        elif opt in ('-d', '--decrypt'):
             parameter['mode'] = 'd'
+        elif opt in ('-t', '--topdown'):
+            parameter['topdown'] = True
         elif opt in ('--rm', '--rgb-mapping'):
             logger.info('已启用RGB随机映射')
             parameter['mapping'] = True

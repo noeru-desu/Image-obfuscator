@@ -1,25 +1,27 @@
 from math import ceil
-from os import walk
-from os.path import split, splitext
-from sys import exit
+from ntpath import join
+from os import makedirs
+from os.path import exists, split, splitext
 
 from PIL import Image, UnidentifiedImageError
-from PIL.Image import EXTENSION
+from PIL.Image import EXTENSION, DecompressionBombWarning
 from PIL.Image import init as PIL_init
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
-from modules.image_cryptor import XOR_image, generate_decrypted_image, get_mapping_lists
-from modules.loader import load_program
-from modules.utils import check_password, fake_bar, is_using, pause
+from image_encryptor.modules.image_cryptor import XOR_image, generate_decrypted_image, get_mapping_lists
+from image_encryptor.modules.loader import load_program
+from image_encryptor.utils.utils import check_password, fake_bar, is_using, walk_file
 
 
-def decrypt_image(path, parameters, image_data):
+def decrypt_image(path, parameters, image_data, save_relative_path):
     try:
         img = Image.open(path).convert('RGBA')
     except FileNotFoundError:
         return split(path)[1], '文件不存在'
     except UnidentifiedImageError:
         return split(path)[1], '无法打开或识别图像格式，或输入了不受支持的格式'
+    except DecompressionBombWarning:
+        return split(path)[1], '图片像素量过多，为防止被解压炸弹DOS攻击，自动跳过'
     except Exception as e:
         return split(path)[1], repr(e)
 
@@ -37,46 +39,43 @@ def decrypt_image(path, parameters, image_data):
 
     original_image = new_image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
 
-    name, suffix = splitext(path)
+    name, suffix = splitext(split(path)[1])
     suffix = parameters['format'] if parameters['format'] != 'normal' else suffix
     suffix = suffix.strip('.')
     if suffix.lower() in ['jpg', 'jpeg']:
         original_image = original_image.convert('RGB')
-    name = name.replace('-encrypted', '')
+    name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"
 
-    original_image.save(f'{name}-decrypted.{suffix}', quality=95, subsampling=0)
+    original_image.save(join(parameters['save_path'], save_relative_path, name), quality=95, subsampling=0)
 
 
 def main():
     program = load_program()
-
-    _, _, files = next(walk(program.parameters['path']))
-
-    if not files:
-        program.logger.error('输入了空的文件夹')
-        pause()
-        exit()
 
     future_list = []
 
     if not EXTENSION:
         PIL_init()
     password_set = set()
-    for file in files:
-        name, suffix = splitext(file)
-        path = f"{program.parameters['path']}/{file}"
-        if is_using(path):
-            program.logger.warning(f'文件[{file}]正在被使用，跳过处理')
-            continue
-        if suffix not in EXTENSION or name.endswith('-decrypted'):
-            continue
-        image_data, password_base64 = check_password(path, f'[{file}]', password_set)
-        if isinstance(image_data, str):
-            program.logger.warning(f'跳过处理[{file}]{image_data}')
-            continue
-        if image_data['password'] != 100 and password_base64 != 0:
-            password_set.add((password_base64, image_data['password']))
-        future_list.append(program.process_pool.submit(decrypt_image, path, program.parameters, image_data))
+    for relative_path, files in walk_file(program.parameters['path'], program.parameters['topdown']):
+        save_dir = join(program.parameters['save_path'], relative_path)
+        for file in files:
+            name, suffix = splitext(file)
+            path = join(program.parameters['path'], relative_path, file)
+            if is_using(path):
+                program.logger.warning(f'文件[{file}]正在被使用，跳过处理')
+                continue
+            if suffix not in EXTENSION or name.endswith('-decrypted'):
+                continue
+            image_data, password_base64 = check_password(path, f'[{file}]', password_set)
+            if isinstance(image_data, str):
+                program.logger.warning(f'跳过处理[{file}]{image_data}')
+                continue
+            if image_data['password'] != 100 and password_base64 != 0:
+                password_set.add((password_base64, image_data['password']))
+            if not exists(save_dir):
+                makedirs(save_dir)
+            future_list.append(program.process_pool.submit(decrypt_image, path, program.parameters, image_data, relative_path))
 
     if future_list:
         widgets = [Percentage(), ' ', SimpleProgress(), ' ', Bar('█'), ' ']

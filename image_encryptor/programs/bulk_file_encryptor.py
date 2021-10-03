@@ -1,28 +1,29 @@
 from json import dumps
 from math import ceil
-from os import walk
-from os.path import join, split, splitext
-from sys import exit
+from os import makedirs
+from os.path import exists, join, split, splitext
 
 from Crypto.Cipher import AES
 from PIL import Image, UnidentifiedImageError
-from PIL.Image import EXTENSION
+from PIL.Image import EXTENSION, DecompressionBombWarning
 from PIL.Image import init as PIL_init
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
-from modules.AES import encrypt
-from modules.image_cryptor import XOR_image, generate_encrypted_image, get_encrypted_lists
-from modules.loader import load_program
-from modules.utils import fake_bar, is_using, pause
+from image_encryptor.utils.AES import encrypt
+from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, get_encrypted_lists
+from image_encryptor.modules.loader import load_program
+from image_encryptor.utils.utils import fake_bar, is_using, pause, walk_file
 
 
-def encrypt_image(path, parameters):
+def encrypt_image(path, parameters, save_relative_path):
     try:
         img = Image.open(path).convert('RGBA')
     except FileNotFoundError:
         return split(path)[1], '文件不存在'
     except UnidentifiedImageError:
         return split(path)[1], '无法打开或识别图像格式，或输入了不受支持的格式'
+    except DecompressionBombWarning:
+        return split(path)[1], '图片像素量过多，为防止被解压炸弹DOS攻击，自动跳过'
     except Exception as e:
         return split(path)[1], repr(e)
 
@@ -34,7 +35,7 @@ def encrypt_image(path, parameters):
     xor_alpha = parameters['xor_alpha']
     password = parameters['password']
     has_password = True if password != 100 else False
-    name, suffix = splitext(path)
+    name, suffix = splitext(split(path)[1])
     suffix = parameters['format'] if parameters['format'] != 'normal' else 'png'
     suffix = suffix.strip('.')
 
@@ -50,11 +51,11 @@ def encrypt_image(path, parameters):
         new_image = XOR_image(new_image, password, xor_alpha)
 
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
-    path, file = split(path)
+    save_path = join(parameters['save_path'], save_relative_path, name)
     if suffix.lower() in ['jpg', 'jpeg']:
         new_image = new_image.convert('RGB')
 
-    new_image.save(name, quality=95, subsampling=0)
+    new_image.save(save_path, quality=95, subsampling=0)
 
     json = {
         'width': size[0],
@@ -69,19 +70,12 @@ def encrypt_image(path, parameters):
         'version': 1
     }
 
-    with open(join(path, name), "a") as f:
+    with open(save_path, "a") as f:
         f.write('\n' + dumps(json, separators=(',', ':')))
 
 
 def main():
     program = load_program()
-
-    _, _, files = next(walk(program.parameters['path']))
-
-    if not files:
-        program.logger.error('输入了空的文件夹')
-        pause()
-        exit()
 
     if program.parameters['format'] in ('jpg', 'jpeg', 'wmf', 'webp'):
         program.logger.warning('当前保存格式为有损压缩格式')
@@ -96,14 +90,18 @@ def main():
 
     if not EXTENSION:
         PIL_init()
-    for file in files:
-        path = f"{program.parameters['path']}/{file}"
-        if is_using(path):
-            program.logger.warning(f'文件[{file}]正在被使用，跳过处理')
-            continue
-        name, suffix = splitext(file)
-        if suffix in EXTENSION and not (name.endswith('-encrypted') or name.endswith('-decrypted')):
-            future_list.append(program.process_pool.submit(encrypt_image, path, program.parameters))
+    for relative_path, files in walk_file(program.parameters['path'], program.parameters['topdown']):
+        save_dir = join(program.parameters['save_path'], relative_path)
+        for file in files:
+            path = join(program.parameters['path'], relative_path, file)
+            if is_using(path):
+                program.logger.warning(f'文件[{file}]正在被使用，跳过处理')
+                continue
+            if not exists(save_dir):
+                makedirs(save_dir)
+            name, suffix = splitext(file)
+            if suffix in EXTENSION and not (name.endswith('-encrypted') or name.endswith('-decrypted')):
+                future_list.append(program.process_pool.submit(encrypt_image, path, program.parameters, relative_path))
 
     if future_list:
         widgets = [Percentage(), ' ', SimpleProgress(), ' ', Bar('█'), ' ']
@@ -113,7 +111,7 @@ def main():
             result = future.result()
             bar.update(bar.value + 1)
             if result is not None:
-                program.logger.warning(f'{result[1]}[{result[0]}]')
+                program.logger.warning(f'[{result[0]}]{result[1]}')
 
         bar.finish()
     program.logger.info('完成')

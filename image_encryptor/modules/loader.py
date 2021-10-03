@@ -2,7 +2,7 @@ from atexit import register
 from concurrent.futures import ProcessPoolExecutor
 from sys import argv, exit
 
-from .logger import Logger
+from image_encryptor.utils.logger import Logger
 from .parameter_parser import parsing_parameters
 
 program = None

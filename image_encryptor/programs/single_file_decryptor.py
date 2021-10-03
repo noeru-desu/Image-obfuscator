@@ -1,13 +1,13 @@
 from math import ceil
-from os.path import splitext
+from os.path import join, split, splitext
 from sys import exit
 
 from PIL import Image, UnidentifiedImageError
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
-from modules.image_cryptor import XOR_image, generate_decrypted_image, get_mapping_lists
-from modules.loader import create_process_pool, load_program
-from modules.utils import check_password, is_using, pause
+from image_encryptor.modules.image_cryptor import XOR_image, generate_decrypted_image, get_mapping_lists
+from image_encryptor.modules.loader import create_process_pool, load_program
+from image_encryptor.utils.utils import check_password, is_using, pause
 
 
 def main():
@@ -26,6 +26,10 @@ def main():
         exit()
     except UnidentifiedImageError:
         program.logger.error('无法打开或识别图像格式，或输入了不受支持的格式')
+        pause()
+        exit()
+    except Image.DecompressionBombWarning:
+        program.logger.error('图片像素量过多，为防止被解压炸弹DOS攻击，不进行处理')
         pause()
         exit()
     except Exception as e:
@@ -67,11 +71,11 @@ def main():
     program.logger.info('正在保存文件')
     original_image = new_image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
 
-    name, suffix = splitext(program.parameters['path'])
+    name, suffix = splitext(split(program.parameters['path'])[1])
     suffix = program.parameters['format'] if program.parameters['format'] != 'normal' else suffix
     suffix = suffix.strip('.')
     if suffix.lower() in ['jpg', 'jpeg']:
         original_image = original_image.convert('RGB')
-    name = name.replace('-encrypted', '')
+    name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"
 
-    original_image.save(f'{name}-decrypted.{suffix}', quality=95, subsampling=0)
+    original_image.save(join(program.parameters['save_path'], name), quality=95, subsampling=0)
