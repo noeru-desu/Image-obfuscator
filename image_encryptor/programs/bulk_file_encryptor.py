@@ -12,7 +12,7 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 from image_encryptor.utils.AES import encrypt
 from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, get_encrypted_lists
 from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.utils import fake_bar, is_using, pause, walk_file
+from image_encryptor.utils.utils import fake_bar, pause, walk_file
 
 
 def encrypt_image(path, parameters, save_relative_path):
@@ -94,9 +94,9 @@ def main():
         save_dir = join(program.parameters['save_path'], relative_path)
         for file in files:
             path = join(program.parameters['path'], relative_path, file)
-            if is_using(path):
+            '''if is_using(path):
                 program.logger.warning(f'文件[{file}]正在被使用，跳过处理')
-                continue
+                continue'''
             if not exists(save_dir):
                 makedirs(save_dir)
             name, suffix = splitext(file)

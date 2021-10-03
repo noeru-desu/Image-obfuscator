@@ -10,7 +10,7 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from image_encryptor.modules.image_cryptor import XOR_image, generate_decrypted_image, get_mapping_lists
 from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.utils import check_password, fake_bar, is_using, walk_file
+from image_encryptor.utils.utils import check_password, fake_bar, walk_file
 
 
 def decrypt_image(path, parameters, image_data, save_relative_path):
@@ -62,9 +62,9 @@ def main():
         for file in files:
             name, suffix = splitext(file)
             path = join(program.parameters['path'], relative_path, file)
-            if is_using(path):
+            '''if is_using(path):
                 program.logger.warning(f'文件[{file}]正在被使用，跳过处理')
-                continue
+                continue'''
             if suffix not in EXTENSION or name.endswith('-decrypted'):
                 continue
             image_data, password_base64 = check_password(path, f'[{file}]', password_set)

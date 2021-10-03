@@ -10,16 +10,16 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 from image_encryptor.utils.AES import encrypt
 from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, get_encrypted_lists
 from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.utils import is_using, pause
+from image_encryptor.utils.utils import pause
 
 
 def main():
     program = load_program()
 
-    if is_using(program.parameters['path']):
+    '''if is_using(program.parameters['path']):
         program.logger.error('文件正在被使用')
         pause()
-        exit()
+        exit()'''
 
     try:
         img = Image.open(program.parameters['path']).convert('RGBA')
