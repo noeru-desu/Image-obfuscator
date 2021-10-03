@@ -12,6 +12,7 @@ help_msg = '''
 <path> 图片/文件夹 路径
 <save-path> 保存路径
 可选参数：
+-l / --loop 启用自动循环，程序每次执行完任务后不直接退出，等待输入下一个操作的参数。为空时退出
 -e / --encrypt 加密模式
 -d / --decrypt 解密模式
 -t / --topdown 批量加解密时不仅遍历表层文件夹，同时遍历所有文件夹内的文件夹
@@ -30,20 +31,22 @@ def parsing_parameters(logger, argv):
         logger.info(help_msg)
         exit()
     CPU_COUNT = cpu_count()
-    path = normpath(argv[0])
+    file_path = normpath(argv[0])
+    path = split(file_path)[0]
     if len(argv) == 1 or argv[1].startswith('-'):
-        save_path = split(path)[0]
+        save_path = path
         skip_argv = 1
     else:
-        save_path = normpath(argv[1])
+        save_path = normpath(argv[1].format(file_path=path))
         skip_argv = 2
     parameter = {
+        'loop': False,
         'mode': None,
         'type': None,
         'topdown': False,
-        'path': path,
+        'path': file_path,
         'save_path': save_path,
-        'format': 'normal',
+        'format': None,
         'mapping': False,
         'xor_rgb': False,
         'xor_alpha': False,
@@ -52,11 +55,11 @@ def parsing_parameters(logger, argv):
         'col': 25,
         'process_count': 1 if CPU_COUNT < 3 else CPU_COUNT - 2
     }
-    if isfile(path):
+    if isfile(file_path):
         parameter['type'] = 'f'
-    elif isdir(path):
+    elif isdir(file_path):
         if skip_argv == 1:
-            parameter['save_path'] = save_path = path
+            parameter['save_path'] = save_path = file_path
         parameter['type'] = 'd'
     else:
         logger.error('没有提供文件或文件不存在')
@@ -67,7 +70,7 @@ def parsing_parameters(logger, argv):
     if not EXTENSION:
         PIL_init()
     try:
-        opts, args = getopt(argv[skip_argv:], 'edthf:r:c:x:', ['help', 'encrypt', 'decrypt', 'topdown', 'format=', 'pw=', 'password=', 'row=', 'col=', 'column=', 'rm', 'rgb-mapping', 'xor=', 'pc=', 'process-count='])
+        opts, args = getopt(argv[skip_argv:], 'hledtf:r:c:x:', ['help', 'loop', 'encrypt', 'decrypt', 'topdown', 'format=', 'pw=', 'password=', 'row=', 'col=', 'column=', 'rm', 'rgb-mapping', 'xor=', 'pc=', 'process-count='])
     except GetoptError as e:
         logger.error(f'未知的参数：{e.opt}')
         logger.info(help_msg)
@@ -76,6 +79,8 @@ def parsing_parameters(logger, argv):
         if opt in ('-h', '--help'):
             logger.info(help_msg)
             exit()
+        elif opt in ('-l', '--loop'):
+            parameter['loop'] = True
         elif opt in ('-e', '--encrypt'):
             parameter['mode'] = 'e'
         elif opt in ('-d', '--decrypt'):

@@ -51,7 +51,7 @@ def main():
     password = program.parameters['password']
     has_password = True if password != 100 else False
     name, suffix = splitext(split(program.parameters['path'])[1])
-    suffix = program.parameters['format'] if program.parameters['format'] != 'normal' else 'png'
+    suffix = program.parameters['format'] if program.parameters['format'] is not None else 'png'
     suffix = suffix.strip('.')
 
     if suffix in ('jpg', 'jpeg', 'wmf', 'webp'):

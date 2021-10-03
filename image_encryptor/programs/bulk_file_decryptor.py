@@ -40,7 +40,7 @@ def decrypt_image(path, parameters, image_data, save_relative_path):
     original_image = new_image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
 
     name, suffix = splitext(split(path)[1])
-    suffix = parameters['format'] if parameters['format'] != 'normal' else suffix
+    suffix = parameters['format'] if parameters['format'] is not None else suffix
     suffix = suffix.strip('.')
     if suffix.lower() in ['jpg', 'jpeg']:
         original_image = original_image.convert('RGB')

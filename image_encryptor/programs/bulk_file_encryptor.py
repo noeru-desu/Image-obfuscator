@@ -36,7 +36,7 @@ def encrypt_image(path, parameters, save_relative_path):
     password = parameters['password']
     has_password = True if password != 100 else False
     name, suffix = splitext(split(path)[1])
-    suffix = parameters['format'] if parameters['format'] != 'normal' else 'png'
+    suffix = parameters['format'] if parameters['format'] is not None else 'png'
     suffix = suffix.strip('.')
 
     block_width = ceil(size[0] / col)

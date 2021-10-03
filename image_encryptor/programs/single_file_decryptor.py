@@ -72,7 +72,7 @@ def main():
     original_image = new_image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
 
     name, suffix = splitext(split(program.parameters['path'])[1])
-    suffix = program.parameters['format'] if program.parameters['format'] != 'normal' else suffix
+    suffix = program.parameters['format'] if program.parameters['format'] is not None else suffix
     suffix = suffix.strip('.')
     if suffix.lower() in ['jpg', 'jpeg']:
         original_image = original_image.convert('RGB')

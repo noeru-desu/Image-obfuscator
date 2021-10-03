@@ -1,6 +1,6 @@
 from atexit import register
 from concurrent.futures import ProcessPoolExecutor
-from sys import argv, exit
+from sys import argv
 
 from image_encryptor.utils.logger import Logger
 from .parameter_parser import parsing_parameters
@@ -14,13 +14,26 @@ class Initializer:
         self.logger = Logger()
         # 检查启动参数
         self.parameters = parsing_parameters(self.logger, argv[1:])
-        if not self.parameters:
-            self.logger.error('未知的启动属性或未给出启动属性')
-            exit()
         if self.parameters['xor_rgb'] or self.parameters['type'] == 'd':
             self.process_pool = ProcessPoolExecutor(self.parameters['process_count'])
         else:
             self.process_pool = None
+
+
+def reload_program(logger=False, parameters=None, auto_set=False):
+    if program is None:
+        return load_program()
+    if logger:
+        program.logger = Logger()
+    if parameters:
+        program.parameters = parsing_parameters(program.logger, parameters)
+        check_mode()
+    if auto_set:
+        if program.parameters['xor_rgb'] or program.parameters['type'] == 'd':
+            program.process_pool = ProcessPoolExecutor(program.parameters['process_count'])
+        else:
+            program.process_pool = None
+    return program
 
 
 def at_exit():
@@ -30,17 +43,21 @@ def at_exit():
         program.logger.info('完成')
 
 
+def check_mode():
+    if program.parameters['mode'] is None:
+        while True:
+            mode = input('请选择处理模式[输入e表示加密或d表示解密]：\n').lower()
+            if mode in ('e', 'd'):
+                program.parameters['mode'] = mode
+                break
+
+
 def load_program():
     global program
     if program is None:
         program = Initializer()
         register(at_exit)
-        if program.parameters['mode'] is None:
-            while True:
-                mode = input('请选择处理模式[输入e表示加密或d表示解密]：').lower()
-                if mode in ('e', 'd'):
-                    program.parameters['mode'] = mode
-                    break
+        check_mode()
     return program
 
 
