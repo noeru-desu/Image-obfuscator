@@ -38,7 +38,7 @@ if __name__ == '__main__':
                     exit()
                 user_input = user_input.split(' ')
                 try:
-                    program = reload_program(parameters=user_input)
+                    program = reload_program(parameters=user_input, auto_set=True)
                 except SystemExit:
                     continue
                 program.parameters['loop'] = True

@@ -30,9 +30,7 @@ def reload_program(logger=False, parameters=None, auto_set=False):
         check_mode()
     if auto_set:
         if program.parameters['xor_rgb'] or program.parameters['type'] == 'd':
-            program.process_pool = ProcessPoolExecutor(program.parameters['process_count'])
-        else:
-            program.process_pool = None
+            create_process_pool()
     return program
 
 
