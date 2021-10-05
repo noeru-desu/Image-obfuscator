@@ -53,7 +53,8 @@ def parsing_parameters(logger, argv):
         'password': 100,
         'row': 25,
         'col': 25,
-        'process_count': 1 if CPU_COUNT < 3 else CPU_COUNT - 2
+        'process_count': 1 if CPU_COUNT < 3 else CPU_COUNT - 2,
+        'debug': False
     }
     if isfile(file_path):
         parameter['type'] = 'f'
@@ -70,7 +71,7 @@ def parsing_parameters(logger, argv):
     if not EXTENSION:
         PIL_init()
     try:
-        opts, args = getopt(argv[skip_argv:], 'hledtf:r:c:x:', ['help', 'loop', 'encrypt', 'decrypt', 'topdown', 'format=', 'pw=', 'password=', 'row=', 'col=', 'column=', 'rm', 'rgb-mapping', 'xor=', 'pc=', 'process-count='])
+        opts, args = getopt(argv[skip_argv:], 'hledtf:r:c:x:', ['help', 'loop', 'encrypt', 'decrypt', 'topdown', 'format=', 'pw=', 'password=', 'row=', 'col=', 'column=', 'rm', 'rgb-mapping', 'xor=', 'pc=', 'process-count=', 'debug'])
     except GetoptError as e:
         logger.error(f'未知的参数：{e.opt}')
         logger.info(help_msg)
@@ -144,4 +145,7 @@ def parsing_parameters(logger, argv):
                 else:
                     logger.info(f"已设置进程池大小为 {parameter['process_count']}")
                     parameter['process_count'] = process_count
+        elif opt == '--debug':
+            logger.info('已启用调试模式')
+            parameter['debug'] = True
     return parameter

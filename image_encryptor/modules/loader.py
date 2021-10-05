@@ -11,9 +11,14 @@ program = None
 class Initializer:
     def __init__(self):
         # 注册logger
-        self.logger = Logger()
+        self.logger = Logger('image-encryptor')
+        self.logger.warning('You are using Image encryptor 0.1.1')
+        self.logger.warning('Open source at https://github.com/noeru-desu/Image-encryptor')
         # 检查启动参数
         self.parameters = parsing_parameters(self.logger, argv[1:])
+        if self.parameters['debug']:
+            self.logger.remove()
+            self.logger = Logger('image-encryptor', 10, True)
         if self.parameters['xor_rgb'] or self.parameters['type'] == 'd':
             self.process_pool = ProcessPoolExecutor(self.parameters['process_count'])
         else:
@@ -23,11 +28,12 @@ class Initializer:
 def reload_program(logger=False, parameters=None, auto_set=False):
     if program is None:
         return load_program()
-    if logger:
-        program.logger = Logger()
     if parameters:
         program.parameters = parsing_parameters(program.logger, parameters)
         check_mode()
+    if logger:
+        program.logger.remove()
+        program.logger = Logger('image-encryptor', 10 if program.parameters['debug'] else 20, program.parameters['debug'])
     if auto_set:
         if program.parameters['xor_rgb'] or program.parameters['type'] == 'd':
             create_process_pool()
