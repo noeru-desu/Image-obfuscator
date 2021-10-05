@@ -1,4 +1,5 @@
 from json import JSONDecodeError, loads
+from os.path import getsize
 
 
 def check_version(data):
@@ -13,10 +14,14 @@ def check_version(data):
 
 def load_encryption_attributes(path):
     data = None
+    size = getsize(path)
     with open(path, 'rb') as f:
         offset = -35
         while True:
-            f.seek(offset, 2)
+            if size > -offset:
+                f.seek(offset, 2)
+            else:
+                f.seek(0)
             lines = f.readlines()
             if len(lines) >= 2:
                 last_line = lines[-1]

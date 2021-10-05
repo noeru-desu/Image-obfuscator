@@ -8,6 +8,8 @@ from image_encryptor.utils.AES import encrypt
 
 
 class fake_bar():
+    value = 0
+
     def update(self, n):
         pass
 
