@@ -50,8 +50,7 @@ def generate_encrypted_image(regions, pos_list, flip_list, size, rgb_mapping, ba
     image = Image.new('RGBA', size)
     if rgb_mapping:
         for region, pos, flip in zip(regions, pos_list, flip_list):
-            color = encrypt_mapping_func[flip](flip_func[flip](region).split())
-            region = Image.merge('RGBA', color)
+            region = Image.merge('RGBA', encrypt_mapping_func[flip](flip_func[flip](region).split()))
             image.paste(region, pos)
             bar.update(bar.value + 1)
     else:
@@ -86,8 +85,7 @@ def generate_decrypted_image(regions, pos_list, flip_list, size, rgb_mapping, ba
     image = Image.new('RGBA', size)
     if rgb_mapping:
         for region, pos, flip in zip(regions, pos_list, flip_list):
-            color = decrypt_mapping_func[flip](flip_func[flip](region).split())
-            region = Image.merge('RGBA', color)
+            region = Image.merge('RGBA', decrypt_mapping_func[flip](flip_func[flip](region).split()))
             image.paste(region, pos)
             bar.update(bar.value + 1)
     else:
@@ -100,16 +98,10 @@ def generate_decrypted_image(regions, pos_list, flip_list, size, rgb_mapping, ba
 
 
 def xor(xor_num, xor_alpha, pixel_data):
-    pixel_list = []
     if xor_alpha:
-        for i in pixel_data:
-            r, g, b, a = i
-            pixel_list.append((r ^ xor_num, g ^ xor_num, b ^ xor_num, a ^ xor_num))
+        return [(r ^ xor_num, g ^ xor_num, b ^ xor_num, a ^ xor_num) for r, g, b, a in pixel_data]
     else:
-        for i in pixel_data:
-            r, g, b, a = i
-            pixel_list.append((r ^ xor_num, g ^ xor_num, b ^ xor_num, a))
-    return pixel_list
+        return [(r ^ xor_num, g ^ xor_num, b ^ xor_num, a) for r, g, b, a in pixel_data]
 
 
 def XOR_image(region, random_seed, xor_alpha, process_pool=None, process_count=None):
