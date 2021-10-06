@@ -2,11 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 11:14:55
+LastEditTime : 2021-10-06 19:28:51
 Description  : 参数解析器
 '''
 from getopt import GetoptError, getopt
 from multiprocessing import cpu_count
+from os import makedirs, system
 from os.path import isdir, isfile, normpath, split
 from sys import exit
 
@@ -40,19 +41,26 @@ longopts = ['help', 'loop', 'encrypt', 'decrypt',
 
 
 def parsing_parameters(logger, argv):
+    # 检测是否直接输出帮助信息
     if not argv or argv[0] in ('-h', '--help'):
         logger.info(help_msg)
         exit()
+
+    # 获取信息
     CPU_COUNT = cpu_count()
     file_path = normpath(argv[0])
     path = split(file_path)[0]
+
+    # 检测是否传入<save-path>
     if len(argv) == 1 or argv[1].startswith('-'):
         save_path = path
         skip_argv = 1
     else:
         save_path = normpath(argv[1].format(file_path=path))
         skip_argv = 2
-    parameter = {
+
+    # 初始化参数
+    parameters = {
         'loop': False,
         'mode': None,
         'type': None,
@@ -70,20 +78,32 @@ def parsing_parameters(logger, argv):
         'process_count': 1 if CPU_COUNT < 3 else CPU_COUNT - 2,
         'debug': False
     }
+
+    # 选择处理模式
     if isfile(file_path):
-        parameter['type'] = 'f'
+        parameters['type'] = 'f'
     elif isdir(file_path):
         if skip_argv == 1:
-            parameter['save_path'] = save_path = file_path
-        parameter['type'] = 'd'
+            parameters['save_path'] = save_path = file_path
+        parameters['type'] = 'd'
     else:
         logger.error('没有提供文件或文件不存在')
         exit(2)
-    if not isdir(save_path):
-        logger.error('提供的保存位置不是文件夹或文件夹不存在')
+
+    # 检测保存位置是否存在
+    if isfile(save_path):
+        logger.error(f'提供的保存位置[{save_path}]不是文件夹')
         exit(2)
+    elif not isdir(save_path):
+        logger.warning(f'提供的保存位置[{save_path}]不存在，按任意键自动创建')
+        system('pause>nul')
+        makedirs(save_path)
+
+    # 检测PIL是否已初始化
     if not EXTENSION:
         PIL_init()
+
+    # 解析参数
     try:
         opts, args = getopt(argv[skip_argv:], 'hledtf:r:c:x:', longopts)
     except GetoptError as e:
@@ -95,44 +115,44 @@ def parsing_parameters(logger, argv):
             logger.info(help_msg)
             exit()
         elif opt in ('-l', '--loop'):
-            parameter['loop'] = True
+            parameters['loop'] = True
         elif opt in ('-e', '--encrypt'):
-            parameter['mode'] = 'e'
+            parameters['mode'] = 'e'
         elif opt in ('-d', '--decrypt'):
-            parameter['mode'] = 'd'
+            parameters['mode'] = 'd'
         elif opt in ('-t', '--topdown'):
-            parameter['topdown'] = True
+            parameters['topdown'] = True
         elif opt in ('--nne', '--no-normal-encryption'):
             logger.info('已禁用常规加密')
-            parameter['normal_encryption'] = False
+            parameters['normal_encryption'] = False
         elif opt in ('--rm', '--rgb-mapping'):
             logger.info('已启用RGB随机映射')
-            parameter['mapping'] = True
+            parameters['mapping'] = True
         elif opt in ('-x', '--xor'):
             if arg.lower() == 'rgb':
                 logger.info('已启用异或加密(不包括透明通道)')
-                parameter['xor_rgb'] = True
+                parameters['xor_rgb'] = True
             elif arg.lower() == 'rgba':
                 logger.info('已启用异或加密(包括透明通道)')
-                parameter['xor_rgb'] = True
-                parameter['xor_alpha'] = True
+                parameters['xor_rgb'] = True
+                parameters['xor_alpha'] = True
             else:
                 logger.info(f'异或加密参数设置有误：{arg}')
         elif opt in ('-r', '--row'):
             try:
-                parameter['row'] = int(arg)
+                parameters['row'] = int(arg)
                 logger.info(f'已指定切割行数为 {arg}')
             except ValueError:
                 logger.error('指定的切割行数不为纯数字')
         elif opt in ('-c', '--col', '--column'):
             try:
-                parameter['col'] = int(arg)
+                parameters['col'] = int(arg)
                 logger.info(f'已指定切割列数为 {arg}')
             except ValueError:
                 logger.error('指定的切割列数不为纯数字')
         elif opt in ('--pw', '--password'):
             logger.info(f'已设置密码为 {arg}')
-            parameter['password'] = arg
+            parameters['password'] = arg
         elif opt in ('-f', '--format'):
             arg = arg.lower()
             if '.' + arg not in EXTENSION:
@@ -140,7 +160,7 @@ def parsing_parameters(logger, argv):
                 logger.error(f"支持的格式：{', '.join(EXTENSION)}")
             else:
                 logger.info(f'指定保存格式为 {arg}')
-                parameter['format'] = arg
+                parameters['format'] = arg
         elif opt in ('--pc', '--process-count'):
             try:
                 process_count = int(eval(arg.format(cpu_count=CPU_COUNT)))
@@ -157,12 +177,12 @@ def parsing_parameters(logger, argv):
                 if process_count <= 0 or process_count > 61:
                     logger.error("指定的进程池大小不符合标准")
                 elif process_count > CPU_COUNT:
-                    logger.warning(f"设置的进程池大小({parameter['process_count']})大于本机cpu数量({CPU_COUNT})，性能可能会有所下降")
-                    parameter['process_count'] = process_count
+                    logger.warning(f"设置的进程池大小({parameters['process_count']})大于本机cpu数量({CPU_COUNT})，性能可能会有所下降")
+                    parameters['process_count'] = process_count
                 else:
-                    logger.info(f"已设置进程池大小为 {parameter['process_count']}")
-                    parameter['process_count'] = process_count
+                    logger.info(f"已设置进程池大小为 {parameters['process_count']}")
+                    parameters['process_count'] = process_count
         elif opt == '--debug':
             logger.info('已启用调试模式')
-            parameter['debug'] = True
-    return parameter
+            parameters['debug'] = True
+    return parameters
