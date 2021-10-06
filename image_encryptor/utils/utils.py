@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 07:21:43
+LastEditTime : 2021-10-06 14:29:32
 Description  : 一些小工具
 '''
 from os import system, walk
@@ -14,7 +14,7 @@ from image_encryptor.modules.version_adapter import load_encryption_attributes
 from image_encryptor.utils.AES import encrypt
 
 
-class fake_bar():
+class fake_bar(object):
     value = 0
 
     def update(self, n):

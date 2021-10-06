@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 11:12:11
+LastEditTime : 2021-10-06 14:44:20
 Description  : 对低版本加密的图片的加密信息进行转换，向下兼容
 '''
 from json import JSONDecodeError, loads
@@ -56,5 +56,4 @@ def load_encryption_attributes(path):
 
 def v_1_2(data):
     data['normal_encryption'] = True
-    data['normal_encryption']
     return data

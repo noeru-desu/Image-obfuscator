@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 12:06:14
+LastEditTime : 2021-10-06 19:34:51
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
