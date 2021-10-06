@@ -23,6 +23,8 @@ Image_encryptor.exe <文件/文件夹 路径> <保存路径> [附加参数]
 
 `-t` 在批量加解密时不仅遍历表层文件夹，同时遍历所有文件夹内的文件夹，并在保存时自动创建不存在的子文件夹
 
+`--nne` 或 `--no-normal-encryption` 禁用所有常规加密，即禁用打乱翻转加密与RGB映射加密，该禁用选项优先于下方的`启用RGB随机映射`
+
 `--rm` 或 `--rgb-mapping` 启用RGB随机映射
 
 `-x <rgb/rgba>` 或 `--xor <rgb/rgba>` 异或加密rgb/rgba通道
