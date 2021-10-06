@@ -22,18 +22,25 @@ def check_version(data):
 def load_encryption_attributes(path):
     data = None
     size = getsize(path)
+    if size == 0:
+        return '选择的图片中没有数据'
     with open(path, 'rb') as f:
         offset = -35
         while True:
             if size > -offset:
                 f.seek(offset, 2)
+                lines = f.readlines()
             else:
                 f.seek(0)
-            lines = f.readlines()
+                lines = f.readlines()
+                if len(lines) < 2:
+                    last_line = lines[-1]
+                    break
             if len(lines) >= 2:
                 last_line = lines[-1]
                 break
-            offset *= 2
+            else:
+                offset *= 2
     try:
         data = last_line.decode()
         return check_version(loads(data))
