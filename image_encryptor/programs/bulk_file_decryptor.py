@@ -37,9 +37,9 @@ def decrypt_image(path, parameters, image_data, save_relative_path):
     block_height = ceil(size[1] / image_data['row'])
 
     bar = fake_bar()
-    regions, pos_list, flip_list = map_image(img, image_data['password'], image_data['row'], image_data['col'], block_width, block_height, bar)
+    regions, pos_list, flip_list = map_image(img, image_data['password'], True, image_data['row'], image_data['col'], block_width, block_height, bar)
 
-    new_image = generate_decrypted_image(regions, pos_list, flip_list, image_data['row'], image_data['col'], block_width, block_height, image_data['rgb_mapping'], bar)
+    new_image = generate_decrypted_image(regions, pos_list, flip_list, (block_width * image_data['col'], block_height * image_data['row']), image_data['rgb_mapping'], bar)
 
     if image_data['xor_rgb']:
         new_image = XOR_image(new_image, image_data['password'], image_data['xor_alpha'])

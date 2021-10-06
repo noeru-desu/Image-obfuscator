@@ -50,7 +50,7 @@ def encrypt_image(path, parameters, save_relative_path):
     block_height = ceil(size[1] / row)
 
     bar = fake_bar()
-    regions, pos_list, flip_list = map_image(img, password, row, col, block_width, block_height, bar)
+    regions, pos_list, flip_list = map_image(img, password, False, row, col, block_width, block_height, bar)
 
     new_image = generate_encrypted_image(regions, pos_list, flip_list, (block_width * col, block_height * row), rgb_mapping, bar)
 

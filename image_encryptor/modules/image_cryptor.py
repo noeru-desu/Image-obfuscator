@@ -34,7 +34,7 @@ decrypt_mapping_func = [
 ]
 
 
-def map_image(image: Image, random_seed, row: int, col: int, block_width: int, block_height: int, bar) -> tuple[list, list, list[int]]:
+def map_image(image: Image, random_seed, decryption_mode: bool, row: int, col: int, block_width: int, block_height: int, bar):
     '''
     @description: 生成打乱后的图片分块、翻转分块，与每个分块所在的坐标列表
     @return {(regions, pos_list, flip_list)}
@@ -50,7 +50,10 @@ def map_image(image: Image, random_seed, row: int, col: int, block_width: int, b
             bar.update(bar.value + 1)
     flip_list = ([1, 2, 3, 0] * ceil(block_num / 4))[:block_num]
     seed(random_seed)
-    shuffle(pos_list)
+    if decryption_mode:
+        shuffle(pos_list)
+    else:
+        shuffle(regions)
     seed(random_seed)
     shuffle(flip_list)
     bar.finish()

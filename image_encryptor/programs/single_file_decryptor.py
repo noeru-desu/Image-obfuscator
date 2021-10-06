@@ -62,12 +62,12 @@ def main():
     program.logger.info('正在生成映射列表')
 
     bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
-    regions, pos_list, flip_list = map_image(img, image_data['password'], image_data['row'], image_data['col'], block_width, block_height, bar)
+    regions, pos_list, flip_list = map_image(img, image_data['password'], True, image_data['row'], image_data['col'], block_width, block_height, bar)
 
     program.logger.info('正在重组')
 
     bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
-    new_image = generate_decrypted_image(regions, pos_list, flip_list, image_data['row'], image_data['col'], block_width, block_height, image_data['rgb_mapping'], bar)
+    new_image = generate_decrypted_image(regions, pos_list, flip_list, (block_width * image_data['col'], block_height * image_data['row']), image_data['rgb_mapping'], bar)
 
     if image_data['xor_rgb']:
         create_process_pool()

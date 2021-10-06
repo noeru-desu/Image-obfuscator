@@ -78,7 +78,7 @@ def main():
     program.logger.info('正在分割原图')
 
     bar = ProgressBar(max_value=col * row, widgets=widgets)
-    regions, pos_list, flip_list = map_image(img, password, row, col, block_width, block_height, bar)
+    regions, pos_list, flip_list = map_image(img, password, False, row, col, block_width, block_height, bar)
 
     program.logger.info(f'分割完成，补全后大小：{block_width * col}x{block_height * row}')
 
