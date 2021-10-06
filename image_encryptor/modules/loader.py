@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 11:18:30
+LastEditTime : 2021-10-06 12:06:14
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
@@ -20,7 +20,7 @@ class Program:
     def __init__(self):
         # 注册logger
         self.logger = Logger('image-encryptor')
-        self.logger.warning('You are using Image encryptor 0.1.1')
+        self.logger.warning('You are using Image encryptor 0.1.2')
         self.logger.warning('Open source at https://github.com/noeru-desu/Image-encryptor')
         # 检查启动参数
         self.parameters = parsing_parameters(self.logger, argv[1:])
