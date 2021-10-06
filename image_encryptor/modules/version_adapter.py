@@ -1,3 +1,10 @@
+'''
+Author       : noeru_desu
+Date         : 2021-09-24 20:05:44
+LastEditors  : noeru_desu
+LastEditTime : 2021-10-06 07:18:50
+Description  : 对低版本加密的图片的加密信息进行转换，向下兼容
+'''
 from json import JSONDecodeError, loads
 from os.path import getsize
 

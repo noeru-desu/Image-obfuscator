@@ -1,3 +1,10 @@
+'''
+Author       : noeru_desu
+Date         : 2021-08-28 18:35:58
+LastEditors  : noeru_desu
+LastEditTime : 2021-10-06 07:16:49
+Description  : 程序的启动器，加载各参数与准备工作
+'''
 from atexit import register
 from concurrent.futures import ProcessPoolExecutor
 from sys import argv
@@ -8,7 +15,7 @@ from .parameter_parser import parsing_parameters
 program = None
 
 
-class Initializer:
+class Program:
     def __init__(self):
         # 注册logger
         self.logger = Logger('image-encryptor')
@@ -59,7 +66,7 @@ def check_mode():
 def load_program():
     global program
     if program is None:
-        program = Initializer()
+        program = Program()
         register(at_exit)
         check_mode()
     return program

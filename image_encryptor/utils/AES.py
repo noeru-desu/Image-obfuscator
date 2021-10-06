@@ -1,3 +1,10 @@
+'''
+Author       : noeru_desu
+Date         : 2021-08-30 11:33:06
+LastEditors  : noeru_desu
+LastEditTime : 2021-10-06 07:21:21
+Description  : 粗略包装的AES加密方法
+'''
 from base64 import decodebytes, encodebytes
 
 from Crypto.Cipher import AES

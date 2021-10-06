@@ -24,7 +24,7 @@ class Logger:
 
     def console_fmt(self, debug_format):
         if debug_format:
-            info_format = '[%(asctime)s] [%(module)s] [%(lineno)s]'
+            info_format = '[%(relativeCreated)d] [%(module)s] [%(lineno)s]'
             datefmt = None
         else:
             info_format = '[%(asctime)s]'

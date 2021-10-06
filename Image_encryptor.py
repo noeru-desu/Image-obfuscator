@@ -1,3 +1,10 @@
+'''
+Author       : noeru_desu
+Date         : 2021-08-28 18:34:08
+LastEditors  : noeru_desu
+LastEditTime : 2021-10-06 07:22:03
+Description  : 主程序
+'''
 from warnings import filterwarnings
 
 import image_encryptor.programs.bulk_file_decryptor as bulk_decryptor

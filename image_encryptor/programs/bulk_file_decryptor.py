@@ -1,3 +1,10 @@
+'''
+Author       : noeru_desu
+Date         : 2021-09-30 20:33:28
+LastEditors  : noeru_desu
+LastEditTime : 2021-10-06 07:19:59
+Description  : 批量解密功能
+'''
 from math import ceil
 from ntpath import join
 from os import makedirs
@@ -8,7 +15,7 @@ from PIL.Image import EXTENSION, DecompressionBombWarning
 from PIL.Image import init as PIL_init
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
-from image_encryptor.modules.image_cryptor import XOR_image, generate_decrypted_image, get_mapping_lists
+from image_encryptor.modules.image_cryptor import XOR_image, generate_decrypted_image, map_image
 from image_encryptor.modules.loader import load_program
 from image_encryptor.utils.utils import check_password, fake_bar, walk_file
 
@@ -30,7 +37,7 @@ def decrypt_image(path, parameters, image_data, save_relative_path):
     block_height = ceil(size[1] / image_data['row'])
 
     bar = fake_bar()
-    regions, pos_list, flip_list = get_mapping_lists(img, image_data['password'], image_data['row'], image_data['col'], block_width, block_height, bar)
+    regions, pos_list, flip_list = map_image(img, image_data['password'], image_data['row'], image_data['col'], block_width, block_height, bar)
 
     new_image = generate_decrypted_image(regions, pos_list, flip_list, image_data['row'], image_data['col'], block_width, block_height, image_data['rgb_mapping'], bar)
 

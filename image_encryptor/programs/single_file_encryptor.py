@@ -1,3 +1,10 @@
+'''
+Author       : noeru_desu
+Date         : 2021-09-25 20:43:02
+LastEditors  : noeru_desu
+LastEditTime : 2021-10-06 07:21:10
+Description  : 单文件加密功能
+'''
 from json import dumps
 from math import ceil
 from os.path import join, split, splitext
@@ -8,7 +15,7 @@ from PIL import Image, UnidentifiedImageError
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from image_encryptor.utils.AES import encrypt
-from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, get_encrypted_lists
+from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, map_image
 from image_encryptor.modules.loader import load_program
 from image_encryptor.utils.utils import pause
 
@@ -71,7 +78,7 @@ def main():
     program.logger.info('正在分割原图')
 
     bar = ProgressBar(max_value=col * row, widgets=widgets)
-    regions, pos_list, flip_list = get_encrypted_lists(img, password, row, col, block_width, block_height, bar)
+    regions, pos_list, flip_list = map_image(img, password, row, col, block_width, block_height, bar)
 
     program.logger.info(f'分割完成，补全后大小：{block_width * col}x{block_height * row}')
 

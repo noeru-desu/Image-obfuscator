@@ -1,3 +1,10 @@
+'''
+Author       : noeru_desu
+Date         : 2021-08-28 18:35:58
+LastEditors  : noeru_desu
+LastEditTime : 2021-10-06 07:21:43
+Description  : 一些小工具
+'''
 from os import system, walk
 from os.path import normpath
 

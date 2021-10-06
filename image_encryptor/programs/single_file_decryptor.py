@@ -1,3 +1,10 @@
+'''
+Author       : noeru_desu
+Date         : 2021-09-25 20:45:37
+LastEditors  : noeru_desu
+LastEditTime : 2021-10-06 07:20:57
+Description  : 单文件解密功能
+'''
 from math import ceil
 from os.path import join, split, splitext
 from sys import exit
@@ -5,7 +12,7 @@ from sys import exit
 from PIL import Image, UnidentifiedImageError
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
-from image_encryptor.modules.image_cryptor import XOR_image, generate_decrypted_image, get_mapping_lists
+from image_encryptor.modules.image_cryptor import XOR_image, generate_decrypted_image, map_image
 from image_encryptor.modules.loader import create_process_pool, load_program
 from image_encryptor.utils.utils import check_password, pause
 
@@ -55,7 +62,7 @@ def main():
     program.logger.info('正在生成映射列表')
 
     bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
-    regions, pos_list, flip_list = get_mapping_lists(img, image_data['password'], image_data['row'], image_data['col'], block_width, block_height, bar)
+    regions, pos_list, flip_list = map_image(img, image_data['password'], image_data['row'], image_data['col'], block_width, block_height, bar)
 
     program.logger.info('正在重组')
 

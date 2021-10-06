@@ -1,3 +1,10 @@
+'''
+Author       : noeru_desu
+Date         : 2021-09-30 20:33:30
+LastEditors  : noeru_desu
+LastEditTime : 2021-10-06 07:20:36
+Description  : 批量加密功能
+'''
 from json import dumps
 from math import ceil
 from os import makedirs
@@ -10,7 +17,7 @@ from PIL.Image import init as PIL_init
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from image_encryptor.utils.AES import encrypt
-from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, get_encrypted_lists
+from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, map_image
 from image_encryptor.modules.loader import load_program
 from image_encryptor.utils.utils import fake_bar, pause, walk_file
 
@@ -43,7 +50,7 @@ def encrypt_image(path, parameters, save_relative_path):
     block_height = ceil(size[1] / row)
 
     bar = fake_bar()
-    regions, pos_list, flip_list = get_encrypted_lists(img, password, row, col, block_width, block_height, bar)
+    regions, pos_list, flip_list = map_image(img, password, row, col, block_width, block_height, bar)
 
     new_image = generate_encrypted_image(regions, pos_list, flip_list, (block_width * col, block_height * row), rgb_mapping, bar)
 
