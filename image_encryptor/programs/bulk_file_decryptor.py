@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:28
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 11:20:57
+LastEditTime : 2021-10-06 19:31:51
 Description  : 批量解密功能
 '''
 from math import ceil
@@ -36,7 +36,7 @@ def decrypt_image(path, parameters, image_data, save_relative_path):
     block_width = ceil(size[0] / image_data['col'])
     block_height = ceil(size[1] / image_data['row'])
 
-    if not image_data['normal_encryption']:
+    if image_data['normal_encryption']:
         bar = fake_bar()
         regions, pos_list, flip_list = map_image(image, image_data['password'], True, image_data['row'], image_data['col'], block_width, block_height, bar)
 

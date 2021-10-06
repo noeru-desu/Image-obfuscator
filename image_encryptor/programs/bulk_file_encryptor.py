@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 11:20:11
+LastEditTime : 2021-10-06 19:31:43
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -43,7 +43,7 @@ def encrypt_image(path, parameters, save_relative_path):
     block_width = ceil(size[0] / parameters['col'])
     block_height = ceil(size[1] / parameters['row'])
 
-    if not parameters['normal_encryption']:
+    if parameters['normal_encryption']:
         bar = fake_bar()
         regions, pos_list, flip_list = map_image(image, parameters['password'], False, parameters['row'], parameters['col'], block_width, block_height, bar)
 
