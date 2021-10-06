@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 07:20:57
+LastEditTime : 2021-10-06 11:21:26
 Description  : 单文件解密功能
 '''
 from math import ceil
@@ -26,7 +26,7 @@ def main():
         exit()'''
 
     try:
-        img = Image.open(program.parameters['path']).convert('RGBA')
+        image = Image.open(program.parameters['path']).convert('RGBA')
     except FileNotFoundError:
         program.logger.error('文件不存在')
         pause()
@@ -44,7 +44,7 @@ def main():
         pause()
         exit()
 
-    size = img.size
+    size = image.size
     program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 
     image_data, _ = check_password(program.parameters['path'])
@@ -59,15 +59,18 @@ def main():
     program.logger.info(f'分块大小：{block_width}x{block_height}')
     widgets = [Percentage(), ' ', SimpleProgress(), ' ', Bar('█'), ' ']
     program.logger.info('正在处理')
-    program.logger.info('正在生成映射列表')
 
-    bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
-    regions, pos_list, flip_list = map_image(img, image_data['password'], True, image_data['row'], image_data['col'], block_width, block_height, bar)
+    if image_data['normal_encryption']:
+        program.logger.info('正在分割加密图像')
+        bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
+        regions, pos_list, flip_list = map_image(image, image_data['password'], True, image_data['row'], image_data['col'], block_width, block_height, bar)
 
-    program.logger.info('正在重组')
+        program.logger.info('正在重组')
 
-    bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
-    new_image = generate_decrypted_image(regions, pos_list, flip_list, (block_width * image_data['col'], block_height * image_data['row']), image_data['rgb_mapping'], bar)
+        bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
+        new_image = generate_decrypted_image(regions, pos_list, flip_list, (block_width * image_data['col'], block_height * image_data['row']), image_data['rgb_mapping'], bar)
+    else:
+        new_image = image
 
     if image_data['xor_rgb']:
         create_process_pool()

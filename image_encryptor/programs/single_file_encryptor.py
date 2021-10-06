@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 07:21:10
+LastEditTime : 2021-10-06 11:21:35
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -29,7 +29,7 @@ def main():
         exit()'''
 
     try:
-        img = Image.open(program.parameters['path']).convert('RGBA')
+        image = Image.open(program.parameters['path']).convert('RGBA')
     except FileNotFoundError:
         program.logger.error('文件不存在')
         pause()
@@ -47,48 +47,45 @@ def main():
         pause()
         exit()
 
-    size = img.size
+    size = image.size
     program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 
-    col = program.parameters['col']
-    row = program.parameters['row']
-    rgb_mapping = program.parameters['mapping']
-    xor_rgb = program.parameters['xor_rgb']
-    xor_alpha = program.parameters['xor_alpha']
-    password = program.parameters['password']
-    has_password = True if password != 100 else False
+    has_password = True if program.parameters['password'] != 100 else False
     name, suffix = splitext(split(program.parameters['path'])[1])
     suffix = program.parameters['format'] if program.parameters['format'] is not None else 'png'
     suffix = suffix.strip('.')
 
     if suffix in ('jpg', 'jpeg', 'wmf', 'webp'):
         program.logger.warning('当前保存格式为有损压缩格式')
-        if rgb_mapping:
+        if program.parameters['mapping']:
             program.logger.warning('在此情况下，使用RGB(A)随机映射会导致图片在解密后出现轻微的分界线，按任意键确定')
             pause()
-        if xor_rgb:
+        if program.parameters['xor_rgb']:
             program.logger.warning('在此情况下，使用异或加密会导致图片解密后出现严重失真，按任意键确定')
             pause()
 
-    block_width = ceil(size[0] / col)
-    block_height = ceil(size[1] / row)
-    program.logger.info(f'分块数量：{col}x{row}; 分块大小：{block_width}x{block_height}')
+    block_width = ceil(size[0] / program.parameters['col'])
+    block_height = ceil(size[1] / program.parameters['row'])
+    program.logger.info(f"分块数量：{program.parameters['col']}x{program.parameters['row']}; 分块大小：{block_width}x{block_height}")
     widgets = [Percentage(), ' ', SimpleProgress(), ' ', Bar('█'), ' ']
     program.logger.info('开始处理')
-    program.logger.info('正在分割原图')
 
-    bar = ProgressBar(max_value=col * row, widgets=widgets)
-    regions, pos_list, flip_list = map_image(img, password, False, row, col, block_width, block_height, bar)
+    if program.parameters['normal_encryption']:
+        program.logger.info('正在分割原图')
+        bar = ProgressBar(max_value=program.parameters['col'] * program.parameters['row'], widgets=widgets)
+        regions, pos_list, flip_list = map_image(image, program.parameters['password'], False, program.parameters['row'], program.parameters['col'], block_width, block_height, bar)
 
-    program.logger.info(f'分割完成，补全后大小：{block_width * col}x{block_height * row}')
+        program.logger.info(f"分割完成，补全后大小：{block_width * program.parameters['col']}x{block_height * program.parameters['row']}")
 
-    program.logger.info('正在重组')
-    bar = ProgressBar(max_value=col * row, widgets=widgets)
-    new_image = generate_encrypted_image(regions, pos_list, flip_list, (block_width * col, block_height * row), rgb_mapping, bar)
+        program.logger.info('正在重组')
+        bar = ProgressBar(max_value=program.parameters['col'] * program.parameters['row'], widgets=widgets)
+        new_image = generate_encrypted_image(regions, pos_list, flip_list, (block_width * program.parameters['col'], block_height * program.parameters['row']), program.parameters['mapping'], bar)
+    else:
+        new_image = image
 
-    if xor_rgb:
+    if program.parameters['xor_rgb']:
         program.logger.info('正在异或加密，性能较低，请耐心等待')
-        new_image = XOR_image(new_image, password, xor_alpha, program.process_pool, program.parameters['process_count'])
+        new_image = XOR_image(new_image, program.parameters['password'], program.parameters['xor_alpha'], program.process_pool, program.parameters['process_count'])
 
     program.logger.info('完成，正在保存文件')
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
@@ -101,14 +98,15 @@ def main():
     json = {
         'width': size[0],
         'height': size[1],
-        'col': col,
-        'row': row,
+        'col': program.parameters['col'],
+        'row': program.parameters['row'],
         'has_password': has_password,
-        'password_base64': encrypt(AES.MODE_CFB, password, 'PASS', base64=True) if has_password else 0,
-        'rgb_mapping': rgb_mapping,
-        'xor_rgb': xor_rgb,
-        'xor_alpha': xor_alpha,
-        'version': 1
+        'password_base64': encrypt(AES.MODE_CFB, program.parameters['password'], 'PASS', base64=True) if has_password else 0,
+        'normal_encryption': program.parameters['normal_encryption'],
+        'rgb_mapping': program.parameters['mapping'],
+        'xor_rgb': program.parameters['xor_rgb'],
+        'xor_alpha': program.parameters['xor_alpha'],
+        'version': 2
     }
 
     with open(save_path, "a") as f:

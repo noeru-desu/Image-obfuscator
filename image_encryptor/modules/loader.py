@@ -2,15 +2,16 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 07:16:49
+LastEditTime : 2021-10-06 11:18:30
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
 from concurrent.futures import ProcessPoolExecutor
+from os import system
 from sys import argv
 
 from image_encryptor.utils.logger import Logger
-from .parameter_parser import parsing_parameters
+from image_encryptor.modules.parameter_parser import parsing_parameters
 
 program = None
 
@@ -55,6 +56,10 @@ def at_exit():
 
 
 def check_mode():
+    if not program.parameters['normal_encryption'] and not program.parameters['xor_rgb']:
+        program.logger.error('没有使用任何加密方法')
+        system('pause>nul')
+        exit()
     if program.parameters['mode'] is None:
         while True:
             mode = input('请选择处理模式[输入e表示加密或d表示解密]：\n').lower()

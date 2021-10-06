@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 07:18:50
+LastEditTime : 2021-10-06 11:12:11
 Description  : 对低版本加密的图片的加密信息进行转换，向下兼容
 '''
 from json import JSONDecodeError, loads
@@ -14,8 +14,10 @@ def check_version(data):
         return data
     if 'version' not in data:
         return '该版本不支持0.1.0-BETA版加密器加密的图片'
-    if data['version'] > 1:
+    if data['version'] > 2:
         return '选择的图片文件由更高版本的加密器加密，请使用最新版的解密器进行解密'
+    if data['version'] == 1:
+        data = v_1_2(data)
     return data
 
 
@@ -50,3 +52,9 @@ def load_encryption_attributes(path):
         return '加载图片加密参数时出现问题，请确保尝试解密的图片为加密后的原图'
     except Exception as e:
         return repr(e)
+
+
+def v_1_2(data):
+    data['normal_encryption'] = True
+    data['normal_encryption']
+    return data

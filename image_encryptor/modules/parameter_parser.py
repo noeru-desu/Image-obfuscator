@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 07:17:53
+LastEditTime : 2021-10-06 11:14:55
 Description  : 参数解析器
 '''
 from getopt import GetoptError, getopt
@@ -32,6 +32,12 @@ help_msg = '''
 --pc process_count / --process-count process_count 指定用于异或加解密/批量加解密的进程池大小，可使用运算符。提供{cpu_count}，表示cpu数量(每个cpu的核数之和)
 '''
 
+longopts = ['help', 'loop', 'encrypt', 'decrypt',
+            'topdown', 'format=', 'pw=', 'password=',
+            'row=', 'col=', 'column=', 'nne',
+            'no-normal-encryption', 'rm', 'rgb-mapping', 'xor=',
+            'pc=', 'process-count=', 'debug']
+
 
 def parsing_parameters(logger, argv):
     if not argv or argv[0] in ('-h', '--help'):
@@ -54,6 +60,7 @@ def parsing_parameters(logger, argv):
         'path': file_path,
         'save_path': save_path,
         'format': None,
+        'normal_encryption': True,
         'mapping': False,
         'xor_rgb': False,
         'xor_alpha': False,
@@ -78,7 +85,7 @@ def parsing_parameters(logger, argv):
     if not EXTENSION:
         PIL_init()
     try:
-        opts, args = getopt(argv[skip_argv:], 'hledtf:r:c:x:', ['help', 'loop', 'encrypt', 'decrypt', 'topdown', 'format=', 'pw=', 'password=', 'row=', 'col=', 'column=', 'rm', 'rgb-mapping', 'xor=', 'pc=', 'process-count=', 'debug'])
+        opts, args = getopt(argv[skip_argv:], 'hledtf:r:c:x:', longopts)
     except GetoptError as e:
         logger.error(f'未知的参数：{e.opt}')
         logger.info(help_msg)
@@ -95,6 +102,9 @@ def parsing_parameters(logger, argv):
             parameter['mode'] = 'd'
         elif opt in ('-t', '--topdown'):
             parameter['topdown'] = True
+        elif opt in ('--nne', '--no-normal-encryption'):
+            logger.info('已禁用常规加密')
+            parameter['normal_encryption'] = False
         elif opt in ('--rm', '--rgb-mapping'):
             logger.info('已启用RGB随机映射')
             parameter['mapping'] = True

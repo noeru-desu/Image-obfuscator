@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:28
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 07:19:59
+LastEditTime : 2021-10-06 11:20:57
 Description  : 批量解密功能
 '''
 from math import ceil
@@ -22,7 +22,7 @@ from image_encryptor.utils.utils import check_password, fake_bar, walk_file
 
 def decrypt_image(path, parameters, image_data, save_relative_path):
     try:
-        img = Image.open(path).convert('RGBA')
+        image = Image.open(path).convert('RGBA')
     except FileNotFoundError:
         return split(path)[1], '文件不存在'
     except UnidentifiedImageError:
@@ -32,14 +32,17 @@ def decrypt_image(path, parameters, image_data, save_relative_path):
     except Exception as e:
         return split(path)[1], repr(e)
 
-    size = img.size
+    size = image.size
     block_width = ceil(size[0] / image_data['col'])
     block_height = ceil(size[1] / image_data['row'])
 
-    bar = fake_bar()
-    regions, pos_list, flip_list = map_image(img, image_data['password'], True, image_data['row'], image_data['col'], block_width, block_height, bar)
+    if not image_data['normal_encryption']:
+        bar = fake_bar()
+        regions, pos_list, flip_list = map_image(image, image_data['password'], True, image_data['row'], image_data['col'], block_width, block_height, bar)
 
-    new_image = generate_decrypted_image(regions, pos_list, flip_list, (block_width * image_data['col'], block_height * image_data['row']), image_data['rgb_mapping'], bar)
+        new_image = generate_decrypted_image(regions, pos_list, flip_list, (block_width * image_data['col'], block_height * image_data['row']), image_data['rgb_mapping'], bar)
+    else:
+        new_image = image
 
     if image_data['xor_rgb']:
         new_image = XOR_image(new_image, image_data['password'], image_data['xor_alpha'])

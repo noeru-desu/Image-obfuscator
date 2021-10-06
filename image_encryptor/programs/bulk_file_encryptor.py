@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 07:20:36
+LastEditTime : 2021-10-06 11:20:11
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -24,7 +24,7 @@ from image_encryptor.utils.utils import fake_bar, pause, walk_file
 
 def encrypt_image(path, parameters, save_relative_path):
     try:
-        img = Image.open(path).convert('RGBA')
+        image = Image.open(path).convert('RGBA')
     except FileNotFoundError:
         return split(path)[1], '文件不存在'
     except UnidentifiedImageError:
@@ -34,28 +34,25 @@ def encrypt_image(path, parameters, save_relative_path):
     except Exception as e:
         return split(path)[1], repr(e)
 
-    size = img.size
-    col = parameters['col']
-    row = parameters['row']
-    rgb_mapping = parameters['mapping']
-    xor_rgb = parameters['xor_rgb']
-    xor_alpha = parameters['xor_alpha']
-    password = parameters['password']
-    has_password = True if password != 100 else False
+    size = image.size
+    has_password = True if parameters['password'] != 100 else False
     name, suffix = splitext(split(path)[1])
     suffix = parameters['format'] if parameters['format'] is not None else 'png'
     suffix = suffix.strip('.')
 
-    block_width = ceil(size[0] / col)
-    block_height = ceil(size[1] / row)
+    block_width = ceil(size[0] / parameters['col'])
+    block_height = ceil(size[1] / parameters['row'])
 
-    bar = fake_bar()
-    regions, pos_list, flip_list = map_image(img, password, False, row, col, block_width, block_height, bar)
+    if not parameters['normal_encryption']:
+        bar = fake_bar()
+        regions, pos_list, flip_list = map_image(image, parameters['password'], False, parameters['row'], parameters['col'], block_width, block_height, bar)
 
-    new_image = generate_encrypted_image(regions, pos_list, flip_list, (block_width * col, block_height * row), rgb_mapping, bar)
+        new_image = generate_encrypted_image(regions, pos_list, flip_list, (block_width * parameters['col'], block_height * parameters['row']), parameters['mapping'], bar)
+    else:
+        new_image = image
 
-    if xor_rgb:
-        new_image = XOR_image(new_image, password, xor_alpha)
+    if parameters['xor_rgb']:
+        new_image = XOR_image(new_image, parameters['password'], parameters['xor_alpha'])
 
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
     save_path = join(parameters['save_path'], save_relative_path, name)
@@ -67,14 +64,15 @@ def encrypt_image(path, parameters, save_relative_path):
     json = {
         'width': size[0],
         'height': size[1],
-        'col': col,
-        'row': row,
+        'col': parameters['col'],
+        'row': parameters['row'],
         'has_password': has_password,
-        'password_base64': encrypt(AES.MODE_CFB, password, 'PASS', base64=True) if has_password else 0,
-        'rgb_mapping': rgb_mapping,
-        'xor_rgb': xor_rgb,
-        'xor_alpha': xor_alpha,
-        'version': 1
+        'password_base64': encrypt(AES.MODE_CFB, parameters['password'], 'PASS', base64=True) if has_password else 0,
+        'normal_encryption': parameters['normal_encryption'],
+        'rgb_mapping': parameters['mapping'],
+        'xor_rgb': parameters['xor_rgb'],
+        'xor_alpha': parameters['xor_alpha'],
+        'version': 2
     }
 
     with open(save_path, "a") as f:
