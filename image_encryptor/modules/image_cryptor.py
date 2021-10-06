@@ -120,15 +120,15 @@ def XOR_image(image: Image, random_seed: int, xor_alpha: bool, process_pool=None
     xor_num = randrange(256)
     pixel_list = list(image.getdata())
     future_list = []
-    num = 0
     if process_pool is None:
         pixel_list = _xor_pixel_data(pixel_list, xor_num, xor_alpha)
     else:
+        num = 0
         for i in range(0, len(pixel_list), ceil(len(pixel_list) / process_count)):
             if i == 0:
                 continue
             future_list.append(process_pool.submit(_xor_pixel_data, pixel_list[num:i], xor_num, xor_alpha))
-            num = i + 1
+            num = i
         future_list.append(process_pool.submit(_xor_pixel_data, pixel_list[num:], xor_num, xor_alpha))
         pixel_list = []
         for i in future_list:
