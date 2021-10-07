@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 08:13:40
+LastEditTime : 2021-10-07 16:03:42
 Description  : 所有图片的加解密方法
 '''
 from math import ceil
@@ -68,7 +68,7 @@ def generate_encrypted_image(regions: list, pos_list: list, flip_list: list, siz
     image = Image.new('RGBA', size)
     if rgb_mapping:
         for region, pos, flip in zip(regions, pos_list, flip_list):
-            region = Image.merge('RGBA', encrypt_mapping_func[flip](flip_func[flip](region).split()))
+            region = Image.merge('RGBA', encrypt_mapping_func[flip](*flip_func[flip](region).split()))
             image.paste(region, pos)
             bar.update(bar.value + 1)
     else:
@@ -88,7 +88,7 @@ def generate_decrypted_image(regions: list, pos_list: list, flip_list: list, siz
     image = Image.new('RGBA', size)
     if rgb_mapping:
         for region, pos, flip in zip(regions, pos_list, flip_list):
-            region = Image.merge('RGBA', decrypt_mapping_func[flip](flip_func[flip](region).split()))
+            region = Image.merge('RGBA', decrypt_mapping_func[flip](*flip_func[flip](region).split()))
             image.paste(region, pos)
             bar.update(bar.value + 1)
     else:
