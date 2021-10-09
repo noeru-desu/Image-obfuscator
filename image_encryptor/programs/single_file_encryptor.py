@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 11:21:35
+LastEditTime : 2021-10-08 21:15:52
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -17,19 +17,19 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 from image_encryptor.utils.AES import encrypt
 from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, map_image
 from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.utils import pause
+from image_encryptor.utils.utils import calculate_formula_string, pause
 
 
 def main():
     program = load_program()
 
-    '''if is_using(program.parameters['path']):
+    '''if is_using(program.parameters['input_path']):
         program.logger.error('文件正在被使用')
         pause()
         exit()'''
 
     try:
-        image = Image.open(program.parameters['path']).convert('RGBA')
+        image = Image.open(program.parameters['input_path']).convert('RGBA')
     except FileNotFoundError:
         program.logger.error('文件不存在')
         pause()
@@ -50,8 +50,40 @@ def main():
     size = image.size
     program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 
+    if isinstance(program.parameters['row'], str):
+        program.parameters['row'], error = calculate_formula_string(program.parameters['row'], width=size[0], height=size[1])
+        if error is not None:
+            program.logger.error('动态运算切割行数参数时出现错误：')
+            program.logger.error(error)
+            pause()
+            exit()
+        elif program.parameters['row'] < 1:
+            program.logger.error(f"动态运算的切割行数参数不正确：切割行数小于1 (结果为{program.parameters['row']})")
+            pause()
+            exit()
+        elif program.parameters['row'] > size[1]:
+            program.logger.error(f"动态运算的切割行数参数不正确：切割行数大于图片宽度 (结果为{program.parameters['row']})")
+            pause()
+            exit()
+
+    if isinstance(program.parameters['col'], str):
+        program.parameters['col'], error = calculate_formula_string(program.parameters['col'], width=size[0], height=size[1])
+        if error is not None:
+            program.logger.error('动态运算切割列数参数时出现错误：')
+            program.logger.error(error)
+            pause()
+            exit()
+        elif program.parameters['col'] < 1:
+            program.logger.error(f"动态运算的切割列数参数不正确：切割列数小于1 (结果为{program.parameters['col']})")
+            pause()
+            exit()
+        elif program.parameters['col'] > size[0]:
+            program.logger.error(f"动态运算的切割列数参数不正确：切割列数大于图片宽度 (结果为{program.parameters['col']})")
+            pause()
+            exit()
+
     has_password = True if program.parameters['password'] != 100 else False
-    name, suffix = splitext(split(program.parameters['path'])[1])
+    name, suffix = splitext(split(program.parameters['input_path'])[1])
     suffix = program.parameters['format'] if program.parameters['format'] is not None else 'png'
     suffix = suffix.strip('.')
 
@@ -89,11 +121,11 @@ def main():
 
     program.logger.info('完成，正在保存文件')
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
-    save_path = join(program.parameters['save_path'], name)
+    output_path = join(program.parameters['output_path'], name)
     if suffix.lower() in ['jpg', 'jpeg']:
         new_image = new_image.convert('RGB')
 
-    new_image.save(save_path, quality=95, subsampling=0)
+    new_image.save(output_path, quality=95, subsampling=0)
 
     json = {
         'width': size[0],
@@ -109,5 +141,5 @@ def main():
         'version': 2
     }
 
-    with open(save_path, "a") as f:
+    with open(output_path, "a") as f:
         f.write('\n' + dumps(json, separators=(',', ':')))

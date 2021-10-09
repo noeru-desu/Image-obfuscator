@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 19:31:43
+LastEditTime : 2021-10-09 21:02:21
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -19,7 +19,7 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 from image_encryptor.utils.AES import encrypt
 from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, map_image
 from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.utils import fake_bar, pause, walk_file
+from image_encryptor.utils.utils import calculate_formula_string, fake_bar, pause, walk_file
 
 
 def encrypt_image(path, parameters, save_relative_path):
@@ -35,6 +35,25 @@ def encrypt_image(path, parameters, save_relative_path):
         return split(path)[1], repr(e)
 
     size = image.size
+
+    if isinstance(parameters['row'], str):
+        parameters['row'], error = calculate_formula_string(parameters['row'], width=size[0], height=size[1])
+        if error is not None:
+            return split(path)[1], f'动态运算切割行数参数时出现错误：{error}'
+        elif parameters['row'] < 1:
+            return split(path)[1], f"动态运算的切割行数参数不正确：切割行数小于1 (结果为{parameters['row']})"
+        elif parameters['row'] > size[1]:
+            return split(path)[1], f"动态运算的切割行数参数不正确：切割行数大于图片宽度 (结果为{parameters['row']})"
+
+    if isinstance(parameters['col'], str):
+        parameters['col'], error = calculate_formula_string(parameters['col'], width=size[0], height=size[1])
+        if error is not None:
+            return split(path)[1], f'动态运算切割列数参数时出现错误：{error}'
+        elif parameters['col'] < 1:
+            return split(path)[1], f"动态运算的切割列数参数不正确：切割列数小于1 (结果为{parameters['col']})"
+        elif parameters['col'] > size[0]:
+            return split(path)[1], f"动态运算的切割列数参数不正确：切割列数大于图片宽度 (结果为{parameters['col']})"
+
     has_password = True if parameters['password'] != 100 else False
     name, suffix = splitext(split(path)[1])
     suffix = parameters['format'] if parameters['format'] is not None else 'png'
@@ -55,11 +74,11 @@ def encrypt_image(path, parameters, save_relative_path):
         new_image = XOR_image(new_image, parameters['password'], parameters['xor_alpha'])
 
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
-    save_path = join(parameters['save_path'], save_relative_path, name)
+    output_path = join(parameters['output_path'], save_relative_path, name)
     if suffix.lower() in ['jpg', 'jpeg']:
         new_image = new_image.convert('RGB')
 
-    new_image.save(save_path, quality=95, subsampling=0)
+    new_image.save(output_path, quality=95, subsampling=0)
 
     json = {
         'width': size[0],
@@ -75,7 +94,7 @@ def encrypt_image(path, parameters, save_relative_path):
         'version': 2
     }
 
-    with open(save_path, "a") as f:
+    with open(output_path, "a") as f:
         f.write('\n' + dumps(json, separators=(',', ':')))
 
 
@@ -95,10 +114,10 @@ def main():
 
     if not EXTENSION:
         PIL_init()
-    for relative_path, files in walk_file(program.parameters['path'], program.parameters['topdown']):
-        save_dir = join(program.parameters['save_path'], relative_path)
+    for relative_path, files in walk_file(program.parameters['input_path'], program.parameters['topdown']):
+        save_dir = join(program.parameters['output_path'], relative_path)
         for file in files:
-            path = join(program.parameters['path'], relative_path, file)
+            path = join(program.parameters['input_path'], relative_path, file)
             '''if is_using(path):
                 program.logger.warning(f'文件[{file}]正在被使用，跳过处理')
                 continue'''

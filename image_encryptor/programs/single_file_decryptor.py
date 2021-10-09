@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 11:21:26
+LastEditTime : 2021-10-08 20:57:27
 Description  : 单文件解密功能
 '''
 from math import ceil
@@ -20,13 +20,13 @@ from image_encryptor.utils.utils import check_password, pause
 def main():
     program = load_program()
 
-    '''if is_using(program.parameters['path']):
+    '''if is_using(program.parameters['input_path']):
         program.logger.error('文件正在被使用')
         pause()
         exit()'''
 
     try:
-        image = Image.open(program.parameters['path']).convert('RGBA')
+        image = Image.open(program.parameters['input_path']).convert('RGBA')
     except FileNotFoundError:
         program.logger.error('文件不存在')
         pause()
@@ -47,8 +47,8 @@ def main():
     size = image.size
     program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 
-    image_data, _ = check_password(program.parameters['path'])
-    if isinstance(image_data, str):
+    image_data, _, error = check_password(program.parameters['input_path'])
+    if error is not None:
         program.logger.error(image_data)
         pause()
         exit()
@@ -81,11 +81,11 @@ def main():
     program.logger.info('正在保存文件')
     original_image = new_image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
 
-    name, suffix = splitext(split(program.parameters['path'])[1])
+    name, suffix = splitext(split(program.parameters['input_path'])[1])
     suffix = program.parameters['format'] if program.parameters['format'] is not None else suffix
     suffix = suffix.strip('.')
     if suffix.lower() in ['jpg', 'jpeg']:
         original_image = original_image.convert('RGB')
     name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"
 
-    original_image.save(join(program.parameters['save_path'], name), quality=95, subsampling=0)
+    original_image.save(join(program.parameters['output_path'], name), quality=95, subsampling=0)

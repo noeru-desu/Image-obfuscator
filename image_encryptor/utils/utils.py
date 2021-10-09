@@ -2,14 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 14:29:32
+LastEditTime : 2021-10-09 21:22:16
 Description  : 一些小工具
 '''
 from os import system, walk
 from os.path import normpath
 
 from Crypto.Cipher import AES
-from image_encryptor.modules.loader import load_program
 from image_encryptor.modules.version_adapter import load_encryption_attributes
 from image_encryptor.utils.AES import encrypt
 
@@ -48,11 +47,25 @@ def walk_file(path, topdown=False):
         yield top[path_len:], files
 
 
+def calculate_formula_string(formula_string: str, **format):
+    try:
+        result = int(eval(formula_string.format(**format)))
+    except SyntaxError:
+        return None, '输入的公式有误，请确保输入了正确的运算符'
+    except NameError:
+        return None, '输入内容不为 纯数字/运算符/变量'
+    except KeyError as e:
+        return None, f'未知的变量：{str(e)}。当前提供：{", ".join(format.keys())}'
+    except Exception as e:
+        return None, f'运算输入的公式时出现错误：{repr(e)}'
+    else:
+        return result, None
+
+
 def check_password(path, extra_info='', auto_check_password_set: set = None):
-    program = load_program()
-    image_data = load_encryption_attributes(path)
-    if isinstance(image_data, str):
-        return image_data, 0
+    image_data, error = load_encryption_attributes(path)
+    if error is not None:
+        return None, None, error
     password = 100
     password_base64 = 0
     auto_check_password_set = set() if auto_check_password_set is None else auto_check_password_set
@@ -74,7 +87,7 @@ def check_password(path, extra_info='', auto_check_password_set: set = None):
 
         if password == '':
             while True:
-                password = input(f'{extra_info}需要解密的图片被密码保护，请输入密码：')
+                password = input(f'{extra_info}需要解密的图片被密码保护，请输入密码：\n')
                 if password == '':
                     continue
 
@@ -83,9 +96,9 @@ def check_password(path, extra_info='', auto_check_password_set: set = None):
                     if password_base64 == image_data['password_base64']:
                         break
                     else:
-                        program.logger.warning('密码错误！')
+                        print('密码错误！', end='')
                 except UnicodeDecodeError:
-                    program.logger.warning('密码错误！')
+                    print('密码错误！', end='')
 
     image_data['password'] = password
-    return image_data, password_base64
+    return image_data, password_base64, None

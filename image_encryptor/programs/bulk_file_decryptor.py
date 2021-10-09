@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:28
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 19:31:51
+LastEditTime : 2021-10-08 20:57:12
 Description  : 批量解密功能
 '''
 from math import ceil
@@ -56,7 +56,7 @@ def decrypt_image(path, parameters, image_data, save_relative_path):
         original_image = original_image.convert('RGB')
     name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"
 
-    original_image.save(join(parameters['save_path'], save_relative_path, name), quality=95, subsampling=0)
+    original_image.save(join(parameters['output_path'], save_relative_path, name), quality=95, subsampling=0)
 
 
 def main():
@@ -67,19 +67,19 @@ def main():
     if not EXTENSION:
         PIL_init()
     password_set = set()
-    for relative_path, files in walk_file(program.parameters['path'], program.parameters['topdown']):
-        save_dir = join(program.parameters['save_path'], relative_path)
+    for relative_path, files in walk_file(program.parameters['input_path'], program.parameters['topdown']):
+        save_dir = join(program.parameters['output_path'], relative_path)
         for file in files:
             name, suffix = splitext(file)
-            path = join(program.parameters['path'], relative_path, file)
+            path = join(program.parameters['input_path'], relative_path, file)
             '''if is_using(path):
                 program.logger.warning(f'文件[{file}]正在被使用，跳过处理')
                 continue'''
             if suffix not in EXTENSION or name.endswith('-decrypted'):
                 continue
-            image_data, password_base64 = check_password(path, f'[{file}]', password_set)
-            if isinstance(image_data, str):
-                program.logger.warning(f'跳过处理[{file}]{image_data}')
+            image_data, password_base64, error = check_password(path, f'[{file}]', password_set)
+            if error is not None:
+                program.logger.warning(f'跳过处理[{file}]{error}')
                 continue
             if image_data['password'] != 100 and password_base64 != 0:
                 password_set.add((password_base64, image_data['password']))
