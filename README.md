@@ -17,29 +17,31 @@ Image_encryptor.exe <文件/文件夹 路径> <保存路径> [附加参数]
 
 附加参数如下：
 
-`-e` 加密模式
+`-e` 加密模式。
 
-`-d` 解密模式
+`-d` 解密模式。
 
-`-t` 在批量加解密时不仅遍历表层文件夹，同时遍历所有文件夹内的文件夹，并在保存时自动创建不存在的子文件夹
+`-t` 在批量加解密时不仅遍历表层文件夹，同时遍历所有文件夹内的文件夹，并在保存时自动创建不存在的子文件夹。
 
-`--nne` 或 `--no-normal-encryption` 禁用所有常规加密，即禁用打乱翻转加密与RGB映射加密，该禁用选项优先于下方的`启用RGB随机映射`
+`--nne` 或 `--no-normal-encryption` 禁用所有常规加密，即禁用打乱翻转加密与RGB映射加密，该禁用选项优先于下方的`启用RGB随机映射`。
 
-`--rm` 或 `--rgb-mapping` 启用RGB随机映射
+`--rm` 或 `--rgb-mapping` 启用RGB随机映射。
 
-`-x <rgb/rgba>` 或 `--xor <rgb/rgba>` 异或加密rgb/rgba通道
+`-x <rgb/rgba>` 或 `--xor <rgb/rgba>` 异或加密rgb/rgba通道。
 
-`--pw <password>`或`--password <password>` 设置密码
+`--pw <password>`或`--password <password>` 设置密码。
 
-`-r <row>`或`--row <row>` 设置分割行数，默认为25
+`-r <row>`或`--row <row>` 设置分割行数，默认为25。提供`{width}` `{height}`，表示图片的宽高。
 
-`-c <column>`或`--col <column>` 或`--column <column>` 设置分割列数，默认为25
+`-c <column>`或`--col <column>` 或`--column <column>` 设置分割列数，默认为25。提供`{width}` `{height}`，表示图片的宽高。
 
-`-f <file format>`或`--format <file format>` 指定保存的文件格式，默认为png
+`-f <file format>`或`--format <file format>` 指定保存的文件格式，默认为png。
 
-`--pc <process count>` 或 `--process-count <process count>` 指定用于异或加解密/批量加解密的进程池大小，可使用运算符。提供{cpu_count}，表示cpu数量(每个cpu的核数之和)。默认为{cpu_count}-2。对于{cpu_count}-2 < 1的电脑，默认为1。
+`--pc <process count>` 或 `--process-count <process count>` 指定用于异或加解密/批量加解密的进程池大小。提供`{cpu_count}`，表示cpu数量(每个cpu的核数之和)，默认为`{cpu_count}-2`，对于`{cpu_count}-2 < 1`的电脑，默认为1。
 
-***注意：指定文件保存格式为有损压缩格式(如jpg)时，警告RGB通道映射与异或加密***
+所有变量均为此格式：`{var}`，所有提供变量的参数均可使用Python运算符来使程序运算出结果。
+
+***注意：指定文件保存格式为有损压缩格式(如jpg)时，RGB通道映射与异或加密会导致图片无法完全复原***
 
 无需更改参数时，直接将文件拖放到exe上即可
 
