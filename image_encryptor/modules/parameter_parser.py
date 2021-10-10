@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-09 21:04:55
+LastEditTime : 2021-10-10 13:19:01
 Description  : 参数解析器
 '''
 from getopt import GetoptError, getopt
@@ -26,13 +26,15 @@ help_msg = '''
 -e / --encrypt 加密模式
 -d / --decrypt 解密模式
 -t / --topdown 批量加解密时不仅遍历表层文件夹，同时遍历所有文件夹内的文件夹
+--nne / --no-normal-encrypt 禁用分块打乱与RGB随机映射(比启用优先级更高)
 --rm / --rgb-mapping 启用RGB随机映射
 -x rgb/rgba / --xor rgb/rgba 异或加密rgb/rgba通道
 --pw password / --password password 密码
--r row / --row row 分割行数
--c column / --col column / --column column 分割列数
+-r row / --row row 分割行数。提供{width}与{height}，表示图片的宽高
+-c column / --col column / --column column 分割列数。提供{width}与{height}，表示图片的宽高
 -f file_format / --format file_format 指定保存的文件格式
---pc process_count / --process-count process_count 指定用于异或加解密/批量加解密的进程池大小，可使用运算符。提供{cpu_count}，表示cpu数量(每个cpu的核数之和)
+--pc process_count / --process-count process_count 指定用于异或加解密/批量加解密的进程池大小。提供{cpu_count}，表示cpu数量(每个cpu的核数之和)
+所有可使用变量均为此格式："{var}"，所有提供变量的参数均可使用Python运算符
 '''
 
 CPU_COUNT = cpu_count()
@@ -229,15 +231,15 @@ def parse_parameters(logger, argv):
     if not EXTENSION:
         PIL_init()
 
-    parameters = ParameterParser(logger, argv)
+    parser = ParameterParser(logger, argv)
 
     # 解析参数
     try:
-        opts, args = getopt(argv[parameters.skip_argv:], shortopts, longopts)
+        opts, args = getopt(argv[parser.skip_argv:], shortopts, longopts)
     except GetoptError as e:
         logger.error(f'未知的参数：{e.opt}')
         logger.info(help_msg)
         exit(2)
     for opt, arg in opts:
-        parameters.parsing_methods[opt](arg)
-    return parameters.parameters
+        parser.parsing_methods[opt](arg)
+    return parser

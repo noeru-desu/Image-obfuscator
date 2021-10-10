@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-09 21:13:59
+LastEditTime : 2021-10-10 12:18:11
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
@@ -23,7 +23,8 @@ class Program(object):
         self.logger.warning('You are using Image encryptor 0.1.3')
         self.logger.warning('Open source at https://github.com/noeru-desu/Image-encryptor')
         # 检查启动参数
-        self.parameters = parse_parameters(self.logger, argv[1:])
+        self.parameter_parser = parse_parameters(self.logger, argv[1:])
+        self.parameters = self.parameter_parser.parameters
         if self.parameters['debug']:
             self.logger.remove()
             self.logger = Logger('image-encryptor', 10, True)
@@ -63,7 +64,7 @@ def check_mode():
     if program.parameters['mode'] is None:
         while True:
             mode = input('请选择处理模式[输入e表示加密或d表示解密]：\n').lower()
-            if mode in ('e', 'd'):
+            if mode in ('e', 'd', 'q'):
                 program.parameters['mode'] = mode
                 break
 

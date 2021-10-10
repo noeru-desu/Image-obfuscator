@@ -2,15 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-09 21:22:16
-Description  : 一些小工具
+LastEditTime : 2021-10-10 11:43:19
+Description  : 一些小东西
 '''
 from os import system, walk
-from os.path import normpath
+from os.path import normpath, split
 
-from Crypto.Cipher import AES
-from image_encryptor.modules.version_adapter import load_encryption_attributes
-from image_encryptor.utils.AES import encrypt
+from PIL import Image, UnidentifiedImageError
 
 
 class fake_bar(object):
@@ -25,19 +23,6 @@ class fake_bar(object):
 
 def pause():
     system('pause>nul')
-
-
-'''from win32file import FILE_ATTRIBUTE_NORMAL, GENERIC_READ, INVALID_HANDLE_VALUE, OPEN_EXISTING, CloseHandle, CreateFile
-def is_using(path):
-    return False  # 暂时禁用
-    try:
-        vHandle = CreateFile(path, GENERIC_READ, 0, None, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, None)
-        if int(vHandle) == INVALID_HANDLE_VALUE:
-            return True
-        CloseHandle(vHandle)
-    except Exception as e:
-        print(e)
-        return True'''
 
 
 def walk_file(path, topdown=False):
@@ -62,43 +47,15 @@ def calculate_formula_string(formula_string: str, **format):
         return result, None
 
 
-def check_password(path, extra_info='', auto_check_password_set: set = None):
-    image_data, error = load_encryption_attributes(path)
-    if error is not None:
-        return None, None, error
-    password = 100
-    password_base64 = 0
-    auto_check_password_set = set() if auto_check_password_set is None else auto_check_password_set
-
-    if image_data['has_password']:
-        password = ''
-        '''
-        if program.parameters['password'] != 100:
-            auto_check_password_set.add(base64, program.parameters['password'])
-        '''
-        if auto_check_password_set:
-            for b, p in auto_check_password_set:
-                try:
-                    if b == image_data['password_base64']:
-                        password = p
-                        break
-                except UnicodeDecodeError:
-                    continue
-
-        if password == '':
-            while True:
-                password = input(f'{extra_info}需要解密的图片被密码保护，请输入密码：\n')
-                if password == '':
-                    continue
-
-                try:
-                    password_base64 = encrypt(AES.MODE_CFB, password, 'PASS', base64=True)
-                    if password_base64 == image_data['password_base64']:
-                        break
-                    else:
-                        print('密码错误！', end='')
-                except UnicodeDecodeError:
-                    print('密码错误！', end='')
-
-    image_data['password'] = password
-    return image_data, password_base64, None
+def open_image(file):
+    try:
+        image = Image.open(file).convert('RGBA')
+    except FileNotFoundError:
+        return split(file)[1], '文件不存在'
+    except UnidentifiedImageError:
+        return split(file)[1], '无法打开或识别图像格式，或输入了不受支持的格式'
+    except Image.DecompressionBombWarning:
+        return split(file)[1], '图片像素量过多，为防止被解压炸弹DOS攻击，自动跳过'
+    except Exception as e:
+        return split(file)[1], repr(e)
+    return image, None

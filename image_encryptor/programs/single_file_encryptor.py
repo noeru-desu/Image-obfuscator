@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-08 21:15:52
+LastEditTime : 2021-10-10 11:48:00
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -11,13 +11,12 @@ from os.path import join, split, splitext
 from sys import exit
 
 from Crypto.Cipher import AES
-from PIL import Image, UnidentifiedImageError
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from image_encryptor.utils.AES import encrypt
 from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, map_image
 from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.utils import calculate_formula_string, pause
+from image_encryptor.utils.utils import calculate_formula_string, open_image, pause
 
 
 def main():
@@ -28,22 +27,9 @@ def main():
         pause()
         exit()'''
 
-    try:
-        image = Image.open(program.parameters['input_path']).convert('RGBA')
-    except FileNotFoundError:
-        program.logger.error('文件不存在')
-        pause()
-        exit()
-    except UnidentifiedImageError:
-        program.logger.error('无法打开或识别图像格式，或输入了不受支持的格式')
-        pause()
-        exit()
-    except Image.DecompressionBombWarning:
-        program.logger.error('图片像素量过多，为防止被解压炸弹DOS攻击，不进行处理')
-        pause()
-        exit()
-    except Exception as e:
-        program.logger.error(repr(e))
+    image, error = open_image(program.parameters['input_path'])
+    if error is not None:
+        program.logger.error(error)
         pause()
         exit()
 

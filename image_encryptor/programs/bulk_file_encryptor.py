@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-09 21:02:21
+LastEditTime : 2021-10-10 12:01:02
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -11,28 +11,20 @@ from os import makedirs
 from os.path import exists, join, split, splitext
 
 from Crypto.Cipher import AES
-from PIL import Image, UnidentifiedImageError
-from PIL.Image import EXTENSION, DecompressionBombWarning
+from PIL.Image import EXTENSION
 from PIL.Image import init as PIL_init
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from image_encryptor.utils.AES import encrypt
 from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, map_image
 from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.utils import calculate_formula_string, fake_bar, pause, walk_file
+from image_encryptor.utils.utils import calculate_formula_string, fake_bar, open_image, pause, walk_file
 
 
 def encrypt_image(path, parameters, save_relative_path):
-    try:
-        image = Image.open(path).convert('RGBA')
-    except FileNotFoundError:
-        return split(path)[1], '文件不存在'
-    except UnidentifiedImageError:
-        return split(path)[1], '无法打开或识别图像格式，或输入了不受支持的格式'
-    except DecompressionBombWarning:
-        return split(path)[1], '图片像素量过多，为防止被解压炸弹DOS攻击，自动跳过'
-    except Exception as e:
-        return split(path)[1], repr(e)
+    image, error = open_image(path)
+    if error is not None:
+        return image, error
 
     size = image.size
 

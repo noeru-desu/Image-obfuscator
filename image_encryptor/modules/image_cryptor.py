@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-07 16:03:42
+LastEditTime : 2021-10-10 10:01:47
 Description  : 所有图片的加解密方法
 '''
 from math import ceil
@@ -36,8 +36,8 @@ decrypt_mapping_func = [
 
 def map_image(image: Image, random_seed, decryption_mode: bool, row: int, col: int, block_width: int, block_height: int, bar):
     '''
-    @description: 生成打乱后的图片分块、翻转分块，与每个分块所在的坐标列表
-    @return {(regions, pos_list, flip_list)}
+    :description: 生成打乱后的图片分块、翻转分块，与每个分块所在的坐标列表
+    :return: (regions, pos_list, flip_list)
     '''
     block_num = row * col
     regions = []
@@ -100,7 +100,7 @@ def generate_decrypted_image(regions: list, pos_list: list, flip_list: list, siz
     return image
 
 
-def _xor_pixel_data(pixel_data: list, xor_num: int, xor_alpha: bool) -> list:
+def _xor_pixel_data(pixel_data: list, xor_num: int, xor_alpha: bool):
     '''
     @description: 异或每个像素点的RGB(A)通道
     @return {list}

@@ -2,19 +2,19 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-08 20:57:27
+LastEditTime : 2021-10-10 12:51:34
 Description  : 单文件解密功能
 '''
 from math import ceil
 from os.path import join, split, splitext
 from sys import exit
 
-from PIL import Image, UnidentifiedImageError
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from image_encryptor.modules.image_cryptor import XOR_image, generate_decrypted_image, map_image
 from image_encryptor.modules.loader import create_process_pool, load_program
-from image_encryptor.utils.utils import check_password, pause
+from image_encryptor.utils.password_verifier import get_image_data
+from image_encryptor.utils.utils import open_image, pause
 
 
 def main():
@@ -25,35 +25,22 @@ def main():
         pause()
         exit()'''
 
-    try:
-        image = Image.open(program.parameters['input_path']).convert('RGBA')
-    except FileNotFoundError:
-        program.logger.error('文件不存在')
-        pause()
-        exit()
-    except UnidentifiedImageError:
-        program.logger.error('无法打开或识别图像格式，或输入了不受支持的格式')
-        pause()
-        exit()
-    except Image.DecompressionBombWarning:
-        program.logger.error('图片像素量过多，为防止被解压炸弹DOS攻击，不进行处理')
-        pause()
-        exit()
-    except Exception as e:
-        program.logger.error(repr(e))
+    image, error = open_image(program.parameters['input_path'])
+    if error is not None:
+        program.logger.error(error)
         pause()
         exit()
 
     size = image.size
     program.logger.info(f'导入大小：{size[0]}x{size[1]}')
 
-    image_data, _, error = check_password(program.parameters['input_path'])
+    image_data, error = get_image_data(program.parameters['input_path'])
     if error is not None:
-        program.logger.error(image_data)
+        program.logger.error(error)
         pause()
         exit()
-    program.logger.info(f"原始图片信息：大小：{image_data['width']}x{image_data['height']}; 分块数量：{image_data['col']}x{image_data['row']}")
 
+    program.logger.info(f"原始图片信息：大小：{image_data['width']}x{image_data['height']}; 分块数量：{image_data['col']}x{image_data['row']}")
     block_width = ceil(size[0] / image_data['col'])
     block_height = ceil(size[1] / image_data['row'])
     program.logger.info(f'分块大小：{block_width}x{block_height}')

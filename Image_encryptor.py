@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 07:22:03
+LastEditTime : 2021-10-10 12:16:54
 Description  : 主程序
 '''
 from warnings import filterwarnings
@@ -11,6 +11,7 @@ import image_encryptor.programs.bulk_file_decryptor as bulk_decryptor
 import image_encryptor.programs.bulk_file_encryptor as bulk_encryptor
 import image_encryptor.programs.single_file_decryptor as single_decryptor
 import image_encryptor.programs.single_file_encryptor as single_encryptor
+import image_encryptor.programs.qq_anti_harmony as qq_anti_harmony
 from image_encryptor.modules.loader import load_program, reload_program
 
 filterwarnings('error')
@@ -22,6 +23,8 @@ def main(program):
             single_encryptor.main()
         else:
             bulk_encryptor.main()
+    elif program.parameters['mode'] == 'q':
+        qq_anti_harmony.main()
     else:
         if program.parameters['type'] == 'f':
             single_decryptor.main()
