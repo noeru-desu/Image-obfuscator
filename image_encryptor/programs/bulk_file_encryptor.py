@@ -2,11 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-10 12:01:02
+LastEditTime : 2021-10-16 20:19:25
 Description  : 批量加密功能
 '''
 from json import dumps
-from math import ceil
 from os import makedirs
 from os.path import exists, join, split, splitext
 
@@ -15,10 +14,10 @@ from PIL.Image import EXTENSION
 from PIL.Image import init as PIL_init
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
-from image_encryptor.utils.AES import encrypt
-from image_encryptor.modules.image_cryptor import XOR_image, generate_encrypted_image, map_image
+from image_encryptor.modules.image_encrypt import ImageEncrypt
 from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.utils import calculate_formula_string, fake_bar, open_image, pause, walk_file
+from image_encryptor.utils.AES import encrypt
+from image_encryptor.utils.utils import FakeBar, calculate_formula_string, open_image, pause, walk_file
 
 
 def encrypt_image(path, parameters, save_relative_path):
@@ -26,24 +25,22 @@ def encrypt_image(path, parameters, save_relative_path):
     if error is not None:
         return image, error
 
-    size = image.size
-
     if isinstance(parameters['row'], str):
-        parameters['row'], error = calculate_formula_string(parameters['row'], width=size[0], height=size[1])
+        parameters['row'], error = calculate_formula_string(parameters['row'], width=image.size[0], height=image.size[1])
         if error is not None:
             return split(path)[1], f'动态运算切割行数参数时出现错误：{error}'
         elif parameters['row'] < 1:
             return split(path)[1], f"动态运算的切割行数参数不正确：切割行数小于1 (结果为{parameters['row']})"
-        elif parameters['row'] > size[1]:
+        elif parameters['row'] > image.size[1]:
             return split(path)[1], f"动态运算的切割行数参数不正确：切割行数大于图片宽度 (结果为{parameters['row']})"
 
     if isinstance(parameters['col'], str):
-        parameters['col'], error = calculate_formula_string(parameters['col'], width=size[0], height=size[1])
+        parameters['col'], error = calculate_formula_string(parameters['col'], width=image.size[0], height=image.size[1])
         if error is not None:
             return split(path)[1], f'动态运算切割列数参数时出现错误：{error}'
         elif parameters['col'] < 1:
             return split(path)[1], f"动态运算的切割列数参数不正确：切割列数小于1 (结果为{parameters['col']})"
-        elif parameters['col'] > size[0]:
+        elif parameters['col'] > image.size[0]:
             return split(path)[1], f"动态运算的切割列数参数不正确：切割列数大于图片宽度 (结果为{parameters['col']})"
 
     has_password = True if parameters['password'] != 100 else False
@@ -51,30 +48,27 @@ def encrypt_image(path, parameters, save_relative_path):
     suffix = parameters['format'] if parameters['format'] is not None else 'png'
     suffix = suffix.strip('.')
 
-    block_width = ceil(size[0] / parameters['col'])
-    block_height = ceil(size[1] / parameters['row'])
+    image_encrypt = ImageEncrypt(image, parameters['row'], parameters['col'], parameters['password'])
+    original_size = image.size
 
     if parameters['normal_encryption']:
-        bar = fake_bar()
-        regions, pos_list, flip_list = map_image(image, parameters['password'], False, parameters['row'], parameters['col'], block_width, block_height, bar)
+        image_encrypt.init_block_data(image, False, FakeBar)
 
-        new_image = generate_encrypted_image(regions, pos_list, flip_list, (block_width * parameters['col'], block_height * parameters['row']), parameters['mapping'], bar)
-    else:
-        new_image = image
+        image = image_encrypt.get_encrypted_image(image, parameters['mapping'], FakeBar)
 
     if parameters['xor_rgb']:
-        new_image = XOR_image(new_image, parameters['password'], parameters['xor_alpha'])
+        image = image_encrypt.xor_pixels(image, parameters['xor_alpha'])
 
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
     output_path = join(parameters['output_path'], save_relative_path, name)
     if suffix.lower() in ['jpg', 'jpeg']:
-        new_image = new_image.convert('RGB')
+        image = image.convert('RGB')
 
-    new_image.save(output_path, quality=95, subsampling=0)
+    image.save(output_path, quality=95, subsampling=0)
 
     json = {
-        'width': size[0],
-        'height': size[1],
+        'width': original_size[0],
+        'height': original_size[1],
         'col': parameters['col'],
         'row': parameters['row'],
         'has_password': has_password,
