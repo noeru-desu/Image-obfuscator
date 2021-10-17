@@ -14,11 +14,11 @@ jobs:
         repo: upx
         tag: latest
         file: /upx-[0-9.]+-win64.zip/
-        path: /
+        path: ./
     - name: Unzip UPX
       run: |
-        Expand-Archive -Path upx-*.zip -DestinationPath ./
-        Move-Item upx-*/upx.exe ./
+        Expand-Archive -Path ./upx-*.zip -DestinationPath ./
+        Move-Item ./upx-*/upx.exe ./
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
