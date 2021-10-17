@@ -7,10 +7,22 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Download UPX
+      uses: i3h/download-release-asset@v1.3.2
+      with:
+        owner: upx
+        repo: upx
+        tag: latest
+        file: /upx-[0-9.]+-win64.zip/
+        path: /
+    - name: Unzip UPX
+      run: |
+        Expand-Archive -Path upx-*.zip -DestinationPath ./
+        Move-Item upx-*/upx.exe ./
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: 3.10
     - name: Cache pip
       uses: actions/cache@v2
       with:
