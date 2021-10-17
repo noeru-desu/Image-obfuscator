@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-16 20:19:28
+LastEditTime : 2021-10-17 09:30:35
 Description  : 单文件解密功能
 '''
 from os.path import join, split, splitext
@@ -51,7 +51,7 @@ def main():
         program.logger.info('正在重组')
 
         bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
-        image = image_encrypt.get_decrypted_image(image, image_data['rgb_mapping'], bar)
+        image = image_encrypt.get_image(image, image_data['rgb_mapping'], bar)
 
     if image_data['xor_rgb']:
         create_process_pool()

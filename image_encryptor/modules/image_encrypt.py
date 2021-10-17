@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-16 21:05:25
+LastEditTime : 2021-10-17 09:33:16
 Description  : 图片加密模块
 '''
 from math import ceil
@@ -18,11 +18,19 @@ flip_func = (
 )
 
 
-mapping_func = (
+encrypt_mapping_func = (
     lambda r, g, b, a: (b, r, g, a),
     lambda r, g, b, a: (g, r, b, a),
     lambda r, g, b, a: (b, g, r, a),
     lambda r, g, b, a: (g, b, r, a),
+)
+
+
+decrypt_mapping_func = (
+    lambda r, g, b, a: (g, b, r, a),
+    lambda r, g, b, a: (g, r, b, a),
+    lambda r, g, b, a: (b, g, r, a),
+    lambda r, g, b, a: (b, r, g, a),
 )
 
 
@@ -52,6 +60,7 @@ class ImageEncrypt(object):
         '''
         :description: 生成打乱后的图片分块、翻转分块，与每个分块所在的坐标列表
         '''
+        self.decryption_mode = decryption_mode
         for y in range(self.row):
             for x in range(self.col):
                 block_pos = (x * self.block_width, y * self.block_height)
@@ -68,30 +77,12 @@ class ImageEncrypt(object):
         shuffle(self.block_flip_list)
         bar.finish()
 
-    def get_encrypted_image(self, image: Image.Image, rgb_mapping: bool, bar):
+    def get_image(self, image: Image.Image, rgb_mapping: bool, bar):
         '''
-        :description: 生成加密后的图片
-        :return: 加密后的图片
+        :description: 生成处理后的图片
+        :return: 处理后的图片
         '''
-        image = Image.new('RGBA', self.ceil_size)
-        if rgb_mapping:
-            for block, pos, flip in zip(self.block_list, self.block_pos_list, self.block_flip_list):
-                block = Image.merge('RGBA', mapping_func[flip](*flip_func[flip](block).split()))
-                image.paste(block, pos)
-                bar.update(bar.value + 1)
-        else:
-            for block, pos, flip in zip(self.block_list, self.block_pos_list, self.block_flip_list):
-                block = flip_func[flip](block)
-                image.paste(block, pos)
-                bar.update(bar.value + 1)
-        bar.finish()
-        return image
-
-    def get_decrypted_image(self, image: Image.Image, rgb_mapping: bool, bar):
-        '''
-        :description: 生成解密后的图片
-        :return: 解密后的图片
-        '''
+        mapping_func = decrypt_mapping_func if self.decryption_mode else encrypt_mapping_func
         image = Image.new('RGBA', self.ceil_size)
         if rgb_mapping:
             for block, pos, flip in zip(self.block_list, self.block_pos_list, self.block_flip_list):

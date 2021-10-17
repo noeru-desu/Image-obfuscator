@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-16 21:30:11
+LastEditTime : 2021-10-17 09:30:39
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -95,7 +95,7 @@ def main():
 
         program.logger.info('正在重组')
         bar = ProgressBar(max_value=program.parameters['col'] * program.parameters['row'], widgets=widgets)
-        image = image_encrypt.get_encrypted_image(image, program.parameters['mapping'], bar)
+        image = image_encrypt.get_image(image, program.parameters['mapping'], bar)
 
     if program.parameters['xor_rgb']:
         program.logger.info('正在异或加密，性能较低，请耐心等待')

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-16 20:19:25
+LastEditTime : 2021-10-17 09:20:01
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -54,7 +54,7 @@ def encrypt_image(path, parameters, save_relative_path):
     if parameters['normal_encryption']:
         image_encrypt.init_block_data(image, False, FakeBar)
 
-        image = image_encrypt.get_encrypted_image(image, parameters['mapping'], FakeBar)
+        image = image_encrypt.get_image(image, parameters['mapping'], FakeBar)
 
     if parameters['xor_rgb']:
         image = image_encrypt.xor_pixels(image, parameters['xor_alpha'])

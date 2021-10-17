@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:28
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-16 21:23:09
+LastEditTime : 2021-10-17 09:19:56
 Description  : 批量解密功能
 '''
 from os import makedirs
@@ -28,7 +28,7 @@ def decrypt_image(path, parameters, image_data, save_relative_path):
     if image_data['normal_encryption']:
         image_encrypt.init_block_data(image, True, FakeBar)
 
-        image = image_encrypt.get_decrypted_image(image, image_data['rgb_mapping'], FakeBar)
+        image = image_encrypt.get_image(image, image_data['rgb_mapping'], FakeBar)
 
     if image_data['xor_rgb']:
         image = image_encrypt.xor_pixels(image, image_data['xor_alpha'])
