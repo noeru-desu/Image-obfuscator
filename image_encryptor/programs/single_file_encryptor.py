@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-17 09:30:39
+LastEditTime : 2021-10-23 11:46:31
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -10,7 +10,6 @@ from os.path import join, split, splitext
 from sys import exit
 
 from Crypto.Cipher import AES
-from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from image_encryptor.modules.image_encrypt import ImageEncrypt
 from image_encryptor.modules.loader import load_program

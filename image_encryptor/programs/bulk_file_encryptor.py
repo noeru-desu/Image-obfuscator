@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-17 09:20:01
+LastEditTime : 2021-10-23 11:46:21
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -12,7 +12,6 @@ from os.path import exists, join, split, splitext
 from Crypto.Cipher import AES
 from PIL.Image import EXTENSION
 from PIL.Image import init as PIL_init
-from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from image_encryptor.modules.image_encrypt import ImageEncrypt
 from image_encryptor.modules.loader import load_program
