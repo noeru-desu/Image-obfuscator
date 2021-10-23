@@ -2,15 +2,17 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 18:17:19
+LastEditTime : 2021-10-23 19:24:29
 Description  : 配置窗口类
 '''
 from os import getcwd
+from traceback import format_exc, print_exc
 
 import wx
 from PIL import Image
 from wx.core import EmptyString
 
+import image_encryptor.programs.single_file_decryptor as single_file_decryptor
 import image_encryptor.programs.qq_anti_harmony as qq_anti_harmony
 import image_encryptor.programs.single_file_encryptor as single_file_encryptor
 from image_encryptor.frame.design_frame import MainFrame as MF
@@ -66,7 +68,9 @@ class MainFrame(MF):
             self.program.logger.info(f'重新缩放预览图并显示{self.program.data.preview_original_image.size}')
             self.importedImage.SetBitmap(wx.Bitmap.FromBuffer(*self.program.data.preview_original_image.size, self.program.data.preview_original_image.convert('RGB').tobytes()))
 
-    def display_preview_image(self):
+    def display_preview_image(self, resize):
+        if resize:
+            self.program.data.preview_image = self.program.data.preview_image.resize(scale(self.program.data.preview_image, *self.importedImageScrolled.Size))
         self.previewedImage.SetBitmap(wx.Bitmap.FromBuffer(*self.program.data.preview_image.size, self.program.data.preview_image.convert('RGB').tobytes()))
 
     def load_file(self, event):
@@ -95,19 +99,24 @@ class MainFrame(MF):
         self.processingOptions.Enable(False)
         self.program.data.preview_image = self.generate_image(False)
         self.processingOptions.Enable(True)
-        self.display_preview_image()
+        self.display_preview_image(True if self.mode.Selection == 1 else False)
 
     def generate_image(self, save):
         logger = self.saveProgressPrompt.SetLabelText if save else self.previewProgressPrompt.SetLabelText
         gauge = self.saveProgress if save else self.previewProgress
         image = self.program.data.loaded_image if save else self.program.data.preview_original_image
         self.update_password_dict(None)
-        if self.mode.Selection == 0:
-            return single_file_encryptor.main(self, logger, gauge, image, save)
-        elif self.mode.Selection == 1:
-            pass
-        else:
-            return qq_anti_harmony.main(self, logger, gauge, image, save)
+        try:
+            if self.mode.Selection == 0:
+                return single_file_encryptor.main(self, logger, gauge, image, save)
+            elif self.mode.Selection == 1:
+                return single_file_decryptor.main(self, logger, gauge, self.program.data.loaded_image, save)
+            else:
+                return qq_anti_harmony.main(self, logger, gauge, image, save)
+        except Exception:
+            print_exc()
+            self.error(format_exc(), '出现意外错误')
+            return self.program.data.preview_original_image
 
     def update_password_dict(self, event):
         if event is not None:

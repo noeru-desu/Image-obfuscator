@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:48:27
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 17:43:00
+LastEditTime : 2021-10-23 19:07:29
 Description  : 粗略包装的密码验证器
 '''
 
@@ -43,9 +43,10 @@ def get_image_data(file, extra_info='', password_dict: PasswordDict = None, retu
         if password_dict is not None:
             password = password_dict.get(image_data['password_base64'], None)
             if password is not None:
-                if return_directly:
-                    return '密码错误！'
                 check_password = False
+            else:
+                if return_directly:
+                    return None, '密码字典中不存在正确密码'
         if check_password:
             while True:
                 password = input(f'{extra_info}需要解密的图片被密码保护，请输入密码：\n')
@@ -57,7 +58,7 @@ def get_image_data(file, extra_info='', password_dict: PasswordDict = None, retu
                     password_dict[password_base64] = password
                     break
                 else:
-                    print('密码错误！', end='')
+                    return None, '密码错误！'
 
     image_data['password'] = password
     return image_data, None
