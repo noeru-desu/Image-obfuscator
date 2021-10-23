@@ -2,42 +2,26 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 11:46:26
+LastEditTime : 2021-10-23 17:43:34
 Description  : 单文件解密功能
 '''
 from os.path import join, split, splitext
 from sys import exit
 
+from PIL import Image
+
 from image_encryptor.modules.image_encrypt import ImageEncrypt
 from image_encryptor.modules.loader import create_process_pool, load_program
 from image_encryptor.utils.password_verifier import get_image_data
-from image_encryptor.utils.utils import open_image, pause
 
 
-def main():
+def main(frame, logger, gauge, image: Image.Image, save: bool):
     program = load_program()
 
-    '''if is_using(program.parameters['input_path']):
-        program.logger.error('文件正在被使用')
-        pause()
-        exit()'''
-
-    image, error = open_image(program.parameters['input_path'])
+    image_data, error = get_image_data(program.parameters['input_path'], password_dict=program.password_dict)
     if error is not None:
-        program.logger.error(error)
-        pause()
-        exit()
+        frame.error(error, '读取加密参数时出现问题')
 
-    program.logger.info(f'导入大小：{image.size[0]}x{image.size[1]}')
-
-    image_data, error = get_image_data(program.parameters['input_path'])
-    if error is not None:
-        program.logger.error(error)
-        pause()
-        exit()
-
-    program.logger.info(f"原始图片信息：大小：{image_data['width']}x{image_data['height']}; 分块数量：{image_data['col']}x{image_data['row']}")
-    widgets = [Percentage(), ' ', SimpleProgress(), ' ', Bar('█'), ' ']
     image_encrypt = ImageEncrypt(image, image_data['row'], image_data['col'], image_data['password'])
     program.logger.info('正在处理')
 

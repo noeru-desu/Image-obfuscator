@@ -2,16 +2,17 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 10:19:06
+LastEditTime : 2021-10-23 18:20:30
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
 from concurrent.futures import ProcessPoolExecutor
 
-from PIL.Image import EXTENSION
-from PIL.Image import init as PIL_init
+from PIL import Image
 
+from image_encryptor.modules.data import Data
 from image_encryptor.utils.logger import Logger
+from image_encryptor.utils.password_verifier import PasswordDict
 
 program = None
 
@@ -22,11 +23,9 @@ class Program(object):
         self.logger = Logger('image-encryptor')
         self.logger.warning('You are using Image encryptor 1.0.0-alpha.1 (branch: features/gui)')
         self.logger.warning('Open source at https://github.com/noeru-desu/Image-encryptor')
-        self.process_pool_max_workers = 0
-        self.process_pool = None
-        self.loaded_image = None
-        self.preview_original_image = None
-        self.preview_image = None
+        # 全局变量模块
+        self.data = Data()
+        self.password_dict = PasswordDict()
 
 
 def at_exit():
@@ -39,8 +38,9 @@ def at_exit():
 def load_program():
     global program
     if program is None:
-        if not EXTENSION:
-            PIL_init()
+        if not Image.EXTENSION:
+            Image.init()
+            Image.EXTENSION_KEYS = list(Image.EXTENSION.keys())
         program = Program()
         register(at_exit)
     return program

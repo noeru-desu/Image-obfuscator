@@ -2,12 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-17 09:33:16
+LastEditTime : 2021-10-23 18:15:04
 Description  : 图片加密模块
 '''
 from math import ceil
 from random import randrange, seed, shuffle
 
+from numpy import array, dstack, uint8
 from PIL import Image
 
 flip_func = (
@@ -97,16 +98,6 @@ class ImageEncrypt(object):
         bar.finish()
         return image
 
-    def _xor_pixel_data(self, pixel_data, xor_num: int, xor_alpha: bool):
-        '''
-        :description: 异或每个像素点的RGB(A)通道
-        :return: 二维列表，包含被异或后的每个像素点各通道的值[[r, g, b, a], [r, g, b, a], ...]
-        '''
-        if xor_alpha:
-            return [(r ^ xor_num, g ^ xor_num, b ^ xor_num, a ^ xor_num) for r, g, b, a in pixel_data]
-        else:
-            return [(r ^ xor_num, g ^ xor_num, b ^ xor_num, a) for r, g, b, a in pixel_data]
-
     def xor_pixels(self, image: Image.Image, xor_alpha: bool, process_pool=None, process_count: int = None):
         '''
         :description: 异或图片中每个像素点的RGB(A)通道
@@ -114,20 +105,11 @@ class ImageEncrypt(object):
         '''
         seed(self.random_seed)
         xor_num = randrange(256)
-        pixel_list = list(image.getdata())
-        future_list = []
-        if process_pool is None:
-            pixel_list = self._xor_pixel_data(pixel_list, xor_num, xor_alpha)
-        else:
-            num = 0
-            for i in range(0, len(pixel_list), ceil(len(pixel_list) / process_count)):
-                if i == 0:
-                    continue
-                future_list.append(process_pool.submit(self._xor_pixel_data, pixel_list[num:i], xor_num, xor_alpha))
-                num = i
-            future_list.append(process_pool.submit(self._xor_pixel_data, pixel_list[num:], xor_num, xor_alpha))
-            pixel_list = []
-            for i in future_list:
-                pixel_list.extend(i.result())
-        image.putdata(pixel_list)
-        return image
+        pixel_array = array(image, uint8)
+        if not xor_alpha:
+            alpha_pixel_array = pixel_array[:, :, 3]
+            pixel_array = pixel_array[:, :, :3]
+        pixel_array ^= xor_num
+        if not xor_alpha:
+            pixel_array = dstack((pixel_array, alpha_pixel_array))
+        return Image.fromarray(pixel_array)

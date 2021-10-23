@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 11:29:49
+LastEditTime : 2021-10-23 16:54:55
 Description  : 一些小东西
 '''
 from os import system, walk
@@ -11,17 +11,18 @@ from os.path import normpath, split
 from PIL import Image, UnidentifiedImageError
 
 
-class FakeBar:
-    """假的进度条"""
-    value = 0
+class ProgressBar(object):
+    def __init__(self, target, max_value: int):
+        self.target = target
+        self.max_value = max_value
+        self.value = 0
+        self.target.SetRange(max_value)
 
-    @staticmethod
-    def update(n):
-        pass
+    def update(self, value):
+        self.target.SetValue(value)
 
-    @staticmethod
-    def finish():
-        pass
+    def finish(self):
+        self.target.SetValue(self.max_value)
 
 
 def pause():
@@ -85,11 +86,11 @@ def open_image(file):
 
 def scale(image: Image.Image, width=None, height=None):
     """
-    指定宽或高，得到按比例缩放后的宽高
-    :param filePath:图片的绝对路径
-    :param width:目标宽度
-    :param height:目标高度
-    :return:按比例缩放后的宽和高
+    :description: 指定宽或高，得到按比例缩放后的宽高
+    :param filePath: 图片的绝对路径
+    :param width: 目标宽度
+    :param height: 目标高度
+    :return: 按比例缩放后的宽和高(取最小)
     """
     if not width and not height:
         return image.size
@@ -102,4 +103,4 @@ def scale(image: Image.Image, width=None, height=None):
     else:
         height = width * _height / _width if width else height
         width = height * _width / _height if height else width
-    return int(width), int(height)
+        return int(width), int(height)

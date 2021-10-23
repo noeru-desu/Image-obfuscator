@@ -2,41 +2,37 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 11:08:44
+LastEditTime : 2021-10-23 17:11:58
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
 from random import randint
 from os.path import join, split, splitext
-from sys import exit
+
+from PIL import Image
 
 from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.utils import open_image, pause
 
 
-def main(log):
+def main(frame, logger, gauge, image: Image.Image, save: bool):
     program = load_program()
 
-    image, error = open_image(program.parameters['input_path'])
-    if error is not None:
-        program.logger.error(error)
-        pause()
-        exit()
-
-    name, suffix = splitext(split(program.parameters['input_path'])[1])
-    suffix = program.parameters['format'] if program.parameters['format'] is not None else 'png'
-    suffix = suffix.strip('.')
-
-    program.logger.info('开始处理')
+    logger('开始处理')
 
     image.putpixel((0, 0), (randint(0, 255), randint(0, 255), randint(0, 255)))
     image.putpixel((image.size[0] - 1, 0), (randint(0, 255), randint(0, 255), randint(0, 255)))
     image.putpixel((0, image.size[1] - 1), (randint(0, 255), randint(0, 255), randint(0, 255)))
     image.putpixel((image.size[0] - 1, image.size[1] - 1), (randint(0, 255), randint(0, 255), randint(0, 255)))
 
-    program.logger.info('完成，正在保存文件')
-    name = f'{name}-anti-harmony.{suffix}'
-    output_path = join(program.parameters['output_path'], name)
-    if suffix.lower() in ['jpg', 'jpeg']:
-        image = image.convert('RGB')
-
-    image.save(output_path, quality=95, subsampling=0)
+    if save:
+        logger('完成，正在保存文件')
+        name, suffix = splitext(split(program.data.loaded_image_path)[1])
+        suffix = Image.EXTENSION.keys()[frame.selectFormat.Selection]
+        suffix = suffix.strip('.')
+        name = f'{name}-anti-harmony.{suffix}'
+        if suffix.lower() in ['jpg', 'jpeg']:
+            image = image.convert('RGB')
+        image.save(join(frame.selectSavePath.Path, name), quality=95, subsampling=0)
+        gauge.SetRange(1)
+        gauge.SetValue(1)
+    logger('完成')
+    return image
