@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-16 20:18:47
+LastEditTime : 2021-10-23 11:29:49
 Description  : 一些小东西
 '''
 from os import system, walk
@@ -77,7 +77,29 @@ def open_image(file):
     except UnidentifiedImageError:
         return split(file)[1], '无法打开或识别图像格式，或输入了不受支持的格式'
     except Image.DecompressionBombWarning:
-        return split(file)[1], '图片像素量过多，为防止被解压炸弹DOS攻击，自动跳过'
+        return split(file)[1], '图片像素量过多'
     except Exception as e:
         return split(file)[1], repr(e)
     return image, None
+
+
+def scale(image: Image.Image, width=None, height=None):
+    """
+    指定宽或高，得到按比例缩放后的宽高
+    :param filePath:图片的绝对路径
+    :param width:目标宽度
+    :param height:目标高度
+    :return:按比例缩放后的宽和高
+    """
+    if not width and not height:
+        return image.size
+    _width, _height = image.size
+    if width and height:
+        w = width / _width
+        h = height / _height
+        scale = w if w < h else h
+        return int(_width * scale), int(_height * scale)
+    else:
+        height = width * _height / _width if width else height
+        width = height * _width / _height if height else width
+    return int(width), int(height)
