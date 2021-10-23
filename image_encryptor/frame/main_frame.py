@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 19:24:29
+LastEditTime : 2021-10-23 19:30:21
 Description  : 配置窗口类
 '''
 from os import getcwd
@@ -132,7 +132,7 @@ class MainFrame(MF):
         self.program.data.preview_image = self.generate_image(True)
         self.processingOptions.Enable(True)
         self.saveOptions.Enable(True)
-        self.display_preview_image()
+        self.display_preview_image(True)
 
     def preview_mode_change(self, event):
         if self.previewMode.Selection == 0:
