@@ -17,11 +17,11 @@ import wx.xrc
 class MainFrame ( wx.Frame ):
 
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Image Encryptor 1.0.0 -alpha.4", pos = wx.DefaultPosition, size = wx.Size( 915,640 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Image Encryptor 1.0.0 -alpha.4", pos = wx.DefaultPosition, size = wx.Size( 1000,640 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
-        self.SetSizeHints( wx.Size( 400,640 ), wx.DefaultSize )
+        self.SetSizeHints( wx.Size( 640,640 ), wx.DefaultSize )
         self.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
-        self.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_HIGHLIGHTTEXT ) )
+        self.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
         self.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
 
         self.m_menubar1 = wx.MenuBar( 0 )
