@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-24 18:56:25
+LastEditTime : 2021-10-24 20:01:36
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -17,7 +17,7 @@ from image_encryptor.utils.AES import encrypt
 from image_encryptor.utils.utils import ProgressBar
 
 
-def main(frame, logger, gauge, image: Image.Image, save: bool, callback):
+def main(frame, logger, gauge, image: Image.Image, save: bool):
     program = load_program()
 
     password = 100 if frame.password.Value == 'none' else frame.password.Value
