@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 11:46:21
+LastEditTime : 2021-10-24 13:14:57
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -110,7 +110,7 @@ def main():
                 makedirs(save_dir)
             name, suffix = splitext(file)
             if suffix in EXTENSION and not (name.endswith('-encrypted') or name.endswith('-decrypted')):
-                future_list.append(program.process_pool.submit(encrypt_image, path, program.parameters, relative_path))
+                future_list.append(program.thread_pool.submit(encrypt_image, path, program.parameters, relative_path))
 
     if future_list:
         widgets = [Percentage(), ' ', SimpleProgress(), ' ', Bar('█'), ' ']

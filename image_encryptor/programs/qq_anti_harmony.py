@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 17:11:58
+LastEditTime : 2021-10-24 18:57:08
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
 from random import randint
@@ -26,13 +26,13 @@ def main(frame, logger, gauge, image: Image.Image, save: bool):
     if save:
         logger('完成，正在保存文件')
         name, suffix = splitext(split(program.data.loaded_image_path)[1])
-        suffix = Image.EXTENSION.keys()[frame.selectFormat.Selection]
+        suffix = Image.EXTENSION_KEYS[frame.selectFormat.Selection]
         suffix = suffix.strip('.')
         name = f'{name}-anti-harmony.{suffix}'
         if suffix.lower() in ['jpg', 'jpeg']:
             image = image.convert('RGB')
-        image.save(join(frame.selectSavePath.Path, name), quality=95, subsampling=0)
-        gauge.SetRange(1)
-        gauge.SetValue(1)
+        image.save(join(frame.selectSavePath.Path, name), quality=frame.saveQuality.Value, subsampling=frame.subsamplingLevel.Value)
+    gauge.SetRange(1)
+    gauge.SetValue(1)
     logger('完成')
-    return image
+    return image, save

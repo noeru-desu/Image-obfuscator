@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 18:15:04
+LastEditTime : 2021-10-24 13:14:24
 Description  : 图片加密模块
 '''
 from math import ceil
@@ -98,7 +98,7 @@ class ImageEncrypt(object):
         bar.finish()
         return image
 
-    def xor_pixels(self, image: Image.Image, xor_alpha: bool, process_pool=None, process_count: int = None):
+    def xor_pixels(self, image: Image.Image, xor_alpha: bool, thread_pool=None, thread_count: int = None):
         '''
         :description: 异或图片中每个像素点的RGB(A)通道
         :return: 异或后的图片

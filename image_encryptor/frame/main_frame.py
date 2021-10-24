@@ -2,10 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 19:30:21
+LastEditTime : 2021-10-24 19:26:34
 Description  : 配置窗口类
 '''
 from os import getcwd
+from os.path import isdir
+from concurrent.futures import CancelledError
 from traceback import format_exc, print_exc
 
 import wx
@@ -32,6 +34,8 @@ class MainFrame(MF):
         for i in Image.EXTENSION:
             self.supported_formats_str += f'*{i}; '
         self.run_path = run_path
+        self.program.thread_pool.create_tag('preview', True)
+        self.program.thread_pool.create_tag('save', False)
         self.preview_size = (0, 0)
 
     @classmethod
@@ -46,6 +50,12 @@ class MainFrame(MF):
 
         app.MainLoop()
 
+    @property
+    def preview_image_size(self):
+        w, h = self.imagePanel.Size
+        sh = self.imageStaticline.Size[1]
+        return w, int((h - sh) / 2)
+
     def manual_refresh(self, event):
         if self.previewMode.Selection == 0:
             return
@@ -55,33 +65,38 @@ class MainFrame(MF):
         if event is not None and self.previewMode.Selection != 2:
             return
         if self.program.data.loaded_image is not None:
-            if self.preview_size != self.importedImageScrolled.Size:
+            if self.preview_size != self.preview_image_size:
                 self.display_preview_original_image()
             self.display_preview()
+        if event is not None:
+            event.Skip()
 
     def display_preview_original_image(self):
         self.xorRgb.Selection
-        size = self.importedImageScrolled.Size
+        size = self.preview_image_size
         if self.program.data.loaded_image is not None:
             self.program.data.preview_original_image = self.program.data.loaded_image.resize(scale(self.program.data.loaded_image, *size))
             self.preview_size = size
-            self.program.logger.info(f'重新缩放预览图并显示{self.program.data.preview_original_image.size}')
+            self.program.logger.info(f'重新缩放预览图{self.program.data.preview_original_image.size}并显示')
             self.importedImage.SetBitmap(wx.Bitmap.FromBuffer(*self.program.data.preview_original_image.size, self.program.data.preview_original_image.convert('RGB').tobytes()))
 
     def display_preview_image(self, resize):
+        size = self.preview_image_size
         if resize:
-            self.program.data.preview_image = self.program.data.preview_image.resize(scale(self.program.data.preview_image, *self.importedImageScrolled.Size))
+            self.program.data.preview_image = self.program.data.preview_image.resize(scale(self.program.data.preview_image, *size))
         self.previewedImage.SetBitmap(wx.Bitmap.FromBuffer(*self.program.data.preview_image.size, self.program.data.preview_image.convert('RGB').tobytes()))
 
     def load_file(self, event):
         dialog = wx.FileDialog(self, "选择图像", self.run_path, EmptyString, self.supported_formats_str, wx.FD_OPEN | wx.FD_CHANGE_DIR | wx.FD_PREVIEW | wx.FD_FILE_MUST_EXIST)
         if wx.ID_OK == dialog.ShowModal():
             path = dialog.GetPath()
+            Image.MAX_IMAGE_PIXELS = self.maxImagePixels.Value if self.maxImagePixels.Value != 0 else None
             self.program.data.loaded_image, error = open_image(path)
             self._check_image(error)
 
     def load_select_file(self, event):
         self.program.data.loaded_image_path = self.selectFile.Path
+        Image.MAX_IMAGE_PIXELS = self.maxImagePixels.Value if self.maxImagePixels.Value != 0 else None
         self.program.data.loaded_image, error = open_image(self.program.data.loaded_image_path)
         self._check_image(error)
 
@@ -92,46 +107,54 @@ class MainFrame(MF):
         else:
             self.display_preview_original_image()
             self.imageInfo.SetLabelText(f'大小：{self.program.data.loaded_image.size[0]}x{self.program.data.loaded_image.size[1]}')
-            self.processingOptions.Enable(True)
+            self.previewOptions.Enable(True)
             self.saveOptions.Enable(True)
 
     def display_preview(self):
-        self.processingOptions.Enable(False)
-        self.program.data.preview_image = self.generate_image(False)
-        self.processingOptions.Enable(True)
-        self.display_preview_image(True if self.mode.Selection == 1 else False)
+        self.generate_image(False)
+        # self.display_preview_image(True if self.mode.Selection == 1 else False)
 
     def generate_image(self, save):
+        tag = 'save' if save else 'preview'
+        check = self.program.thread_pool.check_tag(tag)
+        if check is not None:
+            self.error(check, '无法执行任务')
         logger = self.saveProgressPrompt.SetLabelText if save else self.previewProgressPrompt.SetLabelText
         gauge = self.saveProgress if save else self.previewProgress
         image = self.program.data.loaded_image if save else self.program.data.preview_original_image
-        self.update_password_dict(None)
+        self.update_password_dict()
         try:
             if self.mode.Selection == 0:
-                return single_file_encryptor.main(self, logger, gauge, image, save)
+                self.program.thread_pool.add_task(tag, self.program.thread_pool.submit(single_file_encryptor.main, self, logger, gauge, image, save), self.generate_image_call_back)
             elif self.mode.Selection == 1:
-                return single_file_decryptor.main(self, logger, gauge, self.program.data.loaded_image, save)
+                self.program.thread_pool.add_task(tag, self.program.thread_pool.submit(single_file_decryptor.main, self, logger, gauge, self.program.data.loaded_image, save), self.generate_image_call_back)
             else:
-                return qq_anti_harmony.main(self, logger, gauge, image, save)
+                self.program.thread_pool.add_task(tag, self.program.thread_pool.submit(qq_anti_harmony.main, self, logger, gauge, image, save), self.generate_image_call_back)
         except Exception:
+            self.program.thread_pool.del_future(tag)
             print_exc()
             self.error(format_exc(), '出现意外错误')
-            return self.program.data.preview_original_image
 
-    def update_password_dict(self, event):
+    def update_password_dict(self, event=None):
         if event is not None:
             self.refresh_preview(event)
         if self.password.Value != 'none' and self.password.Value not in self.program.password_dict.values():
             password_base64 = PasswordDict.get_validation_field_base64(self.password.Value)
-            self.program.logger.info(f'更新密码字典：{password_base64}: {self.password.Value}')
+            self.program.logger.info(f'更新密码字典[{password_base64}: {self.password.Value}](当前字典长度：{len(self.program.password_dict)})')
             self.program.password_dict[PasswordDict.get_validation_field_base64(self.password.Value)] = self.password.Value
 
     def save_image(self, event):
-        self.processingOptions.Enable(False)
-        self.saveOptions.Enable(False)
-        self.program.data.preview_image = self.generate_image(True)
-        self.processingOptions.Enable(True)
-        self.saveOptions.Enable(True)
+        if not isdir(self.selectSavePath.Path):
+            self.error('没有选择保存文件夹或选择的文件夹不存在', '保存时出现错误')
+            return
+        self.generate_image(True)
+
+    def generate_image_call_back(self, futures):
+        try:
+            self.program.data.preview_image, save = futures.result()
+        except CancelledError:
+            return
+        self.program.thread_pool.del_future('save' if save else 'preview', futures)
         self.display_preview_image(True)
 
     def preview_mode_change(self, event):
@@ -163,3 +186,7 @@ class MainFrame(MF):
         if dialog.ShowModal() == wx.ID_YES:
             self.Close(True)
         dialog.Destroy()
+
+    def exit(self, event):
+        self.Destroy()
+        exit()

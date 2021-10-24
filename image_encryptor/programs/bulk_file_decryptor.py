@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:28
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 11:46:35
+LastEditTime : 2021-10-24 13:14:51
 Description  : 批量解密功能
 '''
 from os import makedirs
@@ -68,7 +68,7 @@ def main():
                 continue
             if not exists(save_dir):
                 makedirs(save_dir)
-            future_list.append(program.process_pool.submit(decrypt_image, path, program.parameters, image_data, relative_path))
+            future_list.append(program.thread_pool.submit(decrypt_image, path, program.parameters, image_data, relative_path))
 
     if future_list:
         widgets = [Percentage(), ' ', SimpleProgress(), ' ', Bar('█'), ' ']

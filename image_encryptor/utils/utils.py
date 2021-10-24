@@ -2,10 +2,11 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-23 16:54:55
+LastEditTime : 2021-10-24 19:00:14
 Description  : 一些小东西
 '''
 from os import system, walk
+from concurrent.futures import ThreadPoolExecutor
 from os.path import normpath, split
 
 from PIL import Image, UnidentifiedImageError
@@ -16,13 +17,53 @@ class ProgressBar(object):
         self.target = target
         self.max_value = max_value
         self.value = 0
-        self.target.SetRange(max_value)
 
     def update(self, value):
-        self.target.SetValue(value)
+        self.value = value
+        self.target.SetValue(int((value / self.max_value) * 100))
 
     def finish(self):
-        self.target.SetValue(self.max_value)
+        self.target.SetValue(100)
+
+
+class TaskManager(ThreadPoolExecutor):
+    def __init__(self, *args, **kargs):
+        super().__init__(*args, **kargs)
+        self.task_dict = {}
+
+    def create_tag(self, tag_name: str, single: bool, overwrite: bool = True):
+        self.task_dict[tag_name] = {
+            'single': single,
+            'overwrite': overwrite,
+            'futures': None if single else []
+        }
+
+    def add_task(self, tag_name, future, callback=None):
+        if callback is not None:
+            future.add_done_callback(callback)
+        if self.task_dict[tag_name]['single']:
+            self.task_dict[tag_name]['futures'] = future
+        else:
+            self.task_dict[tag_name]['futures'].append(future)
+
+    def check_tag(self, tag_name):
+        if self.task_dict[tag_name]['single'] and self.task_dict[tag_name]['futures'] is not None:
+            if self.task_dict[tag_name]['overwrite']:
+                if self.task_dict[tag_name]['futures'].running():
+                    return '已有一个无法打断的任务正在进行'
+                else:
+                    if not self.task_dict[tag_name]['futures'].cancelled():
+                        self.task_dict[tag_name]['futures'].cancel()
+                    return None
+            else:
+                return '已有一个任务正在进行'
+        return None
+
+    def del_future(self, tag_name, futures=None):
+        if not (futures is None or self.task_dict[tag_name]['single']):
+            self.task_dict[tag_name]['futures'].remove(futures)
+        else:
+            self.task_dict[tag_name]['futures'] = None
 
 
 def pause():
@@ -78,29 +119,22 @@ def open_image(file):
     except UnidentifiedImageError:
         return split(file)[1], '无法打开或识别图像格式，或输入了不受支持的格式'
     except Image.DecompressionBombWarning:
-        return split(file)[1], '图片像素量过多'
+        return split(file)[1], '图片像素量超过允许最大像素量'
     except Exception as e:
         return split(file)[1], repr(e)
     return image, None
 
 
-def scale(image: Image.Image, width=None, height=None):
+def scale(image: Image.Image, width: int, height: int):
     """
     :description: 指定宽或高，得到按比例缩放后的宽高
-    :param filePath: 图片的绝对路径
-    :param width: 目标宽度
-    :param height: 目标高度
+    :param image: PIL.Image.Image实例
+    :param width: 可以使用的最大宽度
+    :param height: 可以使用的最大高度
     :return: 按比例缩放后的宽和高(取最小)
     """
-    if not width and not height:
-        return image.size
     _width, _height = image.size
-    if width and height:
-        w = width / _width
-        h = height / _height
-        scale = w if w < h else h
-        return int(_width * scale), int(_height * scale)
-    else:
-        height = width * _height / _width if width else height
-        width = height * _width / _height if height else width
-        return int(width), int(height)
+    width /= _width
+    height /= _height
+    scale = width if width < height else height
+    return int(_width * scale), int(_height * scale)

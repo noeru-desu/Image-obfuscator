@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-22 19:29:13
+LastEditTime : 2021-10-24 13:13:45
 Description  : GUI程序
 '''
 from warnings import filterwarnings
@@ -18,6 +18,6 @@ if __name__ == '__main__':
     try:
         MainFrame.run()
     except KeyboardInterrupt:
-        if program.process_pool is not None:
-            program.process_pool.shutdown(wait=False, cancel_futures=True)
+        if program.thread_pool is not None:
+            program.thread_pool.shutdown(wait=False, cancel_futures=True)
         program.logger.error('已强制退出')
