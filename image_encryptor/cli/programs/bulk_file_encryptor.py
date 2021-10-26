@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-24 13:14:57
+LastEditTime : 2021-10-26 21:03:42
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -12,11 +12,13 @@ from os.path import exists, join, split, splitext
 from Crypto.Cipher import AES
 from PIL.Image import EXTENSION
 from PIL.Image import init as PIL_init
+from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
-from image_encryptor.modules.image_encrypt import ImageEncrypt
-from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.AES import encrypt
-from image_encryptor.utils.utils import FakeBar, calculate_formula_string, open_image, pause, walk_file
+from image_encryptor.cli.modules.loader import load_program
+from image_encryptor.cli.utils.utils import FakeBar
+from image_encryptor.common.modules.image_encrypt import ImageEncrypt
+from image_encryptor.common.utils.AES import encrypt
+from image_encryptor.common.utils.utils import calculate_formula_string, open_image, pause, walk_file
 
 
 def encrypt_image(path, parameters, save_relative_path):
@@ -110,7 +112,7 @@ def main():
                 makedirs(save_dir)
             name, suffix = splitext(file)
             if suffix in EXTENSION and not (name.endswith('-encrypted') or name.endswith('-decrypted')):
-                future_list.append(program.thread_pool.submit(encrypt_image, path, program.parameters, relative_path))
+                future_list.append(program.process_pool.submit(encrypt_image, path, program.parameters, relative_path))
 
     if future_list:
         widgets = [Percentage(), ' ', SimpleProgress(), ' ', Bar('█'), ' ']

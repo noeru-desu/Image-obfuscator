@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-24 19:12:08
+LastEditTime : 2021-10-26 21:05:30
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
@@ -10,10 +10,10 @@ from multiprocessing import cpu_count
 
 from PIL import Image
 
-from image_encryptor.modules.data import Data
-from image_encryptor.utils.logger import Logger
-from image_encryptor.utils.password_verifier import PasswordDict
-from image_encryptor.utils.utils import TaskManager
+from image_encryptor.gui.modules.data import Data
+from image_encryptor.common.utils.logger import Logger
+from image_encryptor.common.modules.password_verifier import PasswordDict
+from image_encryptor.gui.utils.utils import TaskManager
 
 program = None
 

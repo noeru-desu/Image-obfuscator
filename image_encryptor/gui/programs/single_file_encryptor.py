@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-24 20:01:36
+LastEditTime : 2021-10-26 21:08:10
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -11,10 +11,10 @@ from os.path import join, split, splitext
 from Crypto.Cipher import AES
 from PIL import Image
 
-from image_encryptor.modules.image_encrypt import ImageEncrypt
-from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.AES import encrypt
-from image_encryptor.utils.utils import ProgressBar
+from image_encryptor.common.modules.image_encrypt import ImageEncrypt
+from image_encryptor.common.utils.AES import encrypt
+from image_encryptor.gui.modules.loader import load_program
+from image_encryptor.gui.utils.utils import ProgressBar
 
 
 def main(frame, logger, gauge, image: Image.Image, save: bool):

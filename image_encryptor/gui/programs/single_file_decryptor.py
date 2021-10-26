@@ -2,17 +2,17 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-24 19:23:02
+LastEditTime : 2021-10-26 21:07:55
 Description  : 单文件解密功能
 '''
 from os.path import join, split, splitext
 
 from PIL import Image
 
-from image_encryptor.modules.image_encrypt import ImageEncrypt
-from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.password_verifier import get_image_data
-from image_encryptor.utils.utils import ProgressBar
+from image_encryptor.common.modules.image_encrypt import ImageEncrypt
+from image_encryptor.gui.modules.loader import load_program
+from image_encryptor.gui.modules.password_verifier import get_image_data
+from image_encryptor.gui.utils.utils import ProgressBar
 
 
 def main(frame, logger, gauge, image: Image.Image, save: bool):

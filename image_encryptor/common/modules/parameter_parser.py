@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-22 19:42:45
+LastEditTime : 2021-10-25 21:33:07
 Description  : 参数解析器
 '''
 from getopt import GetoptError, getopt
@@ -14,7 +14,7 @@ from sys import exit
 from PIL.Image import EXTENSION
 from PIL.Image import init as PIL_init
 
-from image_encryptor.utils.utils import calculate_formula_string
+from image_encryptor.common.utils.utils import calculate_formula_string
 
 help_msg = '''
 <path> <save-path> [--nm] [-pw password] [-r row] [-c column] [-f file_format]
@@ -219,3 +219,27 @@ class ParameterParser(object):
     def debug(self, arg):
         self.logger.info('已启用调试模式')
         self.parameters['debug'] = True
+
+
+def parse_parameters(logger, argv):
+    # 检测是否直接输出帮助信息
+    if not argv or argv[0] in ('-h', '--help'):
+        logger.info(help_msg)
+        exit()
+
+    # 检测PIL是否初始化
+    if not EXTENSION:
+        PIL_init()
+
+    parser = ParameterParser(logger, argv)
+
+    # 解析参数
+    try:
+        opts, args = getopt(argv[parser.skip_argv:], shortopts, longopts)
+    except GetoptError as e:
+        logger.error(f'未知的参数：{e.opt}')
+        logger.info(help_msg)
+        exit(2)
+    for opt, arg in opts:
+        parser.parsing_methods[opt](arg)
+    return parser

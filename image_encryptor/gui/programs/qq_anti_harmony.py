@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-24 18:57:08
+LastEditTime : 2021-10-25 21:16:03
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
 from random import randint
@@ -10,7 +10,7 @@ from os.path import join, split, splitext
 
 from PIL import Image
 
-from image_encryptor.modules.loader import load_program
+from image_encryptor.gui.modules.loader import load_program
 
 
 def main(frame, logger, gauge, image: Image.Image, save: bool):

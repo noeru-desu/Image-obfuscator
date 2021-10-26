@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-24 13:13:45
+LastEditTime : 2021-10-25 21:15:07
 Description  : GUI程序
 '''
 from warnings import filterwarnings
 
-from image_encryptor.frame.main_frame import MainFrame
-from image_encryptor.modules.loader import load_program
+from image_encryptor.gui.frame.main_frame import MainFrame
+from image_encryptor.gui.modules.loader import load_program
 
 filterwarnings('error')
 
