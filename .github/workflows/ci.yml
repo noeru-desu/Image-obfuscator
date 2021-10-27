@@ -5,8 +5,11 @@ on: [ push, pull_request ]
 jobs:
   Build-by-Pyinstaller:
     strategy:
+      fail-fast: false
       matrix:
-        platform: ['x64','x86']
+        include:
+          - { name: amd64-win64-pyinstaller, os: windows-latest, A: x64 }
+          - { name: i386-win32-pyinstaller,  os: windows-latest, A: x86 }
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -50,19 +53,24 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: by-pyinstaller
+        name: ${{ matrix.name }}
         path: |
           pyinstaller/onefile
           pyinstaller/multiplefiles
   Build-by-Nuitka:
     strategy:
+      fail-fast: false
       matrix:
-        platform: ['x64','x86']
+        include:
+          - { name: amd64-win64-msvc-14.2, os: windows-latest, C: msvc-14.2-x64, A: x64 }
+          - { name: i386-win32-msvc-14.2,  os: windows-latest, C: msvc-14.2-x86, A: x86 }
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Set up MinGW
-      uses: egor-tensin/setup-mingw@v2
+    - name: 'Set up Developer Command Prompt'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.A }}
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
@@ -81,13 +89,13 @@ jobs:
         pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
     - name: Build artifacts
       run: |
-        nuitka --mingw64 --standalone --assume-yes-for-downloads --plugin-enable=multiprocessing,numpy --remove-output --output-dir=build Image_encryptor[CLI].py
-        nuitka --mingw64 --onefile --assume-yes-for-downloads --plugin-enable=multiprocessing,numpy --remove-output --output-dir=build Image_encryptor[CLI].py
+        nuitka --msvc=14.2 --standalone --assume-yes-for-downloads --output-dir=build Image_encryptor[CLI].py
+        nuitka --msvc=14.2 --onefile --assume-yes-for-downloads --output-dir=build Image_encryptor[CLI].py
         pip install wxPython
-        nuitka --mingw64 --standalone --assume-yes-for-downloads --plugin-enable=multiprocessing,numpy --remove-output --output-dir=build Image_encryptor[GUI].py
-        nuitka --mingw64 --onefile --assume-yes-for-downloads --plugin-enable=multiprocessing,numpy --remove-output --output-dir=build Image_encryptor[GUI].py
+        nuitka --msvc=14.2 --standalone --assume-yes-for-downloads --output-dir=build Image_encryptor[GUI].py
+        nuitka --msvc=14.2 --onefile --assume-yes-for-downloads --output-dir=build Image_encryptor[GUI].py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: by-nuitka
+        name: ${{ matrix.name }}
         path: build
