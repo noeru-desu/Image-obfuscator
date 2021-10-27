@@ -2,16 +2,16 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-25 21:41:12
+LastEditTime : 2021-10-27 21:09:08
 Description  : 主程序
 '''
 from warnings import filterwarnings
 
-import image_encryptor.cli.programs.bulk_file_decryptor as bulk_decryptor
-import image_encryptor.cli.programs.bulk_file_encryptor as bulk_encryptor
-import image_encryptor.cli.programs.single_file_decryptor as single_decryptor
-import image_encryptor.cli.programs.single_file_encryptor as single_encryptor
-import image_encryptor.cli.programs.qq_anti_harmony as qq_anti_harmony
+import image_encryptor.cli.processor.bulk_file_decryptor as bulk_decryptor
+import image_encryptor.cli.processor.bulk_file_encryptor as bulk_encryptor
+import image_encryptor.cli.processor.single_file_decryptor as single_decryptor
+import image_encryptor.cli.processor.single_file_encryptor as single_encryptor
+import image_encryptor.cli.processor.qq_anti_harmony as qq_anti_harmony
 from image_encryptor.cli.modules.loader import load_program, reload_program
 
 filterwarnings('error')

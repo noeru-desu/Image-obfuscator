@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-25 21:24:37
+LastEditTime : 2021-10-26 21:40:21
 Description  : 一些小东西
 '''
 from concurrent.futures import ThreadPoolExecutor
@@ -11,16 +11,38 @@ from PIL import Image
 
 
 class ProgressBar(object):
-    def __init__(self, target, max_value: int):
+    def __init__(self, target, step_count: int):
         self.target = target
+        self.step_count = step_count
+        self.step = 0
+        self.value = 0
+        self.finished_step = True
+        self.max_value = 0
+        self.step_progress = 0
+        self.target.SetValue(0)
+
+    def next_step(self, max_value: int):
+        if not self.finished_step:
+            self.finish()
+        self.finished_step = False
+        self.step += 1
         self.max_value = max_value
         self.value = 0
+        self.step_progress = self.step / self.step_count * 100
 
     def update(self, value):
+        if value > self.max_value:
+            return
         self.value = value
-        self.target.SetValue(int((value / self.max_value) * 100))
+        self.target.SetValue(int(self.step_progress + (value / self.max_value)))
 
     def finish(self):
+        self.target.SetValue(int(self.step_progress))
+        self.finished_step = True
+
+    def over(self):
+        if not self.finished_step:
+            self.finish()
         self.target.SetValue(100)
 
 

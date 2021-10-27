@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-25 21:31:43
+LastEditTime : 2021-10-26 21:32:10
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
@@ -10,8 +10,8 @@ from concurrent.futures import ProcessPoolExecutor
 from os import system
 from sys import argv
 
+from image_encryptor.cli.modules.parameter_parser import parse_parameters
 from image_encryptor.common.utils.logger import Logger
-from image_encryptor.common.modules.parameter_parser import parse_parameters
 
 program = None
 

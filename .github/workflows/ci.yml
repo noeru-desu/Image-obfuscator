@@ -4,6 +4,9 @@ on: [ push, pull_request ]
 
 jobs:
   Build-by-Pyinstaller:
+    strategy:
+      matrix:
+        platform: ['x64','x86']
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -33,23 +36,31 @@ jobs:
           ${{ runner.os }}-
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt
-        pip install pyinstaller
+        pip install pyinstaller pillow colorlog pycryptodome numpy
     - name: Build artifacts
       run: |
-        pyinstaller -F Image_encryptor.py
+        New-Item -Name PyInstaller -type directory
+        New-Item -Name PyInstaller/onefile -type directory
+        New-Item -Name PyInstaller/multiplefiles  -type directory
+        python -OO -m PyInstaller --distpath PyInstaller/multiplefiles Image_encryptor(CLI).py
+        python -OO -m PyInstaller --distpath PyInstaller/onefile -F Image_encryptor(CLI).py
+        pip install wxPython
+        python -OO -m PyInstaller --distpath PyInstaller/multiplefiles Image_encryptor(GUI).py
+        python -OO -m PyInstaller --distpath PyInstaller/onefile -F Image_encryptor(GUI).py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: by-pyinstaller
-        path: dist
+        path: PyInstalle
   Build-by-Nuitka:
+    strategy:
+      matrix:
+        platform: ['x64','x86']
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: ilammy/msvc-dev-cmd@v1
-    # - name: Set up MinGW
-    #   uses: egor-tensin/setup-mingw@v2
+    - name: Set up MinGW
+      uses: egor-tensin/setup-mingw@v2
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
@@ -64,15 +75,15 @@ jobs:
           ${{ runner.os }}-
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt
+        pip install pillow colorlog pycryptodome numpy
         pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
-        pip install markupsafe
-        pip install zstandard
     - name: Build artifacts
       run: |
-        nuitka --lto yes --onefile --assume-yes-for-downloads --output-dir=build Image_encryptor.py
+        nuitka --mingw64 --onefile --assume-yes-for-downloads --remove-output --output-dir=build Image_encryptor(CLI).py
+        pip install wxPython
+        nuitka --mingw64 --onefile --assume-yes-for-downloads --remove-output --output-dir=build Image_encryptor(GUI).py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: by-nuitka
-        path: build/Image_encryptor.exe
+        path: build

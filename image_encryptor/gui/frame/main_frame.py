@@ -2,25 +2,26 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-24 19:26:34
+LastEditTime : 2021-10-27 21:09:15
 Description  : 配置窗口类
 '''
+from concurrent.futures import CancelledError
 from os import getcwd
 from os.path import isdir
-from concurrent.futures import CancelledError
 from traceback import format_exc, print_exc
 
 import wx
 from PIL import Image
 from wx.core import EmptyString
 
-import image_encryptor.programs.single_file_decryptor as single_file_decryptor
-import image_encryptor.programs.qq_anti_harmony as qq_anti_harmony
-import image_encryptor.programs.single_file_encryptor as single_file_encryptor
-from image_encryptor.frame.design_frame import MainFrame as MF
-from image_encryptor.modules.loader import load_program
-from image_encryptor.utils.password_verifier import PasswordDict
-from image_encryptor.utils.utils import open_image, scale
+import image_encryptor.gui.processor.qq_anti_harmony as qq_anti_harmony
+import image_encryptor.gui.processor.single_file_decryptor as single_file_decryptor
+import image_encryptor.gui.processor.single_file_encryptor as single_file_encryptor
+from image_encryptor.common.modules.password_verifier import PasswordDict
+from image_encryptor.common.utils.utils import open_image
+from image_encryptor.gui.frame.design_frame import MainFrame as MF
+from image_encryptor.gui.modules.loader import load_program
+from image_encryptor.gui.utils.utils import scale
 
 
 class MainFrame(MF):
