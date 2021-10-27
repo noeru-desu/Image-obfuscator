@@ -90,10 +90,11 @@ jobs:
         pip install pillow colorlog pycryptodome numpy progressbar2
         pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
     - name: Build artifacts
+      shell: cmd
       run: |
         nuitka --msvc=14.2 --standalone --assume-yes-for-downloads --output-dir=build Image_encryptor[CLI].py
         nuitka --msvc=14.2 --onefile --assume-yes-for-downloads --output-dir=build Image_encryptor[CLI].py
-        pip install wxPython
+        pip install wxPython zstandard
         nuitka --msvc=14.2 --standalone --assume-yes-for-downloads --output-dir=build Image_encryptor[GUI].py
         nuitka --msvc=14.2 --onefile --assume-yes-for-downloads --output-dir=build Image_encryptor[GUI].py
     - name: Upload artifacts
