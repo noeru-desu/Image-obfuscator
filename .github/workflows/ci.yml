@@ -39,19 +39,21 @@ jobs:
         pip install pyinstaller pillow colorlog pycryptodome numpy
     - name: Build artifacts
       run: |
-        New-Item -Name PyInstaller -type directory
-        New-Item -Name PyInstaller/onefile -type directory
-        New-Item -Name PyInstaller/multiplefiles  -type directory
-        python -OO -m PyInstaller --distpath PyInstaller/multiplefiles Image_encryptor[CLI].py
-        python -OO -m PyInstaller --distpath PyInstaller/onefile -F Image_encryptor[CLI].py
+        New-Item -Name pyinstaller -type directory
+        New-Item -Name pyinstaller/onefile -type directory
+        New-Item -Name pyinstaller/multiplefiles  -type directory
+        python -OO -m PyInstaller --distpath pyinstaller/multiplefiles Image_encryptor[CLI].py
+        python -OO -m PyInstaller --distpath pyinstaller/onefile -F Image_encryptor[CLI].py
         pip install wxPython
-        python -OO -m PyInstaller --distpath PyInstaller/multiplefiles Image_encryptor[GUI].py
-        python -OO -m PyInstaller --distpath PyInstaller/onefile -F Image_encryptor[GUI].py
+        python -OO -m PyInstaller --distpath pyinstaller/multiplefiles Image_encryptor[GUI].py
+        python -OO -m PyInstaller --distpath pyinstaller/onefile -F Image_encryptor[GUI].py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: by-pyinstaller
-        path: PyInstalle/*
+        path: |
+          pyinstaller/onefile
+          pyinstaller/multiplefiles
   Build-by-Nuitka:
     strategy:
       matrix:
