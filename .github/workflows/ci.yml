@@ -42,16 +42,16 @@ jobs:
         New-Item -Name PyInstaller -type directory
         New-Item -Name PyInstaller/onefile -type directory
         New-Item -Name PyInstaller/multiplefiles  -type directory
-        python -OO -m PyInstaller --distpath PyInstaller/multiplefiles "Image_encryptor(CLI).py"
-        python -OO -m PyInstaller --distpath PyInstaller/onefile -F "Image_encryptor(CLI).py"
+        python -OO -m PyInstaller --distpath PyInstaller/multiplefiles Image_encryptor[CLI].py
+        python -OO -m PyInstaller --distpath PyInstaller/onefile -F Image_encryptor[CLI].py
         pip install wxPython
-        python -OO -m PyInstaller --distpath PyInstaller/multiplefiles "Image_encryptor(GUI).py"
-        python -OO -m PyInstaller --distpath PyInstaller/onefile -F "Image_encryptor(GUI).py"
+        python -OO -m PyInstaller --distpath PyInstaller/multiplefiles Image_encryptor[GUI].py
+        python -OO -m PyInstaller --distpath PyInstaller/onefile -F Image_encryptor[GUI].py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: by-pyinstaller
-        path: PyInstalle
+        path: PyInstalle/*
   Build-by-Nuitka:
     strategy:
       matrix:
@@ -79,9 +79,9 @@ jobs:
         pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
     - name: Build artifacts
       run: |
-        nuitka --mingw64 --onefile --assume-yes-for-downloads --remove-output --output-dir=build "Image_encryptor(CLI).py"
+        nuitka --mingw64 --onefile --assume-yes-for-downloads --remove-output --output-dir=build Image_encryptor[CLI].py
         pip install wxPython
-        nuitka --mingw64 --onefile --assume-yes-for-downloads --remove-output --output-dir=build "Image_encryptor(GUI).py"
+        nuitka --mingw64 --onefile --assume-yes-for-downloads --remove-output --output-dir=build Image_encryptor[GUI].py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
