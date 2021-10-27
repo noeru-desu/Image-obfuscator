@@ -36,12 +36,12 @@ jobs:
           ${{ runner.os }}-
     - name: Install dependencies
       run: |
-        pip install pyinstaller pillow colorlog pycryptodome numpy
+        pip install pyinstaller pillow colorlog pycryptodome numpy progressbar2
     - name: Build artifacts
       run: |
         New-Item -Name pyinstaller -type directory
         New-Item -Name pyinstaller/onefile -type directory
-        New-Item -Name pyinstaller/multiplefiles  -type directory
+        New-Item -Name pyinstaller/multiplefiles -type directory
         python -OO -m PyInstaller --distpath pyinstaller/multiplefiles Image_encryptor[CLI].py
         python -OO -m PyInstaller --distpath pyinstaller/onefile -F Image_encryptor[CLI].py
         pip install wxPython
@@ -77,13 +77,15 @@ jobs:
           ${{ runner.os }}-
     - name: Install dependencies
       run: |
-        pip install pillow colorlog pycryptodome numpy
+        pip install pillow colorlog pycryptodome numpy progressbar2
         pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
     - name: Build artifacts
       run: |
-        nuitka --mingw64 --onefile --assume-yes-for-downloads --remove-output --output-dir=build Image_encryptor[CLI].py
+        nuitka --mingw64 --standalone --assume-yes-for-downloads --plugin-enable=multiprocessing,numpy --remove-output --output-dir=build Image_encryptor[CLI].py
+        nuitka --mingw64 --onefile --assume-yes-for-downloads --plugin-enable=multiprocessing,numpy --remove-output --output-dir=build Image_encryptor[CLI].py
         pip install wxPython
-        nuitka --mingw64 --onefile --assume-yes-for-downloads --remove-output --output-dir=build Image_encryptor[GUI].py
+        nuitka --mingw64 --standalone --assume-yes-for-downloads --plugin-enable=multiprocessing,numpy --remove-output --output-dir=build Image_encryptor[GUI].py
+        nuitka --mingw64 --onefile --assume-yes-for-downloads --plugin-enable=multiprocessing,numpy --remove-output --output-dir=build Image_encryptor[GUI].py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
