@@ -63,15 +63,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: amd64-win64-nuitka-clang, os: windows-latest, C: msvc-14.2-x64, A: x64 }
-          - { name: i386-win32-nuitka-clang,  os: windows-latest, C: msvc-14.2-x86, A: x86 }
+          - { name: amd64-win64-nuitka-MinGW, os: windows-latest, A: x64 }
+          - { name: i386-win32-nuitka-MinGW, os: windows-latest, A: x86 }
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Developer Command Prompt
-      uses: ilammy/msvc-dev-cmd@v1
+    - name: Set up MinGW
+      uses: egor-tensin/setup-mingw@v2
       with:
-        arch: ${{ matrix.A }}
+        platform: ${{ matrix.A }}
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
@@ -99,11 +99,11 @@ jobs:
     - name: Build artifacts
       shell: cmd
       run: |
-        nuitka --clang --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output --output-dir=nuitka/multiplefiles/cli Image_encryptor[CLI].py
-        nuitka --clang --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output --output-dir=nuitka/onefile/cli Image_encryptor[CLI].py
+        nuitka --mingw64 --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output --output-dir=nuitka/multiplefiles/cli Image_encryptor[CLI].py
+        nuitka --mingw64 --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output --output-dir=nuitka/onefile/cli Image_encryptor[CLI].py
         pip install wxPython zstandard
-        nuitka --clang --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output --output-dir=nuitka/multiplefiles/gui Image_encryptor[GUI].py
-        nuitka --clang --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output --output-dir=nuitka/onefile/gui Image_encryptor[GUI].py
+        nuitka --mingw64 --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output --output-dir=nuitka/multiplefiles/gui Image_encryptor[GUI].py
+        nuitka --mingw64 --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output --output-dir=nuitka/onefile/gui Image_encryptor[GUI].py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
