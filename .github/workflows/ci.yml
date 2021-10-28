@@ -99,11 +99,11 @@ jobs:
     - name: Build artifacts
       shell: cmd
       run: |
-        nuitka --clang --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --nofollow-import-to=numpy,multiprocessing --remove-output --output-dir=nuitka/multiplefiles/cli Image_encryptor[CLI].py
-        nuitka --clang --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --nofollow-import-to=numpy,multiprocessing --remove-output --output-dir=nuitka/onefile/cli Image_encryptor[CLI].py
+        nuitka --clang --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output --output-dir=nuitka/multiplefiles/cli Image_encryptor[CLI].py
+        nuitka --clang --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output --output-dir=nuitka/onefile/cli Image_encryptor[CLI].py
         pip install wxPython zstandard
-        nuitka --clang --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --nofollow-import-to=numpy,multiprocessing --remove-output --output-dir=nuitka/multiplefiles/gui Image_encryptor[GUI].py
-        nuitka --clang --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --nofollow-import-to=numpy,multiprocessing --remove-output --output-dir=nuitka/onefile/gui Image_encryptor[GUI].py
+        nuitka --clang --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output --output-dir=nuitka/multiplefiles/gui Image_encryptor[GUI].py
+        nuitka --clang --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output --output-dir=nuitka/onefile/gui Image_encryptor[GUI].py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
