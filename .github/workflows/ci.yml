@@ -46,11 +46,11 @@ jobs:
         New-Item -Name pyinstaller -type directory
         New-Item -Name pyinstaller/onefile -type directory
         New-Item -Name pyinstaller/multiplefiles -type directory
-        python -OO -m PyInstaller --distpath pyinstaller/multiplefiles Image_encryptor[CLI].py
-        python -OO -m PyInstaller --distpath pyinstaller/onefile -F Image_encryptor[CLI].py
+        pyinstaller --distpath pyinstaller/multiplefiles Image_encryptor[CLI].py
+        pyinstaller --distpath pyinstaller/onefile -F Image_encryptor[CLI].py
         pip install wxPython
-        python -OO -m PyInstaller --distpath pyinstaller/multiplefiles Image_encryptor[GUI].py
-        python -OO -m PyInstaller --distpath pyinstaller/onefile -F Image_encryptor[GUI].py
+        pyinstaller --distpath pyinstaller/multiplefiles Image_encryptor[GUI].py
+        pyinstaller --distpath pyinstaller/onefile -F Image_encryptor[GUI].py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
@@ -63,8 +63,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: amd64-win64-msvc-14.2, os: windows-latest, C: msvc-14.2-x64, A: x64 }
-          - { name: i386-win32-msvc-14.2,  os: windows-latest, C: msvc-14.2-x86, A: x86 }
+          - { name: amd64-win64-nuitka-msvc-14.2, os: windows-latest, C: msvc-14.2-x64, A: x64 }
+          - { name: i386-win32-nuitka-msvc-14.2,  os: windows-latest, C: msvc-14.2-x86, A: x86 }
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -92,13 +92,22 @@ jobs:
     - name: Build artifacts
       shell: cmd
       run: |
-        nuitka --msvc=14.2 --standalone --assume-yes-for-downloads --output-dir=build Image_encryptor[CLI].py
-        nuitka --msvc=14.2 --onefile --assume-yes-for-downloads --output-dir=build Image_encryptor[CLI].py
+        New-Item -Name nuitka -type directory
+        New-Item -Name nuitka/onefile -type directory
+        New-Item -Name nuitka/multiplefiles -type directory
+        New-Item -Name nuitka/onefile/cli -type directory
+        New-Item -Name nuitka/multiplefiles/cli -type directory
+        New-Item -Name nuitka/onefile/gui -type directory
+        New-Item -Name nuitka/multiplefiles/gui -type directory
+        nuitka --msvc=14.2 --standalone --assume-yes-for-downloads --output-dir=nuitka/multiplefiles/cli Image_encryptor[CLI].py
+        nuitka --msvc=14.2 --onefile --assume-yes-for-downloads --output-dir=nuitka/onefile/cli Image_encryptor[CLI].py
         pip install wxPython zstandard
-        nuitka --msvc=14.2 --standalone --assume-yes-for-downloads --output-dir=build Image_encryptor[GUI].py
-        nuitka --msvc=14.2 --onefile --assume-yes-for-downloads --output-dir=build Image_encryptor[GUI].py
+        nuitka --msvc=14.2 --standalone --assume-yes-for-downloads --output-dir=nuitka/multiplefiles/gui Image_encryptor[GUI].py
+        nuitka --msvc=14.2 --onefile --assume-yes-for-downloads --output-dir=nuitka/onefile/gui Image_encryptor[GUI].py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.name }}
-        path: build
+        path: |
+          nuitka/onefile
+          nuitka/multiplefiles
