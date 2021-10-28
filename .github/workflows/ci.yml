@@ -89,9 +89,6 @@ jobs:
         pip install --upgrade pip
         pip install pillow colorlog pycryptodome numpy progressbar2
         pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
-    - name: Build artifacts
-      shell: cmd
-      run: |
         New-Item -Name nuitka -type directory
         New-Item -Name nuitka/onefile -type directory
         New-Item -Name nuitka/multiplefiles -type directory
@@ -99,6 +96,9 @@ jobs:
         New-Item -Name nuitka/multiplefiles/cli -type directory
         New-Item -Name nuitka/onefile/gui -type directory
         New-Item -Name nuitka/multiplefiles/gui -type directory
+    - name: Build artifacts
+      shell: cmd
+      run: |
         nuitka --clang --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --nofollow-import-to=numpy,multiprocessing --remove-output --output-dir=nuitka/multiplefiles/cli Image_encryptor[CLI].py
         nuitka --clang --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --nofollow-import-to=numpy,multiprocessing --remove-output --output-dir=nuitka/onefile/cli Image_encryptor[CLI].py
         pip install wxPython zstandard
