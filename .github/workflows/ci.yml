@@ -52,10 +52,10 @@ jobs:
     - name: Build artifacts
       shell: cmd
       run: |
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s pyinstaller -F Image_encryptor[CLI].py
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m pyinstaller Image_encryptor[CLI].py
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s pyinstaller -F Image_encryptor[GUI].py
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m pyinstaller Image_encryptor[GUI].py
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s pyinstaller -F Image_encryptor_cli.py
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m pyinstaller Image_encryptor_cli.py
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s pyinstaller -F Image_encryptor_gui.py
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m pyinstaller Image_encryptor_gui.py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
@@ -103,10 +103,10 @@ jobs:
       shell: cmd
       run: |
         mkdir nuitka
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output Image_encryptor[CLI].py
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output Image_encryptor[CLI].py
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output Image_encryptor[GUI].py
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output Image_encryptor[GUI].py
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output Image_encryptor_cli.py
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output Image_encryptor_cli.py
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output Image_encryptor_gui.py
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --remove-output Image_encryptor_gui.py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
