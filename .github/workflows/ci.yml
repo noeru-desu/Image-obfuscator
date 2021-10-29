@@ -107,7 +107,8 @@ jobs:
         if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=%H%/nuitka --remove-output %H%/Image_encryptor_cli.py
         if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=%H%/nuitka --remove-output %H%/Image_encryptor_gui.py
         if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=%H%/nuitka --remove-output %H%/Image_encryptor_gui.py
-    run: |
+    - name: Build artifacts
+      run: |
         nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output Image_encryptor_cli.py
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
