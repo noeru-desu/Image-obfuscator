@@ -101,6 +101,8 @@ jobs:
         pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
     - name: Build artifacts
       run: |
+        nuitka %H%/image_encryptor_cli.py
+        nuitka image_encryptor_cli.py
         nuitka --msvc=14.2 --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=%H%/nuitka --remove-output %H%/image_encryptor_cli.py
         nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=%H%/nuitka --remove-output %H%/image_encryptor_cli.py
         nuitka --msvc=latest --onefile --assume-yes-for-downloads --remove-output %H%/image_encryptor_cli.py
