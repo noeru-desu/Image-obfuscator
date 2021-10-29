@@ -83,12 +83,6 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Build artifacts
-      shell: cmd
-      run: |
-        dir
-        cd ..
-        dir
     - name: 'Set up Developer Command Prompt'
       uses: ilammy/msvc-dev-cmd@v1
       with:
@@ -115,8 +109,6 @@ jobs:
     - name: Build artifacts
       shell: cmd
       run: |
-        cd ..
-        dir
         mkdir nuitka
         if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_cli.py
         if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_cli.py
