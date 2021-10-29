@@ -2,9 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-25 21:15:07
+LastEditTime : 2021-10-29 23:04:41
 Description  : GUI程序
 '''
+from sys import argv
 from warnings import filterwarnings
 
 from image_encryptor.gui.frame.main_frame import MainFrame
@@ -15,6 +16,8 @@ filterwarnings('error')
 
 if __name__ == '__main__':
     program = load_program()
+    if len(argv) > 1 and argv[1] == '+test':
+        exit()
     try:
         MainFrame.run()
     except KeyboardInterrupt:
