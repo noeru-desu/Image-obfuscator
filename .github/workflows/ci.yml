@@ -76,6 +76,11 @@ jobs:
           - { name: i386-win32-gui-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: gui, build_type_b: m }
     runs-on: windows-latest
     steps:
+    - name: Build artifacts
+      shell: cmd
+      run: |
+        cd ..
+        dir
     - name: 'Set up Developer Command Prompt'
       uses: ilammy/msvc-dev-cmd@v1
       with:
@@ -103,6 +108,7 @@ jobs:
       shell: cmd
       run: |
         cd ..
+        dir
         mkdir nuitka
         if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_cli.py
         if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_cli.py
