@@ -50,8 +50,8 @@ jobs:
         if ${{ matrix.build_type_a }} == cli pip install progressbar2
         if ${{ matrix.build_type_a }} == gui pip install wxPython
     - name: Build artifacts
+      shell: cmd
       run: |
-        shell: cmd
         if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s pyinstaller -F Image_encryptor[CLI].py
         if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m pyinstaller Image_encryptor[CLI].py
         if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s pyinstaller -F Image_encryptor[GUI].py
