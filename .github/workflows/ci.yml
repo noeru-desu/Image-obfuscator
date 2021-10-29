@@ -8,14 +8,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: amd64-win64-pyinstaller-packaged, os: windows-latest, A: x64, build_type_a: cli, build_type_b: s, bit: 64 }
-          - { name: amd64-win64-pyinstaller-unpackaged, os: windows-latest, A: x64, build_type_a: cli, build_type_b: m, bit: 64 }
-          - { name: amd64-win64-pyinstaller-packaged,  os: windows-latest, A: x64, build_type_a: gui, build_type_b: s, bit: 64 }
-          - { name: amd64-win64-pyinstaller-unpackaged, os: windows-latest, A: x64, build_type_a: gui, build_type_b: m, bit: 64 }
-          - { name: i386-win32-pyinstaller-packaged, os: windows-latest, A: x86, build_type_a: cli, build_type_b: s, bit: 32 }
-          - { name: i386-win32-pyinstaller-unpackaged, os: windows-latest, A: x86, build_type_a: cli, build_type_b: m, bit: 32 }
-          - { name: i386-win32-pyinstaller-packaged,  os: windows-latest, A: x86, build_type_a: gui, build_type_b: s, bit: 32 }
-          - { name: i386-win32-pyinstaller-unpackaged, os: windows-latest, A: x86, build_type_a: gui, build_type_b: m, bit: 32 }
+          - { name: amd64-win64-cli-pyinstaller-packaged, os: windows-latest, A: x64, build_type_a: cli, build_type_b: s, bit: 64 }
+          - { name: amd64-win64-cli-pyinstaller-unpackaged, os: windows-latest, A: x64, build_type_a: cli, build_type_b: m, bit: 64 }
+          - { name: amd64-win64-gui-pyinstaller-packaged,  os: windows-latest, A: x64, build_type_a: gui, build_type_b: s, bit: 64 }
+          - { name: amd64-win64-gui-pyinstaller-unpackaged, os: windows-latest, A: x64, build_type_a: gui, build_type_b: m, bit: 64 }
+          - { name: i386-win32-cli-pyinstaller-packaged, os: windows-latest, A: x86, build_type_a: cli, build_type_b: s, bit: 32 }
+          - { name: i386-win32-cli-pyinstaller-unpackaged, os: windows-latest, A: x86, build_type_a: cli, build_type_b: m, bit: 32 }
+          - { name: i386-win32-gui-pyinstaller-packaged,  os: windows-latest, A: x86, build_type_a: gui, build_type_b: s, bit: 32 }
+          - { name: i386-win32-gui-pyinstaller-unpackaged, os: windows-latest, A: x86, build_type_a: gui, build_type_b: m, bit: 32 }
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -66,14 +66,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: amd64-win64-nuitka-msvc-14.2-packaged, os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: cli, build_type_b: s }
-          - { name: amd64-win64-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: cli, build_type_b: m }
-          - { name: amd64-win64-nuitka-msvc-14.2-packaged,  os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: gui, build_type_b: s }
-          - { name: amd64-win64-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: gui, build_type_b: m }
-          - { name: i386-win32-nuitka-msvc-14.2-packaged, os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: cli, build_type_b: s }
-          - { name: i386-win32-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: cli, build_type_b: m }
-          - { name: i386-win32-nuitka-msvc-14.2-packaged,  os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: gui, build_type_b: s }
-          - { name: i386-win32-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: gui, build_type_b: m }
+          - { name: amd64-win64-cli-nuitka-msvc-14.2-packaged, os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: cli, build_type_b: s }
+          - { name: amd64-win64-cli-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: cli, build_type_b: m }
+          - { name: amd64-win64-gui-nuitka-msvc-14.2-packaged,  os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: gui, build_type_b: s }
+          - { name: amd64-win64-gui-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: gui, build_type_b: m }
+          - { name: i386-win32-cli-nuitka-msvc-14.2-packaged, os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: cli, build_type_b: s }
+          - { name: i386-win32-cli-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: cli, build_type_b: m }
+          - { name: i386-win32-gui-nuitka-msvc-14.2-packaged,  os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: gui, build_type_b: s }
+          - { name: i386-win32-gui-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: gui, build_type_b: m }
     runs-on: windows-latest
     steps:
     - name: 'Set up Developer Command Prompt'
