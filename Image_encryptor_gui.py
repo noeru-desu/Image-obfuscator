@@ -2,10 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-29 23:04:41
+LastEditTime : 2021-10-29 23:26:09
 Description  : GUI程序
 '''
-from sys import argv
+from sys import argv, exit
 from warnings import filterwarnings
 
 from image_encryptor.gui.frame.main_frame import MainFrame
