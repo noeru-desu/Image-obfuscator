@@ -58,8 +58,8 @@ jobs:
         if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m pyinstaller --exclude-module pyinstaller,setuptools,altgraph image_encryptor_gui.py
         cd dist
         dir
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m (move ./image_encryptor_cli/* ./ & del /q ./image_encryptor_cli)
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m (move ./image_encryptor_gui/* ./ & del /q ./image_encryptor_gui)
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m (copy /y .\image_encryptor_cli\* .\) & (rd /s /q .\image_encryptor_cli)
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m (copy /y .\image_encryptor_gui\* .\) & (rd /s /q .\image_encryptor_gui)
     - name: Basic tests
       shell: cmd
       run: |
@@ -118,7 +118,8 @@ jobs:
         if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_cli.py
         if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_gui.py
         if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_gui.py
-        if ${{ matrix.build_type_b }} == m (move ./nuitka/*.dist/* ./nuitka & del /q ./nuitka/*.dist)
+        cd nuitka
+        if ${{ matrix.build_type_b }} == m (copy /y .\*.dist\* .\) & (rd /s /q .\*.dist)
     - name: Basic tests
       shell: cmd
       run: |
