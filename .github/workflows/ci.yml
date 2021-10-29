@@ -19,6 +19,12 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Build artifacts
+      shell: cmd
+      run: |
+        dir
+        cd ..
+        dir
     - name: Download UPX
       uses: i3h/download-release-asset@v1.3.2
       with:
@@ -76,9 +82,11 @@ jobs:
           - { name: i386-win32-gui-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: gui, build_type_b: m }
     runs-on: windows-latest
     steps:
+    - uses: actions/checkout@v2
     - name: Build artifacts
       shell: cmd
       run: |
+        dir
         cd ..
         dir
     - name: 'Set up Developer Command Prompt'
