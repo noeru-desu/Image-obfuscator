@@ -112,10 +112,10 @@ jobs:
       shell: cmd
       run: |
         mkdir nuitka
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_cli.py
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_cli.py
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_gui.py
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_gui.py
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --include-module=wx._xml --output-dir=nuitka --remove-output image_encryptor_cli.py
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --include-module=wx._xml --output-dir=nuitka --remove-output image_encryptor_cli.py
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --include-module=wx._xml --output-dir=nuitka --remove-output image_encryptor_gui.py
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --include-module=wx._xml --output-dir=nuitka --remove-output image_encryptor_gui.py
     - name: Basic tests
       shell: cmd
       run: |
