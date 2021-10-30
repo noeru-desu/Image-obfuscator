@@ -52,16 +52,16 @@ jobs:
     - name: Build artifacts
       shell: cmd
       run: |
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s pyinstaller –-hidder-import=PIL._imaging -F image_encryptor_cli.py
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m pyinstaller –-hidder-import=PIL._imaging image_encryptor_cli.py
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s pyinstaller –-hidder-import=PIL._imaging -F image_encryptor_gui.py
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m pyinstaller –-hidder-import=PIL._imaging image_encryptor_gui.py
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s pyinstaller --exclude-module=setuptools,pyinstaller,altgraph -F image_encryptor_cli.py
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m pyinstaller --exclude-module=setuptools,pyinstaller,altgraph image_encryptor_cli.py
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s pyinstaller --exclude-module=setuptools,pyinstaller,altgraph -F image_encryptor_gui.py
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m pyinstaller --exclude-module=setuptools,pyinstaller,altgraph image_encryptor_gui.py
     - name: Basic tests
       shell: cmd
       run: |
         cd dist
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m (copy /y .\image_encryptor_cli\* .\) & (rd /s /q .\image_encryptor_cli)
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m (copy /y .\image_encryptor_gui\* .\) & (rd /s /q .\image_encryptor_gui)
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m (xcopy /y /s /h .\image_encryptor_cli\* .\) & (rd /s /q .\image_encryptor_cli)
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m (xcopy /y /s /h .\image_encryptor_gui\* .\) & (rd /s /q .\image_encryptor_gui)
         if ${{ matrix.build_type_a }} == cli image_encryptor_cli.exe
         if ${{ matrix.build_type_a }} == gui image_encryptor_gui.exe +test
     - name: Upload artifacts
@@ -120,8 +120,8 @@ jobs:
       shell: cmd
       run: |
         cd nuitka
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m (copy /y .\image_encryptor_cli.dist\* .\) & (rd /s /q .\image_encryptor_cli.dist)
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m (copy /y .\image_encryptor_gui.dist\* .\) & (rd /s /q .\image_encryptor_gui.dist)
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m (xcopy /y /s /h .\image_encryptor_cli.dist\* .\) & (rd /s /q .\image_encryptor_cli.dist)
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m (xcopy /y /s /h .\image_encryptor_gui.dist\* .\) & (rd /s /q .\image_encryptor_gui.dist)
         if ${{ matrix.build_type_a }} == cli image_encryptor_cli.exe
         if ${{ matrix.build_type_a }} == gui image_encryptor_gui.exe +test
     - name: Upload artifacts
