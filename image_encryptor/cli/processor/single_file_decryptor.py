@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-26 21:04:18
+LastEditTime : 2021-10-31 08:10:21
 Description  : 单文件解密功能
 '''
 from os.path import join, split, splitext
@@ -43,23 +43,23 @@ def main():
     image_encrypt = ImageEncrypt(image, image_data['row'], image_data['col'], image_data['password'])
     program.logger.info('正在处理')
 
-    if image_data['normal_encryption']:
+    if image_data['upset'] or image_data['flip'] or image_data['rgb_mapping']:
         program.logger.info('正在分割加密图像')
         bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
-        image_encrypt.init_block_data(image, True, bar)
+        image_encrypt.init_block_data(True, image_data['upset'], image_data['flip'], image_data['rgb_mapping'], bar)
 
         program.logger.info('正在重组')
 
         bar = ProgressBar(max_value=image_data['col'] * image_data['row'], widgets=widgets)
-        image = image_encrypt.get_image(image, image_data['rgb_mapping'], bar)
+        image_encrypt.generate_image(bar)
 
     if image_data['xor_rgb']:
         create_process_pool()
         program.logger.info('正在异或解密，性能较低，请耐心等待')
-        image = image_encrypt.xor_pixels(image, image_data['xor_alpha'])
+        image_encrypt.xor_pixels(image_data['xor_alpha'])
 
     program.logger.info('正在保存文件')
-    image = image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
+    image = image_encrypt.image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
 
     name, suffix = splitext(split(program.parameters['input_path'])[1])
     suffix = program.parameters['format'] if program.parameters['format'] is not None else suffix

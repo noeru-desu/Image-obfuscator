@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-25 21:32:59
+LastEditTime : 2021-10-31 09:16:03
 Description  : 一些小东西
 '''
 from os import system, walk

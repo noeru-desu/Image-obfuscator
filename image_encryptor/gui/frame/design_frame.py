@@ -113,13 +113,19 @@ class MainFrame ( wx.Frame ):
 
         bSizer13.Add( bSizer15, 1, wx.EXPAND, 5 )
 
-        self.normalEncryption = wx.CheckBox( self.processingOptions, wx.ID_ANY, u"常规加密", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.normalEncryption.SetValue(True)
-        self.normalEncryption.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
+        self.upset = wx.CheckBox( self.processingOptions, wx.ID_ANY, u"随机打乱分块", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.upset.SetValue(True)
+        self.upset.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
 
-        bSizer13.Add( self.normalEncryption, 0, wx.ALL, 5 )
+        bSizer13.Add( self.upset, 0, wx.ALL, 5 )
 
-        self.rgbMapping = wx.CheckBox( self.processingOptions, wx.ID_ANY, u"RGB映射", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.flip = wx.CheckBox( self.processingOptions, wx.ID_ANY, u"随机翻转分块", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.flip.SetValue(True)
+        self.flip.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
+
+        bSizer13.Add( self.flip, 0, wx.ALL, 5 )
+
+        self.rgbMapping = wx.CheckBox( self.processingOptions, wx.ID_ANY, u"分块随机RGB映射", wx.DefaultPosition, wx.DefaultSize, 0 )
         bSizer13.Add( self.rgbMapping, 0, wx.ALL, 5 )
 
 
@@ -381,7 +387,8 @@ class MainFrame ( wx.Frame ):
         self.row.Bind( wx.EVT_TEXT_ENTER, self.refresh_preview )
         self.col.Bind( wx.EVT_SPINCTRL, self.refresh_preview )
         self.col.Bind( wx.EVT_TEXT_ENTER, self.refresh_preview )
-        self.normalEncryption.Bind( wx.EVT_CHECKBOX, self.refresh_preview )
+        self.upset.Bind( wx.EVT_CHECKBOX, self.refresh_preview )
+        self.flip.Bind( wx.EVT_CHECKBOX, self.refresh_preview )
         self.rgbMapping.Bind( wx.EVT_CHECKBOX, self.refresh_preview )
         self.xorRgb.Bind( wx.EVT_RADIOBOX, self.refresh_preview )
         self.password.Bind( wx.EVT_TEXT_ENTER, self.update_password_dict )
@@ -418,6 +425,7 @@ class MainFrame ( wx.Frame ):
 
     def load_select_file( self, event ):
         event.Skip()
+
 
 
 

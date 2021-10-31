@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:48:27
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-25 21:42:46
+LastEditTime : 2021-10-31 08:13:25
 Description  : 粗略包装的密码验证器
 '''
 
@@ -11,7 +11,7 @@ from image_encryptor.common.utils.AES import encrypt
 
 
 class PasswordDict(dict):
-    '''在dict类型上添加了一些方法实现的密码集'''
+    '''修改了的dict'''
     def __init__(self, default_password=None):
         super().__init__()
         if default_password is not None:

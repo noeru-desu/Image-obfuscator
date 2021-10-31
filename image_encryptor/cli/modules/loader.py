@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-26 21:32:10
+LastEditTime : 2021-10-31 08:42:09
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
@@ -57,7 +57,7 @@ def at_exit():
 
 
 def check_mode():
-    if not program.parameters['normal_encryption'] and not program.parameters['xor_rgb']:
+    if not (program.parameters['upset'] or program.parameters['flip'] or program.parameters['rgb_mapping'] or program.parameters['xor_rgb']):
         program.logger.error('没有使用任何加密方法')
         system('pause>nul')
         exit()

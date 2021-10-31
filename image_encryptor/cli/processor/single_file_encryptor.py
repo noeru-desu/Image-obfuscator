@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-26 21:04:09
+LastEditTime : 2021-10-31 08:31:35
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -14,6 +14,7 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from image_encryptor.cli.modules.loader import load_program
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
+from image_encryptor.common.modules.version_adapter import get_encryption_parameters
 from image_encryptor.common.utils.AES import encrypt
 from image_encryptor.common.utils.utils import calculate_formula_string, open_image, pause
 
@@ -73,7 +74,7 @@ def main():
 
     if suffix in ('jpg', 'jpeg', 'wmf', 'webp'):
         program.logger.warning('当前保存格式为有损压缩格式')
-        if program.parameters['mapping']:
+        if program.parameters['rgb_mapping']:
             program.logger.warning('在此情况下，使用RGB(A)随机映射会导致图片在解密后出现轻微的分界线，按任意键确定')
             pause()
         if program.parameters['xor_rgb']:
@@ -82,24 +83,24 @@ def main():
 
     widgets = [Percentage(), ' ', SimpleProgress(), ' ', Bar('█'), ' ']
     image_encrypt = ImageEncrypt(image, program.parameters['row'], program.parameters['col'], program.parameters['password'])
-    original_image = image.size
+    original_size = image.size
     program.logger.info(f"分块数量：{program.parameters['col']}x{program.parameters['row']}; 分块大小：{image_encrypt.block_width}x{image_encrypt.block_height}")
     program.logger.info('开始处理')
 
-    if program.parameters['normal_encryption']:
+    if program.parameters['upset'] or program.parameters['flip'] or program.parameters['rgb_mapping']:
         program.logger.info('正在分割原图')
         bar = ProgressBar(max_value=program.parameters['col'] * program.parameters['row'], widgets=widgets)
-        image_encrypt.init_block_data(image, False, bar)
+        image_encrypt.init_block_data(False, program.parameters['upset'], program.parameters['flip'], program.parameters['rgb_mapping'], bar)
 
         program.logger.info(f"分割完成，补全后大小：{image_encrypt.block_width * program.parameters['col']}x{image_encrypt.block_height * program.parameters['row']}")
 
         program.logger.info('正在重组')
         bar = ProgressBar(max_value=program.parameters['col'] * program.parameters['row'], widgets=widgets)
-        image = image_encrypt.get_image(image, program.parameters['mapping'], bar)
+        image = image_encrypt.generate_image(bar)
 
     if program.parameters['xor_rgb']:
         program.logger.info('正在异或加密，性能较低，请耐心等待')
-        image = image_encrypt.xor_pixels(image, program.parameters['xor_alpha'])
+        image = image_encrypt.xor_pixels(program.parameters['xor_alpha'])
 
     program.logger.info('完成，正在保存文件')
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
@@ -109,19 +110,6 @@ def main():
 
     image.save(output_path, quality=95, subsampling=0)
 
-    json = {
-        'width': original_image[0],
-        'height': original_image[1],
-        'col': program.parameters['col'],
-        'row': program.parameters['row'],
-        'has_password': has_password,
-        'password_base64': encrypt(AES.MODE_CFB, program.parameters['password'], 'PASS', base64=True) if has_password else 0,
-        'normal_encryption': program.parameters['normal_encryption'],
-        'rgb_mapping': program.parameters['mapping'],
-        'xor_rgb': program.parameters['xor_rgb'],
-        'xor_alpha': program.parameters['xor_alpha'],
-        'version': 2
-    }
-
+    password_base64 = encrypt(AES.MODE_CFB, program.parameters['password'], 'PASS', base64=True) if has_password else 0
     with open(output_path, "a") as f:
-        f.write('\n' + dumps(json, separators=(',', ':')))
+        f.write('\n' + dumps(get_encryption_parameters(*original_size, program.parameters, has_password, password_base64), separators=(',', ':')))

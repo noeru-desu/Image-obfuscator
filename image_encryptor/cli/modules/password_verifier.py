@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:48:27
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-25 21:30:45
+LastEditTime : 2021-10-31 09:08:21
 Description  : 粗略包装的密码验证器
 '''
 from image_encryptor.common.modules.password_verifier import PasswordDict

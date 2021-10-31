@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:28
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-26 21:03:54
+LastEditTime : 2021-10-31 08:10:45
 Description  : 批量解密功能
 '''
 from os import makedirs
@@ -27,15 +27,15 @@ def decrypt_image(path, parameters, image_data, save_relative_path):
 
     image_encrypt = ImageEncrypt(image, image_data['row'], image_data['col'], image_data['password'])
 
-    if image_data['normal_encryption']:
-        image_encrypt.init_block_data(image, True, FakeBar)
+    if image_data['upset'] or image_data['flip'] or image_data['rgb_mapping']:
+        image_encrypt.init_block_data(True, image_data['upset'], image_data['flip'], image_data['rgb_mapping'], FakeBar)
 
-        image = image_encrypt.get_image(image, image_data['rgb_mapping'], FakeBar)
+        image_encrypt.generate_image(FakeBar)
 
     if image_data['xor_rgb']:
-        image = image_encrypt.xor_pixels(image, image_data['xor_alpha'])
+        image_encrypt.xor_pixels(image_data['xor_alpha'])
 
-    image = image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
+    image = image_encrypt.image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
 
     name, suffix = splitext(split(path)[1])
     suffix = parameters['format'] if parameters['format'] is not None else suffix

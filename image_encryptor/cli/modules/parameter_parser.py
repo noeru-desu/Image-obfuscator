@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-25 21:33:07
+LastEditTime : 2021-10-31 08:40:48
 Description  : 参数解析器
 '''
 from getopt import GetoptError, getopt
@@ -22,28 +22,39 @@ help_msg = '''
 <path> 图片/文件夹 路径
 <save-path> 保存路径
 可选参数：
--l / --loop 启用自动循环，程序每次执行完任务后不直接退出，等待输入下一个操作的参数。为空时退出
--e / --encrypt 加密模式
--d / --decrypt 解密模式
--t / --topdown 批量加解密时不仅遍历表层文件夹，同时遍历所有文件夹内的文件夹
---nne / --no-normal-encrypt 禁用分块打乱与RGB随机映射(比启用优先级更高)
---rm / --rgb-mapping 启用RGB随机映射
--x rgb/rgba / --xor rgb/rgba 异或加密rgb/rgba通道
---pw password / --password password 密码
--r row / --row row 分割行数。提供{width}与{height}，表示图片的宽高
--c column / --col column / --column column 分割列数。提供{width}与{height}，表示图片的宽高
--f file_format / --format file_format 指定保存的文件格式
---pc process_count / --process-count process_count 指定用于异或加解密/批量加解密的进程池大小。提供{cpu_count}，表示cpu数量(每个cpu的核数之和)
+-e / --encrypt          加密模式。
+-d / --decrypt          解密模式。
+-l / --loop             启用自动循环，启用后，
+                        程序每次执行完任务后不直接退出，
+                        等待输入下一个操作的参数。为空时退出。
+-t / --topdown          批量加解密时不仅遍历表层文件夹，同时遍历
+                        所有文件夹内的文件夹。
+------------------------------------------------------------
+-r / --row              参数:正整数或算式 分割行数。提供{width}与{height}，
+                        表示图片的宽高。默认为25。
+-c / --col / --column   参数:正整数或算式 分割列数。提供{width}与{height}，
+                        表示图片的宽高。默认为25。
+--upset                 参数:on/off 是否随机打乱分块后的图片。默认为on。
+--flip                  参数:on/off 是否随机翻转分块后的图片。默认为on。
+--rm / --rgb-mapping    参数:on/off 是否启用RGB随机映射。默认为off。
+--xor                   参数:off/rgb/rgba 异或加密rgb/rgba通道。默认为off。
+--pw / --password       参数:需要设置的密码 设置密码。 默认为不设置密码。
+------------------------------------------------------------
+-f / --format           参数:图像格式后缀 指定保存的文件格式。默认为png。
+--pc / --process-count  参数:正整数或算式 指定用于异或加解密/批量加解密的
+                        进程池大小。提供{cpu_count}，表示cpu数量(每个cpu的核数之和)。
+                        默认为{cpu_count}-2。
+
 所有可使用变量均为此格式："{var}"，所有提供变量的参数均可使用Python运算符
 '''
 
 CPU_COUNT = cpu_count()
 
-shortopts = 'hledtf:r:c:x:'
+shortopts = 'hledtf:r:c:'
 longopts = ['help', 'loop', 'encrypt', 'decrypt',
             'topdown', 'format=', 'pw=', 'password=',
-            'row=', 'col=', 'column=', 'nne',
-            'no-normal-encryption', 'rm', 'rgb-mapping', 'xor=',
+            'row=', 'col=', 'column=', 'upset=',
+            'flip=', 'rm=', 'rgb-mapping=', 'xor=',
             'pc=', 'process-count=', 'debug']
 
 
@@ -58,9 +69,10 @@ class ParameterParser(object):
             '-e': self.encrypt, '--encrypt': self.encrypt,
             '-d': self.decrypt, '--decrypt': self.decrypt,
             '-t': self.topdown, '--topdown': self.topdown,
-            '--nne': self.normal_encryption, '--no-normal-encryption': self.normal_encryption,
+            '--upset': self.upset,
+            '--flip': self.flip,
             '--rm': self.rgb_mapping, '--rgb-mapping': self.rgb_mapping,
-            '-x': self.xor, '--xor': self.xor,
+            '--xor': self.xor,
             '-r': self.row, '--row': self.row,
             '-c': self.col, '--col': self.col, '--column': self.col,
             '--pw': self.password, '--password': self.password,
@@ -117,8 +129,9 @@ class ParameterParser(object):
             'input_path': None,
             'output_path': None,
             'format': None,
-            'normal_encryption': True,
-            'mapping': False,
+            'upset': True,
+            'flip': True,
+            'rgb_mapping': False,
             'xor_rgb': False,
             'xor_alpha': False,
             'password': 100,
@@ -145,24 +158,43 @@ class ParameterParser(object):
         self.logger.info('已启用多层遍历')
         self.parameters['topdown'] = True
 
-    def normal_encryption(self, arg):
-        self.logger.info('已禁用常规加密')
-        self.parameters['normal_encryption'] = False
+    def upset(self, arg):
+        if arg == 'on':
+            self.parameters['upset'] = True
+        elif arg == 'off':
+            self.parameters['upset'] = False
+        else:
+            self.logger.warning(f'--upset <on/off> 参数有误：{arg}')
+
+    def flip(self, arg):
+        if arg == 'on':
+            self.parameters['flip'] = True
+        elif arg == 'off':
+            self.parameters['flip'] = False
+        else:
+            self.logger.warning(f'--flip <on/off> 参数有误：{arg}')
 
     def rgb_mapping(self, arg):
-        self.logger.info('已启用RGB随机映射')
-        self.parameters['mapping'] = True
+        if arg == 'on':
+            self.parameters['rgb_mapping'] = True
+        elif arg == 'off':
+            self.parameters['rgb_mapping'] = False
+        else:
+            self.logger.warning(f'--rm / --rgb_mapping <on/off> 参数有误：{arg}')
 
     def xor(self, arg):
-        if arg.lower() == 'rgb':
+        if arg == 'off':
+            self.parameters['xor_rgb'] = False
+            self.parameters['xor_alpha'] = False
+        if arg == 'rgb':
             self.logger.info('已启用异或加密(不包括透明通道)')
             self.parameters['xor_rgb'] = True
-        elif arg.lower() == 'rgba':
+        elif arg == 'rgba':
             self.logger.info('已启用异或加密(包括透明通道)')
             self.parameters['xor_rgb'] = True
             self.parameters['xor_alpha'] = True
         else:
-            self.logger.info(f'异或加密参数设置有误：{arg}')
+            self.logger.info(f'--xor <off/rgb/rgba>参数设置有误：{arg}')
 
     def row(self, arg):
         try:
@@ -241,5 +273,5 @@ def parse_parameters(logger, argv):
         logger.info(help_msg)
         exit(2)
     for opt, arg in opts:
-        parser.parsing_methods[opt](arg)
+        parser.parsing_methods[opt](arg.lower())
     return parser

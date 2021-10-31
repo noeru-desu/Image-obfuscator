@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-10 10:02:55
+LastEditTime : 2021-10-31 08:31:31
 Description  : 对低版本加密的图片的加密信息进行转换，向下兼容
 '''
 from json import JSONDecodeError, loads
@@ -15,14 +15,27 @@ class VersionAdapter(object):
         data['normal_encryption'] = True
         return data
 
+    @staticmethod
+    def v_2_to_3(data):
+        if data['normal_encryption']:
+            data['upset'] = True
+            data['flip'] = True
+        else:
+            data['upset'] = False
+            data['flip'] = False
+            data['rgb_mapping'] = False
+        return data
+
 
 def check_version(data):
     if 'version' not in data:
         return None, '该版本不支持0.1.0-BETA版加密器加密的图片'
-    if data['version'] > 2:
-        return None, '选择的图片文件由更高版本的加密器加密，请使用最新版的解密器进行解密'
+    if data['version'] > 3:
+        return None, '选择的图片文件由更高版本的加密器加密，请使用最新版的加密器进行解密'
     if data['version'] == 1:
         data = VersionAdapter.v_1_to_2(data)
+    if data['version'] == 2:
+        data = VersionAdapter.v_2_to_3(data)
     return data, None
 
 
@@ -64,3 +77,20 @@ def read_last_line(file):
             else:
                 offset *= 2
     return last_line
+
+
+def get_encryption_parameters(original_width, original_height, parameters, has_password, password_base64):
+    return {
+        'version': 3,
+        'width': original_width,
+        'height': original_height,
+        'col': parameters['col'],
+        'row': parameters['row'],
+        'upset': parameters['upset'],
+        'flip': parameters['flip'],
+        'rgb_mapping': parameters['rgb_mapping'],
+        'xor_rgb': parameters['xor_rgb'],
+        'xor_alpha': parameters['xor_alpha'],
+        'has_password': has_password,
+        'password_base64': password_base64
+    }

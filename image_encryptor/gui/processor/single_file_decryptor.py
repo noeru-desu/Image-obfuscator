@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-26 21:32:38
+LastEditTime : 2021-10-31 08:56:52
 Description  : 单文件解密功能
 '''
 from os.path import join, split, splitext
@@ -26,7 +26,7 @@ def main(frame, logger, gauge, image: Image.Image, save: bool):
     logger('正在处理')
 
     step_count = 0
-    if image_data['normal_encryption']:
+    if image_data['upset'] or image_data['flip'] or image_data['rgb_mapping']:
         step_count += 2
     if image_data['xor_rgb']:
         step_count += 1
@@ -35,20 +35,20 @@ def main(frame, logger, gauge, image: Image.Image, save: bool):
 
     bar = ProgressBar(gauge, step_count)
 
-    if image_data['normal_encryption']:
+    if image_data['upset'] or image_data['flip'] or image_data['rgb_mapping']:
         bar.next_step(image_data['col'] * image_data['row'])
         logger('正在分割加密图像')
-        image_encrypt.init_block_data(image, True, bar)
+        image_encrypt.init_block_data(True, image_data['upset'], image_data['flip'], image_data['rgb_mapping'], bar)
 
         logger('正在重组')
 
         bar.next_step(image_data['col'] * image_data['row'])
-        image = image_encrypt.get_image(image, image_data['rgb_mapping'], bar)
+        image = image_encrypt.generate_image(bar)
 
     if image_data['xor_rgb']:
         logger('正在异或解密')
         bar.next_step(1)
-        image = image_encrypt.xor_pixels(image, image_data['xor_alpha'])
+        image = image_encrypt.xor_pixels(image_data['xor_alpha'])
 
         image = image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
         bar.finish()

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-27 21:09:15
+LastEditTime : 2021-10-31 09:23:13
 Description  : 配置窗口类
 '''
 from concurrent.futures import CancelledError
@@ -123,7 +123,8 @@ class MainFrame(MF):
         logger = self.saveProgressPrompt.SetLabelText if save else self.previewProgressPrompt.SetLabelText
         gauge = self.saveProgress if save else self.previewProgress
         image = self.program.data.loaded_image if save else self.program.data.preview_original_image
-        self.update_password_dict()
+        if self.update_password_dict():
+            self.password.SetValue('none')
         try:
             if self.mode.Selection == 0:
                 self.program.thread_pool.add_task(tag, self.program.thread_pool.submit(single_file_encryptor.main, self, logger, gauge, image, save), self.generate_image_call_back)
@@ -137,12 +138,15 @@ class MainFrame(MF):
             self.error(format_exc(), '出现意外错误')
 
     def update_password_dict(self, event=None):
+        if self.password.Value == '':
+            return True
         if event is not None:
             self.refresh_preview(event)
         if self.password.Value != 'none' and self.password.Value not in self.program.password_dict.values():
             password_base64 = PasswordDict.get_validation_field_base64(self.password.Value)
             self.program.logger.info(f'更新密码字典[{password_base64}: {self.password.Value}](当前字典长度：{len(self.program.password_dict)})')
             self.program.password_dict[PasswordDict.get_validation_field_base64(self.password.Value)] = self.password.Value
+        return False
 
     def save_image(self, event):
         if not isdir(self.selectSavePath.Path):

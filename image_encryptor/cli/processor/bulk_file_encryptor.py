@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-26 21:03:42
+LastEditTime : 2021-10-31 08:31:27
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -17,6 +17,7 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 from image_encryptor.cli.modules.loader import load_program
 from image_encryptor.cli.utils.utils import FakeBar
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
+from image_encryptor.common.modules.version_adapter import get_encryption_parameters
 from image_encryptor.common.utils.AES import encrypt
 from image_encryptor.common.utils.utils import calculate_formula_string, open_image, pause, walk_file
 
@@ -52,14 +53,15 @@ def encrypt_image(path, parameters, save_relative_path):
     image_encrypt = ImageEncrypt(image, parameters['row'], parameters['col'], parameters['password'])
     original_size = image.size
 
-    if parameters['normal_encryption']:
-        image_encrypt.init_block_data(image, False, FakeBar)
+    if parameters['upset'] or parameters['flip'] or parameters['rgb_mapping']:
+        image_encrypt.init_block_data(False, parameters['upset'], parameters['flip'], parameters['rgb_mapping'], FakeBar)
 
-        image = image_encrypt.get_image(image, parameters['mapping'], FakeBar)
+        image_encrypt.generate_image(FakeBar)
 
     if parameters['xor_rgb']:
-        image = image_encrypt.xor_pixels(image, parameters['xor_alpha'])
+        image_encrypt.xor_pixels(parameters['xor_alpha'])
 
+    image = image_encrypt.image
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
     output_path = join(parameters['output_path'], save_relative_path, name)
     if suffix.lower() in ['jpg', 'jpeg']:
@@ -67,22 +69,9 @@ def encrypt_image(path, parameters, save_relative_path):
 
     image.save(output_path, quality=95, subsampling=0)
 
-    json = {
-        'width': original_size[0],
-        'height': original_size[1],
-        'col': parameters['col'],
-        'row': parameters['row'],
-        'has_password': has_password,
-        'password_base64': encrypt(AES.MODE_CFB, parameters['password'], 'PASS', base64=True) if has_password else 0,
-        'normal_encryption': parameters['normal_encryption'],
-        'rgb_mapping': parameters['mapping'],
-        'xor_rgb': parameters['xor_rgb'],
-        'xor_alpha': parameters['xor_alpha'],
-        'version': 2
-    }
-
+    password_base64 = encrypt(AES.MODE_CFB, parameters['password'], 'PASS', base64=True) if has_password else 0
     with open(output_path, "a") as f:
-        f.write('\n' + dumps(json, separators=(',', ':')))
+        f.write('\n' + dumps(get_encryption_parameters(*original_size, parameters, has_password, password_base64), separators=(',', ':')))
 
 
 def main():
@@ -90,7 +79,7 @@ def main():
 
     if program.parameters['format'] in ('jpg', 'jpeg', 'wmf', 'webp'):
         program.logger.warning('当前保存格式为有损压缩格式')
-        if program.parameters['mapping']:
+        if program.parameters['rgb_mapping']:
             program.logger.warning('在此情况下，使用RGB(A)随机映射会导致图片在解密后出现轻微的分界线，按任意键确定')
             pause()
         if program.parameters['xor_rgb']:

@@ -2,10 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-25 21:38:24
+LastEditTime : 2021-10-30 21:29:51
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
-from random import randint
+from numpy.random import randint
 from os.path import join, split, splitext
 from sys import exit
 
@@ -28,10 +28,10 @@ def main():
 
     program.logger.info('开始处理')
 
-    image.putpixel((0, 0), (randint(0, 255), randint(0, 255), randint(0, 255)))
-    image.putpixel((image.size[0] - 1, 0), (randint(0, 255), randint(0, 255), randint(0, 255)))
-    image.putpixel((0, image.size[1] - 1), (randint(0, 255), randint(0, 255), randint(0, 255)))
-    image.putpixel((image.size[0] - 1, image.size[1] - 1), (randint(0, 255), randint(0, 255), randint(0, 255)))
+    image.putpixel((0, 0), (randint(256), randint(256), randint(256)))
+    image.putpixel((image.size[0] - 1, 0), (randint(256), randint(256), randint(256)))
+    image.putpixel((0, image.size[1] - 1), (randint(256), randint(256), randint(256)))
+    image.putpixel((image.size[0] - 1, image.size[1] - 1), (randint(256), randint(256), randint(256)))
 
     program.logger.info('完成，正在保存文件')
     name = f'{name}-anti-harmony.{suffix}'
