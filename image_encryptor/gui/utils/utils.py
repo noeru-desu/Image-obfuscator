@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-26 21:40:21
+LastEditTime : 2021-10-31 15:44:10
 Description  : 一些小东西
 '''
 from concurrent.futures import ThreadPoolExecutor
@@ -59,6 +59,7 @@ class TaskManager(ThreadPoolExecutor):
         }
 
     def add_task(self, tag_name, future, callback=None):
+        future.tag_name = tag_name
         if callback is not None:
             future.add_done_callback(callback)
         if self.task_dict[tag_name]['single']:

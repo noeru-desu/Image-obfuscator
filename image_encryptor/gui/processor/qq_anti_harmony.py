@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-30 21:30:02
+LastEditTime : 2021-10-31 15:45:55
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
 from numpy.random import randint
@@ -32,7 +32,6 @@ def main(frame, logger, gauge, image: Image.Image, save: bool):
         if suffix.lower() in ['jpg', 'jpeg']:
             image = image.convert('RGB')
         image.save(join(frame.selectSavePath.Path, name), quality=frame.saveQuality.Value, subsampling=frame.subsamplingLevel.Value)
-    gauge.SetRange(1)
-    gauge.SetValue(1)
+    gauge.SetValue(100)
     logger('完成')
-    return image, save
+    return image

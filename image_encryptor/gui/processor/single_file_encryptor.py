@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 08:56:36
+LastEditTime : 2021-10-31 15:45:48
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -62,7 +62,6 @@ def main(frame, logger, gauge, image: Image.Image, save: bool):
         bar.next_step(1)
         logger('正在异或加密')
         image = image_encrypt.xor_pixels(True if frame.xorRgb.Selection == 2 else False)
-        bar.finish()
 
     if save:
         bar.next_step(1)
@@ -90,4 +89,4 @@ def main(frame, logger, gauge, image: Image.Image, save: bool):
         bar.finish()
     bar.over()
     logger('完成')
-    return image, save
+    return image

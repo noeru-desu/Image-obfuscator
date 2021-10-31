@@ -327,46 +327,48 @@ class MainFrame ( wx.Frame ):
 
         bSizer26.Add( bSizer10, 0, wx.EXPAND, 5 )
 
-        self.m_staticline5 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_VERTICAL )
-        bSizer26.Add( self.m_staticline5, 0, wx.EXPAND |wx.ALL, 5 )
-
         self.imagePanel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        bSizer3 = wx.BoxSizer( wx.VERTICAL )
+        gSizer1 = wx.GridSizer( 0, 1, 0, 0 )
 
-        self.importedImagePanel = wx.ScrolledWindow( self.imagePanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
-        self.importedImagePanel.SetScrollRate( 0, 0 )
-        bSizer43 = wx.BoxSizer( wx.VERTICAL )
+        sbSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.imagePanel, wx.ID_ANY, u"导入图片-预览图" ), wx.VERTICAL )
 
-        self.importedImage = wx.StaticBitmap( self.importedImagePanel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer43.Add( self.importedImage, 1, wx.ALL|wx.EXPAND, 0 )
+        self.importedImagePlanel = wx.Panel( sbSizer2.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        bSizer261 = wx.BoxSizer( wx.VERTICAL )
 
-
-        self.importedImagePanel.SetSizer( bSizer43 )
-        self.importedImagePanel.Layout()
-        bSizer43.Fit( self.importedImagePanel )
-        bSizer3.Add( self.importedImagePanel, 1, wx.EXPAND |wx.ALL, 0 )
-
-        self.imageStaticline = wx.StaticLine( self.imagePanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-        bSizer3.Add( self.imageStaticline, 0, wx.EXPAND |wx.ALL, 5 )
-
-        self.previewedImagePanel = wx.ScrolledWindow( self.imagePanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL )
-        self.previewedImagePanel.SetScrollRate( 0, 1000 )
-        bSizer44 = wx.BoxSizer( wx.VERTICAL )
-
-        self.previewedImage = wx.StaticBitmap( self.previewedImagePanel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer44.Add( self.previewedImage, 1, wx.ALL|wx.EXPAND, 0 )
+        self.importedImage = wx.StaticBitmap( self.importedImagePlanel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer261.Add( self.importedImage, 1, wx.ALL|wx.EXPAND, 0 )
 
 
-        self.previewedImagePanel.SetSizer( bSizer44 )
-        self.previewedImagePanel.Layout()
-        bSizer44.Fit( self.previewedImagePanel )
-        bSizer3.Add( self.previewedImagePanel, 1, wx.EXPAND |wx.ALL, 0 )
+        self.importedImagePlanel.SetSizer( bSizer261 )
+        self.importedImagePlanel.Layout()
+        bSizer261.Fit( self.importedImagePlanel )
+        sbSizer2.Add( self.importedImagePlanel, 1, wx.EXPAND |wx.ALL, 5 )
 
 
-        self.imagePanel.SetSizer( bSizer3 )
+        gSizer1.Add( sbSizer2, 1, wx.EXPAND, 5 )
+
+        sbSizer3 = wx.StaticBoxSizer( wx.StaticBox( self.imagePanel, wx.ID_ANY, u"处理结果-预览图" ), wx.VERTICAL )
+
+        self.previewedImagePlanel = wx.Panel( sbSizer3.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        bSizer27 = wx.BoxSizer( wx.VERTICAL )
+
+        self.previewedImage = wx.StaticBitmap( self.previewedImagePlanel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer27.Add( self.previewedImage, 1, wx.ALL|wx.EXPAND, 0 )
+
+
+        self.previewedImagePlanel.SetSizer( bSizer27 )
+        self.previewedImagePlanel.Layout()
+        bSizer27.Fit( self.previewedImagePlanel )
+        sbSizer3.Add( self.previewedImagePlanel, 1, wx.EXPAND |wx.ALL, 5 )
+
+
+        gSizer1.Add( sbSizer3, 1, wx.EXPAND, 5 )
+
+
+        self.imagePanel.SetSizer( gSizer1 )
         self.imagePanel.Layout()
-        bSizer3.Fit( self.imagePanel )
-        bSizer26.Add( self.imagePanel, 1, wx.EXPAND |wx.ALL, 5 )
+        gSizer1.Fit( self.imagePanel )
+        bSizer26.Add( self.imagePanel, 1, wx.ALL|wx.EXPAND, 2 )
 
 
         self.SetSizer( bSizer26 )

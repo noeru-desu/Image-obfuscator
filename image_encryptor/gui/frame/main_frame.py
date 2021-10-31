@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 09:23:13
+LastEditTime : 2021-10-31 15:45:22
 Description  : 配置窗口类
 '''
 from concurrent.futures import CancelledError
@@ -53,9 +53,7 @@ class MainFrame(MF):
 
     @property
     def preview_image_size(self):
-        w, h = self.imagePanel.Size
-        sh = self.imageStaticline.Size[1]
-        return w, int((h - sh) / 2)
+        return self.importedImagePlanel.Size
 
     def manual_refresh(self, event):
         if self.previewMode.Selection == 0:
@@ -78,7 +76,7 @@ class MainFrame(MF):
         if self.program.data.loaded_image is not None:
             self.program.data.preview_original_image = self.program.data.loaded_image.resize(scale(self.program.data.loaded_image, *size))
             self.preview_size = size
-            self.program.logger.info(f'重新缩放预览图{self.program.data.preview_original_image.size}并显示')
+            self.program.logger.info(f'生成预览图{self.program.data.preview_original_image.size}')
             self.importedImage.SetBitmap(wx.Bitmap.FromBuffer(*self.program.data.preview_original_image.size, self.program.data.preview_original_image.convert('RGB').tobytes()))
 
     def display_preview_image(self, resize):
@@ -135,7 +133,7 @@ class MainFrame(MF):
         except Exception:
             self.program.thread_pool.del_future(tag)
             print_exc()
-            self.error(format_exc(), '出现意外错误')
+            self.error(format_exc(), '生成加密图片时出现意外错误')
 
     def update_password_dict(self, event=None):
         if self.password.Value == '':
@@ -144,8 +142,8 @@ class MainFrame(MF):
             self.refresh_preview(event)
         if self.password.Value != 'none' and self.password.Value not in self.program.password_dict.values():
             password_base64 = PasswordDict.get_validation_field_base64(self.password.Value)
+            self.program.password_dict[password_base64] = self.password.Value
             self.program.logger.info(f'更新密码字典[{password_base64}: {self.password.Value}](当前字典长度：{len(self.program.password_dict)})')
-            self.program.password_dict[PasswordDict.get_validation_field_base64(self.password.Value)] = self.password.Value
         return False
 
     def save_image(self, event):
@@ -154,12 +152,13 @@ class MainFrame(MF):
             return
         self.generate_image(True)
 
-    def generate_image_call_back(self, futures):
+    def generate_image_call_back(self, future):
         try:
-            self.program.data.preview_image, save = futures.result()
+            self.program.data.preview_image, save = future.result()
         except CancelledError:
+            self.program.logger.info(f'[{future.tag_name}]有一个异步图片生成任务被取消')
             return
-        self.program.thread_pool.del_future('save' if save else 'preview', futures)
+        self.program.thread_pool.del_future(future.tag_name, future)
         self.display_preview_image(True)
 
     def preview_mode_change(self, event):
@@ -168,30 +167,35 @@ class MainFrame(MF):
         else:
             self.previewedImage.Show(True)
 
-    def info(self, message, title=''):
+    def info(self, message, title='信息'):
+        self.program.logger.info(f'[{title}]{message}')
         dialog = wx.MessageDialog(self, message, title, style=wx.ICON_INFORMATION | wx.STAY_ON_TOP)
         if dialog.ShowModal() == wx.ID_YES:
             self.Close(True)
         dialog.Destroy()
 
-    def question(self, message, title=''):
+    def question(self, message, title='问题'):
+        self.program.logger.info(f'[{title}]{message}')
         dialog = wx.MessageDialog(self, message, title, style=wx.ICON_QUESTION | wx.STAY_ON_TOP)
         if dialog.ShowModal() == wx.ID_YES:
             self.Close(True)
         dialog.Destroy()
 
-    def warning(self, message, title=''):
+    def warning(self, message, title='警告'):
+        self.program.logger.warning(f'[{title}]{message}')
         dialog = wx.MessageDialog(self, message, title, style=wx.ICON_EXCLAMATION | wx.STAY_ON_TOP)
         if dialog.ShowModal() == wx.ID_YES:
             self.Close(True)
         dialog.Destroy()
 
-    def error(self, message, title=''):
+    def error(self, message, title='错误'):
+        self.program.logger.error(f'[{title}]{message}')
         dialog = wx.MessageDialog(self, message, title, style=wx.ICON_ERROR | wx.STAY_ON_TOP)
         if dialog.ShowModal() == wx.ID_YES:
             self.Close(True)
         dialog.Destroy()
 
     def exit(self, event):
+        self.program.logger.info('窗口退出')
         self.Destroy()
         exit()

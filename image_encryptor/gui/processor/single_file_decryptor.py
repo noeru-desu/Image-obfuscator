@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 08:56:52
+LastEditTime : 2021-10-31 15:45:42
 Description  : 单文件解密功能
 '''
 from os.path import join, split, splitext
@@ -21,7 +21,7 @@ def main(frame, logger, gauge, image: Image.Image, save: bool):
     image_data, error = get_image_data(program.data.loaded_image_path, password_dict=program.password_dict)
     if error is not None:
         frame.error(error, '读取加密参数时出现问题')
-        return program.data.preview_original_image, save
+        return program.data.preview_original_image
     image_encrypt = ImageEncrypt(image, image_data['row'], image_data['col'], image_data['password'])
     logger('正在处理')
 
@@ -50,8 +50,7 @@ def main(frame, logger, gauge, image: Image.Image, save: bool):
         bar.next_step(1)
         image = image_encrypt.xor_pixels(image_data['xor_alpha'])
 
-        image = image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
-        bar.finish()
+    image = image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
 
     if save:
         bar.next_step(1)
@@ -67,4 +66,4 @@ def main(frame, logger, gauge, image: Image.Image, save: bool):
         bar.finish()
     bar.over()
     logger('完成')
-    return image, save
+    return image
