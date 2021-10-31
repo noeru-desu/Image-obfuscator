@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 15:45:22
+LastEditTime : 2021-10-31 16:47:37
 Description  : 配置窗口类
 '''
 from concurrent.futures import CancelledError
@@ -154,7 +154,7 @@ class MainFrame(MF):
 
     def generate_image_call_back(self, future):
         try:
-            self.program.data.preview_image, save = future.result()
+            self.program.data.preview_image = future.result()
         except CancelledError:
             self.program.logger.info(f'[{future.tag_name}]有一个异步图片生成任务被取消')
             return
