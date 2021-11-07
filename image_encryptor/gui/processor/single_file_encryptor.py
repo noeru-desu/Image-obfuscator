@@ -2,11 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 15:45:48
+LastEditTime : 2021-11-07 16:26:07
 Description  : 单文件加密功能
 '''
 from json import dumps
 from os.path import join, split, splitext
+from typing import TYPE_CHECKING
 
 from Crypto.Cipher import AES
 from PIL import Image
@@ -14,17 +15,17 @@ from PIL import Image
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
 from image_encryptor.common.modules.version_adapter import get_encryption_parameters
 from image_encryptor.common.utils.AES import encrypt
-from image_encryptor.gui.modules.loader import load_program
 from image_encryptor.gui.utils.utils import ProgressBar
 
+if TYPE_CHECKING:
+    from image_encryptor.gui.frame.main_frame import MainFrame
 
-def main(frame, logger, gauge, image: Image.Image, save: bool):
-    program = load_program()
 
+def main(frame: 'MainFrame', logger, gauge, image: Image.Image, save: bool):
     password = 100 if frame.password.Value == 'none' else frame.password.Value
     if save:
         has_password = True if frame.password.Value != 'none' else False
-        name, suffix = splitext(split(program.data.loaded_image_path)[1])
+        name, suffix = splitext(split(frame.loaded_image_path)[1])
         suffix = Image.EXTENSION_KEYS[frame.selectFormat.Selection]
         suffix = suffix.strip('.')
         original_size = image.size

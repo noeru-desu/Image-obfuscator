@@ -2,10 +2,11 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 15:45:42
+LastEditTime : 2021-11-06 19:54:28
 Description  : 单文件解密功能
 '''
 from os.path import join, split, splitext
+from typing import TYPE_CHECKING
 
 from PIL import Image
 
@@ -14,8 +15,11 @@ from image_encryptor.gui.modules.loader import load_program
 from image_encryptor.gui.modules.password_verifier import get_image_data
 from image_encryptor.gui.utils.utils import ProgressBar
 
+if TYPE_CHECKING:
+    from image_encryptor.gui.frame.main_frame import MainFrame
 
-def main(frame, logger, gauge, image: Image.Image, save: bool):
+
+def main(frame: 'MainFrame', logger, gauge, image: Image.Image, save: bool):
     program = load_program()
 
     image_data, error = get_image_data(program.data.loaded_image_path, password_dict=program.password_dict)

@@ -2,18 +2,22 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 15:45:55
+LastEditTime : 2021-11-06 18:58:32
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
-from numpy.random import randint
 from os.path import join, split, splitext
+from typing import TYPE_CHECKING
 
+from numpy.random import randint
 from PIL import Image
 
 from image_encryptor.gui.modules.loader import load_program
 
+if TYPE_CHECKING:
+    from image_encryptor.gui.frame.main_frame import MainFrame
 
-def main(frame, logger, gauge, image: Image.Image, save: bool):
+
+def main(frame: 'MainFrame', logger, gauge, image: Image.Image, save: bool):
     program = load_program()
 
     logger('开始处理')
