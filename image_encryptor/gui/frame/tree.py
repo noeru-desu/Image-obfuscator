@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-07 16:47:42
+LastEditTime : 2021-11-07 21:13:25
 Description  : 节点树控制
 '''
 from os.path import sep, isfile, isdir, split, join
@@ -78,11 +78,13 @@ class TreeManager(object):
 
 
 class ImageItem(object):
-    def __init__(self, loaded_image: 'Image', initial_preview: 'Image', processed_preview: 'Image', loaded_image_path: str, settings: dict):
+    def __init__(self, loaded_image: 'Image', initial_preview: 'Image', processed_preview: 'Image', encrypted_image: bool, encryption_data: dict, loaded_image_path: str, settings: dict):
         self.loaded_image = loaded_image
         self.initial_preview = initial_preview
         self.processed_preview = processed_preview
         self.loaded_image_path = loaded_image_path
+        self.encrypted_image = encrypted_image
+        self.encryption_data = encryption_data
         self.settings = settings
 
     def update(self, initial_preview: 'Image', processed_preview: 'Image', settings: dict):
@@ -95,13 +97,23 @@ class ImageItem(object):
         frame.initial_preview = self.initial_preview
         frame.processed_preview = self.processed_preview
         frame.loaded_image_path = self.loaded_image_path
-        frame.mode.Select(self.settings['mode'])
-        frame.row.SetValue(self.settings['row'])
-        frame.col.SetValue(self.settings['col'])
-        frame.upset.SetValue(self.settings['upset'])
-        frame.rgbMapping.SetValue(self.settings['rgb_mapping'])
-        frame.flip.SetValue(self.settings['flip'])
-        frame.xorRgb.Select(self.settings['xor'])
+        frame.encrypted_image = self.encrypted_image
+        frame.encryption_data = self.encryption_data
+
+        if self.settings['mode'] != 1:
+            frame.mode.Select(self.settings['mode'])
+            frame.row.SetValue(self.settings['row'])
+            frame.col.SetValue(self.settings['col'])
+            frame.upset.SetValue(self.settings['upset'])
+            frame.rgbMapping.SetValue(self.settings['rgb_mapping'])
+            frame.flip.SetValue(self.settings['flip'])
+            frame.xorRgb.Select(self.settings['xor'])
+            frame.processingSettingsPanel1.Enable(True)
+            frame.xorRgb.Enable(True)
+        else:
+            frame.check_encryption_parameters()
+
+        frame.imageInfo.SetLabelText(f'大小：{self.loaded_image.size[0]}x{self.loaded_image.size[1]}')
         frame.selectSavePath.SetPath(self.settings['save_path'])
         frame.selectFormat.Select(self.settings['save_format'])
         frame.show_initial_preview()

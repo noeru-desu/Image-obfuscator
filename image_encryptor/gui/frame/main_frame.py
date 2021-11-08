@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-07 16:48:53
+LastEditTime : 2021-11-07 21:41:38
 Description  : 配置窗口类
 '''
 from os import getcwd
@@ -22,6 +22,7 @@ from image_encryptor.gui.frame.drag import DragImport
 from image_encryptor.gui.frame.design_frame import MainFrame as MF
 from image_encryptor.gui.frame.tree import TreeManager, ImageItem
 from image_encryptor.gui.modules.loader import load_program
+from image_encryptor.gui.modules.password_verifier import get_image_data
 from image_encryptor.gui.utils.thread import ThreadManager
 from image_encryptor.gui.utils.utils import scale
 
@@ -42,7 +43,8 @@ class MainFrame(MF):
         for i in Image.EXTENSION:
             self.supported_formats_str += f'*{i}; '
         self.run_path = run_path
-        self.preview_thread = ThreadManager('preview-thread')
+        self.preview_thread = ThreadManager('preview-thread', True)
+        self.loading_thread = ThreadManager('loading-thread')
         self.program.thread_pool.create_tag('load', True)
         self.program.thread_pool.create_tag('save', False)
 
@@ -51,6 +53,8 @@ class MainFrame(MF):
         self.initial_preview = None
         self.processed_preview = None
         self.loaded_image_path = None
+        self.encrypted_image = None
+        self.encryption_data = None
         self.default_settings = {
             'mode': 0,
             'row': 25,
@@ -103,19 +107,22 @@ class MainFrame(MF):
 
     def show_processing_preview(self, resize: bool, image: Image.Image):
         size = self.previewedImagePlanel.Size
+        if image is None:
+            return
         if resize:
             image = image.resize(scale(image, *size))
         self.previewedImage.SetBitmap(wx.Bitmap.FromBuffer(*image.size, image.convert('RGB').tobytes()))
         self.processed_preview = image
 
-    def _check_image(self, error, prompt=True):
+    def _check_image(self, error, prompt=True, show_preview=True):
         if error is not None:
             self.loaded_image = None
             if prompt:
                 self.error(error, '加载图片时出现错误')
             return False
         else:
-            self.show_initial_preview()
+            if show_preview:
+                self.show_initial_preview()
             self.imageInfo.SetLabelText(f'大小：{self.loaded_image.size[0]}x{self.loaded_image.size[1]}')
             self.previewOptions.Enable(True)
             self.saveOptions.Enable(True)
@@ -149,31 +156,60 @@ class MainFrame(MF):
     def load_image(self, dir):
         if dir in self.tree_manager.file_dict:
             self.imageTreeCtrl.SelectItem(self.tree_manager.file_dict[dir])
+            self.imageTreeCtrl.Expand(self.tree_manager.file_dict[dir])
             self.warning('已存在同路径文件\n已自动跳转到相应位置')
             return
         elif dir in self.tree_manager.root_dir_dict:
             self.imageTreeCtrl.SelectItem(self.tree_manager.root_dir_dict[dir])
+            self.imageTreeCtrl.Expand(self.tree_manager.root_dir_dict[dir])
             self.warning('已存在同路径文件夹\n已自动跳转到相应位置')
             return
         elif dir in self.tree_manager.dir_dict:
             self.imageTreeCtrl.SelectItem(self.tree_manager.dir_dict[dir])
+            self.imageTreeCtrl.Expand(self.tree_manager.dir_dict[dir])
             self.warning('已存在同路径文件夹\n已自动跳转到相应位置')
             return
+        self.stopLoadingBtn.Show()
+        self.m_panel3.Layout()
         Image.MAX_IMAGE_PIXELS = self.maxImagePixels.Value if self.maxImagePixels.Value != 0 else None
         if isdir(dir):
             for r, fl in walk_file(dir, True):
                 for n in fl:
                     absolute_path = join(dir, r, n)
                     self.loaded_image, error = open_image(absolute_path)
-                    if self._check_image(error, False):
-                        self.tree_manager.add_file(dir, r, n, ImageItem(self.loaded_image, None, None, absolute_path, self.default_settings), False)
+                    if self._check_image(error, False, False):
+                        self.tree_manager.add_file(dir, r, n, ImageItem(self.loaded_image, None, None, None, None, absolute_path, self.default_settings), False)
                     self.loaded_image_path = absolute_path
         elif isfile(dir):
             self.loaded_image, error = open_image(dir)
-            if self._check_image(error):
-                self.tree_manager.add_file(dir, data=ImageItem(self.loaded_image, None, None, dir, self.default_settings))
+            if self._check_image(error, show_preview=False):
+                self.tree_manager.add_file(dir, data=ImageItem(self.loaded_image, None, None, None, None, dir, self.default_settings))
             self.loaded_image_path = dir
         self.imageTreeCtrl.SelectItem(list(self.tree_manager.file_dict.values())[-1])
+        self.stopLoadingBtn.Hide()
+        self.m_panel3.Layout()
+
+    def check_encryption_parameters(self):
+        if self.encrypted_image is None:
+            image_data, error = get_image_data(self.loaded_image_path, skip_password=True)
+            if error is None:
+                self.encrypted_image = True
+                self.encryption_data = image_data
+        if self.encrypted_image:
+            self.processingSettingsPanel1.Enable(False)
+            self.xorRgb.Enable(False)
+            self.mode.Select(1)
+            self.row.SetValue(self.encryption_data['row'])
+            self.col.SetValue(self.encryption_data['col'])
+            self.upset.SetValue(self.encryption_data['upset'])
+            self.rgbMapping.SetValue(self.encryption_data['rgb_mapping'])
+            self.flip.SetValue(self.encryption_data['flip'])
+            if self.encryption_data['xor_rgb'] and self.encryption_data['xor_alpha']:
+                self.xorRgb.Select(2)
+            elif self.encryption_data['xor_rgb']:
+                self.xorRgb.Select(1)
+            else:
+                self.xorRgb.Select(0)
 
     # -------
     # 事件交互
@@ -196,16 +232,19 @@ class MainFrame(MF):
         dialog = wx.FileDialog(self, "选择图像", self.run_path, EmptyString, self.supported_formats_str, wx.FD_OPEN | wx.FD_CHANGE_DIR | wx.FD_PREVIEW | wx.FD_FILE_MUST_EXIST)
         if wx.ID_OK == dialog.ShowModal():
             path = dialog.GetPath()
-            if self.program.thread_pool.check_tag('load') is not None:
+            if self.loading_thread.is_running:
                 self.warning('请等待当前图片载入完成后再载入新的图片')
                 return
-            self.program.thread_pool.add_task('load', self.program.thread_pool.submit(self.load_image, path))
+            self.loading_thread.start_new(self.load_image, args=(path,))
 
-    def load_select_file(self, event):
-        if self.program.thread_pool.check_tag('load') is not None:
-            self.warning('请等待当前图片载入完成后再载入新的图片')
-            return
-        self.program.thread_pool.add_task('load', self.program.thread_pool.submit(self.load_image, self.selectFile.Path))
+    def load_dir(self, event):
+        dialog = wx.DirDialog(self, "选择文件夹", self.run_path, wx.DIRP_CHANGE_DIR | wx.DIRP_DIR_MUST_EXIST)
+        if wx.ID_OK == dialog.ShowModal():
+            path = dialog.GetPath()
+            if self.loading_thread.is_running:
+                self.warning('请等待当前图片载入完成后再载入新的图片')
+                return
+            self.loading_thread.start_new(self.load_image, args=(path,))
 
     def update_password_dict(self, event=None):
         if self.password.Value == '':
@@ -224,6 +263,14 @@ class MainFrame(MF):
             return
         self.generate_image(True)
 
+    def processing_mode_change(self, event):
+        if self.mode.Selection != 1:
+            self.processingSettingsPanel1.Enable(True)
+            self.xorRgb.Enable(True)
+        else:
+            self.check_encryption_parameters()
+        self.refresh_preview(event)
+
     def preview_mode_change(self, event):
         if self.previewMode.Selection == 0:
             self.previewedImage.Show(False)
@@ -241,6 +288,8 @@ class MainFrame(MF):
         if image_data is not None:
             image_data.backtrack_interface(self)
 
+        self.refresh_preview(event)
+
     def apply_settings_to_all(self, event):
         settings = self.settings
         for i in self.tree_manager.file_dict.values():
@@ -248,6 +297,12 @@ class MainFrame(MF):
 
     def set_settings_as_default(self, event):
         self.default_settings = self.settings
+
+    def stop_loading(self, event):
+        self.loading_thread.kill()
+        self.stopLoadingBtn.Hide()
+        self.m_panel3.Layout()
+        self.warning('已强制终止载入文件')
 
     # -----
     # 提示窗

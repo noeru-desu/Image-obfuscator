@@ -17,7 +17,7 @@ import wx.xrc
 class MainFrame ( wx.Frame ):
 
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Image Encryptor 1.0.0 -alpha.6", pos = wx.DefaultPosition, size = wx.Size( 1170,640 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Image Encryptor 1.0.0 -beta.1", pos = wx.DefaultPosition, size = wx.Size( 1170,640 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
         self.SetSizeHints( wx.Size( 745,640 ), wx.DefaultSize )
         self.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
@@ -29,6 +29,11 @@ class MainFrame ( wx.Frame ):
         self.loadFileMenuItem = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"载入文件", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menu1.Append( self.loadFileMenuItem )
 
+        self.m_menuItem51 = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"载入文件夹", wx.EmptyString, wx.ITEM_NORMAL )
+        self.m_menu1.Append( self.m_menuItem51 )
+
+        self.m_menu1.AppendSeparator()
+
         self.m_menuItem5 = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"保存", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menu1.Append( self.m_menuItem5 )
 
@@ -37,6 +42,8 @@ class MainFrame ( wx.Frame ):
         self.m_menu2 = wx.Menu()
         self.aboutMenuItem = wx.MenuItem( self.m_menu2, wx.ID_ANY, u"关于", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menu2.Append( self.aboutMenuItem )
+
+        self.m_menu2.AppendSeparator()
 
         self.m_menuItem4 = wx.MenuItem( self.m_menu2, wx.ID_ANY, u"退出", wx.EmptyString, wx.ITEM_NORMAL )
         self.m_menu2.Append( self.m_menuItem4 )
@@ -49,24 +56,24 @@ class MainFrame ( wx.Frame ):
 
         bSizer251 = wx.BoxSizer( wx.VERTICAL )
 
-        self.m_panel9 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.imageTreePanel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         bSizer262 = wx.BoxSizer( wx.VERTICAL )
 
-        self.imageTreeSearchCtrl = wx.SearchCtrl( self.m_panel9, wx.ID_ANY, u"文件树搜索功能尚不可用", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER )
+        self.imageTreeSearchCtrl = wx.SearchCtrl( self.imageTreePanel, wx.ID_ANY, u"文件树搜索功能尚不可用", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER )
         self.imageTreeSearchCtrl.ShowSearchButton( True )
         self.imageTreeSearchCtrl.ShowCancelButton( True )
         self.imageTreeSearchCtrl.Enable( False )
 
         bSizer262.Add( self.imageTreeSearchCtrl, 0, wx.ALL|wx.EXPAND, 5 )
 
-        self.imageTreeCtrl = wx.TreeCtrl( self.m_panel9, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_DEFAULT_STYLE|wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HAS_BUTTONS|wx.TR_HAS_VARIABLE_ROW_HEIGHT|wx.TR_HIDE_ROOT|wx.TR_ROW_LINES|wx.TR_SINGLE|wx.TR_TWIST_BUTTONS )
+        self.imageTreeCtrl = wx.TreeCtrl( self.imageTreePanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_DEFAULT_STYLE|wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HAS_BUTTONS|wx.TR_HAS_VARIABLE_ROW_HEIGHT|wx.TR_HIDE_ROOT|wx.TR_ROW_LINES|wx.TR_SINGLE|wx.TR_TWIST_BUTTONS )
         bSizer262.Add( self.imageTreeCtrl, 1, wx.EXPAND, 5 )
 
 
-        self.m_panel9.SetSizer( bSizer262 )
-        self.m_panel9.Layout()
-        bSizer262.Fit( self.m_panel9 )
-        bSizer251.Add( self.m_panel9, 1, wx.EXPAND |wx.ALL, 5 )
+        self.imageTreePanel.SetSizer( bSizer262 )
+        self.imageTreePanel.Layout()
+        bSizer262.Fit( self.imageTreePanel )
+        bSizer251.Add( self.imageTreePanel, 1, wx.EXPAND |wx.ALL, 5 )
 
 
         bSizer26.Add( bSizer251, 1, wx.EXPAND, 5 )
@@ -76,8 +83,11 @@ class MainFrame ( wx.Frame ):
         self.m_panel3 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         bSizer91 = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.selectFile = wx.FilePickerCtrl( self.m_panel3, wx.ID_ANY, wx.EmptyString, u"选择图像", u"*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
-        bSizer91.Add( self.selectFile, 0, wx.ALL, 5 )
+        self.m_button5 = wx.Button( self.m_panel3, wx.ID_ANY, u"载入文件", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer91.Add( self.m_button5, 0, wx.ALL, 5 )
+
+        self.m_button6 = wx.Button( self.m_panel3, wx.ID_ANY, u"载入文件夹", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer91.Add( self.m_button6, 0, wx.ALL, 5 )
 
         self.imageInfo = wx.StaticText( self.m_panel3, wx.ID_ANY, u"图像信息：未载入图片", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.imageInfo.Wrap( -1 )
@@ -85,6 +95,11 @@ class MainFrame ( wx.Frame ):
         self.imageInfo.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
 
         bSizer91.Add( self.imageInfo, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+        self.stopLoadingBtn = wx.Button( self.m_panel3, wx.ID_ANY, u"终止载入", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
+        self.stopLoadingBtn.Hide()
+
+        bSizer91.Add( self.stopLoadingBtn, 0, wx.ALL, 5 )
 
 
         self.m_panel3.SetSizer( bSizer91 )
@@ -107,53 +122,57 @@ class MainFrame ( wx.Frame ):
         self.mode.SetSelection( 0 )
         bSizer12.Add( self.mode, 0, wx.ALL|wx.EXPAND, 5 )
 
+        self.processingSettingsPanel1 = wx.Panel( self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         bSizer13 = wx.BoxSizer( wx.VERTICAL )
 
         bSizer131 = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.m_staticText8 = wx.StaticText( self.processingOptions, wx.ID_ANY, u"切割行数", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText8 = wx.StaticText( self.processingSettingsPanel1, wx.ID_ANY, u"切割行数", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText8.Wrap( -1 )
 
         self.m_staticText8.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
 
-        bSizer131.Add( self.m_staticText8, 0, wx.ALL, 5 )
+        bSizer131.Add( self.m_staticText8, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
 
-        self.row = wx.SpinCtrl( self.processingOptions, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL|wx.SP_ARROW_KEYS|wx.TE_PROCESS_ENTER, 1, 100000000, 25 )
-        bSizer131.Add( self.row, 0, wx.ALL|wx.EXPAND, 5 )
+        self.row = wx.SpinCtrl( self.processingSettingsPanel1, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL|wx.SP_ARROW_KEYS|wx.TE_PROCESS_ENTER, 1, 100000000, 25 )
+        bSizer131.Add( self.row, 0, wx.ALL, 5 )
 
 
-        bSizer13.Add( bSizer131, 1, wx.EXPAND, 5 )
+        bSizer13.Add( bSizer131, 0, wx.EXPAND, 5 )
 
         bSizer15 = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.m_staticText9 = wx.StaticText( self.processingOptions, wx.ID_ANY, u"切割列数", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText9 = wx.StaticText( self.processingSettingsPanel1, wx.ID_ANY, u"切割列数", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText9.Wrap( -1 )
 
-        bSizer15.Add( self.m_staticText9, 0, wx.ALL, 5 )
+        bSizer15.Add( self.m_staticText9, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
 
-        self.col = wx.SpinCtrl( self.processingOptions, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL|wx.SP_ARROW_KEYS|wx.TE_PROCESS_ENTER, 1, 100000000, 25 )
+        self.col = wx.SpinCtrl( self.processingSettingsPanel1, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL|wx.SP_ARROW_KEYS|wx.TE_PROCESS_ENTER, 1, 100000000, 25 )
         bSizer15.Add( self.col, 0, wx.ALL|wx.EXPAND, 5 )
 
 
-        bSizer13.Add( bSizer15, 1, wx.EXPAND, 5 )
+        bSizer13.Add( bSizer15, 0, wx.EXPAND, 5 )
 
-        self.upset = wx.CheckBox( self.processingOptions, wx.ID_ANY, u"随机打乱分块", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.upset = wx.CheckBox( self.processingSettingsPanel1, wx.ID_ANY, u"随机打乱分块", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.upset.SetValue(True)
         self.upset.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
 
         bSizer13.Add( self.upset, 0, wx.ALL, 5 )
 
-        self.flip = wx.CheckBox( self.processingOptions, wx.ID_ANY, u"随机翻转分块", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.flip = wx.CheckBox( self.processingSettingsPanel1, wx.ID_ANY, u"随机翻转分块", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.flip.SetValue(True)
         self.flip.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
 
         bSizer13.Add( self.flip, 0, wx.ALL, 5 )
 
-        self.rgbMapping = wx.CheckBox( self.processingOptions, wx.ID_ANY, u"分块随机RGB映射", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.rgbMapping = wx.CheckBox( self.processingSettingsPanel1, wx.ID_ANY, u"分块随机RGB映射", wx.DefaultPosition, wx.DefaultSize, 0 )
         bSizer13.Add( self.rgbMapping, 0, wx.ALL, 5 )
 
 
-        bSizer12.Add( bSizer13, 0, 0, 5 )
+        self.processingSettingsPanel1.SetSizer( bSizer13 )
+        self.processingSettingsPanel1.Layout()
+        bSizer13.Fit( self.processingSettingsPanel1 )
+        bSizer12.Add( self.processingSettingsPanel1, 1, wx.EXPAND |wx.ALL, 5 )
 
         bSizer17 = wx.BoxSizer( wx.VERTICAL )
 
@@ -171,7 +190,7 @@ class MainFrame ( wx.Frame ):
         bSizer17.Add( self.password, 0, wx.ALL, 5 )
 
 
-        bSizer12.Add( bSizer17, 1, wx.EXPAND, 5 )
+        bSizer12.Add( bSizer17, 0, wx.EXPAND, 5 )
 
 
         bSizer11.Add( bSizer12, 0, wx.EXPAND, 5 )
@@ -417,12 +436,14 @@ class MainFrame ( wx.Frame ):
         self.Bind( wx.EVT_MOVE_END, self.refresh_preview )
         self.Bind( wx.EVT_SIZE, self.resize_image )
         self.Bind( wx.EVT_MENU, self.load_file, id = self.loadFileMenuItem.GetId() )
+        self.Bind( wx.EVT_MENU, self.load_dir, id = self.m_menuItem51.GetId() )
         self.Bind( wx.EVT_MENU, self.save_image, id = self.m_menuItem5.GetId() )
         self.Bind( wx.EVT_MENU, self.exit, id = self.m_menuItem4.GetId() )
-        self.imageTreeCtrl.Bind( wx.EVT_TREE_DELETE_ITEM, self.del_tree_item )
         self.imageTreeCtrl.Bind( wx.EVT_TREE_SEL_CHANGED, self.switch_image )
-        self.selectFile.Bind( wx.EVT_FILEPICKER_CHANGED, self.load_select_file )
-        self.mode.Bind( wx.EVT_RADIOBOX, self.refresh_preview )
+        self.m_button5.Bind( wx.EVT_BUTTON, self.load_file )
+        self.m_button6.Bind( wx.EVT_BUTTON, self.load_dir )
+        self.stopLoadingBtn.Bind( wx.EVT_BUTTON, self.stop_loading )
+        self.mode.Bind( wx.EVT_RADIOBOX, self.processing_mode_change )
         self.row.Bind( wx.EVT_SPINCTRL, self.refresh_preview )
         self.row.Bind( wx.EVT_TEXT_ENTER, self.refresh_preview )
         self.col.Bind( wx.EVT_SPINCTRL, self.refresh_preview )
@@ -436,12 +457,6 @@ class MainFrame ( wx.Frame ):
         self.m_button31.Bind( wx.EVT_BUTTON, self.apply_settings_to_all )
         self.m_button311.Bind( wx.EVT_BUTTON, self.set_settings_as_default )
         self.m_button3.Bind( wx.EVT_BUTTON, self.manual_refresh )
-        self.maxImagePixels.Bind( wx.EVT_SPINCTRL, self.refresh_preview )
-        self.maxImagePixels.Bind( wx.EVT_TEXT_ENTER, self.refresh_preview )
-        self.saveQuality.Bind( wx.EVT_SPINCTRL, self.refresh_preview )
-        self.saveQuality.Bind( wx.EVT_TEXT_ENTER, self.refresh_preview )
-        self.subsamplingLevel.Bind( wx.EVT_SPINCTRL, self.refresh_preview )
-        self.subsamplingLevel.Bind( wx.EVT_TEXT_ENTER, self.refresh_preview )
         self.m_button7.Bind( wx.EVT_BUTTON, self.save_image )
 
     def __del__( self ):
@@ -461,19 +476,23 @@ class MainFrame ( wx.Frame ):
     def load_file( self, event ):
         event.Skip()
 
+    def load_dir( self, event ):
+        event.Skip()
+
     def save_image( self, event ):
         event.Skip()
 
 
-    def del_tree_item( self, event ):
-        event.Skip()
-
     def switch_image( self, event ):
         event.Skip()
 
-    def load_select_file( self, event ):
+
+
+    def stop_loading( self, event ):
         event.Skip()
 
+    def processing_mode_change( self, event ):
+        event.Skip()
 
 
 
@@ -500,12 +519,6 @@ class MainFrame ( wx.Frame ):
 
 
 
-
-
-
-
-
-
 ###########################################################################
 ## Class AboutFrame
 ###########################################################################
@@ -525,7 +538,7 @@ class AboutFrame ( wx.Frame ):
 
         bSizer58 = wx.BoxSizer( wx.VERTICAL )
 
-        self.m_staticText17 = wx.StaticText( self.m_panel12, wx.ID_ANY, u"Image encryptor 1.0.0-alpha.6\n", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText17 = wx.StaticText( self.m_panel12, wx.ID_ANY, u"Image encryptor 1.0.0-beta.1\n", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText17.Wrap( -1 )
 
         self.m_staticText17.SetFont( wx.Font( 20, wx.FONTFAMILY_ROMAN, wx.FONTSTYLE_ITALIC, wx.FONTWEIGHT_BOLD, False, wx.EmptyString ) )

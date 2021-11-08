@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 08:31:31
+LastEditTime : 2021-11-07 20:27:01
 Description  : 对低版本加密的图片的加密信息进行转换，向下兼容
 '''
 from json import JSONDecodeError, loads
@@ -13,6 +13,7 @@ class VersionAdapter(object):
     @staticmethod
     def v_1_to_2(data):
         data['normal_encryption'] = True
+        data['version'] = 2
         return data
 
     @staticmethod
@@ -24,6 +25,7 @@ class VersionAdapter(object):
             data['upset'] = False
             data['flip'] = False
             data['rgb_mapping'] = False
+        data['version'] = 3
         return data
 
 

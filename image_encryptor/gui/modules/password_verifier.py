@@ -2,14 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:48:27
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 09:07:39
+LastEditTime : 2021-11-07 20:01:00
 Description  : 粗略包装的密码验证器
 '''
 from image_encryptor.common.modules.password_verifier import PasswordDict
 from image_encryptor.common.modules.version_adapter import load_encryption_attributes
 
 
-def get_image_data(file, extra_info='', password_dict: PasswordDict = None, return_directly=True):
+def get_image_data(file, extra_info='', password_dict: PasswordDict = None, return_directly=True, skip_password=False):
     '''
     :description: 获取文件尾部的json信息，并自动处理设置的密码
     :param file: 要读取的文件
@@ -24,7 +24,7 @@ def get_image_data(file, extra_info='', password_dict: PasswordDict = None, retu
     password = 100
     password_base64 = 0
 
-    if image_data['has_password']:
+    if image_data['has_password'] and not skip_password:
         if password_dict is not None:
             password = password_dict.get(image_data['password_base64'], None)
             if password is not None:

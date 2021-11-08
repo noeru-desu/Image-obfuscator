@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-06 19:02:33
+LastEditTime : 2021-11-07 21:34:51
 Description  : 线程相关类
 '''
 from ctypes import c_long, py_object, pythonapi
@@ -15,6 +15,10 @@ class ThreadKilled(SystemExit):
 
 
 class ThreadTerminationFailed(Exception):
+    pass
+
+
+class ThreadIsRunningError(Exception):
     pass
 
 
@@ -32,21 +36,27 @@ class Thread(threading_Thread):
         try:
             result = self._target(*self._args, **self._kwargs)
         except Exception as e:
-            self._callback(e, result, *self._callback_args, **self._callback_kwargs)
+            if self._callback is not None:
+                self._callback(e, result, *self._callback_args, **self._callback_kwargs)
         except ThreadKilled as e:
-            self._callback(e, result, *self._callback_args, **self._callback_kwargs)
+            if self._callback is not None:
+                self._callback(e, result, *self._callback_args, **self._callback_kwargs)
         finally:
             del self._target, self._args, self._kwargs
-            self._callback(None, result, *self._callback_args, **self._callback_kwargs)
+            if self._callback is not None:
+                self._callback(None, result, *self._callback_args, **self._callback_kwargs)
 
 
 class ThreadManager(object):
-    def __init__(self, thread_name: str = 'Worker'):
+    def __init__(self, thread_name: str = 'Worker', force: bool = False):
         self.thread_name = thread_name
+        self._force = force
         self._thread = None
 
-    def start_new(self, target: Callable, callback: Callable, args=(), kwargs=None, callback_args=(), callback_kwargs=None):
-        if self._thread is not None and self._thread.is_alive() and not self.kill():
+    def start_new(self, target: Callable, callback: Callable = None, args=(), kwargs=None, callback_args=(), callback_kwargs=None):
+        if not self._force and self.is_running:
+            raise ThreadIsRunningError
+        if self.is_running and not self.kill():
             raise ThreadTerminationFailed
         self._thread = Thread(callback, callback_args, callback_kwargs, target=target, name=self.thread_name, args=args, kwargs=kwargs, daemon=True)
         self._thread.start()
@@ -58,3 +68,7 @@ class ThreadManager(object):
                 pythonapi.PyThreadState_SetAsyncExc(self._thread.ident, None)
                 return False
         return True
+
+    @property
+    def is_running(self):
+        return False if self._thread is None else self._thread.is_alive()
