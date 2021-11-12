@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 08:31:27
+LastEditTime : 2021-11-10 21:14:46
 Description  : 批量加密功能
 '''
 from json import dumps

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-07 21:13:25
+LastEditTime : 2021-11-10 20:29:22
 Description  : 节点树控制
 '''
 from os.path import sep, isfile, isdir, split, join
@@ -78,18 +78,19 @@ class TreeManager(object):
 
 
 class ImageItem(object):
-    def __init__(self, loaded_image: 'Image', initial_preview: 'Image', processed_preview: 'Image', encrypted_image: bool, encryption_data: dict, loaded_image_path: str, settings: dict):
+    def __init__(self, loaded_image: 'Image', loaded_image_path: str, settings: dict, data: tuple = (None, None, None, None, None, None)):
         self.loaded_image = loaded_image
+        self.loaded_image_path = loaded_image_path
+        self.settings = settings
+        self.initial_preview, self.processed_preview, self.preview_size, self.preview_summary, self.encrypted_image, self.encryption_data = data
+
+    def update(self, initial_preview: 'Image', processed_preview: 'Image', preview_size: tuple, preview_summary: bytes, encrypted_image: bool, encryption_data: dict, settings: dict):
         self.initial_preview = initial_preview
         self.processed_preview = processed_preview
-        self.loaded_image_path = loaded_image_path
+        self.preview_size = preview_size
+        self.preview_summary = preview_summary
         self.encrypted_image = encrypted_image
         self.encryption_data = encryption_data
-        self.settings = settings
-
-    def update(self, initial_preview: 'Image', processed_preview: 'Image', settings: dict):
-        self.initial_preview = initial_preview
-        self.processed_preview = processed_preview
         self.settings = settings
 
     def backtrack_interface(self, frame: 'MainFrame'):
@@ -99,6 +100,8 @@ class ImageItem(object):
         frame.loaded_image_path = self.loaded_image_path
         frame.encrypted_image = self.encrypted_image
         frame.encryption_data = self.encryption_data
+        frame.preview_size = self.preview_size
+        frame.preview_summary = self.preview_summary
 
         if self.settings['mode'] != 1:
             frame.mode.Select(self.settings['mode'])
@@ -116,6 +119,3 @@ class ImageItem(object):
         frame.imageInfo.SetLabelText(f'大小：{self.loaded_image.size[0]}x{self.loaded_image.size[1]}')
         frame.selectSavePath.SetPath(self.settings['save_path'])
         frame.selectFormat.Select(self.settings['save_format'])
-        frame.show_initial_preview()
-        if self.processed_preview is not None:
-            frame.show_processing_preview(False, self.processed_preview)

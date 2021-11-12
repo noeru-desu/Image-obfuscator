@@ -78,39 +78,68 @@ class MainFrame ( wx.Frame ):
 
         bSizer26.Add( bSizer251, 1, wx.EXPAND, 5 )
 
+        self.settingsPanel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         bSizer10 = wx.BoxSizer( wx.VERTICAL )
 
-        self.m_panel3 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.loadingPrograssPanel = wx.Panel( self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.loadingPrograssPanel.Hide()
+
+        bSizer263 = wx.BoxSizer( wx.VERTICAL )
+
+        bSizer263.SetMinSize( wx.Size( -1,45 ) )
+        bSizer271 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_button8 = wx.Button( self.loadingPrograssPanel, wx.ID_ANY, u"停止载入", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer271.Add( self.m_button8, 0, wx.ALL, 0 )
+
+        self.loadingPrograss = wx.Gauge( self.loadingPrograssPanel, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL )
+        self.loadingPrograss.SetValue( 0 )
+        bSizer271.Add( self.loadingPrograss, 1, wx.ALL, 4 )
+
+        self.stopLoadingBtn = wx.Button( self.loadingPrograssPanel, wx.ID_ANY, u"强制终止载入", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer271.Add( self.stopLoadingBtn, 0, wx.ALL, 0 )
+
+
+        bSizer263.Add( bSizer271, 1, wx.EXPAND, 5 )
+
+        self.loadingPrograssText = wx.StaticText( self.loadingPrograssPanel, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.loadingPrograssText.Wrap( -1 )
+
+        bSizer263.Add( self.loadingPrograssText, 0, wx.ALIGN_CENTER|wx.ALL, 1 )
+
+
+        self.loadingPrograssPanel.SetSizer( bSizer263 )
+        self.loadingPrograssPanel.Layout()
+        bSizer263.Fit( self.loadingPrograssPanel )
+        bSizer10.Add( self.loadingPrograssPanel, 0, wx.ALL|wx.EXPAND, 5 )
+
+        self.loadingPanel = wx.Panel( self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.TAB_TRAVERSAL )
         bSizer91 = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.m_button5 = wx.Button( self.m_panel3, wx.ID_ANY, u"载入文件", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer91.Add( self.m_button5, 0, wx.ALL, 5 )
+        bSizer91.SetMinSize( wx.Size( -1,45 ) )
+        self.m_button5 = wx.Button( self.loadingPanel, wx.ID_ANY, u"载入文件", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer91.Add( self.m_button5, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-        self.m_button6 = wx.Button( self.m_panel3, wx.ID_ANY, u"载入文件夹", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer91.Add( self.m_button6, 0, wx.ALL, 5 )
+        self.m_button6 = wx.Button( self.loadingPanel, wx.ID_ANY, u"载入文件夹", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer91.Add( self.m_button6, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-        self.imageInfo = wx.StaticText( self.m_panel3, wx.ID_ANY, u"图像信息：未载入图片", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.imageInfo = wx.StaticText( self.loadingPanel, wx.ID_ANY, u"图像信息：未选择图片", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.imageInfo.Wrap( -1 )
 
         self.imageInfo.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
 
         bSizer91.Add( self.imageInfo, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-        self.stopLoadingBtn = wx.Button( self.m_panel3, wx.ID_ANY, u"终止载入", wx.DefaultPosition, wx.DefaultSize, wx.BU_EXACTFIT )
-        self.stopLoadingBtn.Hide()
 
-        bSizer91.Add( self.stopLoadingBtn, 0, wx.ALL, 5 )
+        self.loadingPanel.SetSizer( bSizer91 )
+        self.loadingPanel.Layout()
+        bSizer91.Fit( self.loadingPanel )
+        bSizer10.Add( self.loadingPanel, 0, wx.ALL, 5 )
 
-
-        self.m_panel3.SetSizer( bSizer91 )
-        self.m_panel3.Layout()
-        bSizer91.Fit( self.m_panel3 )
-        bSizer10.Add( self.m_panel3, 0, wx.ALL|wx.EXPAND, 5 )
-
-        self.m_staticline3 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+        self.m_staticline3 = wx.StaticLine( self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
         bSizer10.Add( self.m_staticline3, 0, wx.EXPAND |wx.ALL, 5 )
 
-        self.processingOptions = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.processingOptions = wx.Panel( self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.processingOptions.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
 
         bSizer11 = wx.BoxSizer( wx.VERTICAL )
@@ -198,8 +227,6 @@ class MainFrame ( wx.Frame ):
         bSizer9 = wx.BoxSizer( wx.HORIZONTAL )
 
         self.previewOptions = wx.Panel( self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.previewOptions.Enable( False )
-
         bSizer19 = wx.BoxSizer( wx.VERTICAL )
 
         bSizer28 = wx.BoxSizer( wx.HORIZONTAL )
@@ -255,7 +282,7 @@ class MainFrame ( wx.Frame ):
         self.previewOptions.SetSizer( bSizer19 )
         self.previewOptions.Layout()
         bSizer19.Fit( self.previewOptions )
-        bSizer9.Add( self.previewOptions, 0, wx.EXPAND |wx.ALL, 5 )
+        bSizer9.Add( self.previewOptions, 1, wx.EXPAND |wx.ALL, 5 )
 
         sbSizer6 = wx.StaticBoxSizer( wx.StaticBox( self.processingOptions, wx.ID_ANY, u"高级设置" ), wx.VERTICAL )
 
@@ -310,12 +337,11 @@ class MainFrame ( wx.Frame ):
         bSizer11.Fit( self.processingOptions )
         bSizer10.Add( self.processingOptions, 1, wx.EXPAND |wx.ALL, 5 )
 
-        self.m_staticline21 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+        self.m_staticline21 = wx.StaticLine( self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
         bSizer10.Add( self.m_staticline21, 0, wx.EXPAND |wx.ALL, 5 )
 
-        self.saveOptions = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.saveOptions = wx.Panel( self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.saveOptions.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
-        self.saveOptions.Enable( False )
 
         bSizer23 = wx.BoxSizer( wx.VERTICAL )
 
@@ -380,7 +406,10 @@ class MainFrame ( wx.Frame ):
         bSizer10.Add( self.saveOptions, 1, wx.EXPAND |wx.ALL, 5 )
 
 
-        bSizer26.Add( bSizer10, 0, wx.EXPAND, 5 )
+        self.settingsPanel.SetSizer( bSizer10 )
+        self.settingsPanel.Layout()
+        bSizer10.Fit( self.settingsPanel )
+        bSizer26.Add( self.settingsPanel, 0, wx.EXPAND |wx.ALL, 0 )
 
         self.imagePanel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         gSizer1 = wx.GridSizer( 0, 1, 0, 0 )
@@ -440,9 +469,10 @@ class MainFrame ( wx.Frame ):
         self.Bind( wx.EVT_MENU, self.save_image, id = self.m_menuItem5.GetId() )
         self.Bind( wx.EVT_MENU, self.exit, id = self.m_menuItem4.GetId() )
         self.imageTreeCtrl.Bind( wx.EVT_TREE_SEL_CHANGED, self.switch_image )
+        self.m_button8.Bind( wx.EVT_BUTTON, self.set_stop_loading_signal )
+        self.stopLoadingBtn.Bind( wx.EVT_BUTTON, self.stop_loading )
         self.m_button5.Bind( wx.EVT_BUTTON, self.load_file )
         self.m_button6.Bind( wx.EVT_BUTTON, self.load_dir )
-        self.stopLoadingBtn.Bind( wx.EVT_BUTTON, self.stop_loading )
         self.mode.Bind( wx.EVT_RADIOBOX, self.processing_mode_change )
         self.row.Bind( wx.EVT_SPINCTRL, self.refresh_preview )
         self.row.Bind( wx.EVT_TEXT_ENTER, self.refresh_preview )
@@ -486,10 +516,13 @@ class MainFrame ( wx.Frame ):
     def switch_image( self, event ):
         event.Skip()
 
-
+    def set_stop_loading_signal( self, event ):
+        event.Skip()
 
     def stop_loading( self, event ):
         event.Skip()
+
+
 
     def processing_mode_change( self, event ):
         event.Skip()

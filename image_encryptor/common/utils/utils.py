@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 09:16:03
+LastEditTime : 2021-11-12 16:50:13
 Description  : 一些小东西
 '''
 from os import system, walk
@@ -25,8 +25,13 @@ def walk_file(path, topdown=False):
     '''
     path = normpath(path)
     path_len = len(path) + 1
-    for top, dirs, files in walk(path, topdown):
-        yield top[path_len:], files
+    if topdown:
+        for top, dirs, files in walk(path):
+            yield top[path_len:], files
+    else:
+        top, dirs, files = next(walk(path))
+        print(files)
+        yield '', files
 
 
 def calculate_formula_string(formula_string: str, **format):

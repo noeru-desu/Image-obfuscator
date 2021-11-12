@@ -2,12 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-06 19:05:34
+LastEditTime : 2021-11-12 17:24:59
 Description  : 一些小东西
 '''
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, CancelledError
 from traceback import print_exc
 from typing import TYPE_CHECKING
+
+from image_encryptor.common.utils.utils import walk_file as wf
 
 if TYPE_CHECKING:
     from PIL.Image import Image
@@ -18,11 +20,12 @@ class ProgressBar(object):
     def __init__(self, target: 'Gauge', step_count: int):
         self.target = target
         self.step_count = step_count
-        self.step = 0
+        self.step = -1
         self.value = 0
         self.finished_step = True
         self.max_value = 0
         self.step_progress = 0
+        self.next_step_progress = 0
         self.target.SetValue(0)
 
     def next_step(self, max_value: int):
@@ -31,17 +34,19 @@ class ProgressBar(object):
         self.finished_step = False
         self.step += 1
         self.max_value = max_value
+        self.max = self.max_value * self.step_count
         self.value = 0
-        self.step_progress = self.step / self.step_count * 100
+        self.step_progress = 0 if self.next_step_progress == 0 else self.next_step_progress
+        self.next_step_progress = (self.step + 1) / self.step_count * 100 if self.step < self.step_count else 100
 
     def update(self, value):
         if value > self.max_value:
             return
         self.value = value
-        self.target.SetValue(int(self.step_progress + (value / self.max_value)))
+        self.target.SetValue(int(self.step_progress + value / self.max * 100))
 
     def finish(self):
-        self.target.SetValue(int(self.step_progress))
+        self.target.SetValue(int(self.next_step_progress))
         self.finished_step = True
 
     def over(self):
@@ -238,3 +243,18 @@ def scale(image: 'Image', width: int, height: int):
     height /= _height
     scale = width if width < height else height
     return int(_width * scale), int(_height * scale)
+
+
+def walk_file(path, topdown=False) -> tuple[int, list[tuple[list, list]]]:
+    '''
+    :description: 获取目录下的所有文件
+    :param path: 需要遍历的文件夹
+    :param topdown: 是否遍历子目录
+    :return: 返回(文件个数, [(文件所在的相对路径列表, 文件名列表)元组]列表)元组
+    '''
+    result = []
+    file_num = 0
+    for r, fl in wf(path, topdown):
+        file_num += len(fl)
+        result.append((r, fl))
+    return file_num, result
