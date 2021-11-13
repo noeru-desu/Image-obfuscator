@@ -2,11 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-13 11:48:57
+LastEditTime : 2021-11-13 22:10:37
 Description  : 一些小东西
 '''
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, CancelledError
-from os.path import splitext
 from traceback import print_exc
 from typing import TYPE_CHECKING
 

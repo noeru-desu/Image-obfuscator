@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-13 11:54:37
+LastEditTime : 2021-11-13 22:19:19
 Description  : 文件载入
 '''
 from os.path import isfile, isdir, join
@@ -58,7 +58,7 @@ class ImageLoader(object):
         self.init_loading_progress(1)
         self.frame.loaded_image, error = open_image(path_chosen)
         if self._check_image(error):
-            self.frame.tree_manager.add_file(dir, data=ImageItem(self.frame.loaded_image, path_chosen, self.frame.default_settings))
+            self.frame.tree_manager.add_file(path_chosen, data=ImageItem(self.frame.loaded_image, path_chosen, self.frame.default_settings))
         self.frame.loaded_image_path = path_chosen
         self.finish_loading_progress()
         self.frame.imageTreeCtrl.SelectItem(list(self.frame.tree_manager.file_dict.values())[-1])

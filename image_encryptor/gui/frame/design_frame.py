@@ -17,7 +17,7 @@ import wx.xrc
 class MainFrame ( wx.Frame ):
 
     def __init__( self, parent ):
-        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Image Encryptor", pos = wx.DefaultPosition, size = wx.Size( 1170,640 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Image Encryptor", pos = wx.DefaultPosition, size = wx.Size( 1170,640 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL, name = u"Image Encryptor" )
 
         self.SetSizeHints( wx.Size( 745,640 ), wx.DefaultSize )
         self.SetFont( wx.Font( wx.NORMAL_FONT.GetPointSize(), wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, wx.EmptyString ) )
@@ -102,7 +102,7 @@ class MainFrame ( wx.Frame ):
 
         bSizer263.Add( bSizer271, 1, wx.EXPAND, 5 )
 
-        self.loadingPrograssText = wx.StaticText( self.loadingPrograssPanel, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.loadingPrograssText = wx.StaticText( self.loadingPrograssPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.loadingPrograssText.Wrap( -1 )
 
         bSizer263.Add( self.loadingPrograssText, 0, wx.ALIGN_CENTER|wx.ALL, 1 )

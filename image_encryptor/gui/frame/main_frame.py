@@ -2,31 +2,34 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-13 11:59:12
+LastEditTime : 2021-11-13 22:08:45
 Description  : 配置窗口类
 '''
 from hashlib import md5
 from os import getcwd
 from os.path import isdir
-from traceback import format_exc
+from typing import TYPE_CHECKING
 
-import wx
-from PIL import Image
-from wx.core import EmptyString
-
-import image_encryptor.gui.processor.qq_anti_harmony as qq_anti_harmony
-import image_encryptor.gui.processor.single_file_decryptor as single_file_decryptor
-import image_encryptor.gui.processor.single_file_encryptor as single_file_encryptor
-from image_encryptor import BRANCH, VERSION_NUMBER, SUB_VERSION_NUMBER
+from image_encryptor import BRANCH, SUB_VERSION_NUMBER, VERSION_NUMBER
 from image_encryptor.common.modules.password_verifier import PasswordDict
 from image_encryptor.gui.frame.design_frame import MainFrame as MF
 from image_encryptor.gui.frame.drag import DragImport
+from image_encryptor.gui.frame.image_generator import ImageGenerator
 from image_encryptor.gui.frame.image_loader import ImageLoader
-from image_encryptor.gui.frame.tree import TreeManager, ImageItem
+from image_encryptor.gui.frame.tree import ImageItem, TreeManager
 from image_encryptor.gui.modules.loader import load_program
 from image_encryptor.gui.modules.password_verifier import get_image_data
-from image_encryptor.gui.utils.thread import ThreadManager
 from image_encryptor.gui.utils.utils import scale
+from PIL import Image
+from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
+                FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, ICON_ERROR,
+                ICON_INFORMATION, ICON_QUESTION, ICON_WARNING, ID_OK,
+                STAY_ON_TOP, YES_NO, App, Bitmap, DirDialog, FileDialog,
+                MessageDialog)
+from wx.core import EmptyString
+
+if TYPE_CHECKING:
+    from wx import TreeItemId, TreeEvent
 
 
 class MainFrame(MF):
@@ -41,13 +44,13 @@ class MainFrame(MF):
         self.drop = DragImport(self)
         self.SetDropTarget(self.drop)
         self.tree_manager = TreeManager(self, self.imageTreeCtrl, '已加载文件列表')
+        self.image_loader = ImageLoader(self)
+        self.image_generator = ImageGenerator(self)
         # 准备
         self.supported_formats_str = ''
         for i in Image.EXTENSION:
             self.supported_formats_str += f'*{i}; '
         self.run_path = run_path
-        self.image_loader = ImageLoader(self)
-        self.preview_thread = ThreadManager('preview-thread', True)
         self.program.thread_pool.create_tag('load', True)
         self.program.thread_pool.create_tag('save', False)
 
@@ -79,7 +82,7 @@ class MainFrame(MF):
         """
         运行入口函数
         """
-        app = wx.App()
+        app = App()
         self = cls(None, path)
 
         self.Show()
@@ -115,12 +118,12 @@ class MainFrame(MF):
     def show_initial_preview(self, not_regenerate=False):
         size = self.importedImagePlanel.Size
         if not_regenerate:
-            self.importedImage.SetBitmap(wx.Bitmap.FromBuffer(*self.initial_preview.size, self.initial_preview.convert('RGB').tobytes()))
+            self.importedImage.SetBitmap(Bitmap.FromBuffer(*self.initial_preview.size, self.initial_preview.convert('RGB').tobytes()))
             return
         if self.loaded_image is not None:
             initial_preview = self.loaded_image.resize(scale(self.loaded_image, *size))
             self.program.logger.info(f'生成预览图{initial_preview.size}')
-            self.importedImage.SetBitmap(wx.Bitmap.FromBuffer(*initial_preview.size, initial_preview.convert('RGB').tobytes()))
+            self.importedImage.SetBitmap(Bitmap.FromBuffer(*initial_preview.size, initial_preview.convert('RGB').tobytes()))
             self.preview_size = size
             self.initial_preview = initial_preview
 
@@ -130,31 +133,9 @@ class MainFrame(MF):
             return
         if resize:
             image = image.resize(scale(image, *size))
-        self.previewedImage.SetBitmap(wx.Bitmap.FromBuffer(*image.size, image.convert('RGB').tobytes()))
+        self.previewedImage.SetBitmap(Bitmap.FromBuffer(*image.size, image.convert('RGB').tobytes()))
         self.processed_preview = image
         self.preview_summary = self.encryption_settings_summary
-
-    def generate_image(self, save):
-        logger = self.saveProgressPrompt.SetLabelText if save else self.previewProgressPrompt.SetLabelText
-        gauge = self.saveProgress if save else self.previewProgress
-        image = self.loaded_image if save else self.initial_preview
-        if self.update_password_dict():
-            self.password.SetValue('none')
-        try:
-            if self.mode.Selection == 0:
-                self.preview_thread.start_new(single_file_encryptor.main, self.generate_image_call_back, (self, logger, gauge, image, save))
-            elif self.mode.Selection == 1:
-                self.preview_thread.start_new(single_file_decryptor.main, self.generate_image_call_back, (self, logger, gauge, self.loaded_image, save))
-            else:
-                self.preview_thread.start_new(qq_anti_harmony.main, self.generate_image_call_back, (self, logger, gauge, image, save))
-        except Exception:
-            self.error(format_exc(), '生成加密图片时出现意外错误')
-
-    def generate_image_call_back(self, error, image):
-        if error is not None:
-            self.error(repr(error), '生成加密图片时出现意外错误')
-            return
-        self.show_processing_preview(True, image)
 
     def check_encryption_parameters(self):
         if self.encrypted_image is None:
@@ -198,19 +179,19 @@ class MainFrame(MF):
             else:
                 self.show_initial_preview(True)
             if size_changed or self.encryption_settings_summary != self.preview_summary:
-                self.generate_image(False)
+                self.image_generator.generate_preview()
             elif self.processed_preview is not None:
                 self.show_processing_preview(False, self.processed_preview)
 
     def load_file(self, event):
-        dialog = wx.FileDialog(self, "选择图像", self.run_path, EmptyString, self.supported_formats_str, wx.FD_OPEN | wx.FD_CHANGE_DIR | wx.FD_PREVIEW | wx.FD_FILE_MUST_EXIST)
-        if wx.ID_OK == dialog.ShowModal():
+        dialog = FileDialog(self, "选择图像", self.run_path, EmptyString, self.supported_formats_str, FD_OPEN | FD_CHANGE_DIR | FD_PREVIEW | FD_FILE_MUST_EXIST)
+        if ID_OK == dialog.ShowModal():
             path = dialog.GetPath()
             self.image_loader.load(path)
 
     def load_dir(self, event):
-        dialog = wx.DirDialog(self, "选择文件夹", self.run_path, wx.DIRP_CHANGE_DIR | wx.DIRP_DIR_MUST_EXIST)
-        if wx.ID_OK == dialog.ShowModal():
+        dialog = DirDialog(self, "选择文件夹", self.run_path, DIRP_CHANGE_DIR | DIRP_DIR_MUST_EXIST)
+        if ID_OK == dialog.ShowModal():
             path = dialog.GetPath()
             self.image_loader.load(path)
 
@@ -232,7 +213,7 @@ class MainFrame(MF):
         elif not isdir(self.selectSavePath.Path):
             self.error('没有选择保存文件夹或选择的文件夹不存在', '保存时出现错误')
             return
-        self.generate_image(True)
+        self.image_generator.save_image()
 
     def processing_mode_change(self, event):
         if self.loaded_image is None:
@@ -250,8 +231,8 @@ class MainFrame(MF):
         else:
             self.previewedImage.Show(True)
 
-    def switch_image(self, event: 'wx.TreeEvent'):
-        image_item = event.GetOldItem()
+    def switch_image(self, event: 'TreeEvent'):
+        image_item: 'TreeItemId' = event.GetOldItem()
         if image_item.IsOk():
             image_data: 'ImageItem' = self.imageTreeCtrl.GetItemData(image_item)
             if image_data is not None:
@@ -282,16 +263,13 @@ class MainFrame(MF):
     def stop_loading(self, event, force=True):
         if force:
             self.image_loader.loading_thread.kill()
-        self.loadingPrograssPanel.Hide()
-        self.loadingPanel.Show()
-        self.settingsPanel.Layout()
-        if force:
+            self.image_loader.hide_loading_progress_plane()
             self.warning('已强制终止载入文件')
         else:
             self.warning('已停止载入文件')
 
     def set_stop_loading_signal(self, event):
-        self.preview_thread.set_exit_signal()
+        self.image_loader.loading_thread.set_exit_signal()
 
     # -----
     # 提示窗
@@ -299,30 +277,30 @@ class MainFrame(MF):
 
     def info(self, message, title='信息'):
         self.program.logger.info(f'[{title}]{message}')
-        dialog = wx.MessageDialog(self, message, title, style=wx.ICON_INFORMATION | wx.STAY_ON_TOP)
+        dialog = MessageDialog(self, message, title, style=ICON_INFORMATION | STAY_ON_TOP)
         dialog.ShowModal()
         dialog.Destroy()
 
     def question(self, message, title='问题'):
         self.program.logger.info(f'[{title}]{message}')
-        dialog = wx.MessageDialog(self, message, title, style=wx.ICON_QUESTION | wx.STAY_ON_TOP)
+        dialog = MessageDialog(self, message, title, style=ICON_QUESTION | STAY_ON_TOP)
         dialog.ShowModal()
         dialog.Destroy()
 
     def warning(self, message, title='警告'):
         self.program.logger.warning(f'[{title}]{message}')
-        dialog = wx.MessageDialog(self, message, title, style=wx.ICON_EXCLAMATION | wx.STAY_ON_TOP)
+        dialog = MessageDialog(self, message, title, style=ICON_WARNING | STAY_ON_TOP)
         dialog.ShowModal()
         dialog.Destroy()
 
     def error(self, message, title='错误'):
         self.program.logger.error(f'[{title}]{message}')
-        dialog = wx.MessageDialog(self, message, title, style=wx.ICON_ERROR | wx.STAY_ON_TOP)
+        dialog = MessageDialog(self, message, title, style=ICON_ERROR | STAY_ON_TOP)
         dialog.ShowModal()
         dialog.Destroy()
 
-    def confirmation_frame(self, message, title='确认', style=wx.YES_NO | wx.CANCEL, yes='是', no='否', cancel='取消'):
-        dialog = wx.MessageDialog(self, message, title, style=style | wx.STAY_ON_TOP)
+    def confirmation_frame(self, message, title='确认', style=YES_NO | CANCEL, yes='是', no='否', cancel='取消'):
+        dialog = MessageDialog(self, message, title, style=style | STAY_ON_TOP)
         dialog.SetYesNoCancelLabels(yes, no, cancel)
         frame_id = dialog.ShowModal()
         dialog.Destroy()
