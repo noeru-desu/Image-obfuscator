@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-07 19:36:10
+LastEditTime : 2021-11-13 11:42:30
 Description  : 单文件解密功能
 '''
 from os.path import join, split, splitext
@@ -57,7 +57,6 @@ def main(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
         logger('正在保存文件')
         name, suffix = splitext(split(frame.loaded_image_path)[1])
         suffix = frame.program.EXTENSION_KEYS[frame.selectFormat.Selection]
-        suffix = suffix.strip('.')
         if suffix.lower() in ['jpg', 'jpeg']:
             image = image.convert('RGB')
         name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"

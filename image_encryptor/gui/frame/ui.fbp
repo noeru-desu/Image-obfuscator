@@ -50,7 +50,7 @@
             <property name="size">1170,640</property>
             <property name="style">wxDEFAULT_FRAME_STYLE</property>
             <property name="subclass">; ; forward_declare</property>
-            <property name="title">Image Encryptor 1.0.0 -beta.1</property>
+            <property name="title">Image Encryptor</property>
             <property name="tooltip"></property>
             <property name="two_step_creation">0</property>
             <property name="window_extra_style"></property>

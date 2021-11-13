@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 08:57:25
+LastEditTime : 2021-11-13 10:17:34
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -92,9 +92,6 @@ def main():
         save_dir = join(program.parameters['output_path'], relative_path)
         for file in files:
             path = join(program.parameters['input_path'], relative_path, file)
-            '''if is_using(path):
-                program.logger.warning(f'文件[{file}]正在被使用，跳过处理')
-                continue'''
             if not exists(save_dir):
                 makedirs(save_dir)
             name, suffix = splitext(file)

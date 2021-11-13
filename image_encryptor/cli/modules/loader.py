@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-12 17:03:19
+LastEditTime : 2021-11-13 12:05:24
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
@@ -10,7 +10,7 @@ from concurrent.futures import ProcessPoolExecutor
 from os import system
 from sys import argv
 
-from image_encryptor import BRANCH, VERSION_NUMBER, SUB_VERSION_NUMBER
+from image_encryptor import BRANCH, VERSION_NUMBER, SUB_VERSION_NUMBER, OPEN_SOURCE_URL, VERSION_BATCH
 from image_encryptor.cli.modules.parameter_parser import parse_parameters
 from image_encryptor.common.utils.logger import Logger
 
@@ -21,8 +21,8 @@ class Program(object):
     def __init__(self):
         # 注册logger
         self.logger = Logger('image-encryptor')
-        self.logger.warning(f'You are using Image encryptor CLI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
-        self.logger.warning('Open source at https://github.com/noeru-desu/Image-encryptor')
+        self.logger.warning(f'You are using Image encryptor CLI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})')
+        self.logger.warning(f'Open source at {OPEN_SOURCE_URL}')
         # 检查启动参数
         self.parameter_parser = parse_parameters(self.logger, argv[1:])
         self.parameters = self.parameter_parser.parameters

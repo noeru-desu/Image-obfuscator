@@ -2,12 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-12 17:28:48
+LastEditTime : 2021-11-13 11:59:12
 Description  : 配置窗口类
 '''
 from hashlib import md5
 from os import getcwd
-from os.path import isdir, isfile, join
+from os.path import isdir
 from traceback import format_exc
 
 import wx
@@ -17,15 +17,16 @@ from wx.core import EmptyString
 import image_encryptor.gui.processor.qq_anti_harmony as qq_anti_harmony
 import image_encryptor.gui.processor.single_file_decryptor as single_file_decryptor
 import image_encryptor.gui.processor.single_file_encryptor as single_file_encryptor
+from image_encryptor import BRANCH, VERSION_NUMBER, SUB_VERSION_NUMBER
 from image_encryptor.common.modules.password_verifier import PasswordDict
-from image_encryptor.common.utils.utils import open_image
-from image_encryptor.gui.frame.drag import DragImport
 from image_encryptor.gui.frame.design_frame import MainFrame as MF
+from image_encryptor.gui.frame.drag import DragImport
+from image_encryptor.gui.frame.image_loader import ImageLoader
 from image_encryptor.gui.frame.tree import TreeManager, ImageItem
 from image_encryptor.gui.modules.loader import load_program
 from image_encryptor.gui.modules.password_verifier import get_image_data
 from image_encryptor.gui.utils.thread import ThreadManager
-from image_encryptor.gui.utils.utils import ProgressBar, scale, walk_file
+from image_encryptor.gui.utils.utils import scale
 
 
 class MainFrame(MF):
@@ -35,6 +36,7 @@ class MainFrame(MF):
 
     def __init__(self, parent, run_path=getcwd()):
         super().__init__(parent)
+        self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
         self.program = load_program()
         self.drop = DragImport(self)
         self.SetDropTarget(self.drop)
@@ -44,8 +46,8 @@ class MainFrame(MF):
         for i in Image.EXTENSION:
             self.supported_formats_str += f'*{i}; '
         self.run_path = run_path
+        self.image_loader = ImageLoader(self)
         self.preview_thread = ThreadManager('preview-thread', True)
-        self.loading_thread = ThreadManager('loading-thread')
         self.program.thread_pool.create_tag('load', True)
         self.program.thread_pool.create_tag('save', False)
 
@@ -132,18 +134,6 @@ class MainFrame(MF):
         self.processed_preview = image
         self.preview_summary = self.encryption_settings_summary
 
-    def _check_image(self, error, prompt=True, show_preview=True):
-        if error is not None:
-            self.loaded_image = None
-            if prompt:
-                self.error(error, '加载图片时出现错误')
-            return False
-        else:
-            if show_preview:
-                self.show_initial_preview()
-                self.imageInfo.SetLabelText(f'大小：{self.loaded_image.size[0]}x{self.loaded_image.size[1]}')
-            return True
-
     def generate_image(self, save):
         logger = self.saveProgressPrompt.SetLabelText if save else self.previewProgressPrompt.SetLabelText
         gauge = self.saveProgress if save else self.previewProgress
@@ -165,72 +155,6 @@ class MainFrame(MF):
             self.error(repr(error), '生成加密图片时出现意外错误')
             return
         self.show_processing_preview(True, image)
-
-    def load_image(self, dir):
-        if dir in self.tree_manager.file_dict:
-            self.imageTreeCtrl.SelectItem(self.tree_manager.file_dict[dir])
-            self.imageTreeCtrl.Expand(self.tree_manager.file_dict[dir])
-            self.warning('已存在同路径文件\n已自动跳转到相应位置')
-            return
-        elif dir in self.tree_manager.root_dir_dict:
-            self.imageTreeCtrl.SelectItem(self.tree_manager.root_dir_dict[dir])
-            self.imageTreeCtrl.Expand(self.tree_manager.root_dir_dict[dir])
-            self.warning('已存在同路径文件夹\n已自动跳转到相应位置')
-            return
-        elif dir in self.tree_manager.dir_dict:
-            self.imageTreeCtrl.SelectItem(self.tree_manager.dir_dict[dir])
-            self.imageTreeCtrl.Expand(self.tree_manager.dir_dict[dir])
-            self.warning('已存在同路径文件夹\n已自动跳转到相应位置')
-            return
-        self.loadingPanel.Hide()
-        self.loadingPrograssPanel.Show()
-        self.settingsPanel.Layout()
-        Image.MAX_IMAGE_PIXELS = self.maxImagePixels.Value if self.maxImagePixels.Value != 0 else None
-        if isdir(dir):
-            self.preview_thread.set_exit_signal(False)
-            frame_id = self.confirmation_frame('是否将文件夹内子文件夹中的文件也进行载入？', '选择')
-            if frame_id == wx.ID_YES:
-                topdown = True
-            elif frame_id == wx.ID_NO:
-                topdown = False
-            else:
-                self.loadingPrograssPanel.Hide()
-                self.loadingPanel.Show()
-                self.settingsPanel.Layout()
-                return
-            file_num, files = walk_file(dir, topdown)
-            self.loadingPrograssText.SetLabelText(f'0/{file_num} - 0%')
-            finish_num = 0
-            bar = ProgressBar(self.loadingPrograss, 1)
-            bar.next_step(file_num)
-            for r, fl in files:
-                for n in fl:
-                    absolute_path = join(dir, r, n)
-                    self.loaded_image, error = open_image(absolute_path)
-                    if self._check_image(error, False, False):
-                        self.tree_manager.add_file(dir, r, n, ImageItem(self.loaded_image, absolute_path, self.default_settings), False)
-                        self.loaded_image_path = absolute_path
-                    finish_num += 1
-                    self.loadingPrograssText.SetLabelText(f"{finish_num}/{file_num} - {format(finish_num / file_num * 100, '.2f')}%")
-                    bar.update(bar.value + 1)
-                    if self.preview_thread.exit_signal:
-                        self.stop_loading(None, False)
-                        return
-            self.loadingPrograssText.SetLabelText(f'{file_num}/{file_num} - 100%')
-            bar.over()
-        elif isfile(dir):
-            self.loadingPrograssText.SetLabelText('0/1 - 0%')
-            self.loadingPrograss.SetValue(0)
-            self.loaded_image, error = open_image(dir)
-            if self._check_image(error, show_preview=False):
-                self.tree_manager.add_file(dir, data=ImageItem(self.loaded_image, dir, self.default_settings))
-            self.loaded_image_path = dir
-            self.loadingPrograssText.SetLabelText('1/1 - 100%')
-            self.loadingPrograss.SetValue(100)
-        # self.imageTreeCtrl.SelectItem(list(self.tree_manager.file_dict.values())[-1])
-        self.loadingPrograssPanel.Hide()
-        self.loadingPanel.Show()
-        self.settingsPanel.Layout()
 
     def check_encryption_parameters(self):
         if self.encrypted_image is None:
@@ -282,19 +206,13 @@ class MainFrame(MF):
         dialog = wx.FileDialog(self, "选择图像", self.run_path, EmptyString, self.supported_formats_str, wx.FD_OPEN | wx.FD_CHANGE_DIR | wx.FD_PREVIEW | wx.FD_FILE_MUST_EXIST)
         if wx.ID_OK == dialog.ShowModal():
             path = dialog.GetPath()
-            if self.loading_thread.is_running:
-                self.warning('请等待当前图片载入完成后再载入新的图片')
-                return
-            self.loading_thread.start_new(self.load_image, args=(path,))
+            self.image_loader.load(path)
 
     def load_dir(self, event):
         dialog = wx.DirDialog(self, "选择文件夹", self.run_path, wx.DIRP_CHANGE_DIR | wx.DIRP_DIR_MUST_EXIST)
         if wx.ID_OK == dialog.ShowModal():
             path = dialog.GetPath()
-            if self.loading_thread.is_running:
-                self.warning('请等待当前图片载入完成后再载入新的图片')
-                return
-            self.loading_thread.start_new(self.load_image, args=(path,))
+            self.image_loader.load(path)
 
     def update_password_dict(self, event=None):
         if self.password.Value == '':
@@ -363,7 +281,7 @@ class MainFrame(MF):
 
     def stop_loading(self, event, force=True):
         if force:
-            self.loading_thread.kill()
+            self.image_loader.loading_thread.kill()
         self.loadingPrograssPanel.Hide()
         self.loadingPanel.Show()
         self.settingsPanel.Layout()

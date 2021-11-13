@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-12 17:03:28
+LastEditTime : 2021-11-13 12:05:08
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
@@ -10,7 +10,7 @@ from multiprocessing import cpu_count
 
 from PIL.Image import init as PIL_init, EXTENSION
 
-from image_encryptor import BRANCH, VERSION_NUMBER, SUB_VERSION_NUMBER
+from image_encryptor import BRANCH, VERSION_NUMBER, SUB_VERSION_NUMBER, OPEN_SOURCE_URL, VERSION_BATCH
 from image_encryptor.gui.modules.data import Data
 from image_encryptor.common.utils.logger import Logger
 from image_encryptor.common.modules.password_verifier import PasswordDict
@@ -23,8 +23,8 @@ class Program(object):
     def __init__(self):
         # 注册logger
         self.logger = Logger('image-encryptor')
-        self.logger.warning(f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
-        self.logger.warning('Open source at https://github.com/noeru-desu/Image-encryptor')
+        self.logger.warning(f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})')
+        self.logger.warning(f'Open source at {OPEN_SOURCE_URL}')
         # 全局变量模块
         self.data = Data()
         self.password_dict = PasswordDict()
@@ -53,6 +53,6 @@ def load_program():
             PIL_init()
         program = Program()
         program.EXTENSION = EXTENSION
-        program.EXTENSION_KEYS = list(EXTENSION.keys())
+        program.EXTENSION_KEYS = [i.strip('.') for i in EXTENSION.keys()]
         register(at_exit)
     return program

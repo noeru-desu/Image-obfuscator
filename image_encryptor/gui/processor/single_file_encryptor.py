@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-07 19:36:40
+LastEditTime : 2021-11-13 11:42:22
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -27,7 +27,6 @@ def main(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
         has_password = True if frame.password.Value != 'none' else False
         name, suffix = splitext(split(frame.loaded_image_path)[1])
         suffix = frame.program.EXTENSION_KEYS[frame.selectFormat.Selection]
-        suffix = suffix.strip('.')
         original_size = image.size
 
         if suffix in ('jpg', 'jpeg', 'wmf', 'webp'):

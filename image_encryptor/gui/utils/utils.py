@@ -2,10 +2,11 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-12 17:24:59
+LastEditTime : 2021-11-13 11:48:57
 Description  : 一些小东西
 '''
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, CancelledError
+from os.path import splitext
 from traceback import print_exc
 from typing import TYPE_CHECKING
 
@@ -44,6 +45,9 @@ class ProgressBar(object):
             return
         self.value = value
         self.target.SetValue(int(self.step_progress + value / self.max * 100))
+
+    def add(self):
+        self.update(self.value + 1)
 
     def finish(self):
         self.target.SetValue(int(self.next_step_progress))
@@ -159,12 +163,10 @@ class ProcessTaskManager(ProcessPoolExecutor):
         self.watchdog.add_task(tag_name, self.watchdog.submit(self.callback, tag_name, future, callback, *callback_args, **callback_kwargs))
 
     def callback(self, watchdog_future, tag_name, future, callback=None, *callback_args, **callback_kwargs):
-        print(1)
         try:
             future.result()
         except CancelledError:
             pass
-        print(2)
         if callback is not None:
             try:
                 callback(future, tag_name, *callback_args, **callback_kwargs)
@@ -245,7 +247,7 @@ def scale(image: 'Image', width: int, height: int):
     return int(_width * scale), int(_height * scale)
 
 
-def walk_file(path, topdown=False) -> tuple[int, list[tuple[list, list]]]:
+def walk_file(path, topdown=False, filter=None) -> tuple[int, list[tuple[list, list]]]:
     '''
     :description: 获取目录下的所有文件
     :param path: 需要遍历的文件夹
@@ -254,7 +256,13 @@ def walk_file(path, topdown=False) -> tuple[int, list[tuple[list, list]]]:
     '''
     result = []
     file_num = 0
-    for r, fl in wf(path, topdown):
-        file_num += len(fl)
-        result.append((r, fl))
+    if filter is None:
+        for r, fl in wf(path, topdown):
+            file_num += len(fl)
+            result.append((r, fl))
+    else:
+        for r, fl in wf(path, topdown):
+            fl = [i for i in fl if i.split('.')[-1] in filter]
+            file_num += len(fl)
+            result.append((r, fl))
     return file_num, result
