@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-13 11:42:33
+LastEditTime : 2021-11-14 14:49:02
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
 from os.path import join, split, splitext
@@ -25,7 +25,7 @@ def main(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
 
     if save:
         logger('完成，正在保存文件')
-        name, suffix = splitext(split(frame.loaded_image_path)[1])
+        name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
         suffix = frame.program.EXTENSION_KEYS[frame.selectFormat.Selection]
         name = f'{name}-anti-harmony.{suffix}'
         if suffix.lower() in ['jpg', 'jpeg']:

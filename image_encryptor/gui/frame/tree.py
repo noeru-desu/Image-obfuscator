@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-14 14:34:51
+LastEditTime : 2021-11-14 15:01:06
 Description  : 节点树控制
 '''
 from os.path import sep, isfile, isdir, split, join
@@ -100,7 +100,10 @@ class ImageItem(object):
             frame.check_encryption_parameters()
             normal_backtrack = False
         if normal_backtrack:
-            frame.mode.Select(self.settings['mode'])
+            if self.settings['mode'] == 1:
+                frame.mode.Select(0)
+            else:
+                frame.mode.Select(self.settings['mode'])
             frame.row.SetValue(self.settings['row'])
             frame.col.SetValue(self.settings['col'])
             frame.upset.SetValue(self.settings['upset'])

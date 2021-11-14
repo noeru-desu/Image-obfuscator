@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-13 11:42:30
+LastEditTime : 2021-11-14 14:48:10
 Description  : 单文件解密功能
 '''
 from os.path import join, split, splitext
@@ -18,10 +18,10 @@ if TYPE_CHECKING:
 
 
 def main(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
-    image_data, error = get_image_data(frame.loaded_image_path, password_dict=frame.program.password_dict)
+    image_data, error = get_image_data(frame.image_item.loaded_image_path, password_dict=frame.program.password_dict)
     if error is not None:
         frame.error(error, '读取加密参数时出现问题')
-        return frame.initial_preview
+        return frame.image_item.initial_preview
     image_encrypt = ImageEncrypt(image, image_data['row'], image_data['col'], image_data['password'])
     logger('正在处理')
 
@@ -55,7 +55,7 @@ def main(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
     if save:
         bar.next_step(1)
         logger('正在保存文件')
-        name, suffix = splitext(split(frame.loaded_image_path)[1])
+        name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
         suffix = frame.program.EXTENSION_KEYS[frame.selectFormat.Selection]
         if suffix.lower() in ['jpg', 'jpeg']:
             image = image.convert('RGB')
