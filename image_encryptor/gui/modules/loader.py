@@ -2,11 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-13 12:05:08
+LastEditTime : 2021-11-14 14:39:46
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
 from multiprocessing import cpu_count
+from sys import version
 
 from PIL.Image import init as PIL_init, EXTENSION
 
@@ -23,8 +24,9 @@ class Program(object):
     def __init__(self):
         # 注册logger
         self.logger = Logger('image-encryptor')
-        self.logger.warning(f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})')
-        self.logger.warning(f'Open source at {OPEN_SOURCE_URL}')
+        self.logger.info(f'Python {version}')
+        self.logger.info(f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})')
+        self.logger.info(f'Open source at {OPEN_SOURCE_URL}')
         # 全局变量模块
         self.data = Data()
         self.password_dict = PasswordDict()

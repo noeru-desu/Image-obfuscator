@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-10 20:29:22
+LastEditTime : 2021-11-14 14:34:51
 Description  : 节点树控制
 '''
 from os.path import sep, isfile, isdir, split, join
@@ -78,32 +78,28 @@ class TreeManager(object):
 
 
 class ImageItem(object):
-    def __init__(self, loaded_image: 'Image', loaded_image_path: str, settings: dict, data: tuple = (None, None, None, None, None, None)):
+    def __init__(self, loaded_image: 'Image', loaded_image_path: str, settings: dict):
         self.loaded_image = loaded_image
         self.loaded_image_path = loaded_image_path
         self.settings = settings
-        self.initial_preview, self.processed_preview, self.preview_size, self.preview_summary, self.encrypted_image, self.encryption_data = data
-
-    def update(self, initial_preview: 'Image', processed_preview: 'Image', preview_size: tuple, preview_summary: bytes, encrypted_image: bool, encryption_data: dict, settings: dict):
-        self.initial_preview = initial_preview
-        self.processed_preview = processed_preview
-        self.preview_size = preview_size
-        self.preview_summary = preview_summary
-        self.encrypted_image = encrypted_image
-        self.encryption_data = encryption_data
-        self.settings = settings
+        self.initial_preview = None
+        self.processed_preview = None
+        self.preview_size = None
+        self.preview_summary = None
+        self.encrypted_image = None
+        self.encryption_data = None
+        self.loading_image_data_error = None
 
     def backtrack_interface(self, frame: 'MainFrame'):
-        frame.loaded_image = self.loaded_image
-        frame.initial_preview = self.initial_preview
-        frame.processed_preview = self.processed_preview
-        frame.loaded_image_path = self.loaded_image_path
-        frame.encrypted_image = self.encrypted_image
-        frame.encryption_data = self.encryption_data
-        frame.preview_size = self.preview_size
-        frame.preview_summary = self.preview_summary
-
-        if self.settings['mode'] != 1:
+        normal_backtrack = True
+        if self.encrypted_image is None:
+            frame.check_encryption_parameters()
+            if self.loading_image_data_error is None:
+                normal_backtrack = False
+        elif self.encrypted_image and self.settings['mode'] == 1:
+            frame.check_encryption_parameters()
+            normal_backtrack = False
+        if normal_backtrack:
             frame.mode.Select(self.settings['mode'])
             frame.row.SetValue(self.settings['row'])
             frame.col.SetValue(self.settings['col'])
@@ -113,9 +109,7 @@ class ImageItem(object):
             frame.xorRgb.Select(self.settings['xor'])
             frame.processingSettingsPanel1.Enable(True)
             frame.xorRgb.Enable(True)
-        else:
-            frame.check_encryption_parameters()
 
-        frame.imageInfo.SetLabelText(f'大小：{self.loaded_image.size[0]}x{self.loaded_image.size[1]}')
+        frame.imageInfo.SetLabelText(f'图片分辨率：{self.loaded_image.size[0]}x{self.loaded_image.size[1]}')
         frame.selectSavePath.SetPath(self.settings['save_path'])
         frame.selectFormat.Select(self.settings['save_format'])

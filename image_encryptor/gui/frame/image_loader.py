@@ -2,8 +2,8 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-13 22:19:19
-Description  : 文件载入
+LastEditTime : 2021-11-14 13:50:47
+Description  : 文件载入功能
 '''
 from os.path import isfile, isdir, join
 from typing import TYPE_CHECKING, Iterable, Union
@@ -40,6 +40,8 @@ class ImageLoader(object):
             self.loading_thread.start_new(self._load_selected_path, self._loading_callback, (path_chosen[0],), callback_args=(path_chosen[1:],))
 
     def _loading_callback(self, error, result, path_chosen):
+        if error is not None:
+            self.frame.error(repr(error))
         if not path_chosen:
             self.hide_loading_progress_plane()
             return
@@ -56,12 +58,13 @@ class ImageLoader(object):
 
     def _load_file(self, path_chosen):
         self.init_loading_progress(1)
-        self.frame.loaded_image, error = open_image(path_chosen)
+        loaded_image, error = open_image(path_chosen)
         if self._check_image(error):
-            self.frame.tree_manager.add_file(path_chosen, data=ImageItem(self.frame.loaded_image, path_chosen, self.frame.default_settings))
-        self.frame.loaded_image_path = path_chosen
+            image_item = ImageItem(loaded_image, path_chosen, self.frame.default_settings)
+            self.frame.tree_manager.add_file(path_chosen, data=image_item)
+            self.frame.imageTreeCtrl.SelectItem(list(self.frame.tree_manager.file_dict.values())[-1])
         self.finish_loading_progress()
-        self.frame.imageTreeCtrl.SelectItem(list(self.frame.tree_manager.file_dict.values())[-1])
+        self.frame.stop_loading_func.init()
 
     def _load_dir(self, path_chosen):
         frame_id = self.frame.confirmation_frame('是否将文件夹内子文件夹中的文件也进行载入？', '选择', cancel='取消载入操作')
@@ -81,20 +84,20 @@ class ImageLoader(object):
         for r, fl in files:
             for n in fl:
                 absolute_path = join(path_chosen, r, n)
-                self.frame.loaded_image, error = open_image(absolute_path)
+                loaded_image, error = open_image(absolute_path)
                 if self._check_image(error, False, n):
-                    self.frame.tree_manager.add_file(path_chosen, r, n, ImageItem(self.frame.loaded_image, absolute_path, self.frame.default_settings), False)
-                    self.frame.loaded_image_path = absolute_path
+                    image_item = ImageItem(loaded_image, absolute_path, self.frame.default_settings)
+                    self.frame.tree_manager.add_file(path_chosen, r, n, image_item, False)
                     self.add_loading_progress()
                 if self.loading_thread.exit_signal:
-                    self.frame.stop_loading(None, False)
+                    self.frame.stop_loading(False)
                     return
-        self.frame.info(f'成功载入了{self.loading_progress}个文件')
         self.finish_loading_progress()
+        self.frame.stop_loading_func.init()
+        self.frame.info(f'成功载入了{self.loading_progress}个文件')
 
     def _check_image(self, error, prompt=True, file_name='图片'):
         if error is not None:
-            self.frame.loaded_image = None
             if prompt:
                 self.frame.error(error, f'加载{file_name}时出现错误')
             else:
@@ -128,7 +131,6 @@ class ImageLoader(object):
         self.progress_plane_displayed = True
         self.frame.loadingPanel.Hide()
         self.frame.loadingPrograssPanel.Show()
-        self.frame.settingsPanel.Layout()
 
     def hide_loading_progress_plane(self):
         if not self.progress_plane_displayed:
@@ -136,7 +138,6 @@ class ImageLoader(object):
         self.progress_plane_displayed = False
         self.frame.loadingPrograssPanel.Hide()
         self.frame.loadingPanel.Show()
-        self.frame.settingsPanel.Layout()
 
     def init_loading_progress(self, file_count, use_progress_bar=False):
         self.file_count = file_count
