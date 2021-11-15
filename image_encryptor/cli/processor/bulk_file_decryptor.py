@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:28
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-10 21:14:43
+LastEditTime : 2021-11-14 19:24:31
 Description  : 批量解密功能
 '''
 from os import makedirs
@@ -14,10 +14,9 @@ from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from image_encryptor.cli.modules.loader import load_program
 from image_encryptor.cli.modules.password_verifier import get_image_data
-from image_encryptor.cli.utils.utils import FakeBar
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
 from image_encryptor.common.modules.password_verifier import PasswordDict
-from image_encryptor.common.utils.utils import open_image, walk_file
+from image_encryptor.common.utils.utils import open_image, walk_file, FakeBar
 
 
 def decrypt_image(path, parameters, image_data, save_relative_path):
@@ -40,7 +39,7 @@ def decrypt_image(path, parameters, image_data, save_relative_path):
     name, suffix = splitext(split(path)[1])
     suffix = parameters['format'] if parameters['format'] is not None else suffix
     suffix = suffix.strip('.')
-    if suffix.lower() in ['jpg', 'jpeg']:
+    if suffix.lower() in ('jpg', 'jpeg'):
         image = image.convert('RGB')
     name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"
 

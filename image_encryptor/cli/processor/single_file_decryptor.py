@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 08:10:21
+LastEditTime : 2021-11-14 19:23:46
 Description  : 单文件解密功能
 '''
 from os.path import join, split, splitext
@@ -64,7 +64,7 @@ def main():
     name, suffix = splitext(split(program.parameters['input_path'])[1])
     suffix = program.parameters['format'] if program.parameters['format'] is not None else suffix
     suffix = suffix.strip('.')
-    if suffix.lower() in ['jpg', 'jpeg']:
+    if suffix.lower() in ('jpg', 'jpeg'):
         image = image.convert('RGB')
     name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"
 

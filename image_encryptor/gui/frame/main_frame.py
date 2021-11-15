@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-14 14:59:27
+LastEditTime : 2021-11-14 19:51:40
 Description  : 覆写窗口
 '''
 from hashlib import md5
@@ -53,7 +53,7 @@ class MainFrame(MF):
 
         # 准备工作
         self.supported_formats_str = ''
-        for i in Image.EXTENSION:
+        for i in self.program.EXTENSION_KEYS:
             self.supported_formats_str += f'*{i}; '
         self.run_path = run_path
         self.program.thread_pool.create_tag('load', True)
@@ -80,7 +80,7 @@ class MainFrame(MF):
         """
         运行入口函数
         """
-        app = App()
+        app = App(useBestVisual=True)
         self = cls(None, path)
 
         self.Show()
@@ -217,8 +217,8 @@ class MainFrame(MF):
         return False
 
     def save_image(self, event):
-        if self.image_item.loaded_image is None:
-            self.error('没有载入图片')
+        if self.image_item is None:
+            self.error('没有选择图片')
             return
         elif not isdir(self.selectSavePath.Path):
             self.error('没有选择保存文件夹或选择的文件夹不存在', '保存时出现错误')
@@ -226,7 +226,7 @@ class MainFrame(MF):
         self.image_generator.save_image()
 
     def processing_mode_change(self, event):
-        if self.image_item.loaded_image is None:
+        if self.image_item is None:
             return
         if self.mode.Selection != 1:
             self.processingSettingsPanel1.Enable(True)

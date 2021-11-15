@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-30 21:29:51
+LastEditTime : 2021-11-14 19:15:11
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
 from numpy.random import randint
@@ -36,7 +36,7 @@ def main():
     program.logger.info('完成，正在保存文件')
     name = f'{name}-anti-harmony.{suffix}'
     output_path = join(program.parameters['output_path'], name)
-    if suffix.lower() in ['jpg', 'jpeg']:
+    if suffix.lower() in ('jpg', 'jpeg'):
         image = image.convert('RGB')
 
     image.save(output_path, quality=95, subsampling=0)

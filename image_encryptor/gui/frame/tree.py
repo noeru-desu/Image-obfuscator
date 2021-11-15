@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-14 15:01:06
+LastEditTime : 2021-11-14 18:56:10
 Description  : 节点树控制
 '''
 from os.path import sep, isfile, isdir, split, join
@@ -78,6 +78,7 @@ class TreeManager(object):
 
 
 class ImageItem(object):
+    """每个载入的图片的存储实例"""
     def __init__(self, loaded_image: 'Image', loaded_image_path: str, settings: dict):
         self.loaded_image = loaded_image
         self.loaded_image_path = loaded_image_path

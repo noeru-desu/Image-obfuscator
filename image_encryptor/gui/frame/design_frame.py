@@ -166,12 +166,7 @@ class MainFrame ( wx.Frame ):
 
         bSizer26.Add( bSizer281, 1, wx.EXPAND, 5 )
 
-        self.settingsPanel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        bSizer10 = wx.BoxSizer( wx.VERTICAL )
-
-        bSizer34 = wx.BoxSizer( wx.HORIZONTAL )
-
-        self.processingOptions = wx.Panel( self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.processingOptions = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
         self.processingOptions.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
 
         bSizer12 = wx.BoxSizer( wx.HORIZONTAL )
@@ -357,30 +352,22 @@ class MainFrame ( wx.Frame ):
         self.processingOptions.SetSizer( bSizer12 )
         self.processingOptions.Layout()
         bSizer12.Fit( self.processingOptions )
-        bSizer34.Add( self.processingOptions, 1, wx.EXPAND |wx.ALL, 5 )
+        bSizer26.Add( self.processingOptions, 0, wx.EXPAND |wx.ALL, 5 )
 
-
-        bSizer10.Add( bSizer34, 1, wx.EXPAND, 5 )
-
-        self.saveOptions = wx.Panel( self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.saveOptions.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
+        self.saveingOptions = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.saveingOptions.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
 
         bSizer23 = wx.BoxSizer( wx.HORIZONTAL )
 
-        bSizer25 = wx.BoxSizer( wx.HORIZONTAL )
-
-
-        bSizer23.Add( bSizer25, 0, 0, 5 )
-
-        self.m_staticText81 = wx.StaticText( self.saveOptions, wx.ID_ANY, u"保存位置", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText81 = wx.StaticText( self.saveingOptions, wx.ID_ANY, u"保存位置", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText81.Wrap( -1 )
 
         bSizer23.Add( self.m_staticText81, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
 
-        self.selectSavePath = wx.DirPickerCtrl( self.saveOptions, wx.ID_ANY, wx.EmptyString, u"选择保存位置", wx.DefaultPosition, wx.DefaultSize, wx.DIRP_DEFAULT_STYLE )
+        self.selectSavePath = wx.DirPickerCtrl( self.saveingOptions, wx.ID_ANY, wx.EmptyString, u"选择保存位置", wx.DefaultPosition, wx.DefaultSize, wx.DIRP_DEFAULT_STYLE )
         bSizer23.Add( self.selectSavePath, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
 
-        self.m_staticText22 = wx.StaticText( self.saveOptions, wx.ID_ANY, u"保存格式", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_staticText22 = wx.StaticText( self.saveingOptions, wx.ID_ANY, u"保存格式", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText22.Wrap( -1 )
 
         self.m_staticText22.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOWTEXT ) )
@@ -388,35 +375,49 @@ class MainFrame ( wx.Frame ):
         bSizer23.Add( self.m_staticText22, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
 
         selectFormatChoices = [ u"blp", u"bmp", u"dib", u"bufr", u"cur", u"pcx", u"dcx", u"dds", u"ps", u"eps", u"fit", u"fits", u"fli", u"flc", u"ftc", u"ftu", u"gbr", u"gif", u"grib", u"h5", u"hdf", u"png", u"apng", u"jp2", u"j2k", u"jpc", u"jpf", u"jpx", u"j2c", u"icns", u"ico", u"im", u"iim", u"tif", u"tiff", u"jfif", u"jpe", u"jpg", u"jpeg", u"mpg", u"mpeg", u"mpo", u"msp", u"palm", u"pcd", u"pdf", u"pxr", u"pbm", u"pgm", u"ppm", u"pnm", u"psd", u"bw", u"rgb", u"rgba", u"sgi", u"ras", u"tga", u"icb", u"vda", u"vst", u"webp", u"wmf", u"emf", u"xbm", u"xpm" ]
-        self.selectFormat = wx.Choice( self.saveOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, selectFormatChoices, 0 )
+        self.selectFormat = wx.Choice( self.saveingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, selectFormatChoices, 0 )
         self.selectFormat.SetSelection( 21 )
         bSizer23.Add( self.selectFormat, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
 
-        self.m_button7 = wx.Button( self.saveOptions, wx.ID_ANY, u"保存文件", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_button7 = wx.Button( self.saveingOptions, wx.ID_ANY, u"保存选中的图片", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_button7.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_BTNTEXT ) )
 
         bSizer23.Add( self.m_button7, 0, wx.ALL, 5 )
 
-        self.saveProgressPrompt = wx.StaticText( self.saveOptions, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_button8 = wx.Button( self.saveingOptions, wx.ID_ANY, u"保存所有载入的图片", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_button8.Hide()
+
+        bSizer23.Add( self.m_button8, 0, wx.ALL, 5 )
+
+
+        self.saveingOptions.SetSizer( bSizer23 )
+        self.saveingOptions.Layout()
+        bSizer23.Fit( self.saveingOptions )
+        bSizer26.Add( self.saveingOptions, 0, wx.EXPAND |wx.ALL, 5 )
+
+        self.savingPrograssPanel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+        self.savingPrograssPanel.Enable( False )
+        self.savingPrograssPanel.Hide()
+
+        bSizer231 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_button9 = wx.Button( self.savingPrograssPanel, wx.ID_ANY, u"停止载入", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer231.Add( self.m_button9, 0, wx.ALL, 5 )
+
+        self.saveProgress = wx.Gauge( self.savingPrograssPanel, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
+        self.saveProgress.SetValue( 0 )
+        bSizer231.Add( self.saveProgress, 2, wx.ALIGN_CENTER|wx.ALL, 5 )
+
+        self.saveProgressPrompt = wx.StaticText( self.savingPrograssPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.saveProgressPrompt.Wrap( -1 )
 
-        bSizer23.Add( self.saveProgressPrompt, 1, wx.ALIGN_CENTER|wx.ALL, 5 )
-
-        self.saveProgress = wx.Gauge( self.saveOptions, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL|wx.GA_SMOOTH )
-        self.saveProgress.SetValue( 0 )
-        bSizer23.Add( self.saveProgress, 2, wx.ALIGN_CENTER|wx.ALL, 5 )
+        bSizer231.Add( self.saveProgressPrompt, 1, wx.ALIGN_CENTER|wx.ALIGN_LEFT|wx.ALL, 5 )
 
 
-        self.saveOptions.SetSizer( bSizer23 )
-        self.saveOptions.Layout()
-        bSizer23.Fit( self.saveOptions )
-        bSizer10.Add( self.saveOptions, 0, wx.EXPAND |wx.ALL, 5 )
-
-
-        self.settingsPanel.SetSizer( bSizer10 )
-        self.settingsPanel.Layout()
-        bSizer10.Fit( self.settingsPanel )
-        bSizer26.Add( self.settingsPanel, 0, wx.ALL|wx.EXPAND, 5 )
+        self.savingPrograssPanel.SetSizer( bSizer231 )
+        self.savingPrograssPanel.Layout()
+        bSizer231.Fit( self.savingPrograssPanel )
+        bSizer26.Add( self.savingPrograssPanel, 0, wx.EXPAND |wx.ALL, 5 )
 
 
         self.SetSizer( bSizer26 )

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-10 21:14:46
+LastEditTime : 2021-11-14 19:24:39
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -15,11 +15,10 @@ from PIL.Image import init as PIL_init
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
 from image_encryptor.cli.modules.loader import load_program
-from image_encryptor.cli.utils.utils import FakeBar
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
 from image_encryptor.common.modules.version_adapter import get_encryption_parameters
 from image_encryptor.common.utils.AES import encrypt
-from image_encryptor.common.utils.utils import calculate_formula_string, open_image, pause, walk_file
+from image_encryptor.common.utils.utils import calculate_formula_string, open_image, pause, walk_file, FakeBar
 
 
 def encrypt_image(path, parameters, save_relative_path):
@@ -64,7 +63,7 @@ def encrypt_image(path, parameters, save_relative_path):
     image = image_encrypt.image
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
     output_path = join(parameters['output_path'], save_relative_path, name)
-    if suffix.lower() in ['jpg', 'jpeg']:
+    if suffix.lower() in ('jpg', 'jpeg'):
         image = image.convert('RGB')
 
     image.save(output_path, quality=95, subsampling=0)

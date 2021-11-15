@@ -2,13 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-14 14:48:10
+LastEditTime : 2021-11-14 19:28:24
 Description  : 单文件解密功能
 '''
 from os.path import join, split, splitext
 from typing import TYPE_CHECKING
 
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
+from image_encryptor.common.utils.utils import FakeBar
 from image_encryptor.gui.modules.password_verifier import get_image_data
 from image_encryptor.gui.utils.utils import ProgressBar
 
@@ -57,7 +58,7 @@ def main(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
         logger('正在保存文件')
         name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
         suffix = frame.program.EXTENSION_KEYS[frame.selectFormat.Selection]
-        if suffix.lower() in ['jpg', 'jpeg']:
+        if suffix.lower() in ('jpg', 'jpeg'):
             image = image.convert('RGB')
         name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"
 
@@ -65,4 +66,29 @@ def main(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
         bar.finish()
     bar.over()
     logger('完成')
+    return image
+
+
+def batch(frame: 'MainFrame', image: 'Image'):
+    image_data, error = get_image_data(frame.image_item.loaded_image_path, password_dict=frame.program.password_dict)
+    if error is not None:
+        return '读取加密参数时出现问题'
+    image_encrypt = ImageEncrypt(image, image_data['row'], image_data['col'], image_data['password'])
+
+    if image_data['upset'] or image_data['flip'] or image_data['rgb_mapping']:
+        image_encrypt.init_block_data(True, image_data['upset'], image_data['flip'], image_data['rgb_mapping'], FakeBar)
+        image = image_encrypt.generate_image(FakeBar)
+
+    if image_data['xor_rgb']:
+        image = image_encrypt.xor_pixels(image_data['xor_alpha'])
+
+    image = image.crop((0, 0, int(image_data['width']), int(image_data['height'])))
+
+    name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
+    suffix = frame.program.EXTENSION_KEYS[frame.selectFormat.Selection]
+    if suffix.lower() in ('jpg', 'jpeg'):
+        image = image.convert('RGB')
+    name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"
+
+    image.save(join(frame.selectSavePath.Path, name), quality=frame.saveQuality.Value, subsampling=frame.subsamplingLevel.Value)
     return image

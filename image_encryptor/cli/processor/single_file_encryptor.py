@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 08:31:35
+LastEditTime : 2021-11-14 19:15:25
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -105,7 +105,7 @@ def main():
     program.logger.info('完成，正在保存文件')
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
     output_path = join(program.parameters['output_path'], name)
-    if suffix.lower() in ['jpg', 'jpeg']:
+    if suffix.lower() in ('jpg', 'jpeg'):
         image.convert('RGB')
 
     image.save(output_path, quality=95, subsampling=0)

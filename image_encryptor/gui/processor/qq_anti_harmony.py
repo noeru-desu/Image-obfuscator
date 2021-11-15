@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-14 14:49:02
+LastEditTime : 2021-11-14 19:33:39
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
 from os.path import join, split, splitext
@@ -28,9 +28,24 @@ def main(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
         name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
         suffix = frame.program.EXTENSION_KEYS[frame.selectFormat.Selection]
         name = f'{name}-anti-harmony.{suffix}'
-        if suffix.lower() in ['jpg', 'jpeg']:
+        if suffix.lower() in ('jpg', 'jpeg'):
             image = image.convert('RGB')
         image.save(join(frame.selectSavePath.Path, name), quality=frame.saveQuality.Value, subsampling=frame.subsamplingLevel.Value)
     gauge.SetValue(100)
     logger('完成')
+    return image
+
+
+def batch(frame: 'MainFrame', image: 'Image'):
+    image.putpixel((0, 0), (randint(256), randint(256), randint(256)))
+    image.putpixel((image.size[0] - 1, 0), (randint(256), randint(256), randint(256)))
+    image.putpixel((0, image.size[1] - 1), (randint(256), randint(256), randint(256)))
+    image.putpixel((image.size[0] - 1, image.size[1] - 1), (randint(256), randint(256), randint(256)))
+
+    name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
+    suffix = frame.program.EXTENSION_KEYS[frame.selectFormat.Selection]
+    name = f'{name}-anti-harmony.{suffix}'
+    if suffix.lower() in ('jpg', 'jpeg'):
+        image = image.convert('RGB')
+    image.save(join(frame.selectSavePath.Path, name), quality=frame.saveQuality.Value, subsampling=frame.subsamplingLevel.Value)
     return image
