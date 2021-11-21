@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-29 23:26:09
+LastEditTime : 2021-11-21 17:42:07
 Description  : GUI程序
 '''
 from sys import argv, exit
@@ -18,9 +18,4 @@ if __name__ == '__main__':
     program = load_program()
     if len(argv) > 1 and argv[1] == '+test':
         exit()
-    try:
-        MainFrame.run()
-    except KeyboardInterrupt:
-        if program.thread_pool is not None:
-            program.thread_pool.shutdown(wait=False, cancel_futures=True)
-        program.logger.error('已强制退出')
+    MainFrame.run()

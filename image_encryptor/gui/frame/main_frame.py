@@ -2,35 +2,36 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-14 19:51:40
+LastEditTime : 2021-11-21 18:37:36
 Description  : 覆写窗口
 '''
 from hashlib import md5
+from multiprocessing import cpu_count
 from os import getcwd
-from os.path import isdir
 from typing import TYPE_CHECKING
 
 from image_encryptor import BRANCH, SUB_VERSION_NUMBER, VERSION_NUMBER
 from image_encryptor.common.modules.password_verifier import PasswordDict
 from image_encryptor.gui.frame.design_frame import MainFrame as MF
-from image_encryptor.gui.frame.drag import DragImport
+from image_encryptor.gui.frame.drag_importer import DragLoader, DragSavingPath
 from image_encryptor.gui.frame.image_generator import ImageGenerator
 from image_encryptor.gui.frame.image_loader import ImageLoader
-from image_encryptor.gui.frame.tree import ImageItem, TreeManager
+from image_encryptor.gui.frame.image_saver import ImageSaver
+from image_encryptor.gui.frame.tree_manager import TreeManager
 from image_encryptor.gui.frame.utils import SegmentTrigger
 from image_encryptor.gui.modules.loader import load_program
 from image_encryptor.gui.modules.password_verifier import get_image_data
-from image_encryptor.gui.utils.utils import scale
+from image_encryptor.gui.utils.utils import ProcessTaskManager, scale
 from PIL import Image
 from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
-                FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, ICON_ERROR,
+                FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, HELP, ICON_ERROR,
                 ICON_INFORMATION, ICON_QUESTION, ICON_WARNING, ID_OK,
                 STAY_ON_TOP, YES_NO, App, Bitmap, DirDialog, FileDialog,
                 MessageDialog)
 from wx.core import EmptyString
 
 if TYPE_CHECKING:
-    from wx import TreeItemId, TreeEvent
+    from wx import TreeEvent, TreeItemId
 
 
 class MainFrame(MF):
@@ -44,11 +45,14 @@ class MainFrame(MF):
 
         # 实例化组件
         self.program = load_program()
-        self.drop = DragImport(self)
-        self.SetDropTarget(self.drop)
+        self.process_pool = ProcessTaskManager(1 if cpu_count() < 4 else cpu_count() - 2)
+        self.program.at_exit(lambda process_pool: process_pool.shutdown(wait=False, cancel_futures=True), self.process_pool)
+        self.imageTreeCtrl.SetDropTarget(DragLoader(self))
+        self.savingOptions.SetDropTarget(DragSavingPath(self))
         self.tree_manager = TreeManager(self, self.imageTreeCtrl, '已加载文件列表')
         self.image_loader = ImageLoader(self)
         self.image_generator = ImageGenerator(self)
+        self.image_saver = ImageSaver(self)
         self.stop_loading_func = SegmentTrigger((self.set_stop_loading_signal, self.stop_loading), self.init_loading_plane)
 
         # 准备工作
@@ -56,24 +60,24 @@ class MainFrame(MF):
         for i in self.program.EXTENSION_KEYS:
             self.supported_formats_str += f'*{i}; '
         self.run_path = run_path
-        self.program.thread_pool.create_tag('load', True)
-        self.program.thread_pool.create_tag('save', False)
 
         self.image_item = None
         self.default_settings = {
             'mode': 0,
             'row': 25,
             'col': 25,
-            'upset': True,
+            'shuffle': True,
             'flip': True,
             'rgb_mapping': False,
             'xor': 0,
-            'save_path': '',
-            'save_format': 21
+            'password': None,
+            'saving_path': '',
+            'saving_format': 21,
+            'quality': 98,
+            'subsampling': 0
         }
 
-        self.BACKTRACK = 5
-        self.SWITCH_PAGE = 6
+        self.program.logger.info('窗口初始化完成')
 
     @classmethod
     def run(cls, path=getcwd()):
@@ -93,17 +97,26 @@ class MainFrame(MF):
             'mode': self.mode.Selection,
             'row': self.row.Value,
             'col': self.col.Value,
-            'upset': self.upset.IsChecked(),
+            'shuffle': self.shuffle.IsChecked(),
             'flip': self.flip.IsChecked(),
             'rgb_mapping': self.rgbMapping.IsChecked(),
             'xor': self.xorRgb.Selection,
-            'save_path': self.selectSavePath.Path,
-            'save_format': self.selectFormat.Selection
+            'password': self.password.Value,
+            'saving_path': self.selectSavePath.Path,
+            'saving_format': self.selectFormat.Selection,
+            'quality': self.saveQuality.Value,
+            'subsampling': self.subsamplingLevel.Value
         }
 
     @property
+    def encryption_settings(self):
+        return (self.mode.Selection, self.row.Value, self.col.Value,
+                self.shuffle.IsChecked(), self.flip.IsChecked(), self.rgbMapping.IsChecked(),
+                self.xorRgb.Selection, self.password.Value)
+
+    @property
     def encryption_settings_summary(self):
-        return md5(str(list(self.settings.values())[:-2]).encode()).digest()
+        return md5(str(self.encryption_settings).encode()).digest()
 
     def show_initial_preview(self, not_regenerate=False):
         size = self.importedImagePlanel.Size
@@ -133,6 +146,7 @@ class MainFrame(MF):
             if self.image_item.loading_image_data_error is None:
                 self.image_item.encrypted_image = True
                 self.image_item.encryption_data = image_data
+                self.image_item.encryption_data['password'] = None
             else:
                 self.image_item.encrypted_image = False
         if self.image_item.encrypted_image:
@@ -141,7 +155,7 @@ class MainFrame(MF):
             self.xorRgb.Enable(False)
             self.row.SetValue(self.image_item.encryption_data['row'])
             self.col.SetValue(self.image_item.encryption_data['col'])
-            self.upset.SetValue(self.image_item.encryption_data['upset'])
+            self.shuffle.SetValue(self.image_item.encryption_data['upset'])
             self.rgbMapping.SetValue(self.image_item.encryption_data['rgb_mapping'])
             self.flip.SetValue(self.image_item.encryption_data['flip'])
             if self.image_item.encryption_data['xor_rgb'] and self.image_item.encryption_data['xor_alpha']:
@@ -150,6 +164,9 @@ class MainFrame(MF):
                 self.xorRgb.Select(1)
             else:
                 self.xorRgb.Select(0)
+            if self.image_item.encryption_data['password'] is None:
+                self.image_item.encryption_data['password'] = self.program.password_dict.get(self.image_item.encryption_data['password_base64'], None)
+            self.password.SetValue(EmptyString if self.image_item.encryption_data['password'] is None else str(self.image_item.encryption_data['password']))
 
     def init_loading_plane(self):
         self.loadingPrograss.SetValue(0)
@@ -216,14 +233,11 @@ class MainFrame(MF):
             self.program.logger.info(f'更新密码字典[{password_base64}: {self.password.Value}](当前字典长度：{len(self.program.password_dict)})')
         return False
 
-    def save_image(self, event):
-        if self.image_item is None:
-            self.error('没有选择图片')
-            return
-        elif not isdir(self.selectSavePath.Path):
-            self.error('没有选择保存文件夹或选择的文件夹不存在', '保存时出现错误')
-            return
-        self.image_generator.save_image()
+    def save_selected_image(self, event):
+        self.image_saver.save_selected_image()
+
+    def bulk_save(self, event):
+        self.image_saver.bulk_save()
 
     def processing_mode_change(self, event):
         if self.image_item is None:
@@ -234,6 +248,12 @@ class MainFrame(MF):
         else:
             self.check_encryption_parameters()
             if self.image_item.loading_image_data_error is not None:
+                if self.image_item.settings['mode'] != 1:
+                    self.mode.Select(self.image_item.settings['mode'])
+                elif self.default_settings['mode'] != 1:
+                    self.mode.Select(self.default_settings['mode'])
+                else:
+                    self.mode.Select(0)
                 self.warning(self.image_item.loading_image_data_error)
         self.refresh_preview(event)
 
@@ -242,15 +262,21 @@ class MainFrame(MF):
             self.previewedImage.Show(False)
         else:
             self.previewedImage.Show(True)
+            self.refresh_preview(event)
 
     def switch_image(self, event: 'TreeEvent'):
         image_item: 'TreeItemId' = event.GetOldItem()
         if image_item.IsOk():
-            image_data: 'ImageItem' = self.imageTreeCtrl.GetItemData(image_item)
+            image_data = self.imageTreeCtrl.GetItemData(image_item)
             if image_data is not None:
-                image_data.settings = self.settings
+                settings = self.settings
+                if settings['mode'] != image_data.settings['mode']:
+                    image_data.manual_switch_mode = True
+                image_data.settings = settings
+        else:
+            self.apply_settings_to_all(event)
 
-        image_data: 'ImageItem' = self.imageTreeCtrl.GetItemData(event.GetItem())
+        image_data = self.imageTreeCtrl.GetItemData(event.GetItem())
         if image_data is not None:
             self.image_item = image_data
             image_data.backtrack_interface(self)
@@ -268,13 +294,26 @@ class MainFrame(MF):
     def apply_settings_to_all(self, event):
         settings = self.settings
         for i in self.tree_manager.file_dict.values():
-            self.imageTreeCtrl.GetItemData(i).settings = settings
+            self.imageTreeCtrl.GetItemData(i).settings = settings.copy()
+
+    def sync_saving_settings(self, event):
+        if not self.autoSyncSavingSettings.IsChecked():
+            return
+        for i in self.tree_manager.file_dict.values():
+            s = self.imageTreeCtrl.GetItemData(i).settings
+            s['saving_path'] = self.selectSavePath.Path
+            s['saving_format'] = self.selectFormat.Selection
 
     def set_settings_as_default(self, event):
         self.default_settings = self.settings
 
     def stop_loading_event(self, event):
         self.stop_loading_func.call()
+
+    def stop_saving_event(self, event):
+        self.image_saver.cancel()
+        self.info('已取消尚未进行的任务')
+        self.stopSavingBtn.Disable()
 
     # -----
     # 提示窗
@@ -304,8 +343,14 @@ class MainFrame(MF):
         dialog.ShowModal()
         dialog.Destroy()
 
-    def confirmation_frame(self, message, title='确认', style=YES_NO | CANCEL, yes='是', no='否', cancel='取消'):
+    def confirmation_frame(self, message, title='确认', style=YES_NO | CANCEL, yes='是', no='否', cancel='取消', help=None):
+        if help is not None:
+            style = YES_NO | CANCEL | HELP
+        else:
+            style = YES_NO | CANCEL
         dialog = MessageDialog(self, message, title, style=style | STAY_ON_TOP)
+        if help is not None:
+            dialog.SetOKLabel(help)
         dialog.SetYesNoCancelLabels(yes, no, cancel)
         frame_id = dialog.ShowModal()
         dialog.Destroy()

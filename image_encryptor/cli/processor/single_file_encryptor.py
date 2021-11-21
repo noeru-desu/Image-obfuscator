@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-14 19:15:25
+LastEditTime : 2021-11-21 08:27:15
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -67,7 +67,7 @@ def main():
             pause()
             exit()
 
-    has_password = True if program.parameters['password'] != 100 else False
+    has_password = program.parameters['password'] != 100
     name, suffix = splitext(split(program.parameters['input_path'])[1])
     suffix = program.parameters['format'] if program.parameters['format'] is not None else 'png'
     suffix = suffix.strip('.')
@@ -87,10 +87,10 @@ def main():
     program.logger.info(f"分块数量：{program.parameters['col']}x{program.parameters['row']}; 分块大小：{image_encrypt.block_width}x{image_encrypt.block_height}")
     program.logger.info('开始处理')
 
-    if program.parameters['upset'] or program.parameters['flip'] or program.parameters['rgb_mapping']:
+    if program.parameters['shuffle'] or program.parameters['flip'] or program.parameters['rgb_mapping']:
         program.logger.info('正在分割原图')
         bar = ProgressBar(max_value=program.parameters['col'] * program.parameters['row'], widgets=widgets)
-        image_encrypt.init_block_data(False, program.parameters['upset'], program.parameters['flip'], program.parameters['rgb_mapping'], bar)
+        image_encrypt.init_block_data(False, program.parameters['shuffle'], program.parameters['flip'], program.parameters['rgb_mapping'], bar)
 
         program.logger.info(f"分割完成，补全后大小：{image_encrypt.block_width * program.parameters['col']}x{image_encrypt.block_height * program.parameters['row']}")
 

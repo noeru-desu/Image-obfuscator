@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-07 20:27:01
+LastEditTime : 2021-11-20 20:12:37
 Description  : 对低版本加密的图片的加密信息进行转换，向下兼容
 '''
 from json import JSONDecodeError, loads
@@ -88,7 +88,7 @@ def get_encryption_parameters(original_width, original_height, parameters, has_p
         'height': original_height,
         'col': parameters['col'],
         'row': parameters['row'],
-        'upset': parameters['upset'],
+        'upset': parameters['shuffle'],
         'flip': parameters['flip'],
         'rgb_mapping': parameters['rgb_mapping'],
         'xor_rgb': parameters['xor_rgb'],

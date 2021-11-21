@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 09:18:34
+LastEditTime : 2021-11-21 09:41:56
 Description  : 图片加密模块
 '''
 from math import ceil
@@ -63,14 +63,14 @@ class ImageEncrypt(object):
         self.init = False
         self.random = random
 
-    def init_block_data(self, decryption_mode: bool, upset: bool, flip: bool, rgb_mapping: bool, bar):
+    def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, rgb_mapping: bool, bar):
         '''
         :description: 生成打乱后的图片分块、翻转分块，与每个分块所在的坐标列表
         '''
         assert not self.init, 'ImageEncrypt instance has been initialized.'
         self.init = True
         self.decryption_mode = decryption_mode
-        self.upset = upset
+        self.shuffle = shuffle
         self.flip = flip
         self.rgb_mapping = rgb_mapping
         for y in range(self.row):
@@ -80,7 +80,7 @@ class ImageEncrypt(object):
                 self.block_list.append(self.image.crop((*block_pos, block_pos[0] + self.block_width, block_pos[1] + self.block_height)))
                 bar.update(bar.value + 1)
         self.random.seed(self.random_seed)
-        if upset:
+        if shuffle:
             if decryption_mode:
                 self.random.shuffle(self.block_pos_list)
             else:
@@ -127,7 +127,7 @@ class ImageEncrypt(object):
         bar.finish()
         return self.image
 
-    def xor_pixels(self, xor_alpha: bool, thread_pool=None, thread_count: int = None):
+    def xor_pixels(self, xor_alpha: bool):
         '''
         :description: 异或图片中每个像素点的RGB(A)通道
         :return: 异或后的图片

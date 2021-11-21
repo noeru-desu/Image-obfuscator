@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-13 22:10:37
+LastEditTime : 2021-11-21 18:40:02
 Description  : 一些小东西
 '''
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, CancelledError
@@ -13,49 +13,6 @@ from image_encryptor.common.utils.utils import walk_file as wf
 
 if TYPE_CHECKING:
     from PIL.Image import Image
-    from wx import Gauge
-
-
-class ProgressBar(object):
-    def __init__(self, target: 'Gauge', step_count: int):
-        self.target = target
-        self.step_count = step_count
-        self.step = -1
-        self.value = 0
-        self.finished_step = True
-        self.max_value = 0
-        self.step_progress = 0
-        self.next_step_progress = 0
-        self.target.SetValue(0)
-
-    def next_step(self, max_value: int):
-        if not self.finished_step:
-            self.finish()
-        self.finished_step = False
-        self.step += 1
-        self.max_value = max_value
-        self.max = self.max_value * self.step_count
-        self.value = 0
-        self.step_progress = 0 if self.next_step_progress == 0 else self.next_step_progress
-        self.next_step_progress = (self.step + 1) / self.step_count * 100 if self.step < self.step_count else 100
-
-    def update(self, value):
-        if value > self.max_value:
-            return
-        self.value = value
-        self.target.SetValue(int(self.step_progress + value / self.max * 100))
-
-    def add(self):
-        self.update(self.value + 1)
-
-    def finish(self):
-        self.target.SetValue(int(self.next_step_progress))
-        self.finished_step = True
-
-    def over(self):
-        if not self.finished_step:
-            self.finish()
-        self.target.SetValue(100)
 
 
 class ThreadTaskManager(ThreadPoolExecutor):
@@ -73,18 +30,13 @@ class ThreadTaskManager(ThreadPoolExecutor):
         }
 
     def add_task(self, tag_name, future, callback=None, *callback_args, **callback_kwargs):
-        if callback is not None:
-            future.add_done_callback(lambda future: self.callback(tag_name, future, callback, *callback_args, **callback_kwargs))
+        future.add_done_callback(lambda future: self.callback(tag_name, future, callback, *callback_args, **callback_kwargs))
         if self.task_dict[tag_name]['single']:
             self.task_dict[tag_name]['futures'] = future
         else:
             self.task_dict[tag_name]['futures'].append(future)
 
     def callback(self, tag_name, future, callback=None, *callback_args, **callback_kwargs):
-        try:
-            future.result()
-        except CancelledError:
-            pass
         if callback is not None:
             try:
                 callback(future, tag_name, *callback_args, **callback_kwargs)
@@ -92,7 +44,7 @@ class ThreadTaskManager(ThreadPoolExecutor):
                 print_exc()
         self.del_future(tag_name, future)
 
-    def cancel_task(self, tag_name=None, future=None):
+    def cancel_task(self, tag_name=None, future=None) -> bool:
         if future is not None:
             if future.running():
                 return False
@@ -122,6 +74,8 @@ class ThreadTaskManager(ThreadPoolExecutor):
         return True
 
     def check_tag(self, tag_name):
+        if not self.task_dict[tag_name]['futures']:
+            return None
         if self.task_dict[tag_name]['overwrite']:
             if self.cancel_task(tag_name):
                 return None
@@ -159,19 +113,23 @@ class ProcessTaskManager(ProcessPoolExecutor):
             self.task_dict[tag_name]['futures'] = future
         else:
             self.task_dict[tag_name]['futures'].append(future)
-        self.watchdog.add_task(tag_name, self.watchdog.submit(self.callback, tag_name, future, callback, *callback_args, **callback_kwargs))
+        self.watchdog.add_task(tag_name, self.watchdog.submit(self.wait, future), self.callback, future, callback, *callback_args, **callback_kwargs)
 
-    def callback(self, watchdog_future, tag_name, future, callback=None, *callback_args, **callback_kwargs):
+    def wait(self, future):
         try:
-            future.result()
+            error = future.exception()
         except CancelledError:
             pass
+        if error is not None:
+            print(error)
+
+    def callback(self, watchdog_future, tag_name, future, callback=None, *callback_args, **callback_kwargs):
         if callback is not None:
             try:
                 callback(future, tag_name, *callback_args, **callback_kwargs)
             except Exception:
                 print_exc()
-        self.watchdog.del_future(tag_name, watchdog_future)
+        self.del_future(tag_name, future)
 
     def cancel_task(self, tag_name=None, future=None):
         if future is not None:
@@ -213,6 +171,8 @@ class ProcessTaskManager(ProcessPoolExecutor):
         return True
 
     def check_tag(self, tag_name):
+        if not self.task_dict[tag_name]['futures']:
+            return None
         if self.task_dict[tag_name]['overwrite']:
             if self.cancel_task(tag_name):
                 return None

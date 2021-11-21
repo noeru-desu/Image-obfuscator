@@ -2,20 +2,18 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-14 14:39:46
+LastEditTime : 2021-11-21 17:54:11
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
-from multiprocessing import cpu_count
 from sys import version
+from traceback import print_exc
 
 from PIL.Image import init as PIL_init, EXTENSION
 
-from image_encryptor import BRANCH, VERSION_NUMBER, SUB_VERSION_NUMBER, OPEN_SOURCE_URL, VERSION_BATCH
-from image_encryptor.gui.modules.data import Data
+from image_encryptor import BRANCH, VERSION_NUMBER, SUB_VERSION_NUMBER, VERSION_BATCH
 from image_encryptor.common.utils.logger import Logger
 from image_encryptor.common.modules.password_verifier import PasswordDict
-from image_encryptor.gui.utils.utils import ProcessTaskManager, ThreadTaskManager
 
 program = None
 
@@ -26,26 +24,23 @@ class Program(object):
         self.logger = Logger('image-encryptor')
         self.logger.info(f'Python {version}')
         self.logger.info(f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})')
-        self.logger.info(f'Open source at {OPEN_SOURCE_URL}')
-        # 全局变量模块
-        self.data = Data()
         self.password_dict = PasswordDict()
-        self.thread_pool = ThreadTaskManager(cpu_count())
-        max_workers = 1
-        if cpu_count() > 3:
-            max_workers = cpu_count() - 2
-        if max_workers > 61:
-            max_workers = 61
-        self.process_pool = ProcessTaskManager(max_workers)
         self.EXTENSION = None
         self.EXTENSION_KEYS = None
+        self.at_exit_func = []
 
+    def at_exit(self, func, *args, **kwargs):
+        self.at_exit_func.append((func, args, kwargs))
 
-def at_exit():
-    if program.thread_pool is not None:
-        program.logger.info('程序退出，正在清理线程池')
-        program.thread_pool.shutdown(wait=False, cancel_futures=True)
-        program.logger.info('完成')
+    def exit(self):
+        self.logger.info('退出清理中')
+        for func, args, kwargs in self.at_exit_func:
+            try:
+                func(*args, *kwargs)
+            except Exception:
+                print_exc()
+                pass
+        self.logger.info('完成')
 
 
 def load_program():
@@ -56,5 +51,5 @@ def load_program():
         program = Program()
         program.EXTENSION = EXTENSION
         program.EXTENSION_KEYS = [i.strip('.') for i in EXTENSION.keys()]
-        register(at_exit)
+        register(program.exit)
     return program

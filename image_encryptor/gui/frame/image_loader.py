@@ -2,19 +2,22 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-14 13:50:47
+LastEditTime : 2021-11-21 17:55:04
 Description  : 文件载入功能
 '''
 from os.path import isfile, isdir, join
+from posixpath import split
 from typing import TYPE_CHECKING, Iterable, Union
 
 from PIL import Image
 from wx import ID_YES, ID_NO
 
 from image_encryptor.common.utils.utils import open_image
-from image_encryptor.gui.frame.tree import ImageItem
+from image_encryptor.gui.frame.tree_manager import ImageItem
+from image_encryptor.gui.frame.utils import ProgressBar
+from image_encryptor.gui.modules.password_verifier import get_image_data
 from image_encryptor.gui.utils.thread import ThreadManager
-from image_encryptor.gui.utils.utils import ProgressBar, walk_file
+from image_encryptor.gui.utils.utils import walk_file
 
 if TYPE_CHECKING:
     from image_encryptor.gui.frame.main_frame import MainFrame
@@ -28,12 +31,15 @@ class ImageLoader(object):
         self.file_count = 0
         self.loading_progress = 0
         self.bar = None
+        self.frame.program.logger.info('ImageLoader实例化完成')
 
     def load(self, path_chosen: Union[Iterable, str]):
         if self.loading_thread.is_running:
             self.frame.warning('请等待当前图片载入完成后再载入新的图片')
             return
         Image.MAX_IMAGE_PIXELS = self.frame.maxImagePixels.Value if self.frame.maxImagePixels.Value != 0 else None
+        if not self.frame.tree_manager.file_dict:
+            self.frame.set_settings_as_default(None)
         if isinstance(path_chosen, str):
             self.loading_thread.start_new(self._load_selected_path, self._loading_callback, (path_chosen,), callback_args=(None,))
         else:
@@ -60,7 +66,9 @@ class ImageLoader(object):
         self.init_loading_progress(1)
         loaded_image, error = open_image(path_chosen)
         if self._check_image(error):
-            image_item = ImageItem(loaded_image, path_chosen, self.frame.default_settings)
+            path, name = split(path_chosen)
+            image_item = ImageItem(loaded_image, (path, '', name), self.frame.default_settings.copy())
+            self.load_encryption_data(image_item)
             self.frame.tree_manager.add_file(path_chosen, data=image_item)
             self.frame.imageTreeCtrl.SelectItem(list(self.frame.tree_manager.file_dict.values())[-1])
         self.finish_loading_progress()
@@ -83,10 +91,10 @@ class ImageLoader(object):
         self.init_loading_progress(file_num, True)
         for r, fl in files:
             for n in fl:
-                absolute_path = join(path_chosen, r, n)
-                loaded_image, error = open_image(absolute_path)
+                loaded_image, error = open_image(join(path_chosen, r, n))
                 if self._check_image(error, False, n):
-                    image_item = ImageItem(loaded_image, absolute_path, self.frame.default_settings)
+                    image_item = ImageItem(loaded_image, (path_chosen, r, n), self.frame.default_settings)
+                    self.load_encryption_data(image_item)
                     self.frame.tree_manager.add_file(path_chosen, r, n, image_item, False)
                     self.add_loading_progress()
                 if self.loading_thread.exit_signal:
@@ -95,6 +103,7 @@ class ImageLoader(object):
         self.finish_loading_progress()
         self.frame.stop_loading_func.init()
         self.frame.info(f'成功载入了{self.loading_progress}个文件')
+        self.loading_progress = 0
 
     def _check_image(self, error, prompt=True, file_name='图片'):
         if error is not None:
@@ -125,6 +134,15 @@ class ImageLoader(object):
         else:
             return False
 
+    def load_encryption_data(self, image_item: 'ImageItem'):
+        image_data, image_item.loading_image_data_error = get_image_data(image_item.loaded_image_path, skip_password=True)
+        if image_data is not None:
+            image_item.encrypted_image = True
+            image_item.encryption_data = image_data
+            image_item.encryption_data['password'] = None
+        else:
+            image_item.encrypted_image = False
+
     def show_loading_progress_plane(self):
         if self.progress_plane_displayed:
             return
@@ -142,7 +160,7 @@ class ImageLoader(object):
     def init_loading_progress(self, file_count, use_progress_bar=False):
         self.file_count = file_count
         if use_progress_bar:
-            self.bar = ProgressBar(self.frame.loadingPrograss, 1)
+            self.bar = ProgressBar(self.frame.loadingPrograss)
             self.bar.next_step(file_count)
         else:
             self.bar = None

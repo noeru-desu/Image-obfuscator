@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-31 08:40:48
+LastEditTime : 2021-11-20 20:11:25
 Description  : 参数解析器
 '''
 from getopt import GetoptError, getopt
@@ -34,7 +34,7 @@ help_msg = '''
                         表示图片的宽高。默认为25。
 -c / --col / --column   参数:正整数或算式 分割列数。提供{width}与{height}，
                         表示图片的宽高。默认为25。
---upset                 参数:on/off 是否随机打乱分块后的图片。默认为on。
+--shuffle                 参数:on/off 是否随机打乱分块后的图片。默认为on。
 --flip                  参数:on/off 是否随机翻转分块后的图片。默认为on。
 --rm / --rgb-mapping    参数:on/off 是否启用RGB随机映射。默认为off。
 --xor                   参数:off/rgb/rgba 异或加密rgb/rgba通道。默认为off。
@@ -53,7 +53,7 @@ CPU_COUNT = cpu_count()
 shortopts = 'hledtf:r:c:'
 longopts = ['help', 'loop', 'encrypt', 'decrypt',
             'topdown', 'format=', 'pw=', 'password=',
-            'row=', 'col=', 'column=', 'upset=',
+            'row=', 'col=', 'column=', 'shuffle=',
             'flip=', 'rm=', 'rgb-mapping=', 'xor=',
             'pc=', 'process-count=', 'debug']
 
@@ -69,7 +69,7 @@ class ParameterParser(object):
             '-e': self.encrypt, '--encrypt': self.encrypt,
             '-d': self.decrypt, '--decrypt': self.decrypt,
             '-t': self.topdown, '--topdown': self.topdown,
-            '--upset': self.upset,
+            '--shuffle': self.shuffle,
             '--flip': self.flip,
             '--rm': self.rgb_mapping, '--rgb-mapping': self.rgb_mapping,
             '--xor': self.xor,
@@ -129,7 +129,7 @@ class ParameterParser(object):
             'input_path': None,
             'output_path': None,
             'format': None,
-            'upset': True,
+            'shuffle': True,
             'flip': True,
             'rgb_mapping': False,
             'xor_rgb': False,
@@ -158,13 +158,13 @@ class ParameterParser(object):
         self.logger.info('已启用多层遍历')
         self.parameters['topdown'] = True
 
-    def upset(self, arg):
+    def shuffle(self, arg):
         if arg == 'on':
-            self.parameters['upset'] = True
+            self.parameters['shuffle'] = True
         elif arg == 'off':
-            self.parameters['upset'] = False
+            self.parameters['shuffle'] = False
         else:
-            self.logger.warning(f'--upset <on/off> 参数有误：{arg}')
+            self.logger.warning(f'--shuffle <on/off> 参数有误：{arg}')
 
     def flip(self, arg):
         if arg == 'on':

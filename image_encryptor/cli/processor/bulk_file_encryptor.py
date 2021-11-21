@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-14 19:24:39
+LastEditTime : 2021-11-21 08:27:07
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -44,7 +44,7 @@ def encrypt_image(path, parameters, save_relative_path):
         elif parameters['col'] > image.size[0]:
             return split(path)[1], f"动态运算的切割列数参数不正确：切割列数大于图片宽度 (结果为{parameters['col']})"
 
-    has_password = True if parameters['password'] != 100 else False
+    has_password = parameters['password'] != 100
     name, suffix = splitext(split(path)[1])
     suffix = parameters['format'] if parameters['format'] is not None else 'png'
     suffix = suffix.strip('.')
@@ -52,8 +52,8 @@ def encrypt_image(path, parameters, save_relative_path):
     image_encrypt = ImageEncrypt(image, parameters['row'], parameters['col'], parameters['password'])
     original_size = image.size
 
-    if parameters['upset'] or parameters['flip'] or parameters['rgb_mapping']:
-        image_encrypt.init_block_data(False, parameters['upset'], parameters['flip'], parameters['rgb_mapping'], FakeBar)
+    if parameters['shuffle'] or parameters['flip'] or parameters['rgb_mapping']:
+        image_encrypt.init_block_data(False, parameters['shuffle'], parameters['flip'], parameters['rgb_mapping'], FakeBar)
 
         image_encrypt.generate_image(FakeBar)
 

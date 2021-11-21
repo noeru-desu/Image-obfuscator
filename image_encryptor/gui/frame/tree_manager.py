@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-14 18:56:10
+LastEditTime : 2021-11-21 19:06:03
 Description  : 节点树控制
 '''
 from os.path import sep, isfile, isdir, split, join
@@ -29,7 +29,7 @@ class TreeManager(object):
         self.root_dir_dict = {}
         self.dir_dict = {}
         self.file_dict = {}
-        self.frame.program.logger.info('TreeManager初始化完成')
+        self.frame.program.logger.info('TreeManager实例化完成')
 
     @staticmethod
     def _recursively_merge_list(list: list):
@@ -79,41 +79,41 @@ class TreeManager(object):
 
 class ImageItem(object):
     """每个载入的图片的存储实例"""
-    def __init__(self, loaded_image: 'Image', loaded_image_path: str, settings: dict):
+    def __init__(self, loaded_image: 'Image', path_data: tuple[str, str, str], settings: dict):
         self.loaded_image = loaded_image
-        self.loaded_image_path = loaded_image_path
+        self.path_data = path_data
+        self.loaded_image_path = join(*path_data)
         self.settings = settings
         self.initial_preview = None
         self.processed_preview = None
         self.preview_size = None
         self.preview_summary = None
+        self.manual_switch_mode = False
         self.encrypted_image = None
         self.encryption_data = None
         self.loading_image_data_error = None
 
     def backtrack_interface(self, frame: 'MainFrame'):
-        normal_backtrack = True
-        if self.encrypted_image is None:
+        if self.encrypted_image and (not self.manual_switch_mode or self.settings['mode'] == 1):
+            self.settings['mode'] = 1
             frame.check_encryption_parameters()
-            if self.loading_image_data_error is None:
-                normal_backtrack = False
-        elif self.encrypted_image and self.settings['mode'] == 1:
-            frame.check_encryption_parameters()
-            normal_backtrack = False
-        if normal_backtrack:
+        else:
             if self.settings['mode'] == 1:
                 frame.mode.Select(0)
             else:
                 frame.mode.Select(self.settings['mode'])
             frame.row.SetValue(self.settings['row'])
             frame.col.SetValue(self.settings['col'])
-            frame.upset.SetValue(self.settings['upset'])
+            frame.shuffle.SetValue(self.settings['shuffle'])
             frame.rgbMapping.SetValue(self.settings['rgb_mapping'])
             frame.flip.SetValue(self.settings['flip'])
             frame.xorRgb.Select(self.settings['xor'])
-            frame.processingSettingsPanel1.Enable(True)
-            frame.xorRgb.Enable(True)
+            frame.password.SetValue(self.settings['password'])
+            frame.processingSettingsPanel1.Enable()
+            frame.xorRgb.Enable()
 
         frame.imageInfo.SetLabelText(f'图片分辨率：{self.loaded_image.size[0]}x{self.loaded_image.size[1]}')
-        frame.selectSavePath.SetPath(self.settings['save_path'])
-        frame.selectFormat.Select(self.settings['save_format'])
+        frame.selectSavePath.SetPath(self.settings['saving_path'])
+        frame.selectFormat.Select(self.settings['saving_format'])
+        frame.saveQuality.SetValue(self.settings['quality'])
+        frame.subsamplingLevel.SetValue(self.settings['subsampling'])

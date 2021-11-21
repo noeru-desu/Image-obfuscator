@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:48:27
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-07 20:01:00
+LastEditTime : 2021-11-21 15:29:25
 Description  : 粗略包装的密码验证器
 '''
 from image_encryptor.common.modules.password_verifier import PasswordDict
@@ -45,5 +45,6 @@ def get_image_data(file, extra_info='', password_dict: PasswordDict = None, retu
                 else:
                     return None, '密码错误！'
 
-    image_data['password'] = password
+    if not skip_password:
+        image_data['password'] = password
     return image_data, None
