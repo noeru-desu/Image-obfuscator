@@ -52,10 +52,10 @@ jobs:
     - name: Build artifacts
       shell: cmd
       run: |
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s pyinstaller --exclude-module=setuptools,pyinstaller,altgraph -F image_encryptor_cli.py
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m pyinstaller --exclude-module=setuptools,pyinstaller,altgraph image_encryptor_cli.py
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s pyinstaller --exclude-module=setuptools,pyinstaller,altgraph -F image_encryptor_gui.py
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m pyinstaller --exclude-module=setuptools,pyinstaller,altgraph image_encryptor_gui.py
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s pyinstaller -F image_encryptor_cli.py
+        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m pyinstaller image_encryptor_cli.py
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s pyinstaller -F image_encryptor_gui.py
+        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m pyinstaller image_encryptor_gui.py
     - name: Basic tests
       shell: cmd
       run: |
@@ -74,14 +74,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: amd64-win64-cli-nuitka-msvc-14.2-packaged, os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: cli, build_type_b: s }
-          - { name: amd64-win64-cli-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: cli, build_type_b: m }
-          - { name: amd64-win64-gui-nuitka-msvc-14.2-packaged,  os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: gui, build_type_b: s }
-          - { name: amd64-win64-gui-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: gui, build_type_b: m }
-          - { name: i386-win32-cli-nuitka-msvc-14.2-packaged, os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: cli, build_type_b: s }
-          - { name: i386-win32-cli-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: cli, build_type_b: m }
-          - { name: i386-win32-gui-nuitka-msvc-14.2-packaged,  os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: gui, build_type_b: s }
-          - { name: i386-win32-gui-nuitka-msvc-14.2-unpackaged, os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: gui, build_type_b: m }
+          - { name: amd64-win64-cli-nuitka-msvc-14.2, os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: cli }
+          - { name: amd64-win64-gui-nuitka-msvc-14.2,  os: windows-latest, C: msvc-14.2-x64, A: x64, build_type_a: gui }
+          - { name: i386-win32-cli-nuitka-msvc-14.2, os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: cli }
+          - { name: i386-win32-gui-nuitka-msvc-14.2,  os: windows-latest, C: msvc-14.2-x86, A: x86, build_type_a: gui }
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -112,20 +108,23 @@ jobs:
       shell: cmd
       run: |
         mkdir nuitka
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_cli.py
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --output-dir=nuitka --remove-output image_encryptor_cli.py
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == s nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --include-module=wx._xml --output-dir=nuitka --remove-output image_encryptor_gui.py
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m nuitka --msvc=latest --lto=yes --standalone --assume-yes-for-downloads --plugin-enable=numpy,multiprocessing --include-module=wx._xml --output-dir=nuitka --remove-output image_encryptor_gui.py
+        mkdir unpackaged
+        mkdir packaged
+        if ${{ matrix.build_type_a }} == cli nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,data-files,pkg-resources,numpy,multiprocessing --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --output-dir=nuitka image_encryptor_cli.py
+        if ${{ matrix.build_type_a }} == gui nuitka --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,data-files,pkg-resources,numpy,multiprocessing --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --include-module=wx._xml --output-dir=nuitka image_encryptor_gui.py
     - name: Basic tests
       shell: cmd
       run: |
         cd nuitka
-        if ${{ matrix.build_type_a }} == cli if ${{ matrix.build_type_b }} == m (xcopy /y /s /h .\image_encryptor_cli.dist\* .\) & (rd /s /q .\image_encryptor_cli.dist)
-        if ${{ matrix.build_type_a }} == gui if ${{ matrix.build_type_b }} == m (xcopy /y /s /h .\image_encryptor_gui.dist\* .\) & (rd /s /q .\image_encryptor_gui.dist)
-        if ${{ matrix.build_type_a }} == cli image_encryptor_cli.exe
-        if ${{ matrix.build_type_a }} == gui image_encryptor_gui.exe +test
-    - name: Upload artifacts
+        if ${{ matrix.build_type_a }} == cli (xcopy /y /s /h .\image_encryptor_cli.dist\* ..\unpackaged) & (copy .\*.exe ..\packaged) & (rd /s /q .\image_encryptor_cli.dist) & ..\packaged\image_encryptor_cli.exe
+        if ${{ matrix.build_type_a }} == gui (xcopy /y /s /h .\image_encryptor_gui.dist\* ..\unpackaged) & (copy .\*.exe ..\packaged) & (rd /s /q .\image_encryptor_gui.dist) & ..\packaged\image_encryptor_gui.exe +test
+    - name: Upload unpackaged artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.name }}
-        path: nuitka
+        name: ${{ matrix.name }}-unpackaged
+        path: unpackaged
+    - name: Upload packaged artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.name }}-packaged
+        path: packaged
