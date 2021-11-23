@@ -2,9 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-21 17:42:07
+LastEditTime : 2021-11-23 21:20:28
 Description  : GUI程序
 '''
+from multiprocessing import freeze_support
 from sys import argv, exit
 from warnings import filterwarnings
 
@@ -15,6 +16,7 @@ filterwarnings('error')
 
 
 if __name__ == '__main__':
+    freeze_support()
     program = load_program()
     if len(argv) > 1 and argv[1] == '+test':
         exit()
