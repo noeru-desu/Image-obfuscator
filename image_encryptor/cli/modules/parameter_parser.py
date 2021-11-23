@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-20 20:11:25
+LastEditTime : 2021-11-23 21:01:56
 Description  : 参数解析器
 '''
 from getopt import GetoptError, getopt
@@ -11,9 +11,7 @@ from os import makedirs, system
 from os.path import isdir, isfile, normpath, split
 from sys import exit
 
-from PIL.Image import EXTENSION
-from PIL.Image import init as PIL_init
-
+from image_encryptor import EXTENSION
 from image_encryptor.common.utils.utils import calculate_formula_string
 
 help_msg = '''
@@ -258,10 +256,6 @@ def parse_parameters(logger, argv):
     if not argv or argv[0] in ('-h', '--help'):
         logger.info(help_msg)
         exit()
-
-    # 检测PIL是否初始化
-    if not EXTENSION:
-        PIL_init()
 
     parser = ParameterParser(logger, argv)
 

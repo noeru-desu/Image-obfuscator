@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-21 08:27:07
+LastEditTime : 2021-11-23 21:02:40
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -10,10 +10,9 @@ from os import makedirs
 from os.path import exists, join, split, splitext
 
 from Crypto.Cipher import AES
-from PIL.Image import EXTENSION
-from PIL.Image import init as PIL_init
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
+from image_encryptor import EXTENSION
 from image_encryptor.cli.modules.loader import load_program
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
 from image_encryptor.common.modules.version_adapter import get_encryption_parameters
@@ -87,8 +86,6 @@ def main():
 
     future_list = []
 
-    if not EXTENSION:
-        PIL_init()
     for relative_path, files in walk_file(program.parameters['input_path'], program.parameters['topdown']):
         save_dir = join(program.parameters['output_path'], relative_path)
         for file in files:

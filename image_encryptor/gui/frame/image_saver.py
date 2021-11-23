@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-21 19:07:26
+LastEditTime : 2021-11-23 21:11:17
 Description  : 文件保存功能
 '''
 from os import listdir
@@ -15,6 +15,7 @@ from wx import ID_OK, ID_YES, ID_NO, DirDialog, DIRP_CHANGE_DIR, DIRP_DIR_MUST_E
 import image_encryptor.gui.processor.qq_anti_harmony as qq_anti_harmony
 import image_encryptor.gui.processor.decryptor as decryptor
 import image_encryptor.gui.processor.encryptor as encryptor
+from image_encryptor import EXTENSION_KEYS
 from image_encryptor.gui.frame.utils import ProgressBar
 from image_encryptor.gui.utils.thread import ThreadManager
 
@@ -112,7 +113,7 @@ class ImageSaver(object):
                 uf = True
 
             image_data = ('RGBA', image_item.loaded_image.size, image_item.loaded_image.tobytes())  # 打包所需的可封存的对象
-            saving_format = self.frame.program.EXTENSION_KEYS[image_item.settings['saving_format']]
+            saving_format = EXTENSION_KEYS[image_item.settings['saving_format']]
 
             if image_item.settings['mode'] == 0:
                 self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(encryptor.batch, image_data, image_item.path_data, image_item.settings, saving_format, uf), self._bulk_save_callback)

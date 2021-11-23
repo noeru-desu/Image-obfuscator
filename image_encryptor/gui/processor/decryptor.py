@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-21 17:01:58
+LastEditTime : 2021-11-23 21:11:46
 Description  : 单文件解密功能
 '''
 from os import makedirs
@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 from PIL import Image
 
+from image_encryptor import EXTENSION_KEYS
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
 from image_encryptor.common.utils.utils import FakeBar
 from image_encryptor.gui.frame.utils import ProgressBar
@@ -59,7 +60,7 @@ def normal(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
         bar.next_step(1)
         logger('正在保存文件')
         name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
-        suffix = frame.program.EXTENSION_KEYS[frame.selectFormat.Selection]
+        suffix = EXTENSION_KEYS[frame.selectFormat.Selection]
         if suffix.lower() in ('jpg', 'jpeg'):
             image = image.convert('RGB')
         name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"

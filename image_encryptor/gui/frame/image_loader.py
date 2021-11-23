@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-21 17:55:04
+LastEditTime : 2021-11-23 21:03:18
 Description  : 文件载入功能
 '''
 from os.path import isfile, isdir, join
@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Iterable, Union
 from PIL import Image
 from wx import ID_YES, ID_NO
 
+from image_encryptor import EXTENSION_KEYS
 from image_encryptor.common.utils.utils import open_image
 from image_encryptor.gui.frame.tree_manager import ImageItem
 from image_encryptor.gui.frame.utils import ProgressBar
@@ -83,7 +84,7 @@ class ImageLoader(object):
         else:
             self.hide_loading_progress_plane()
             return
-        file_num, files = walk_file(path_chosen, topdown, self.frame.program.EXTENSION_KEYS)
+        file_num, files = walk_file(path_chosen, topdown, EXTENSION_KEYS)
         if file_num == 0:
             self.frame.info('没有载入任何文件')
             self.finish_loading_progress()

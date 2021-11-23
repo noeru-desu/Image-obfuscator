@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-21 18:37:36
+LastEditTime : 2021-11-23 21:10:35
 Description  : 覆写窗口
 '''
 from hashlib import md5
@@ -56,9 +56,6 @@ class MainFrame(MF):
         self.stop_loading_func = SegmentTrigger((self.set_stop_loading_signal, self.stop_loading), self.init_loading_plane)
 
         # 准备工作
-        self.supported_formats_str = ''
-        for i in self.program.EXTENSION_KEYS:
-            self.supported_formats_str += f'*{i}; '
         self.run_path = run_path
 
         self.image_item = None
@@ -211,13 +208,13 @@ class MainFrame(MF):
                 self.show_processing_preview(False, self.image_item.processed_preview)
 
     def load_file(self, event):
-        dialog = FileDialog(self, "选择图像", self.run_path, EmptyString, self.supported_formats_str, FD_OPEN | FD_CHANGE_DIR | FD_PREVIEW | FD_FILE_MUST_EXIST)
+        dialog = FileDialog(self, "选择图像", style=FD_OPEN | FD_CHANGE_DIR | FD_PREVIEW | FD_FILE_MUST_EXIST)
         if ID_OK == dialog.ShowModal():
             path = dialog.GetPath()
             self.image_loader.load(path)
 
     def load_dir(self, event):
-        dialog = DirDialog(self, "选择文件夹", self.run_path, DIRP_CHANGE_DIR | DIRP_DIR_MUST_EXIST)
+        dialog = DirDialog(self, "选择文件夹", style=DIRP_CHANGE_DIR | DIRP_DIR_MUST_EXIST)
         if ID_OK == dialog.ShowModal():
             path = dialog.GetPath()
             self.image_loader.load(path)

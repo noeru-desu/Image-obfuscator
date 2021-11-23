@@ -2,16 +2,15 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:28
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-21 09:45:44
+LastEditTime : 2021-11-23 21:02:16
 Description  : 批量解密功能
 '''
 from os import makedirs
 from os.path import exists, join, split, splitext
 
-from PIL.Image import EXTENSION
-from PIL.Image import init as PIL_init
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
+from image_encryptor import EXTENSION
 from image_encryptor.cli.modules.loader import load_program
 from image_encryptor.cli.modules.password_verifier import get_image_data
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
@@ -51,8 +50,6 @@ def main():
 
     future_list = []
 
-    if not EXTENSION:
-        PIL_init()
     password_set = PasswordDict(program.parameters['password'] if program.parameters['password'] != 100 else None)
     for relative_path, files in walk_file(program.parameters['input_path'], program.parameters['topdown']):
         save_dir = join(program.parameters['output_path'], relative_path)
