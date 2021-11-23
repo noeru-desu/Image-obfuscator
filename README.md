@@ -4,7 +4,7 @@
 
 Python版本：`3.8/3.9/3.10`
 
-_不一定所有依赖库都支持Python 3.10_
+_wxPython尚不支持Python 3.10_
 
 `requirements.txt`包含所有依赖库名称
 
@@ -16,9 +16,7 @@ GUI版本为`Image_encryptor_gui.py`
 
 Actions页面的CI中可下载自动构建的可执行文件包
 
->所有可下载的可执行文件包均可启动
-
->但目前仅测试了能否正常启动，没有测试各项功能是否存在Bug
+>目前CI仅测试程序能否正常启动，没有测试各项功能是否可使用或是否存在Bug
 
 packaged代表被打包为单文件版本
 
