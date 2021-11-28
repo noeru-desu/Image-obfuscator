@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-23 21:03:18
+LastEditTime : 2021-11-27 20:00:31
 Description  : 文件载入功能
 '''
 from os.path import isfile, isdir, join
@@ -32,7 +32,7 @@ class ImageLoader(object):
         self.file_count = 0
         self.loading_progress = 0
         self.bar = None
-        self.frame.program.logger.info('ImageLoader实例化完成')
+        self.frame.logger.info('ImageLoader实例化完成')
 
     def load(self, path_chosen: Union[Iterable, str]):
         if self.loading_thread.is_running:
@@ -68,7 +68,7 @@ class ImageLoader(object):
         loaded_image, error = open_image(path_chosen)
         if self._check_image(error):
             path, name = split(path_chosen)
-            image_item = ImageItem(loaded_image, (path, '', name), self.frame.default_settings.copy())
+            image_item = ImageItem(self.frame, loaded_image, (path, '', name), self.frame.default_settings.copy())
             self.load_encryption_data(image_item)
             self.frame.tree_manager.add_file(path_chosen, data=image_item)
             self.frame.imageTreeCtrl.SelectItem(list(self.frame.tree_manager.file_dict.values())[-1])
@@ -94,7 +94,7 @@ class ImageLoader(object):
             for n in fl:
                 loaded_image, error = open_image(join(path_chosen, r, n))
                 if self._check_image(error, False, n):
-                    image_item = ImageItem(loaded_image, (path_chosen, r, n), self.frame.default_settings)
+                    image_item = ImageItem(self.frame, loaded_image, (path_chosen, r, n), self.frame.default_settings)
                     self.load_encryption_data(image_item)
                     self.frame.tree_manager.add_file(path_chosen, r, n, image_item, False)
                     self.add_loading_progress()
@@ -111,7 +111,7 @@ class ImageLoader(object):
             if prompt:
                 self.frame.error(error, f'加载{file_name}时出现错误')
             else:
-                self.frame.program.logger.warning(f'加载{file_name}时出现错误：{error}')
+                self.frame.logger.warning(f'加载{file_name}时出现错误：{error}')
             return False
         else:
             return True

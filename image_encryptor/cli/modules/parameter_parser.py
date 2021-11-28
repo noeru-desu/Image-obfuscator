@@ -2,9 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-23 21:01:56
+LastEditTime : 2021-11-28 15:28:37
 Description  : 参数解析器
 '''
+from typing import TYPE_CHECKING
 from getopt import GetoptError, getopt
 from multiprocessing import cpu_count
 from os import makedirs, system
@@ -14,34 +15,36 @@ from sys import exit
 from image_encryptor import EXTENSION
 from image_encryptor.common.utils.utils import calculate_formula_string
 
+if TYPE_CHECKING:
+    from image_encryptor.common.utils.logger import Logger
+
 help_msg = '''
-<path> <save-path> [--nm] [-pw password] [-r row] [-c column] [-f file_format]
+<path> <save-path> [可选参数]
 
 <path> 图片/文件夹 路径
 <save-path> 保存路径
 可选参数：
 -e / --encrypt          加密模式。
 -d / --decrypt          解密模式。
--l / --loop             启用自动循环，启用后，
-                        程序每次执行完任务后不直接退出，
+-l / --loop             启用自动循环，启用后，程序每次执行完任务后不直接退出，
                         等待输入下一个操作的参数。为空时退出。
--t / --topdown          批量加解密时不仅遍历表层文件夹，同时遍历
-                        所有文件夹内的文件夹。
+-t / --topdown          批量加解密时不仅遍历表层文件夹，同时遍历所有文件夹内的文件夹。
 ------------------------------------------------------------
--r / --row              参数:正整数或算式 分割行数。提供{width}与{height}，
-                        表示图片的宽高。默认为25。
--c / --col / --column   参数:正整数或算式 分割列数。提供{width}与{height}，
-                        表示图片的宽高。默认为25。
---shuffle                 参数:on/off 是否随机打乱分块后的图片。默认为on。
---flip                  参数:on/off 是否随机翻转分块后的图片。默认为on。
---rm / --rgb-mapping    参数:on/off 是否启用RGB随机映射。默认为off。
---xor                   参数:off/rgb/rgba 异或加密rgb/rgba通道。默认为off。
---pw / --password       参数:需要设置的密码 设置密码。 默认为不设置密码。
+-r / --row              参数:正整数或算式   分割行数。提供{width}与{height}，
+                        表示图片的宽高。    默认为25。
+-c / --col / --column   参数:正整数或算式   分割列数。提供{width}与{height}，
+                        表示图片的宽高。    默认为25。
+--shuffle               参数:on/off        是否随机打乱分块后的图片。默认为on。
+--flip                  参数:on/off        是否随机翻转分块后的图片。默认为on。
+--rm / --rgb-mapping    参数:on/off        是否启用RGB随机映射。默认为off。
+--xor                   参数:off/<rgba>    异或加密任意通道(可多个，如rb/ga/rgba)。默认为off。
+--nx / --noise-xor      参数:on/off        是否生成噪音图进行异或加密。默认为off。
+--nf / --noise-factor   参数:1~255整数     是否生成噪音图进行异或加密。默认为100。
+--pw / --password       参数:需要设置的密码 设置密码。默认为不设置密码。
 ------------------------------------------------------------
--f / --format           参数:图像格式后缀 指定保存的文件格式。默认为png。
---pc / --process-count  参数:正整数或算式 指定用于异或加解密/批量加解密的
-                        进程池大小。提供{cpu_count}，表示cpu数量(每个cpu的核数之和)。
-                        默认为{cpu_count}-2。
+-f / --format           参数:图像格式后缀   指定保存的文件格式。默认为png。
+--pc / --process-count  参数:正整数或算式   指定用于异或加解密/批量加解密的进程池大小。
+                        提供{cpu_count}，表示cpu数量(每个cpu的核数之和)。默认为{cpu_count}-2。
 
 所有可使用变量均为此格式："{var}"，所有提供变量的参数均可使用Python运算符
 '''
@@ -53,11 +56,12 @@ longopts = ['help', 'loop', 'encrypt', 'decrypt',
             'topdown', 'format=', 'pw=', 'password=',
             'row=', 'col=', 'column=', 'shuffle=',
             'flip=', 'rm=', 'rgb-mapping=', 'xor=',
+            'nx=', 'noise-xor=', 'nf=', 'noise-factor=',
             'pc=', 'process-count=', 'debug']
 
 
 class ParameterParser(object):
-    def __init__(self, logger, argv):
+    def __init__(self, logger: 'Logger', argv):
         self.argv = argv
         self.logger = logger
         self.initialize()
@@ -70,7 +74,8 @@ class ParameterParser(object):
             '--shuffle': self.shuffle,
             '--flip': self.flip,
             '--rm': self.rgb_mapping, '--rgb-mapping': self.rgb_mapping,
-            '--xor': self.xor,
+            '--xor': self.xor, '--nx': self.noise_xor, '--noise-xor': self.noise_xor,
+            '--nf': self.noise_factor, '--noise-factor': self.noise_factor,
             '-r': self.row, '--row': self.row,
             '-c': self.col, '--col': self.col, '--column': self.col,
             '--pw': self.password, '--password': self.password,
@@ -130,8 +135,9 @@ class ParameterParser(object):
             'shuffle': True,
             'flip': True,
             'rgb_mapping': False,
-            'xor_rgb': False,
-            'xor_alpha': False,
+            'xor_channels': '',
+            'noise_xor': False,
+            'noise_factor': 100,
             'password': 100,
             'row': 25,
             'col': 25,
@@ -182,17 +188,31 @@ class ParameterParser(object):
 
     def xor(self, arg):
         if arg == 'off':
-            self.parameters['xor_rgb'] = False
-            self.parameters['xor_alpha'] = False
-        if arg == 'rgb':
-            self.logger.info('已启用异或加密(不包括透明通道)')
-            self.parameters['xor_rgb'] = True
-        elif arg == 'rgba':
-            self.logger.info('已启用异或加密(包括透明通道)')
-            self.parameters['xor_rgb'] = True
-            self.parameters['xor_alpha'] = True
+            self.parameters['xor_channels'] = ''
+            return
+        for i in arg:
+            if i not in 'rgba':
+                self.logger.info(f'--xor off/<rgba> 参数有误：{arg}')
+                return
+        self.parameters['xor_channels'] = arg
+
+    def noise_xor(self, arg):
+        if arg == 'on':
+            self.parameters['noise_xor'] = True
+        elif arg == 'off':
+            self.parameters['noise_xor'] = False
         else:
-            self.logger.info(f'--xor <off/rgb/rgba>参数设置有误：{arg}')
+            self.logger.warning(f'--nx / --noise_xor <on/off> 参数有误：{arg}')
+
+    def noise_factor(self, arg):
+        try:
+            noise_factor = int(arg)
+        except ValueError:
+            self.logger.warning(f'--nf / --noise_factor <int> 参数有误：{arg}')
+        if 0 < noise_factor < 256:
+            self.parameters['noise_factor'] = noise_factor
+        else:
+            self.logger.warning(f'--nf / --noise_factor <1~255> 参数有误：{arg}')
 
     def row(self, arg):
         try:
@@ -251,7 +271,7 @@ class ParameterParser(object):
         self.parameters['debug'] = True
 
 
-def parse_parameters(logger, argv):
+def parse_parameters(logger: 'Logger', argv):
     # 检测是否直接输出帮助信息
     if not argv or argv[0] in ('-h', '--help'):
         logger.info(help_msg)

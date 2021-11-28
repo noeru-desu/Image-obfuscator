@@ -2,16 +2,19 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-23 21:10:35
+LastEditTime : 2021-11-28 15:42:43
 Description  : 覆写窗口
 '''
+from concurrent.futures import ThreadPoolExecutor
 from hashlib import md5
 from multiprocessing import cpu_count
 from os import getcwd
+from sys import version
 from typing import TYPE_CHECKING
 
-from image_encryptor import BRANCH, SUB_VERSION_NUMBER, VERSION_NUMBER
+from image_encryptor import BRANCH, SUB_VERSION_NUMBER, VERSION_BATCH, VERSION_NUMBER
 from image_encryptor.common.modules.password_verifier import PasswordDict
+from image_encryptor.common.utils.logger import Logger
 from image_encryptor.gui.frame.design_frame import MainFrame as MF
 from image_encryptor.gui.frame.drag_importer import DragLoader, DragSavingPath
 from image_encryptor.gui.frame.image_generator import ImageGenerator
@@ -19,8 +22,8 @@ from image_encryptor.gui.frame.image_loader import ImageLoader
 from image_encryptor.gui.frame.image_saver import ImageSaver
 from image_encryptor.gui.frame.tree_manager import TreeManager
 from image_encryptor.gui.frame.utils import SegmentTrigger
-from image_encryptor.gui.modules.loader import load_program
 from image_encryptor.gui.modules.password_verifier import get_image_data
+from image_encryptor.gui.utils.exit_processor import ExitProcessor
 from image_encryptor.gui.utils.utils import ProcessTaskManager, scale
 from PIL import Image
 from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
@@ -44,9 +47,15 @@ class MainFrame(MF):
         self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
 
         # 实例化组件
-        self.program = load_program()
+        self.logger = Logger('image-encryptor')
+        self.logger.info(f'Python {version}')
+        self.logger.info(f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})')
+        self.password_dict = PasswordDict()
+        self.exit_processor = ExitProcessor()
         self.process_pool = ProcessTaskManager(1 if cpu_count() < 4 else cpu_count() - 2)
-        self.program.at_exit(lambda process_pool: process_pool.shutdown(wait=False, cancel_futures=True), self.process_pool)
+        self.exit_processor.register(lambda process_pool: process_pool.shutdown(wait=False, cancel_futures=True), self.process_pool)
+        self.thread_pool = ThreadPoolExecutor(cpu_count())
+        self.exit_processor.register(lambda thread_pool: thread_pool.shutdown(wait=False, cancel_futures=True), self.thread_pool)
         self.imageTreeCtrl.SetDropTarget(DragLoader(self))
         self.savingOptions.SetDropTarget(DragSavingPath(self))
         self.tree_manager = TreeManager(self, self.imageTreeCtrl, '已加载文件列表')
@@ -56,6 +65,7 @@ class MainFrame(MF):
         self.stop_loading_func = SegmentTrigger((self.set_stop_loading_signal, self.stop_loading), self.init_loading_plane)
 
         # 准备工作
+        self.xorPanel.Disable()
         self.run_path = run_path
 
         self.image_item = None
@@ -66,7 +76,8 @@ class MainFrame(MF):
             'shuffle': True,
             'flip': True,
             'rgb_mapping': False,
-            'xor': 0,
+            'xor_channels': 'rgb',
+            'noise_xor': False,
             'password': None,
             'saving_path': '',
             'saving_format': 21,
@@ -74,7 +85,24 @@ class MainFrame(MF):
             'subsampling': 0
         }
 
-        self.program.logger.info('窗口初始化完成')
+        self.get_settings = {
+            'mode': lambda: self.mode.Selection,
+            'row': lambda: self.row.Value,
+            'col': lambda: self.col.Value,
+            'shuffle': lambda: self.shuffle.Value,
+            'flip': lambda: self.flip.Value,
+            'rgb_mapping': lambda: self.rgbMapping.Value,
+            'xor_channels': lambda: self.xor_channels,
+            'noise_xor': lambda: self.noiseXor.Value,
+            'noise_factor': lambda: self.noiseFactor.Value,
+            'password': lambda: self.password.Value,
+            'saving_path': lambda: self.selectSavePath.Path,
+            'saving_format': lambda: self.selectFormat.Selection,
+            'quality': lambda: self.saveQuality.Value,
+            'subsampling': lambda: self.subsamplingLevel.Value
+        }
+
+        self.logger.info('窗口初始化完成')
 
     @classmethod
     def run(cls, path=getcwd()):
@@ -94,10 +122,12 @@ class MainFrame(MF):
             'mode': self.mode.Selection,
             'row': self.row.Value,
             'col': self.col.Value,
-            'shuffle': self.shuffle.IsChecked(),
-            'flip': self.flip.IsChecked(),
-            'rgb_mapping': self.rgbMapping.IsChecked(),
-            'xor': self.xorRgb.Selection,
+            'shuffle': self.shuffle.Value,
+            'flip': self.flip.Value,
+            'rgb_mapping': self.rgbMapping.Value,
+            'xor_channels': self.xor_channels,
+            'noise_xor': self.noiseXor.Value,
+            'noise_factor': self.noiseFactor.Value,
             'password': self.password.Value,
             'saving_path': self.selectSavePath.Path,
             'saving_format': self.selectFormat.Selection,
@@ -106,10 +136,27 @@ class MainFrame(MF):
         }
 
     @property
+    def xor_channels(self):
+        if not self.xor.Value:
+            return ''
+        channels = []
+        if self.xorR.Value:
+            channels.append('r')
+        if self.xorG.Value:
+            channels.append('g')
+        if self.xorB.Value:
+            channels.append('b')
+        if self.xorA.Value:
+            channels.append('a')
+        return ''.join(channels)
+
+    @property
     def encryption_settings(self):
         return (self.mode.Selection, self.row.Value, self.col.Value,
-                self.shuffle.IsChecked(), self.flip.IsChecked(), self.rgbMapping.IsChecked(),
-                self.xorRgb.Selection, self.password.Value)
+                self.shuffle.Value, self.flip.Value, self.rgbMapping.Value,
+                self.noiseXor.Value, self.xorR.Value, self.xorG.Value,
+                self.xorB.Value, self.xorA.Value, self.noiseFactor.Value,
+                self.password.Value)
 
     @property
     def encryption_settings_summary(self):
@@ -120,9 +167,9 @@ class MainFrame(MF):
         if not_regenerate:
             self.importedImage.SetBitmap(Bitmap.FromBuffer(*self.image_item.initial_preview.size, self.image_item.initial_preview.convert('RGB').tobytes()))
             return
-        if self.image_item.loaded_image is not None:
+        if self.image_item is not None:
             initial_preview = self.image_item.loaded_image.resize(scale(self.image_item.loaded_image, *size))
-            self.program.logger.info(f'生成预览图{initial_preview.size}')
+            self.logger.info(f'生成预览图{initial_preview.size}')
             self.importedImage.SetBitmap(Bitmap.FromBuffer(*initial_preview.size, initial_preview.convert('RGB').tobytes()))
             self.image_item.preview_size = size
             self.image_item.initial_preview = initial_preview
@@ -147,23 +194,7 @@ class MainFrame(MF):
             else:
                 self.image_item.encrypted_image = False
         if self.image_item.encrypted_image:
-            self.mode.Select(1)
-            self.processingSettingsPanel1.Enable(False)
-            self.xorRgb.Enable(False)
-            self.row.SetValue(self.image_item.encryption_data['row'])
-            self.col.SetValue(self.image_item.encryption_data['col'])
-            self.shuffle.SetValue(self.image_item.encryption_data['upset'])
-            self.rgbMapping.SetValue(self.image_item.encryption_data['rgb_mapping'])
-            self.flip.SetValue(self.image_item.encryption_data['flip'])
-            if self.image_item.encryption_data['xor_rgb'] and self.image_item.encryption_data['xor_alpha']:
-                self.xorRgb.Select(2)
-            elif self.image_item.encryption_data['xor_rgb']:
-                self.xorRgb.Select(1)
-            else:
-                self.xorRgb.Select(0)
-            if self.image_item.encryption_data['password'] is None:
-                self.image_item.encryption_data['password'] = self.program.password_dict.get(self.image_item.encryption_data['password_base64'], None)
-            self.password.SetValue(EmptyString if self.image_item.encryption_data['password'] is None else str(self.image_item.encryption_data['password']))
+            self.image_item.backtrack_decryption_interface()
 
     def init_loading_plane(self):
         self.loadingPrograss.SetValue(0)
@@ -183,6 +214,18 @@ class MainFrame(MF):
         self.image_loader.loading_thread.set_exit_signal()
         self.stopLoadingBtn.SetLabelText('强制终止载入')
 
+    def apply_settings_to_all(self, settings=None):
+        if settings is None:
+            settings = self.settings
+            for i in self.tree_manager._all_item_data:
+                i.settings = settings.copy()
+        else:
+            settings = {}
+            for i in settings:
+                settings[i] = self.get_settings[i]()
+            for i in self.tree_manager._all_item_data:
+                i.settings.update(settings)
+
     # -------
     # 事件交互
     # -------
@@ -195,7 +238,7 @@ class MainFrame(MF):
     def refresh_preview(self, event):
         if event is not None and self.previewMode.Selection != 2:
             return
-        if self.image_item.loaded_image is not None:
+        if self.image_item is not None:
             size_changed = False
             if self.importedImagePlanel.Size != self.image_item.preview_size or self.image_item.initial_preview is None:
                 size_changed = True
@@ -224,10 +267,10 @@ class MainFrame(MF):
             return True
         if event is not None:
             self.refresh_preview(event)
-        if self.password.Value != 'none' and self.password.Value not in self.program.password_dict.values():
+        if self.password.Value != 'none' and self.password.Value not in self.password_dict.values():
             password_base64 = PasswordDict.get_validation_field_base64(self.password.Value)
-            self.program.password_dict[password_base64] = self.password.Value
-            self.program.logger.info(f'更新密码字典[{password_base64}: {self.password.Value}](当前字典长度：{len(self.program.password_dict)})')
+            self.password_dict[password_base64] = self.password.Value
+            self.logger.info(f'更新密码字典[{password_base64}: {self.password.Value}](当前字典长度：{len(self.password_dict)})')
         return False
 
     def save_selected_image(self, event):
@@ -240,8 +283,8 @@ class MainFrame(MF):
         if self.image_item is None:
             return
         if self.mode.Selection != 1:
-            self.processingSettingsPanel1.Enable(True)
-            self.xorRgb.Enable(True)
+            self.processingSettingsPanel1.Enable()
+            self.password.Enable()
         else:
             self.check_encryption_parameters()
             if self.image_item.loading_image_data_error is not None:
@@ -276,7 +319,7 @@ class MainFrame(MF):
         image_data = self.imageTreeCtrl.GetItemData(event.GetItem())
         if image_data is not None:
             self.image_item = image_data
-            image_data.backtrack_interface(self)
+            image_data.backtrack_interface()
 
             if self.previewMode.Selection == 2:
                 self.refresh_preview(event)
@@ -288,18 +331,12 @@ class MainFrame(MF):
                 else:
                     self.show_initial_preview(True)
 
-    def apply_settings_to_all(self, event):
-        settings = self.settings
-        for i in self.tree_manager.file_dict.values():
-            self.imageTreeCtrl.GetItemData(i).settings = settings.copy()
-
     def sync_saving_settings(self, event):
-        if not self.autoSyncSavingSettings.IsChecked():
+        if not self.autoSyncSavingSettings.Value:
             return
-        for i in self.tree_manager.file_dict.values():
-            s = self.imageTreeCtrl.GetItemData(i).settings
-            s['saving_path'] = self.selectSavePath.Path
-            s['saving_format'] = self.selectFormat.Selection
+        for i in self.tree_manager._all_item_data:
+            i.settings['saving_path'] = self.get_settings['saving_path']()
+            i.settings['saving_format'] = self.get_settings['saving_format']()
 
     def set_settings_as_default(self, event):
         self.default_settings = self.settings
@@ -312,30 +349,47 @@ class MainFrame(MF):
         self.info('已取消尚未进行的任务')
         self.stopSavingBtn.Disable()
 
+    def apply_to_all(self, event):
+        self.apply_settings_to_all()
+
+    def toggle_factor_slider_switch(self, event):
+        self.noiseFactor.Enable(event.IsChecked())
+        self.refresh_preview(event)
+
+    def toggle_xor_panel_switch(self, event):
+        self.xorPanel.Enable(event.IsChecked())
+        self.refresh_preview(event)
+
+    def update_quality_num(self, event):
+        self.qualityNum.SetLabelText(str(event.Int))
+
+    def update_subsampling_num(self, event):
+        self.subsamplingNum.SetLabelText(str(event.Int))
+
     # -----
     # 提示窗
     # -----
 
     def info(self, message, title='信息'):
-        self.program.logger.info(f'[{title}]{message}')
+        self.logger.info(f'[{title}]{message}')
         dialog = MessageDialog(self, message, title, style=ICON_INFORMATION | STAY_ON_TOP)
         dialog.ShowModal()
         dialog.Destroy()
 
     def question(self, message, title='问题'):
-        self.program.logger.info(f'[{title}]{message}')
+        self.logger.info(f'[{title}]{message}')
         dialog = MessageDialog(self, message, title, style=ICON_QUESTION | STAY_ON_TOP)
         dialog.ShowModal()
         dialog.Destroy()
 
     def warning(self, message, title='警告'):
-        self.program.logger.warning(f'[{title}]{message}')
+        self.logger.warning(f'[{title}]{message}')
         dialog = MessageDialog(self, message, title, style=ICON_WARNING | STAY_ON_TOP)
         dialog.ShowModal()
         dialog.Destroy()
 
     def error(self, message, title='错误'):
-        self.program.logger.error(f'[{title}]{message}')
+        self.logger.error(f'[{title}]{message}')
         dialog = MessageDialog(self, message, title, style=ICON_ERROR | STAY_ON_TOP)
         dialog.ShowModal()
         dialog.Destroy()
@@ -354,6 +408,6 @@ class MainFrame(MF):
         return frame_id
 
     def exit(self, event):
-        self.program.logger.info('窗口退出')
+        self.logger.info('窗口退出')
         self.Destroy()
         exit()

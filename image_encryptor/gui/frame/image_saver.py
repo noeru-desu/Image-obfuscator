@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-23 21:11:17
+LastEditTime : 2021-11-28 14:23:36
 Description  : 文件保存功能
 '''
 from os import listdir
@@ -37,7 +37,7 @@ class ImageSaver(object):
         self.task_num = 0
         self.bar = None
         self.filter = None
-        self.frame.program.logger.info('ImageSaver实例化完成')
+        self.frame.logger.info('ImageSaver实例化完成')
 
     def save_selected_image(self):
         """保存选中的图片"""
@@ -56,13 +56,13 @@ class ImageSaver(object):
         else:
             self.saving_thread.start_new(qq_anti_harmony.normal, self._save_selected_image_call_back, (self.frame, self.frame.saveProgressPrompt.SetLabelText, self.frame.saveProgress, self.frame.image_item.loaded_image, True))
 
-    def _save_selected_image_call_back(self, error, image):
+    def _save_selected_image_call_back(self, error, result):
         """保存选中的图片完成后的回调函数"""
         self.hide_saving_progress_plane()
-        if error is not None:
-            self.frame.error(repr(error), '生成加密图片时出现意外错误')
-            return
-        self.frame.show_processing_preview(True, image)     # 顺便刷新一下预览图
+        error, data = result
+        if error:
+            self.frame.error(data, '生成加密图片时出现意外错误')
+        self.frame.show_processing_preview(True, data)     # 顺便刷新一下预览图
 
     def bulk_save(self):
         """批量保存"""
@@ -75,7 +75,7 @@ class ImageSaver(object):
         if self.frame.imageTreeCtrl.Selection.IsOk():   # 检查是否选择了某一文件
             image_data = self.frame.imageTreeCtrl.GetItemData(self.frame.imageTreeCtrl.Selection)
             if image_data is not None:                  # 是否选择的是文件夹，如果不是，则同步gui内容至对应image_item实例
-                image_data.settings = self.frame.settings
+                self.frame.apply_settings_to_all(None)
         else:
             self.frame.apply_settings_to_all(None)      # 如果没有选择任何文件，则将当前gui内容同步到所有image_item实例
 
@@ -118,9 +118,9 @@ class ImageSaver(object):
             if image_item.settings['mode'] == 0:
                 self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(encryptor.batch, image_data, image_item.path_data, image_item.settings, saving_format, uf), self._bulk_save_callback)
             elif image_item.settings['mode'] == 1:
-                image_item.encryption_data['password'] = self.frame.program.password_dict.get(image_item.encryption_data['password_base64'], None)
+                image_item.encryption_data['password'] = self.frame.password_dict.get(image_item.encryption_data['password_base64'], None)
                 if image_item.encryption_data['password'] is None:
-                    self.frame.program.logger.warning(f'[{image_item.path_data[-1]}]未找到密码，跳过保存')
+                    self.frame.logger.warning(f'[{image_item.path_data[-1]}]未找到密码，跳过保存')
                     continue
                 self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(decryptor.batch, image_data, image_item.path_data, image_item.settings, image_item.encryption_data, saving_format, uf), self._bulk_save_callback)
             else:
@@ -180,13 +180,16 @@ class ImageSaver(object):
         if ID_OK == dialog.ShowModal():
             return dialog.GetPath()
 
-    def _bulk_save_callback(self, future, tag_name):
+    def _bulk_save_callback(self, future, tag_na, result):
         """批量保存回调函数"""
         with self.lock:     # 线程锁，防止进度累加错误
+            error, data = result
+            if error:
+                self.frame.thread_pool.submit(self.frame.error, (data, '生成加密图片时出现意外错误'))
             self.bar.add()
             self.frame.saveProgressPrompt.SetLabelText(f"{self.bar.value}/{self.task_num} - {format(self.bar.value / self.task_num * 100, '.2f')}%")
             if self.bar.value == self.task_num:
-                self.frame.program.logger.info('完成了所有任务')
+                self.frame.logger.info('完成了所有任务')
                 self.hide_saving_progress_plane()
 
     def _generate_filter(self):
@@ -196,7 +199,7 @@ class ImageSaver(object):
         flip_filter = self.frame.flipFilter.Selection
         mapping_filter = self.frame.mappingFilter.Selection
         self.filter = (
-            (0 if self.frame.encryptionFilter.IsChecked() else None, 1 if self.frame.decryptionFilter.IsChecked() else None, 2 if self.frame.qqFilter.IsChecked() else None),
+            (0 if self.frame.encryptionFilter.Value else None, 1 if self.frame.decryptionFilter.Value else None, 2 if self.frame.qqFilter.Value else None),
             None if password_filter == 2 else password_filter,
             None if shuffle_filter == 2 else shuffle_filter,
             None if flip_filter == 2 else flip_filter,

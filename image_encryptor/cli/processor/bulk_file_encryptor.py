@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:30
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-23 21:02:40
+LastEditTime : 2021-11-28 14:50:28
 Description  : 批量加密功能
 '''
 from json import dumps
@@ -56,8 +56,8 @@ def encrypt_image(path, parameters, save_relative_path):
 
         image_encrypt.generate_image(FakeBar)
 
-    if parameters['xor_rgb']:
-        image_encrypt.xor_pixels(parameters['xor_alpha'])
+    if parameters['xor_channels']:
+        image_encrypt.xor_pixels(parameters['xor_channels'], parameters['noise_xor'], parameters['noise_factor'])
 
     image = image_encrypt.image
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
@@ -80,7 +80,7 @@ def main():
         if program.parameters['rgb_mapping']:
             program.logger.warning('在此情况下，使用RGB(A)随机映射会导致图片在解密后出现轻微的分界线，按任意键确定')
             pause()
-        if program.parameters['xor_rgb']:
+        if program.parameters['xor_channels']:
             program.logger.warning('在此情况下，使用异或加密会导致图片解密后出现严重失真，按任意键确定')
             pause()
 

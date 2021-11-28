@@ -2,13 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-21 09:41:56
+LastEditTime : 2021-11-28 14:45:43
 Description  : 图片加密模块
 '''
-from math import ceil
 import random
+from math import ceil
 
-import numpy as np
+from numpy import random as np_random
+from numpy import array, squeeze, uint8
 from PIL import Image
 
 flip_func = (
@@ -33,6 +34,8 @@ decrypt_mapping_func = (
     lambda r, g, b, a: (b, g, r, a),
     lambda r, g, b, a: (b, r, g, a),
 )
+
+channel_num = {'r': 0, 'g': 1, 'b': 2, 'a': 3}
 
 
 class ImageEncrypt(object):
@@ -127,19 +130,55 @@ class ImageEncrypt(object):
         bar.finish()
         return self.image
 
-    def xor_pixels(self, xor_alpha: bool):
+    def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
         '''
         :description: 异或图片中每个像素点的RGB(A)通道
         :return: 异或后的图片
         '''
-        self.random.seed(self.random_seed)
-        xor_num = self.random.randrange(256)
-        pixel_array = np.array(self.image, np.uint8)
-        if not xor_alpha:
-            alpha_pixel_array = pixel_array[:, :, 3]
-            pixel_array = pixel_array[:, :, :3]
-        pixel_array ^= xor_num
-        if not xor_alpha:
-            pixel_array = np.dstack((pixel_array, alpha_pixel_array))
+        pixel_array = array(self.image, uint8)
+        if noise:
+            noise_array = random_noise(*self.image.size, len(channels), self.random_seed, noise_factor)
+            for index, channel in enumerate(channels):
+                pixel_array[:, :, channel_num[channel]] ^= noise_array[:, :, index]
+        else:
+            self.random.seed(self.random_seed)
+            xor_num = self.random.randrange(256)
+            for channel in channels:
+                pixel_array[:, :, channel_num[channel]] ^= xor_num
         self.image = Image.fromarray(pixel_array)
         return self.image
+
+
+def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=True):
+    '''Generator a random noise image from numpy.array.
+
+    If nc is 1, the Grayscale image will be created.
+    If nc is 3, the RGB image will be generated.
+    If nc is 4, the RGBA image will be generated.
+
+    Args:
+        nc (int): (1, 3 or 4) number of channels.
+        width (int): width of output image.
+        height (int): height of output image.
+    Returns:
+        PIL Image.
+    '''
+    if factor > 255:
+        factor = 255
+    elif factor < 1:
+        factor = 1
+    random.seed(seed)
+    seed = random.randrange(0, 2 ** 32)
+    np_random.seed(seed)
+    image = (np_random.rand(height, width, nc) * factor).astype(uint8)
+    if ndarray:
+        return image
+    else:
+        if nc == 1:
+            return Image.fromarray(squeeze(image), mode='L')
+        elif nc == 3:
+            return Image.fromarray(image, mode='RGB')
+        elif nc == 4:
+            return Image.fromarray(image, mode='RGBA')
+        else:
+            raise ValueError(f'Input nc should be 1/3/4. Got {nc}.')

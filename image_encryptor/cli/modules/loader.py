@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-20 20:11:05
+LastEditTime : 2021-11-28 14:49:50
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
@@ -30,7 +30,7 @@ class Program(object):
         if self.parameters['debug']:
             self.logger.remove()
             self.logger = Logger('image-encryptor', 10, True)
-        if self.parameters['xor_rgb'] or self.parameters['type'] == 'd':
+        if self.parameters['xor_channels'] or self.parameters['type'] == 'd':
             self.process_pool = ProcessPoolExecutor(self.parameters['process_count'])
         else:
             self.process_pool = None
@@ -46,7 +46,7 @@ def reload_program(logger=False, parameters=None, auto_set=False):
         program.logger.remove()
         program.logger = Logger('image-encryptor', 10 if program.parameters['debug'] else 20, program.parameters['debug'])
     if auto_set:
-        if program.parameters['xor_rgb'] or program.parameters['type'] == 'd':
+        if program.parameters['xor_channels'] or program.parameters['type'] == 'd':
             create_process_pool()
     return program
 
@@ -59,7 +59,7 @@ def at_exit():
 
 
 def check_mode():
-    if not (program.parameters['shuffle'] or program.parameters['flip'] or program.parameters['rgb_mapping'] or program.parameters['xor_rgb']):
+    if not (program.parameters['shuffle'] or program.parameters['flip'] or program.parameters['rgb_mapping'] or program.parameters['xor_channels']):
         program.logger.error('没有使用任何加密方法')
         system('pause>nul')
         exit()

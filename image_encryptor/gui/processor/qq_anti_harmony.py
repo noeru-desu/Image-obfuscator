@@ -2,11 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-23 21:12:05
+LastEditTime : 2021-11-27 21:50:20
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
 from os import makedirs
 from os.path import join, split, splitext, isdir
+from traceback import format_exc
 from typing import TYPE_CHECKING
 
 from numpy.random import randint
@@ -19,6 +20,20 @@ if TYPE_CHECKING:
 
 
 def normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save: bool):
+    try:
+        return False, _normal(frame, logger, gauge, image, save)
+    except Exception:
+        return True, format_exc()
+
+
+def batch(image_data, path_data, settings, saving_format, auto_folder):
+    try:
+        return False, _batch(image_data, path_data, settings, saving_format, auto_folder)
+    except Exception:
+        return True, format_exc()
+
+
+def _normal(frame, logger, gauge, image, save):
     logger('开始处理')
 
     image.putpixel((0, 0), (randint(256), randint(256), randint(256)))
@@ -39,7 +54,7 @@ def normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save: bool):
     return image
 
 
-def batch(image_data, path_data, settings, saving_format, auto_folder):
+def _batch(image_data, path_data, settings, saving_format, auto_folder):
     image = Image.frombytes(*image_data)
     image.putpixel((0, 0), (randint(256), randint(256), randint(256)))
     image.putpixel((image.size[0] - 1, 0), (randint(256), randint(256), randint(256)))

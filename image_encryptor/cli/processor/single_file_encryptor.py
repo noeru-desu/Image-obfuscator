@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-21 08:27:15
+LastEditTime : 2021-11-28 14:51:48
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -77,7 +77,7 @@ def main():
         if program.parameters['rgb_mapping']:
             program.logger.warning('在此情况下，使用RGB(A)随机映射会导致图片在解密后出现轻微的分界线，按任意键确定')
             pause()
-        if program.parameters['xor_rgb']:
+        if program.parameters['xor_channels']:
             program.logger.warning('在此情况下，使用异或加密会导致图片解密后出现严重失真，按任意键确定')
             pause()
 
@@ -98,9 +98,9 @@ def main():
         bar = ProgressBar(max_value=program.parameters['col'] * program.parameters['row'], widgets=widgets)
         image = image_encrypt.generate_image(bar)
 
-    if program.parameters['xor_rgb']:
-        program.logger.info('正在异或加密，性能较低，请耐心等待')
-        image = image_encrypt.xor_pixels(program.parameters['xor_alpha'])
+    if program.parameters['xor_channels']:
+        program.logger.info('正在异或加密')
+        image = image_encrypt.xor_pixels(program.parameters['xor_channels'], program.parameters['noise_factor'])
 
     program.logger.info('完成，正在保存文件')
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-21 12:21:40
+LastEditTime : 2021-11-27 21:54:12
 Description  : 图片生成功能
 '''
 from typing import TYPE_CHECKING
@@ -20,7 +20,7 @@ class ImageGenerator(object):
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
         self.preview_thread = ThreadManager('preview-thread', True)
-        self.frame.program.logger.info('ImageGenerator实例化完成')
+        self.frame.logger.info('ImageGenerator实例化完成')
 
     def generate_preview(self):
         if self.frame.update_password_dict():
@@ -32,8 +32,9 @@ class ImageGenerator(object):
         else:
             self.preview_thread.start_new(qq_anti_harmony.normal, self._generate_preview_call_back, (self.frame, self.frame.previewProgressPrompt.SetLabelText, self.frame.previewProgress, self.frame.image_item.initial_preview, False))
 
-    def _generate_preview_call_back(self, error, image):
-        if error is not None:
-            self.frame.error(repr(error), '生成加密图片时出现意外错误')
+    def _generate_preview_call_back(self, error, result):
+        error, data = result
+        if error:
+            self.frame.error(data, '生成加密图片时出现意外错误')
             return
-        self.frame.show_processing_preview(True, image)
+        self.frame.show_processing_preview(True, data)
