@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-28 14:45:43
+LastEditTime : 2021-11-29 21:52:16
 Description  : 图片加密模块
 '''
 import random
@@ -170,7 +170,8 @@ def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=Tr
     random.seed(seed)
     seed = random.randrange(0, 2 ** 32)
     np_random.seed(seed)
-    image = (np_random.rand(height, width, nc) * factor).astype(uint8)
+    image = np_random.randint(0, factor + 1, (height, width, nc), uint8)   # [rc.4修改方法]
+    # image = (np_random.rand(height, width, nc) * factor).astype(uint8) [rc.3使用方法]
     if ndarray:
         return image
     else:

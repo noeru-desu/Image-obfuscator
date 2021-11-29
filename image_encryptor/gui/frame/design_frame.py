@@ -256,31 +256,41 @@ class MainFrame ( wx.Frame ):
         bSizer42.Add( self.xorA, 0, wx.ALL, 0 )
 
 
-        bSizer47.Add( bSizer42, 0, 0, 5 )
+        bSizer47.Add( bSizer42, 0, 0, 0 )
 
         bSizer44 = wx.BoxSizer( wx.VERTICAL )
 
         self.noiseXor = wx.CheckBox( self.xorPanel, wx.ID_ANY, u"噪音", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT )
         bSizer44.Add( self.noiseXor, 0, wx.ALIGN_RIGHT|wx.ALL, 0 )
 
-        self.m_staticText141 = wx.StaticText( self.xorPanel, wx.ID_ANY, u"噪音系数", wx.DefaultPosition, wx.DefaultSize, 0 )
+        bSizer331 = wx.BoxSizer( wx.HORIZONTAL )
+
+        self.m_staticText141 = wx.StaticText( self.xorPanel, wx.ID_ANY, u"系数:", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.m_staticText141.Wrap( -1 )
 
-        bSizer44.Add( self.m_staticText141, 0, wx.ALIGN_CENTER|wx.ALL, 2 )
+        bSizer331.Add( self.m_staticText141, 0, wx.ALIGN_CENTER|wx.ALL, 0 )
 
-        self.noiseFactor = wx.Slider( self.xorPanel, wx.ID_ANY, 100, 1, 255, wx.DefaultPosition, wx.Size( -1,90 ), wx.SL_BOTH|wx.SL_INVERSE|wx.SL_LEFT|wx.SL_VALUE_LABEL|wx.SL_VERTICAL )
+        self.noiseFactorNum = wx.StaticText( self.xorPanel, wx.ID_ANY, u"128", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.noiseFactorNum.Wrap( -1 )
+
+        bSizer331.Add( self.noiseFactorNum, 0, wx.ALIGN_CENTER|wx.ALL, 0 )
+
+
+        bSizer44.Add( bSizer331, 0, wx.EXPAND, 0 )
+
+        self.noiseFactor = wx.Slider( self.xorPanel, wx.ID_ANY, 128, 1, 255, wx.DefaultPosition, wx.Size( -1,90 ), wx.SL_BOTH|wx.SL_INVERSE|wx.SL_VERTICAL )
         self.noiseFactor.Enable( False )
 
-        bSizer44.Add( self.noiseFactor, 0, wx.ALL, 0 )
+        bSizer44.Add( self.noiseFactor, 1, wx.ALIGN_CENTER|wx.ALL, 0 )
 
 
-        bSizer47.Add( bSizer44, 0, wx.EXPAND, 5 )
+        bSizer47.Add( bSizer44, 0, wx.EXPAND, 0 )
 
 
         self.xorPanel.SetSizer( bSizer47 )
         self.xorPanel.Layout()
         bSizer47.Fit( self.xorPanel )
-        xorSizer.Add( self.xorPanel, 0, wx.ALL, 0 )
+        xorSizer.Add( self.xorPanel, 0, wx.ALL|wx.EXPAND, 0 )
 
 
         bSizer33.Add( xorSizer, 0, wx.EXPAND, 0 )
@@ -597,6 +607,7 @@ class MainFrame ( wx.Frame ):
         self.xorB.Bind( wx.EVT_CHECKBOX, self.refresh_preview )
         self.xorA.Bind( wx.EVT_CHECKBOX, self.refresh_preview )
         self.noiseXor.Bind( wx.EVT_CHECKBOX, self.toggle_factor_slider_switch )
+        self.noiseFactor.Bind( wx.EVT_SCROLL, self.update_noise_factor_num )
         self.noiseFactor.Bind( wx.EVT_SCROLL_CHANGED, self.refresh_preview )
         self.m_button31.Bind( wx.EVT_BUTTON, self.apply_to_all )
         self.m_button311.Bind( wx.EVT_BUTTON, self.set_settings_as_default )
@@ -664,6 +675,9 @@ class MainFrame ( wx.Frame ):
 
 
     def toggle_factor_slider_switch( self, event ):
+        event.Skip()
+
+    def update_noise_factor_num( self, event ):
         event.Skip()
 
 

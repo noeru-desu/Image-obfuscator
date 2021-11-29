@@ -2,11 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-14 19:27:19
+LastEditTime : 2021-11-29 21:28:34
 Description  : 一些小东西
 '''
 from os import system, walk
 from os.path import normpath, split
+from time import time
 
 from PIL import Image, UnidentifiedImageError
 
@@ -85,3 +86,11 @@ class FakeBar:
     @staticmethod
     def finish():
         pass
+
+
+def timeit(fn):
+    def wrap(*args, **kwargs):
+        start = time()
+        fn(*args, **kwargs)
+        print(f'{fn.__name__}运行时间：{time() - start}')
+    return wrap

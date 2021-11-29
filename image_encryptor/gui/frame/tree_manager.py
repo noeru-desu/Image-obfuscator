@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-28 14:55:45
+LastEditTime : 2021-11-29 21:17:35
 Description  : 节点树控制
 '''
 from os.path import isdir, isfile, join, sep, split
@@ -112,6 +112,9 @@ class ImageItem(object):
             self.frame.rgbMapping.SetValue(self.settings['rgb_mapping'])
             self.frame.flip.SetValue(self.settings['flip'])
             self.frame.password.SetValue(self.settings['password'])
+            self.frame.noiseXor.SetValue(self.settings['noise_xor'])
+            self.frame.noiseFactor.SetValue(self.settings['noise_factor'])
+            self.frame.update_noise_factor_num()
             self.frame.processingSettingsPanel1.Enable()
             self.frame.password.Enable()
             for i in 'rgba':
@@ -121,12 +124,13 @@ class ImageItem(object):
         self.frame.selectSavePath.SetPath(self.settings['saving_path'])
         self.frame.selectFormat.Select(self.settings['saving_format'])
         self.frame.saveQuality.SetValue(self.settings['quality'])
+        self.frame.update_quality_num()
         self.frame.subsamplingLevel.SetValue(self.settings['subsampling'])
+        self.frame.update_subsampling_num()
 
     def backtrack_decryption_interface(self):
         self.frame.mode.Select(1)
         self.frame.processingSettingsPanel1.Disable()
-        self.frame.password.Disable()
         self.frame.row.SetValue(self.encryption_data['row'])
         self.frame.col.SetValue(self.encryption_data['col'])
         self.frame.shuffle.SetValue(self.encryption_data['shuffle'])
@@ -134,8 +138,13 @@ class ImageItem(object):
         self.frame.flip.SetValue(self.encryption_data['flip'])
         self.frame.noiseXor.SetValue(self.encryption_data['noise_xor'])
         self.frame.noiseFactor.SetValue(self.encryption_data['noise_factor'])
+        self.frame.update_noise_factor_num()
         for i in 'rgba':
             self.xor_checkbox[i].SetValue(i in self.encryption_data['xor_channels'])
         if self.encryption_data['password'] is None:
             self.encryption_data['password'] = self.frame.password_dict.get(self.encryption_data['password_base64'], None)
-        self.frame.password.SetValue('' if self.encryption_data['password'] is None else str(self.encryption_data['password']))
+        if self.encryption_data['password'] is None:
+            self.frame.password.SetValue('')
+        else:
+            self.frame.password.Disable()
+            self.frame.password.SetValue(str(self.encryption_data['password']))

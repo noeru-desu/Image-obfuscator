@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-28 15:42:43
+LastEditTime : 2021-11-29 21:44:31
 Description  : 覆写窗口
 '''
 from concurrent.futures import ThreadPoolExecutor
@@ -12,7 +12,7 @@ from os import getcwd
 from sys import version
 from typing import TYPE_CHECKING
 
-from image_encryptor import BRANCH, SUB_VERSION_NUMBER, VERSION_BATCH, VERSION_NUMBER
+from image_encryptor import BRANCH, OPEN_SOURCE_URL, SUB_VERSION_NUMBER, VERSION_BATCH, VERSION_NUMBER
 from image_encryptor.common.modules.password_verifier import PasswordDict
 from image_encryptor.common.utils.logger import Logger
 from image_encryptor.gui.frame.design_frame import MainFrame as MF
@@ -50,6 +50,7 @@ class MainFrame(MF):
         self.logger = Logger('image-encryptor')
         self.logger.info(f'Python {version}')
         self.logger.info(f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})')
+        self.logger.info(f'Open source at {OPEN_SOURCE_URL}')
         self.password_dict = PasswordDict()
         self.exit_processor = ExitProcessor()
         self.process_pool = ProcessTaskManager(1 if cpu_count() < 4 else cpu_count() - 2)
@@ -360,11 +361,14 @@ class MainFrame(MF):
         self.xorPanel.Enable(event.IsChecked())
         self.refresh_preview(event)
 
-    def update_quality_num(self, event):
-        self.qualityNum.SetLabelText(str(event.Int))
+    def update_noise_factor_num(self, event=None):
+        self.noiseFactorNum.SetLabelText(str(self.noiseFactor.Value))
 
-    def update_subsampling_num(self, event):
-        self.subsamplingNum.SetLabelText(str(event.Int))
+    def update_quality_num(self, event=None):
+        self.qualityNum.SetLabelText(str(self.saveQuality.Value))
+
+    def update_subsampling_num(self, event=None):
+        self.subsamplingNum.SetLabelText(str(self.subsamplingLevel.Value))
 
     # -----
     # 提示窗
