@@ -2,9 +2,7 @@
 
 ## 运行源代码
 
-Python版本：`3.8/3.9/3.10`
-
-_wxPython尚不支持Python 3.10_
+Python版本：`3.10`
 
 `requirements.txt`包含所有依赖库名称
 
