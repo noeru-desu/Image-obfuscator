@@ -2,12 +2,15 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-21 18:40:02
+LastEditTime : 2021-12-26 17:31:44
 Description  : 一些小东西
 '''
+from threading import Lock
+from functools import wraps as functools_wraps
+from inspect import signature
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, CancelledError
 from traceback import print_exc
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 from image_encryptor.common.utils.utils import walk_file as wf
 
@@ -225,3 +228,28 @@ def walk_file(path, topdown=False, filter=None) -> tuple[int, list[tuple[list, l
             file_num += len(fl)
             result.append((r, fl))
     return file_num, result
+
+
+def copy_signature(target: Callable, origin: Callable) -> Callable:
+    """
+    Copy the function signature of origin into target
+    """
+    # https://stackoverflow.com/questions/39926567/python-create-decorator-preserving-function-arguments
+    target.__signature__ = signature(origin)
+    return target
+
+
+lock = Lock()
+
+
+def in_try(func):
+    @functools_wraps(func)
+    def wrap(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            with lock:
+                print_exc()
+        copy_signature(wrap, func)
+        wrap.original = func
+    return wrap

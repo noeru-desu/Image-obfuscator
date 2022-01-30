@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-29 21:43:50
+LastEditTime : 2022-01-30 17:21:45
 Description  : 全局版本常量
 '''
 RELEASE = 0
@@ -11,8 +11,8 @@ BETA = 2
 ALPHA = 3
 VERSION_TYPE = RELEASE_CANDIDATE
 VERSION_NUMBER = '1.0.0'
-SUB_VERSION_NUMBER = 'rc.4'
-VERSION_BATCH = '20211129-1'
+SUB_VERSION_NUMBER = 'rc.6'
+VERSION_BATCH = '20220130-1'
 BRANCH = 'dev/1.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
@@ -50,3 +50,10 @@ EXTENSION_KEYS = (
     'vst', 'webp', 'wmf', 'emf', 'xbm',
     'xpm'
 )
+
+DO_NOT_REFRESH = 0
+MANUAL_REFRESH = 1
+AUTO_REFRESH = 2
+ENCRYPTION_MODE = 0
+DECRYPTION_MODE = 1
+ANTY_HARMONY_MODE = 2

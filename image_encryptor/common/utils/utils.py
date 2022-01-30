@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-29 21:28:34
+LastEditTime : 2022-01-30 17:02:12
 Description  : 一些小东西
 '''
 from os import system, walk
@@ -55,6 +55,23 @@ def calculate_formula_string(formula_string: str, **format):
         return result, None
 
 
+timeit_targets = {}
+
+
+def timeit(fn):
+    def wrap(*args, **kwargs):
+        if fn.__name__ not in timeit_targets:
+            timeit_targets[fn.__name__] = 0
+        start = time()
+        result = fn(*args, **kwargs)
+        running_time = time() - start
+        print(f'{fn.__name__}运行时间：{running_time}')
+        timeit_targets[fn.__name__] += running_time
+        print(f'{fn.__name__}总运行时间：{timeit_targets[fn.__name__]}')
+        return result
+    return wrap
+
+
 def open_image(file):
     '''
     :description: 打开图片
@@ -86,11 +103,3 @@ class FakeBar:
     @staticmethod
     def finish():
         pass
-
-
-def timeit(fn):
-    def wrap(*args, **kwargs):
-        start = time()
-        fn(*args, **kwargs)
-        print(f'{fn.__name__}运行时间：{time() - start}')
-    return wrap

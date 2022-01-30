@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-27 18:51:33
+LastEditTime : 2022-01-30 12:19:41
 Description  : 处理退出时的相关操作
 '''
 from atexit import register
@@ -20,7 +20,7 @@ class ExitProcessor(object):
     def exit(self):
         for func, args, kwargs in self.at_exit_func:
             try:
-                func(*args, *kwargs)
+                func(*args, **kwargs)
             except Exception:
                 print_exc()
                 pass

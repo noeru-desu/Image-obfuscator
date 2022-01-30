@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-28 14:49:50
+LastEditTime : 2022-01-30 16:15:39
 Description  : 程序的启动器，加载各参数与准备工作
 '''
 from atexit import register
@@ -10,7 +10,7 @@ from concurrent.futures import ProcessPoolExecutor
 from os import system
 from sys import argv, version
 
-from image_encryptor import BRANCH, VERSION_NUMBER, SUB_VERSION_NUMBER, OPEN_SOURCE_URL, VERSION_BATCH
+from image_encryptor.constants import BRANCH, VERSION_NUMBER, SUB_VERSION_NUMBER, OPEN_SOURCE_URL, VERSION_BATCH
 from image_encryptor.cli.modules.parameter_parser import parse_parameters
 from image_encryptor.common.utils.logger import Logger
 

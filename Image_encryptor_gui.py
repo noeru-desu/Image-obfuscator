@@ -1,15 +1,16 @@
+#! python3.10
 '''
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-27 21:31:10
+LastEditTime : 2022-01-30 12:08:25
 Description  : GUI程序
 '''
 from multiprocessing import freeze_support
 from sys import argv, exit
 from warnings import filterwarnings
 
-from image_encryptor.gui.frame.main_frame import MainFrame
+from image_encryptor.gui.frame.events import MainFrame
 
 filterwarnings('error')
 

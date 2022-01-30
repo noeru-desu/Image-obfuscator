@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-28 15:28:37
+LastEditTime : 2022-01-30 16:15:31
 Description  : 参数解析器
 '''
 from typing import TYPE_CHECKING
@@ -12,7 +12,7 @@ from os import makedirs, system
 from os.path import isdir, isfile, normpath, split
 from sys import exit
 
-from image_encryptor import EXTENSION
+from image_encryptor.constants import EXTENSION
 from image_encryptor.common.utils.utils import calculate_formula_string
 
 if TYPE_CHECKING:

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:48:27
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-21 16:40:28
+LastEditTime : 2022-01-27 15:27:33
 Description  : 粗略包装的密码验证器
 '''
 
@@ -17,6 +17,9 @@ class PasswordDict(dict):
         self[0] = 100
         if default_password is not None:
             self[self.get_validation_field_base64(default_password)] = default_password
+
+    def get_password(self, base64):
+        return self.get(base64, None)
 
     @staticmethod
     def get_validation_field_base64(password):

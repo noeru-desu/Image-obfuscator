@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-30 20:33:28
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-28 14:50:44
+LastEditTime : 2022-01-30 16:15:32
 Description  : 批量解密功能
 '''
 from os import makedirs
@@ -10,7 +10,7 @@ from os.path import exists, join, split, splitext
 
 from progressbar import Bar, Percentage, ProgressBar, SimpleProgress
 
-from image_encryptor import EXTENSION
+from image_encryptor.constants import EXTENSION
 from image_encryptor.cli.modules.loader import load_program
 from image_encryptor.cli.modules.password_verifier import get_image_data
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
