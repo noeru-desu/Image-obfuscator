@@ -154,6 +154,7 @@ class MainFrame ( wx.Frame ):
         bSizer282.Add( self.m_staticText12, 0, wx.ALL, 2 )
 
         self.passwordCtrl = wx.TextCtrl( self.processingOptions, wx.ID_ANY, u"none", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER|wx.TE_PROCESS_ENTER )
+        self.passwordCtrl.SetMaxLength( 32 )
         bSizer282.Add( self.passwordCtrl, 0, wx.ALL, 0 )
 
 

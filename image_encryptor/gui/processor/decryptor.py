@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 16:37:38
+LastEditTime : 2022-01-30 18:28:16
 Description  : 单文件解密功能
 '''
 from os import makedirs
@@ -37,7 +37,19 @@ def batch(image_data, path_data, settings, encryption_data, saving_format, auto_
 
 def _normal(frame: 'MainFrame', logger, gauge, image, save):
     encryption_data = frame.image_item.encryption_data
-    image_encrypt = ImageEncrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, encryption_data.password)
+    if encryption_data.has_password:
+        if encryption_data.password is None:
+            encryption_data.password = frame.password_dict.get_password(encryption_data.password_base64)
+            if encryption_data.password is None:
+                frame.dialog.async_warning('密码字典中不存在此图片的密码，请输入密码')
+                return image
+            else:
+                password = encryption_data.password
+        else:
+            password = encryption_data.password
+    else:
+        password = 100
+    image_encrypt = ImageEncrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, password)
     logger('正在处理')
 
     step_count = 0
@@ -85,7 +97,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
 
 def _batch(image_data, path_data, encryption_data: 'EncryptionParameters', saving_settings: 'SavingSettings', auto_folder):
     image = Image.frombytes(*image_data)
-    image_encrypt = ImageEncrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, encryption_data.password)
+    image_encrypt = ImageEncrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, encryption_data.password if encryption_data.has_password else 100)
 
     if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.RGB_mapping:
         image_encrypt.init_block_data(True, encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.RGB_mapping, FakeBar)
@@ -109,3 +121,4 @@ def _batch(image_data, path_data, encryption_data: 'EncryptionParameters', savin
         save_dir = saving_settings.path
 
     image.save(join(save_dir, name), quality=saving_settings.quality, subsampling=saving_settings.subsampling_level)
+    return None, None

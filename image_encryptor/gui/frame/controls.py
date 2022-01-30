@@ -2,11 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 17:16:46
+LastEditTime : 2022-01-30 18:14:23
 Description  : 整理
 '''
 from typing import TYPE_CHECKING, Callable, Iterable, NamedTuple, Optional
 from hashlib import md5
+from inspect import isbuiltin
 
 from wx import Bitmap
 from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS
@@ -477,6 +478,8 @@ class Settings(object):
         self.controls.noise_factor_info = str(self.noise_factor)
         self.controls.frame.processingSettingsPanel1.Enable()
         self.controls.frame.passwordCtrl.Enable()
+        if self.XOR_channels:
+            self.controls.XOR_encryption = True
         for i in 'rgba':
             self.controls.XOR_checkboxes[i].SetValue(i in self.XOR_channels)
 
@@ -496,6 +499,9 @@ class EncryptionParameters(object):
     def __init__(self, controls: 'Controls', parameters: dict):
         self.controls = controls
         self._inherit_dict_settings(parameters)
+
+    def __repr__(self) -> str:
+        return '{0}\n{1}'.format(self, '\n'.join(f'{n} = {getattr(self, n)}' for n in dir(self) if isbuiltin(getattr(self, n))))
 
     def __getitem__(self, i):
         if isinstance(i, str):
@@ -527,6 +533,8 @@ class EncryptionParameters(object):
         self.controls.noise_XOR = self.noise_XOR
         self.controls.noise_factor = self.noise_factor
         self.controls.noise_factor_info = str(self.noise_factor)
+        if self.XOR_channels:
+            self.controls.XOR_encryption = True
         for i in 'rgba':
             self.controls.XOR_checkboxes[i].SetValue(i in self.XOR_channels)
         if self.has_password:
@@ -534,6 +542,7 @@ class EncryptionParameters(object):
                 self.password = self.controls.frame.password_dict.get_password(self.password_base64)
                 if self.password is None:
                     self.controls.password = ''
+                    self.controls.frame.passwordCtrl.Enable()
                 else:
                     self.controls.frame.passwordCtrl.Disable()
                     self.controls.password = self.password

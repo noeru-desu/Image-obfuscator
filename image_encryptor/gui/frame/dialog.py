@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 16:15:18
+LastEditTime : 2022-01-30 18:41:06
 Description  : 对话框相关
 '''
 from threading import Lock
@@ -86,11 +86,11 @@ class Dialog(object):
         """注册成功则返回True，反之则返回False"""
         with self.lock:
             if (not force and self.async_dialog_exist) or self.async_dialog_num >= self.maximum_number:
-                return True
+                return False
             else:
                 self.async_dialog_num += 1
                 self.async_dialog_exist = True
-                return False
+                return True
 
     def _async_dialog_callback(self, future):
         with self.lock:

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 16:54:39
+LastEditTime : 2022-01-30 17:57:39
 Description  : 节点树控制
 '''
 from os.path import isdir, isfile, join, sep, split
@@ -12,11 +12,12 @@ from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
 from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE
 
 from image_encryptor.gui.modules.password_verifier import get_image_data
+from image_encryptor.gui.frame.controls import EncryptionParameters
 
 if TYPE_CHECKING:
     from PIL.Image import Image
     from wx import TreeCtrl
-    from image_encryptor.gui.frame.controls import Settings, EncryptionParameters
+    from image_encryptor.gui.frame.controls import Settings
     from image_encryptor.gui.frame.events import MainFrame
 
 

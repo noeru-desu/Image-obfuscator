@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-27 14:22:10
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 17:13:56
+LastEditTime : 2022-01-30 18:42:15
 Description  : 事件处理覆写
 '''
 from typing import TYPE_CHECKING
@@ -68,10 +68,16 @@ class MainFrame(BasicMainFrame):
         if event is not None:
             self.refresh_preview(event)
         if self.controls.password != 'none' and self.controls.password not in self.password_dict.values():
-            password_base64 = self.password_dict.get_validation_field_base64(self.controls.password)
-            self.password_dict[password_base64] = self.controls.password
-            self.logger.info(f'更新密码字典[{password_base64}: {self.controls.password}](当前字典长度: {len(self.password_dict)})')
-        return True
+            try:
+                password_base64 = self.password_dict.get_validation_field_base64(self.controls.password)
+            except ValueError:
+                self.dialog.async_error('密码长度超过AES加密限制，请确保密码长度不超过32字节', '用于验证密码正确性的字符串生成时出现错误')
+                self.controls.password = ''
+                return False
+            else:
+                self.password_dict[password_base64] = self.controls.password
+                self.logger.info(f'更新密码字典[{password_base64}: {self.controls.password}](当前字典长度: {len(self.password_dict)})')
+                return True
 
     def save_selected_image(self, event):
         self.image_saver.save_selected_image()
