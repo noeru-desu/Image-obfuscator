@@ -2,9 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 17:57:39
+LastEditTime : 2022-01-31 21:25:09
 Description  : 节点树控制
 '''
+from abc import ABC
 from os.path import isdir, isfile, join, sep, split
 from typing import TYPE_CHECKING, Generator
 
@@ -16,7 +17,7 @@ from image_encryptor.gui.frame.controls import EncryptionParameters
 
 if TYPE_CHECKING:
     from PIL.Image import Image
-    from wx import TreeCtrl
+    from wx import TreeCtrl, TreeItemId
     from image_encryptor.gui.frame.controls import Settings
     from image_encryptor.gui.frame.events import MainFrame
 
@@ -48,7 +49,7 @@ class TreeManager(object):
         dir_list = relative_path.split(sep)
         if root_path not in self.root_dir_dict:
             self.frame.logger.info(f'根文件夹添加至文件树: {root_path}')
-            self.root_dir_dict[root_path] = root = self.tree_ctrl.AppendItem(self.root, root_path, 0)
+            self.root_dir_dict[root_path] = root = self.tree_ctrl.AppendItem(self.root, root_path, 0, data=FolderItem(self.frame, root_path, True))
         else:
             root = self.root_dir_dict[root_path]
         if relative_path == '':
@@ -57,7 +58,11 @@ class TreeManager(object):
             path = join(root_path, r_path)
             if path not in self.dir_dict:
                 self.frame.logger.info(f'文件夹添加至文件树: {r_path}')
-                self.dir_dict[path] = root = self.tree_ctrl.AppendItem(root, name, 0)
+                parent_data = self.tree_ctrl.GetItemData(root)
+                data = FolderItem(self.frame, path)
+                self.dir_dict[path] = root = self.tree_ctrl.AppendItem(root, name, 0, data=data)
+                parent_data.children[root] = data
+                data.parent = parent_data
 
     def add_file(self, root_path: str, relative_path: str = None, file: str = None, data: dict = None, add_to_root=True):
         if relative_path is None and file is None:
@@ -69,12 +74,22 @@ class TreeManager(object):
             return
         root = self.root
         if not add_to_root:
-            if join(root_path, relative_path) not in self.dir_dict:
+            parent_folder_path = join(root_path, relative_path)
+            if parent_folder_path not in self.dir_dict:
                 self.add_dir(root_path, relative_path)
-            absolute_dir_path = join(root_path, relative_path).strip(sep)
+            absolute_dir_path = parent_folder_path.strip(sep)
             root = self.root_dir_dict[absolute_dir_path] if absolute_dir_path in self.root_dir_dict else self.dir_dict[absolute_dir_path]
-        self.file_dict[absolute_path] = self.tree_ctrl.AppendItem(root, file, 1, data=data)
-        self.frame.logger.info(f'文件添加至文件树: {file}')
+        self.file_dict[absolute_path] = item_id = self.tree_ctrl.AppendItem(root, file, 1, data=data)
+        if not add_to_root:
+            parent_data = self.tree_ctrl.GetItemData(root)
+            parent_data.children[item_id] = data
+            data.parent = parent_data
+        # self.frame.logger.info(f'文件添加至文件树: {file}')
+
+    def del_item(self, item_id: 'TreeItemId'):
+        if not item_id.IsOk():
+            return
+        self.tree_ctrl.GetItemData(item_id).del_item(item_id)
 
     @property
     def _all_item_data(self) -> Generator['ImageItem', None, None]:
@@ -82,7 +97,12 @@ class TreeManager(object):
             yield self.tree_ctrl.GetItemData(i)
 
 
-class ImageItem(object):
+class Item(ABC):
+    def del_item(self, item_id: 'TreeItemId', del_item=True):
+        return
+
+
+class ImageItem(Item):
     """每个载入的图片的存储实例"""
 
     def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: tuple[str, str, str], settings: 'Settings'):
@@ -99,6 +119,7 @@ class ImageItem(object):
         self.encrypted_image = None
         self.encryption_data: 'EncryptionParameters' = None
         self.loading_image_data_error = None
+        self.parent = None
 
     def check_encryption_parameters(self):
         if self.encrypted_image is None:
@@ -116,3 +137,32 @@ class ImageItem(object):
             default_proc_mode = self.frame.settings.default.proc_mode
             self.encrypted_image = False
             self.settings.proc_mode = default_proc_mode if default_proc_mode != DECRYPTION_MODE else ENCRYPTION_MODE
+
+    def del_item(self, item_id: 'TreeItemId', del_item=True):
+        if del_item:
+            self.frame.imageTreeCtrl.Delete(item_id)
+            if self.parent is not None:
+                del self.parent.children[item_id]
+        del self.frame.tree_manager.file_dict[self.loaded_image_path]
+
+
+class FolderItem(Item):
+    def __init__(self, frame: 'MainFrame', path, root=False):
+        self.frame = frame
+        self.path = path
+        self.root = root
+        self.children = {}
+        self.parent = None
+
+    def del_item(self, item_id: 'TreeItemId', del_item=True):
+        for id, data in tuple(self.children.items()):
+            data.del_item(id, False)
+            del self.children[id]
+        if del_item:
+            self.frame.imageTreeCtrl.Delete(item_id)
+            if self.parent is not None:
+                del self.parent.children[item_id]
+        if self.path in self.frame.tree_manager.root_dir_dict:
+            del self.frame.tree_manager.root_dir_dict[self.path]
+        else:
+            del self.frame.tree_manager.dir_dict[self.path]

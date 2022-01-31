@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 18:44:00
+LastEditTime : 2022-01-31 21:37:40
 Description  : 全局版本常量
 '''
 RELEASE = 0
@@ -11,8 +11,8 @@ BETA = 2
 ALPHA = 3
 VERSION_TYPE = RELEASE_CANDIDATE
 VERSION_NUMBER = '1.0.0'
-SUB_VERSION_NUMBER = 'rc.7'
-VERSION_BATCH = '20220130-2'
+SUB_VERSION_NUMBER = 'rc.8'
+VERSION_BATCH = '20220131-1'
 BRANCH = 'dev/1.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'

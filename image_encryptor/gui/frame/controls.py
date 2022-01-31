@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 18:14:23
+LastEditTime : 2022-01-31 21:30:05
 Description  : 整理
 '''
 from typing import TYPE_CHECKING, Callable, Iterable, NamedTuple, Optional
@@ -328,6 +328,10 @@ class Controls(object):
             channels.append('a')
         return ''.join(channels)
 
+    def clear_preview(self):
+        self.frame.importedBitmap.Bitmap = self.frame.previewedBitmap.Bitmap = Bitmap()
+        self.frame.image_item = None
+
     def regen_initial_preview(self):
         size = self.preview_size
         if self.frame.image_item.initial_preview is not None and size == self.frame.image_item.preview_size:
@@ -360,6 +364,7 @@ class SettingsManager(object):
             'shuffle': True,
             'flip': True,
             'rgb_mapping': False,
+            'xor_encryption': False,
             'xor_channels': 'rgb',
             'noise_xor': False,
             'noise_factor': 128,
@@ -369,7 +374,7 @@ class SettingsManager(object):
             'quality': 98,
             'subsampling': 0
         }'''
-        self.default = Settings(self.controls, (0, 25, 25, True, True, False, 'rgb', False, 128, None, '', 21, 98, 0))
+        self.default = Settings(self.controls, (0, 25, 25, True, True, False, False, 'rgb', False, 128, None, '', 21, 98, 0))
 
     @property
     def encryption_settings(self):
@@ -392,6 +397,7 @@ class SettingsManager(object):
             'shuffle_chunks': self.controls.shuffle_chunks,
             'flip_chunks': self.controls.flip_chunks,
             'RGB_mapping': self.controls.RGB_mapping,
+            'XOR_encryption': self.controls.XOR_encryption,
             'XOR_channels': self.controls.XOR_channels,
             'noise_XOR': self.controls.noise_XOR,
             'noise_factor': self.controls.noise_factor,
@@ -414,8 +420,8 @@ class SettingsManager(object):
 
 class Settings(object):
     SETTINGS_NAME = ('proc_mode', 'cutting_row', 'cutting_col', 'shuffle_chunks', 'flip_chunks',
-                     'RGB_mapping', 'XOR_channels', 'noise_XOR', 'noise_factor', 'password',
-                     'saving_path', 'saving_format_index', 'saving_quality', 'saving_subsampling_level')
+                     'RGB_mapping', 'XOR_encryption', 'XOR_channels', 'noise_XOR', 'noise_factor',
+                     'password', 'saving_path', 'saving_format_index', 'saving_quality', 'saving_subsampling_level')
 
     def __init__(self, controls: 'Controls', settings=None):
         self.controls = controls
@@ -437,6 +443,7 @@ class Settings(object):
         self.shuffle_chunks = self.controls.shuffle_chunks
         self.flip_chunks = self.controls.flip_chunks
         self.RGB_mapping = self.controls.RGB_mapping
+        self.XOR_encryption = self.controls.XOR_encryption
         self.XOR_channels = self.controls.XOR_channels
         self.noise_XOR = self.controls.noise_XOR
         self.noise_factor = self.controls.noise_factor
@@ -454,6 +461,7 @@ class Settings(object):
         self.flip_chunks = settings_dict['flip_chunks']
         self.RGB_mapping = settings_dict['RGB_mapping']
         self.XOR_channels = settings_dict['XOR_channels']
+        self.XOR_encryption = settings_dict['XOR_encryption'] if 'XOR_encryption' in settings_dict else bool(self.XOR_channels)
         self.noise_XOR = settings_dict['noise_XOR']
         self.noise_factor = settings_dict['noise_factor']
         self.password = settings_dict['password']
@@ -463,7 +471,7 @@ class Settings(object):
         self.saving_subsampling_level = settings_dict['saving_subsampling_level']
 
     def _inherit_tuple_settings(self, settings):
-        self.proc_mode, self.cutting_row, self.cutting_col, self.shuffle_chunks, self.flip_chunks, self.RGB_mapping, self.XOR_channels, self.noise_XOR, self.noise_factor, self.password, self.saving_path, self.saving_format_index, self.saving_quality, self.saving_subsampling_level = settings
+        self.proc_mode, self.cutting_row, self.cutting_col, self.shuffle_chunks, self.flip_chunks, self.RGB_mapping, self.XOR_encryption, self.XOR_channels, self.noise_XOR, self.noise_factor, self.password, self.saving_path, self.saving_format_index, self.saving_quality, self.saving_subsampling_level = settings
 
     def backtrack_interface(self):
         self.controls.proc_mode = self.proc_mode if self.proc_mode != DECRYPTION_MODE else ENCRYPTION_MODE
@@ -473,13 +481,12 @@ class Settings(object):
         self.controls.RGB_mapping = self.RGB_mapping
         self.controls.flip_chunks = self.flip_chunks
         self.controls.password = self.password
+        self.controls.XOR_encryption = self.XOR_encryption
         self.controls.noise_XOR = self.noise_XOR
         self.controls.noise_factor = self.noise_factor
         self.controls.noise_factor_info = str(self.noise_factor)
         self.controls.frame.processingSettingsPanel1.Enable()
         self.controls.frame.passwordCtrl.Enable()
-        if self.XOR_channels:
-            self.controls.XOR_encryption = True
         for i in 'rgba':
             self.controls.XOR_checkboxes[i].SetValue(i in self.XOR_channels)
 

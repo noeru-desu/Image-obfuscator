@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-29 21:52:16
+LastEditTime : 2022-01-31 16:18:53
 Description  : 图片加密模块
 '''
 import random
@@ -42,6 +42,8 @@ class ImageEncrypt(object):
     '''
     用于图像的加解密
     '''
+    random = random
+
     def __init__(self, image: Image.Image, row: int, col: int, random_seed):
         '''
         :param image: 需要加密的图片
@@ -64,7 +66,6 @@ class ImageEncrypt(object):
         self.pixel_array = array(resized_image, uint8)'''
         self.image = image
         self.init = False
-        self.random = random
 
     def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, rgb_mapping: bool, bar):
         '''

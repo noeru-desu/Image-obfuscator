@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-27 14:22:10
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 18:42:15
+LastEditTime : 2022-01-31 21:33:32
 Description  : 事件处理覆写
 '''
 from typing import TYPE_CHECKING
@@ -13,16 +13,16 @@ from wx import (DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
 
 from image_encryptor.constants import DO_NOT_REFRESH, AUTO_REFRESH, DECRYPTION_MODE, ENCRYPTION_MODE
 from image_encryptor.gui.frame.main_frame import MainFrame as BasicMainFrame
+from image_encryptor.gui.frame.tree_manager import FolderItem, ImageItem
 
 if TYPE_CHECKING:
     from wx import CommandEvent, TreeEvent, TreeItemId, SizeEvent
-
-    from image_encryptor.gui.frame.tree_manager import ImageItem
 
 
 class MainFrame(BasicMainFrame):
     def __init__(self, parent, run_path=...):
         super().__init__(parent, run_path)
+        self.deleted_item = False
         self.resized = False
 
     def on_move_end(self, event):
@@ -111,25 +111,28 @@ class MainFrame(BasicMainFrame):
             self.refresh_preview(event)
 
     def switch_image(self, event: 'TreeEvent'):
-        # TODO
         image_item: 'TreeItemId' = event.GetOldItem()
         if image_item.IsOk():
             image_data: 'ImageItem' = self.imageTreeCtrl.GetItemData(image_item)
-            if image_data is not None:
+            if isinstance(image_data, ImageItem):
                 settings = self.settings.all
-                '''if settings.proc_mode != image_data.settings.proc_mode:
-                    image_data.manual_switch_mode = True'''
                 image_data.settings = settings
+        elif self.deleted_item:
+            self.deleted_item = False
         else:
             self.apply_settings_to_all()
 
+        if not event.GetItem().IsOk():
+            self.controls.clear_preview()
+            return
         image_data: 'ImageItem' = self.imageTreeCtrl.GetItemData(event.GetItem())
-        if image_data is not None:
+        if isinstance(image_data, ImageItem):
             self.image_item = image_data
             if image_data.settings.proc_mode == DECRYPTION_MODE and image_data.encrypted_image:
                 image_data.encryption_data.backtrack_interface()
             else:
                 image_data.settings.backtrack_interface()
+            self.processingOptions.Enable()
 
             if self.previewMode.Selection == AUTO_REFRESH:
                 self.refresh_preview(event)
@@ -137,6 +140,14 @@ class MainFrame(BasicMainFrame):
                 self.controls.regen_processed_preview(self.image_item.processed_preview, True)
             if self.previewMode.Selection != AUTO_REFRESH:
                 self.controls.regen_initial_preview()
+        elif isinstance(image_data, FolderItem):
+            self.processingOptions.Disable()
+            self.controls.clear_preview()
+
+    def del_item(self, event):
+        if self.imageTreeCtrl.Selection.IsOk():
+            self.deleted_item = True
+            self.tree_manager.del_item(self.imageTreeCtrl.Selection)
 
     def set_settings_as_default(self, event=None):
         self.settings.default = self.settings.all
