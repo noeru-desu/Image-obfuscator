@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 10:32:41
+LastEditTime : 2022-02-01 10:39:42
 Description  : 节点树控制
 '''
 from abc import ABC
@@ -168,6 +168,9 @@ class ImageItem(Item):
         self.preview_size = None
         if dialog:
             self.frame.dialog.async_info('图像重载成功')
+            if self.frame.tree_manager.reloading_thread.exit_signal:
+                self.frame.stop_reloading(False)
+            self.frame.stop_reloading_func.init()
         return 1, 0
 
 
