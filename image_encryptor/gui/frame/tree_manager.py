@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 10:39:42
+LastEditTime : 2022-02-01 10:43:18
 Description  : 节点树控制
 '''
 from abc import ABC
@@ -161,6 +161,9 @@ class ImageItem(Item):
         if error is not None:
             if dialog:
                 self.frame.dialog.async_warning(f'图像重载失败: {error}')
+                if self.frame.tree_manager.reloading_thread.exit_signal:
+                    self.frame.stop_reloading(False)
+                self.frame.stop_reloading_func.init()
             return 0, 1
         self.loaded_image = loaded_image
         self.initial_preview = None
