@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 17:15:42
+LastEditTime : 2022-02-01 10:20:51
 Description  : 覆写窗口
 '''
 from concurrent.futures import ThreadPoolExecutor
@@ -59,7 +59,8 @@ class MainFrame(MF):
         self.image_saver = ImageSaver(self)
         self.imageTreeCtrl.SetDropTarget(DragLoader(self))
         self.savingOptions.SetDropTarget(DragSavingPath(self))
-        self.stop_loading_func = SegmentTrigger((self.set_stop_loading_signal, self.stop_loading), self.init_loading_plane)
+        self.stop_loading_func = SegmentTrigger((self.set_stop_loading_signal, self.stop_loading), self.init_loading_btn)
+        self.stop_reloading_func = SegmentTrigger((self.set_reloading_btn_text, self.set_stop_reloading_signal, self.stop_reloading), self.init_reloading_btn)
         self.exit_processor.register(self.process_pool.shutdown, wait=False, cancel_futures=True)
         self.exit_processor.register(self.universal_thread_pool.shutdown, wait=False, cancel_futures=True)
 
@@ -80,7 +81,7 @@ class MainFrame(MF):
 
         app.MainLoop()
 
-    def init_loading_plane(self):
+    def init_loading_btn(self):
         self.controls.loading_prograss = 0
         self.controls.loading_prograss_info = EmptyString
         self.controls.stop_loading_btn_text = '停止载入'
@@ -97,6 +98,24 @@ class MainFrame(MF):
     def set_stop_loading_signal(self):
         self.image_loader.loading_thread.set_exit_signal()
         self.controls.stop_loading_btn_text = '强制终止载入'
+
+    def init_reloading_btn(self):
+        self.controls.reloading_btn_text = '重载此项'
+
+    def set_reloading_btn_text(self):
+        self.controls.reloading_btn_text = '停止重载'
+
+    def stop_reloading(self, force=True):
+        if force:
+            self.tree_manager.reloading_thread.kill()
+            self.dialog.async_warning('已强制终止重载操作')
+        else:
+            self.dialog.async_warning('已停止重载操作')
+        self.stop_loading_func.init()
+
+    def set_stop_reloading_signal(self):
+        self.tree_manager.reloading_thread.set_exit_signal()
+        self.controls.stop_loading_btn_text = '强制终止重载'
 
     def apply_settings_to_all(self, settings_list=None):
         if settings_list is None:

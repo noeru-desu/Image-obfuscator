@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-31 21:25:09
+LastEditTime : 2022-02-01 10:32:41
 Description  : 节点树控制
 '''
 from abc import ABC
@@ -12,8 +12,10 @@ from typing import TYPE_CHECKING, Generator
 from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
 from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE
 
+from image_encryptor.common.utils.utils import open_image
 from image_encryptor.gui.modules.password_verifier import get_image_data
 from image_encryptor.gui.frame.controls import EncryptionParameters
+from image_encryptor.gui.utils.thread import ThreadManager
 
 if TYPE_CHECKING:
     from PIL.Image import Image
@@ -28,6 +30,7 @@ class TreeManager(object):
     def __init__(self, frame: 'MainFrame', tree_ctrl: 'TreeCtrl', root_name: str, root_icon_index=0):
         self.frame = frame
         self.tree_ctrl = tree_ctrl
+        self.reloading_thread = ThreadManager('reloading-thread')
         tree_image_list = ImageList(16, 16, True, 2)
         tree_image_list.Add(ArtProvider.GetBitmap(ART_FOLDER, size=Size(16, 16)))
         tree_image_list.Add(ArtProvider.GetBitmap(ART_NORMAL_FILE, size=Size(16, 16)))
@@ -87,9 +90,12 @@ class TreeManager(object):
         # self.frame.logger.info(f'文件添加至文件树: {file}')
 
     def del_item(self, item_id: 'TreeItemId'):
-        if not item_id.IsOk():
-            return
-        self.tree_ctrl.GetItemData(item_id).del_item(item_id)
+        if item_id.IsOk():
+            self.tree_ctrl.GetItemData(item_id).del_item(item_id)
+
+    def reload_item(self, item_id: 'TreeItemId'):
+        if item_id.IsOk():
+            self.reloading_thread.start_new(self.tree_ctrl.GetItemData(item_id).reload_item)
 
     @property
     def _all_item_data(self) -> Generator['ImageItem', None, None]:
@@ -99,7 +105,10 @@ class TreeManager(object):
 
 class Item(ABC):
     def del_item(self, item_id: 'TreeItemId', del_item=True):
-        return
+        ...
+
+    def reload_item(self, dialog=True):
+        ...
 
 
 class ImageItem(Item):
@@ -145,6 +154,22 @@ class ImageItem(Item):
                 del self.parent.children[item_id]
         del self.frame.tree_manager.file_dict[self.loaded_image_path]
 
+    def reload_item(self, dialog=True):
+        if self.frame.tree_manager.reloading_thread.exit_signal:
+            return 0, 0
+        loaded_image, error = open_image(self.loaded_image_path)
+        if error is not None:
+            if dialog:
+                self.frame.dialog.async_warning(f'图像重载失败: {error}')
+            return 0, 1
+        self.loaded_image = loaded_image
+        self.initial_preview = None
+        self.processed_preview = None
+        self.preview_size = None
+        if dialog:
+            self.frame.dialog.async_info('图像重载成功')
+        return 1, 0
+
 
 class FolderItem(Item):
     def __init__(self, frame: 'MainFrame', path, root=False):
@@ -166,3 +191,19 @@ class FolderItem(Item):
             del self.frame.tree_manager.root_dir_dict[self.path]
         else:
             del self.frame.tree_manager.dir_dict[self.path]
+
+    def reload_item(self, dialog=True):
+        if self.frame.tree_manager.reloading_thread.exit_signal:
+            return 0, 0
+        fail_num = 0
+        success_num = 0
+        for data in self.children.values():
+            add_success_num, add_fail_num = data.reload_item(False)
+            success_num += add_success_num
+            fail_num += add_fail_num
+        if dialog:
+            self.frame.dialog.async_info(f'重载成功: {success_num}个, 失败: {fail_num}个')
+            if self.frame.tree_manager.reloading_thread.exit_signal:
+                self.frame.stop_reloading(False)
+            self.frame.stop_reloading_func.init()
+        return success_num, fail_num

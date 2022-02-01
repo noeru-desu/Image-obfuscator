@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 16:41:45
+LastEditTime : 2022-02-01 09:26:36
 Description  : 文件保存功能
 '''
 from os import listdir
@@ -144,7 +144,7 @@ class ImageSaver(object):
         else:
             self.bar.next_step(self.task_num)
             self.frame.dialog.async_info(f'已添加{self.task_num}个批量(多进程)任务')
-            self.frame.saveProgressPrompt.SetLabelText(f'0/{self.task_num} - 0%')
+            self.frame.savingProgressInfo.SetLabelText(f'0/{self.task_num} - 0%')
         self.lock.release()     # 任务分配完毕，释放线程锁
 
     def cancel(self):
@@ -190,7 +190,7 @@ class ImageSaver(object):
         if ID_OK == dialog.ShowModal():
             return dialog.GetPath()
 
-    def _bulk_save_callback(self, future, tag_na, result):
+    def _bulk_save_callback(self, future, tag_name, result):
         """批量保存回调函数"""
         with self.lock:     # 线程锁，防止进度累加错误
             error, data = result

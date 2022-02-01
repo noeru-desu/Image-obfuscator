@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-31 21:30:05
+LastEditTime : 2022-02-01 10:16:48
 Description  : 整理
 '''
 from typing import TYPE_CHECKING, Callable, Iterable, NamedTuple, Optional
@@ -236,6 +236,14 @@ class Controls(object):
     @stop_loading_btn_text.setter
     def stop_loading_btn_text(self, v):
         self.frame.stopLoadingBtn.Label = v
+
+    @property
+    def reloading_btn_text(self) -> str:
+        return self.frame.reloadingBtn.Label
+
+    @reloading_btn_text.setter
+    def reloading_btn_text(self, v):
+        self.frame.reloadingBtn.Label = v
 
     @property
     def saving_quality_info(self) -> str:

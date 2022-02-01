@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-27 14:22:10
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-31 21:33:32
+LastEditTime : 2022-02-01 10:30:51
 Description  : 事件处理覆写
 '''
 from typing import TYPE_CHECKING
@@ -148,6 +148,13 @@ class MainFrame(BasicMainFrame):
         if self.imageTreeCtrl.Selection.IsOk():
             self.deleted_item = True
             self.tree_manager.del_item(self.imageTreeCtrl.Selection)
+
+    def reload_item(self, event):
+        if self.imageTreeCtrl.Selection.IsOk():
+            self.stop_reloading_func.call()
+            if self.tree_manager.reloading_thread.is_running:
+                return
+            self.tree_manager.reload_item(self.imageTreeCtrl.Selection)
 
     def set_settings_as_default(self, event=None):
         self.settings.default = self.settings.all

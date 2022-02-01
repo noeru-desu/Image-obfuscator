@@ -84,8 +84,8 @@ class MainFrame (wx.Frame):
         self.m_button10 = wx.Button(self.imageTreePanel, wx.ID_ANY, u"删除此项", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer40.Add(self.m_button10, 1, 0, 5)
 
-        self.m_button11 = wx.Button(self.imageTreePanel, wx.ID_ANY, u"重载此项", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer40.Add(self.m_button11, 1, 0, 5)
+        self.reloadingBtn = wx.Button(self.imageTreePanel, wx.ID_ANY, u"重载此项", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer40.Add(self.reloadingBtn, 1, 0, 5)
 
         bSizer262.Add(bSizer40, 0, wx.EXPAND, 5)
 
@@ -562,6 +562,7 @@ class MainFrame (wx.Frame):
         self.m_button5.Bind(wx.EVT_BUTTON, self.load_file)
         self.m_button6.Bind(wx.EVT_BUTTON, self.load_dir)
         self.m_button10.Bind(wx.EVT_BUTTON, self.del_item)
+        self.reloadingBtn.Bind(wx.EVT_BUTTON, self.reload_item)
         self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.switch_image)
         self.procMode.Bind(wx.EVT_RADIOBOX, self.processing_mode_change)
         self.passwordCtrl.Bind(wx.EVT_TEXT_ENTER, self.update_password_dict)
@@ -615,6 +616,9 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def del_item(self, event):
+        event.Skip()
+
+    def reload_item(self, event):
         event.Skip()
 
     def switch_image(self, event):
