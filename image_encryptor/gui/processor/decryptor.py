@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 18:28:16
+LastEditTime : 2022-02-01 17:22:12
 Description  : 单文件解密功能
 '''
 from os import makedirs
@@ -13,11 +13,10 @@ from typing import TYPE_CHECKING
 from image_encryptor.constants import EXTENSION_KEYS
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
 from image_encryptor.common.utils.utils import FakeBar
-from image_encryptor.gui.frame.controls import ProgressBar
+from image_encryptor.gui.frame.controls import ProgressBar, EncryptionParametersData, SavingSettings
 from PIL import Image
 
 if TYPE_CHECKING:
-    from image_encryptor.gui.frame.controls import EncryptionParameters, SavingSettings
     from image_encryptor.gui.frame.events import MainFrame
 
 
@@ -28,9 +27,9 @@ def normal(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
         return True, format_exc()
 
 
-def batch(image_data, path_data, settings, encryption_data, saving_format, auto_folder):
+def batch(image_data, path_data, encryption_data, saving_settings, auto_folder):
     try:
-        return False, _batch(image_data, path_data, settings, encryption_data, saving_format, auto_folder)
+        return False, _batch(image_data, path_data, EncryptionParametersData(encryption_data), SavingSettings(*saving_settings), auto_folder)
     except Exception:
         return True, format_exc()
 
@@ -95,7 +94,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
     return image
 
 
-def _batch(image_data, path_data, encryption_data: 'EncryptionParameters', saving_settings: 'SavingSettings', auto_folder):
+def _batch(image_data, path_data, encryption_data: 'EncryptionParametersData', saving_settings: 'SavingSettings', auto_folder):
     image = Image.frombytes(*image_data)
     image_encrypt = ImageEncrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, encryption_data.password if encryption_data.has_password else 100)
 
@@ -121,4 +120,3 @@ def _batch(image_data, path_data, encryption_data: 'EncryptionParameters', savin
         save_dir = saving_settings.path
 
     image.save(join(save_dir, name), quality=saving_settings.quality, subsampling=saving_settings.subsampling_level)
-    return None, None

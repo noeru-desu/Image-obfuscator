@@ -34,7 +34,7 @@ class MainFrame (wx.Frame):
         self.stopLoadingBtn = wx.Button(self.loadingPrograssPanel, wx.ID_ANY, u"停止载入", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer263.Add(self.stopLoadingBtn, 0, wx.ALL, 5)
 
-        self.loadingPrograss = wx.Gauge(self.loadingPrograssPanel, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL)
+        self.loadingPrograss = wx.Gauge(self.loadingPrograssPanel, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL | wx.GA_SMOOTH)
         self.loadingPrograss.SetValue(0)
         bSizer263.Add(self.loadingPrograss, 1, wx.ALIGN_CENTER | wx.ALL, 5)
 
@@ -107,27 +107,27 @@ class MainFrame (wx.Frame):
         bSizer261 = wx.BoxSizer(wx.VERTICAL)
 
         self.importedBitmap = wx.StaticBitmap(self.importedBitmapPlanel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer261.Add(self.importedBitmap, 1, wx.ALL | wx.EXPAND, 0)
+        bSizer261.Add(self.importedBitmap, 1, wx.EXPAND, 0)
 
         self.importedBitmapPlanel.SetSizer(bSizer261)
         self.importedBitmapPlanel.Layout()
         bSizer261.Fit(self.importedBitmapPlanel)
-        sbSizer2.Add(self.importedBitmapPlanel, 1, wx.EXPAND | wx.ALL, 5)
+        sbSizer2.Add(self.importedBitmapPlanel, 1, wx.EXPAND, 5)
 
         gSizer1.Add(sbSizer2, 1, wx.EXPAND, 5)
 
-        sbSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.imagePanel, wx.ID_ANY, u"处理结果-预览图"), wx.VERTICAL)
+        sbSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.imagePanel, wx.ID_ANY, u"处理结果-预览图(不准确)"), wx.VERTICAL)
 
         self.previewedBitmapPlanel = wx.Panel(sbSizer3.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer27 = wx.BoxSizer(wx.VERTICAL)
 
         self.previewedBitmap = wx.StaticBitmap(self.previewedBitmapPlanel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer27.Add(self.previewedBitmap, 1, wx.ALL | wx.EXPAND, 0)
+        bSizer27.Add(self.previewedBitmap, 1, wx.EXPAND, 0)
 
         self.previewedBitmapPlanel.SetSizer(bSizer27)
         self.previewedBitmapPlanel.Layout()
         bSizer27.Fit(self.previewedBitmapPlanel)
-        sbSizer3.Add(self.previewedBitmapPlanel, 1, wx.EXPAND | wx.ALL, 5)
+        sbSizer3.Add(self.previewedBitmapPlanel, 1, wx.EXPAND, 5)
 
         gSizer1.Add(sbSizer3, 1, wx.EXPAND, 5)
 

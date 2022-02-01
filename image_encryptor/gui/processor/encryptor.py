@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 17:10:36
+LastEditTime : 2022-02-01 17:12:40
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -16,11 +16,10 @@ from image_encryptor.common.modules.image_encrypt import ImageEncrypt
 from image_encryptor.common.modules.password_verifier import PasswordDict
 from image_encryptor.common.modules.version_adapter import get_encryption_parameters
 from image_encryptor.common.utils.utils import FakeBar
-from image_encryptor.gui.frame.controls import ProgressBar
+from image_encryptor.gui.frame.controls import ProgressBar, SettingsData, SavingSettings
 from PIL import Image
 
 if TYPE_CHECKING:
-    from image_encryptor.gui.frame.controls import Settings, SavingSettings
     from image_encryptor.gui.frame.events import MainFrame
 
 
@@ -33,7 +32,7 @@ def normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save: bool):
 
 def batch(image_data, path_data, settings, saving_format, auto_folder):
     try:
-        return False, _batch(image_data, path_data, settings, saving_format, auto_folder)
+        return False, _batch(image_data, path_data, SettingsData(settings), SavingSettings(*saving_format), auto_folder)
     except Exception:
         return True, format_exc()
 
@@ -111,7 +110,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
     return image
 
 
-def _batch(image_data, path_data, settings: 'Settings', saving_settings: 'SavingSettings', auto_folder):
+def _batch(image_data, path_data, settings: 'SettingsData', saving_settings: 'SavingSettings', auto_folder):
     image = Image.frombytes(*image_data)
     password = 100 if settings.password == 'none' else settings.password
     has_password = settings.password != 'none'

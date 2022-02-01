@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 10:43:18
+LastEditTime : 2022-02-01 15:26:46
 Description  : 节点树控制
 '''
 from abc import ABC
@@ -110,6 +110,11 @@ class Item(ABC):
     def reload_item(self, dialog=True):
         ...
 
+    def reload_done(self):
+        if self.frame.tree_manager.reloading_thread.exit_signal:
+            self.frame.stop_reloading(False)
+        self.frame.stop_reloading_func.init()
+
 
 class ImageItem(Item):
     """每个载入的图片的存储实例"""
@@ -161,9 +166,7 @@ class ImageItem(Item):
         if error is not None:
             if dialog:
                 self.frame.dialog.async_warning(f'图像重载失败: {error}')
-                if self.frame.tree_manager.reloading_thread.exit_signal:
-                    self.frame.stop_reloading(False)
-                self.frame.stop_reloading_func.init()
+                self.reload_done()
             return 0, 1
         self.loaded_image = loaded_image
         self.initial_preview = None
@@ -171,9 +174,7 @@ class ImageItem(Item):
         self.preview_size = None
         if dialog:
             self.frame.dialog.async_info('图像重载成功')
-            if self.frame.tree_manager.reloading_thread.exit_signal:
-                self.frame.stop_reloading(False)
-            self.frame.stop_reloading_func.init()
+            self.reload_done()
         return 1, 0
 
 
@@ -209,7 +210,5 @@ class FolderItem(Item):
             fail_num += add_fail_num
         if dialog:
             self.frame.dialog.async_info(f'重载成功: {success_num}个, 失败: {fail_num}个')
-            if self.frame.tree_manager.reloading_thread.exit_signal:
-                self.frame.stop_reloading(False)
-            self.frame.stop_reloading_func.init()
+            self.reload_done()
         return success_num, fail_num

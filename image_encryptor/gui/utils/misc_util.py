@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-12-26 17:31:44
+LastEditTime : 2022-02-01 16:45:14
 Description  : 一些小东西
 '''
 from threading import Lock
@@ -129,7 +129,7 @@ class ProcessTaskManager(ProcessPoolExecutor):
     def callback(self, watchdog_future, tag_name, future, callback=None, *callback_args, **callback_kwargs):
         if callback is not None:
             try:
-                callback(future, tag_name, *callback_args, **callback_kwargs)
+                callback(future, tag_name, future.result(), *callback_args, **callback_kwargs)
             except Exception:
                 print_exc()
         self.del_future(tag_name, future)

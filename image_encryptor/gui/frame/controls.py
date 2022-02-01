@@ -2,12 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 10:16:48
+LastEditTime : 2022-02-01 17:26:45
 Description  : 整理
 '''
-from typing import TYPE_CHECKING, Callable, Iterable, NamedTuple, Optional
+from abc import ABC
+from typing import TYPE_CHECKING, Callable, Iterable, Optional
 from hashlib import md5
-from inspect import isbuiltin
 
 from wx import Bitmap
 from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS
@@ -307,11 +307,11 @@ class Controls(object):
 
     @property
     def saving_progress_info(self) -> str:
-        return self.frame.selectSavingPath.Label
+        return self.frame.savingProgressInfo.Label
 
     @saving_progress_info.setter
     def saving_progress_info(self, v: str):
-        self.frame.selectSavingPath.Label = v
+        self.frame.savingProgressInfo.Label = v
 
     @property
     def saving_progress(self) -> int:
@@ -426,40 +426,33 @@ class SettingsManager(object):
                               self.controls.saving_quality, self.controls.saving_subsampling_level)
 
 
-class Settings(object):
-    SETTINGS_NAME = ('proc_mode', 'cutting_row', 'cutting_col', 'shuffle_chunks', 'flip_chunks',
-                     'RGB_mapping', 'XOR_encryption', 'XOR_channels', 'noise_XOR', 'noise_factor',
-                     'password', 'saving_path', 'saving_format_index', 'saving_quality', 'saving_subsampling_level')
+class SettingsBase(ABC):
+    SETTING_NAMES: tuple
 
-    def __init__(self, controls: 'Controls', settings=None):
-        self.controls = controls
-        if settings is None:
-            self._init()
-        elif isinstance(settings, dict):
-            self._inherit_dict_settings(settings)
-        elif isinstance(settings, tuple):
-            self._inherit_tuple_settings(settings)
+    def __repr__(self) -> str:
+        return ', '.join(f'{i}: {getattr(self, i)}' for i in self.SETTING_NAMES)
 
     def __getitem__(self, i):
         if isinstance(i, str):
             return getattr(self, i)
 
-    def _init(self):
-        self.proc_mode = self.controls.proc_mode
-        self.cutting_row = self.controls.cutting_row
-        self.cutting_col = self.controls.cutting_col
-        self.shuffle_chunks = self.controls.shuffle_chunks
-        self.flip_chunks = self.controls.flip_chunks
-        self.RGB_mapping = self.controls.RGB_mapping
-        self.XOR_encryption = self.controls.XOR_encryption
-        self.XOR_channels = self.controls.XOR_channels
-        self.noise_XOR = self.controls.noise_XOR
-        self.noise_factor = self.controls.noise_factor
-        self.password = self.controls.password
-        self.saving_path = self.controls.saving_path
-        self.saving_format_index = self.controls.saving_format_index
-        self.saving_quality = self.controls.saving_quality
-        self.saving_subsampling_level = self.controls.saving_subsampling_level
+    def generator(self):
+        return (getattr(self, i) for i in self.SETTING_NAMES)
+
+    def get_tuple(self):
+        return tuple(self.generator())
+
+
+class SettingsData(SettingsBase):
+    SETTING_NAMES = ('proc_mode', 'cutting_row', 'cutting_col', 'shuffle_chunks', 'flip_chunks',
+                     'RGB_mapping', 'XOR_encryption', 'XOR_channels', 'noise_XOR', 'noise_factor',
+                     'password', 'saving_path', 'saving_format_index', 'saving_quality', 'saving_subsampling_level')
+
+    def __init__(self, settings):
+        if isinstance(settings, dict):
+            self._inherit_dict_settings(settings)
+        elif isinstance(settings, tuple):
+            self.proc_mode, self.cutting_row, self.cutting_col, self.shuffle_chunks, self.flip_chunks, self.RGB_mapping, self.XOR_encryption, self.XOR_channels, self.noise_XOR, self.noise_factor, self.password, self.saving_path, self.saving_format_index, self.saving_quality, self.saving_subsampling_level = settings
 
     def _inherit_dict_settings(self, settings_dict):
         self.proc_mode = settings_dict['proc_mode']
@@ -478,8 +471,34 @@ class Settings(object):
         self.saving_quality = settings_dict['saving_quality']
         self.saving_subsampling_level = settings_dict['saving_subsampling_level']
 
-    def _inherit_tuple_settings(self, settings):
-        self.proc_mode, self.cutting_row, self.cutting_col, self.shuffle_chunks, self.flip_chunks, self.RGB_mapping, self.XOR_encryption, self.XOR_channels, self.noise_XOR, self.noise_factor, self.password, self.saving_path, self.saving_format_index, self.saving_quality, self.saving_subsampling_level = settings
+    def deepcopy(self):
+        return SettingsData(tuple(self.generator()))
+
+
+class Settings(SettingsData):
+    def __init__(self, controls: 'Controls', settings=None):
+        self.controls = controls
+        if settings is None:
+            self._init()
+        else:
+            super().__init__(settings)
+
+    def _init(self):
+        self.proc_mode = self.controls.proc_mode
+        self.cutting_row = self.controls.cutting_row
+        self.cutting_col = self.controls.cutting_col
+        self.shuffle_chunks = self.controls.shuffle_chunks
+        self.flip_chunks = self.controls.flip_chunks
+        self.RGB_mapping = self.controls.RGB_mapping
+        self.XOR_encryption = self.controls.XOR_encryption
+        self.XOR_channels = self.controls.XOR_channels
+        self.noise_XOR = self.controls.noise_XOR
+        self.noise_factor = self.controls.noise_factor
+        self.password = self.controls.password
+        self.saving_path = self.controls.saving_path
+        self.saving_format_index = self.controls.saving_format_index
+        self.saving_quality = self.controls.saving_quality
+        self.saving_subsampling_level = self.controls.saving_subsampling_level
 
     def backtrack_interface(self):
         self.controls.proc_mode = self.proc_mode if self.proc_mode != DECRYPTION_MODE else ENCRYPTION_MODE
@@ -499,28 +518,30 @@ class Settings(object):
             self.controls.XOR_checkboxes[i].SetValue(i in self.XOR_channels)
 
     def deepcopy(self):
-        return Settings(self.controls, tuple(getattr(self, i) for i in Settings.SETTINGS_NAME))
+        return Settings(self.controls, tuple(self.generator()))
 
 
-class SavingSettings(NamedTuple):
-    path: str
-    format_index: int
-    format: str
-    quality: int
-    subsampling_level: int
+class SavingSettings(SettingsBase):
+    SETTING_NAMES = ('path', 'format_index', 'format', 'quality', 'subsampling_level')
+
+    def __init__(self, path: str, format_index: int, format: str, quality: int, subsampling_level: int):
+        self.path = path
+        self.format_index = format_index
+        self.format = format
+        self.quality = quality
+        self.subsampling_level = subsampling_level
 
 
-class EncryptionParameters(object):
-    def __init__(self, controls: 'Controls', parameters: dict):
-        self.controls = controls
-        self._inherit_dict_settings(parameters)
+class EncryptionParametersData(SettingsBase):
+    SETTING_NAMES = ('cutting_row', 'cutting_col', 'orig_width', 'orig_height', 'shuffle_chunks',
+                     'flip_chunks', 'RGB_mapping', 'XOR_channels', 'noise_XOR', 'noise_factor',
+                     'has_password', 'password_base64', 'password')
 
-    def __repr__(self) -> str:
-        return '{0}\n{1}'.format(self, '\n'.join(f'{n} = {getattr(self, n)}' for n in dir(self) if isbuiltin(getattr(self, n))))
-
-    def __getitem__(self, i):
-        if isinstance(i, str):
-            return getattr(self, i)
+    def __init__(self, parameters):
+        if isinstance(parameters, dict):
+            self._inherit_dict_settings(parameters)
+        elif isinstance(parameters, tuple):
+            self.cutting_row, self.cutting_col, self.orig_width, self.orig_height, self.shuffle_chunks, self.flip_chunks, self.RGB_mapping, self.XOR_channels, self.noise_XOR, self.noise_factor, self.has_password, self.password_base64, self.password = parameters
 
     def _inherit_dict_settings(self, parameters_dict):
         self.cutting_row = parameters_dict['row']
@@ -536,6 +557,12 @@ class EncryptionParameters(object):
         self.has_password = parameters_dict['has_password']
         self.password_base64 = parameters_dict['password_base64']
         self.password = None
+
+
+class EncryptionParameters(EncryptionParametersData):
+    def __init__(self, controls: 'Controls', parameters):
+        self.controls = controls
+        super().__init__(parameters)
 
     def backtrack_interface(self):
         self.controls.proc_mode = DECRYPTION_MODE

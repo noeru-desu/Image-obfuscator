@@ -2,11 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 17:02:04
+LastEditTime : 2022-02-01 17:00:25
 Description  : 文件载入功能
 '''
-from os.path import isfile, isdir, join
-from posixpath import split
+from os.path import isfile, isdir, join, split
 from typing import TYPE_CHECKING, Iterable
 
 from PIL import Image

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 09:26:36
+LastEditTime : 2022-02-01 17:25:17
 Description  : 文件保存功能
 '''
 from os import listdir
@@ -26,10 +26,10 @@ if TYPE_CHECKING:
     from image_encryptor.gui.frame.tree_manager import ImageItem
 
 ENABLE = 2
-DISABLE = 2
-IGNORE = 2
-USE_FOLDER = 3
-DO_NOT_USE_FOLDER = 4
+DISABLE = 3
+IGNORE = 4
+USE_FOLDER = 5
+DO_NOT_USE_FOLDER = 6
 
 id_dict = {CHK_UNDETERMINED: IGNORE, CHK_CHECKED: ENABLE, CHK_UNCHECKED: DISABLE}
 convert_settings = {True: ENABLE, False: DISABLE}
@@ -109,7 +109,7 @@ class ImageSaver(object):
             if image_item.encrypted_image and not image_item.manual_switch_mode:
                 image_item.settings.proc_mode = DECRYPTION_MODE             # TODO 检测是否为没有被手动更改过模式的可解密图片
 
-            if self.filter.check(image_item.settings):      # 进行设置过滤
+            if not self.filter.check(image_item.settings):      # 进行设置过滤
                 continue
             uf = False                                      # use_folder的局部变量名
             if not use_folder:                              # 对未使用多级文件夹的情况的一些询问
@@ -126,15 +126,15 @@ class ImageSaver(object):
             image_data = ('RGBA', image_item.loaded_image.size, image_item.loaded_image.tobytes())  # 打包所需的可封存的对象
 
             if image_item.settings.proc_mode == ENCRYPTION_MODE:
-                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(encryptor.batch, image_data, image_item.path_data, image_item.settings, self.frame.settings.saving_settings, uf), self._bulk_save_callback)
+                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(encryptor.batch, image_data, image_item.path_data, image_item.settings.get_tuple(), self.frame.settings.saving_settings.get_tuple(), uf), self._bulk_save_callback)
             elif image_item.settings.proc_mode == DECRYPTION_MODE:
-                image_item.encryption_data.password = self.frame.password_dict.get(image_item.encryption_data.password_base64, None)
+                image_item.encryption_data.password = self.frame.password_dict.get_password(image_item.encryption_data.password_base64)
                 if image_item.encryption_data.password is None:
                     self.frame.logger.warning(f'[{image_item.path_data[-1]}]未找到密码，跳过保存')
                     continue
-                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(decryptor.batch, image_data, image_item.path_data, image_item.encryption_data, self.frame.settings.saving_settings, uf), self._bulk_save_callback)
+                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(decryptor.batch, image_data, image_item.path_data, image_item.encryption_data.get_tuple(), self.frame.settings.saving_settings.get_tuple(), uf), self._bulk_save_callback)
             else:
-                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(qq_anti_harmony.batch, image_data, self.frame.settings.saving_settings, uf), self._bulk_save_callback)
+                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(qq_anti_harmony.batch, image_data, self.frame.settings.saving_settings.get_tuple(), uf), self._bulk_save_callback)
 
             self.task_num += 1
 
@@ -153,10 +153,10 @@ class ImageSaver(object):
 
     def _check_dir(self, image_item: 'ImageItem'):
         """文件夹相关检查"""
-        if not listdir(image_item.settings.saving_path):     # 是否为空文件夹
+        if not listdir(self.frame.controls.saving_path):     # 是否为空文件夹
             return DO_NOT_USE_FOLDER
         if image_item.path_data[1]:                             # 是否有多级文件夹可使用
-            frame_id = self.frame.dialog.confirmation_frame(f'{image_item.path_data[-1]}所选的保存文件夹{image_item.settings.saving_path}内有其他文件' + '\n' + '请选择处理方式', yes='仍然保存', no='选择新的文件夹进行保存', cancel='创建文件树同级文件夹保存', help='跳过保存该文件')
+            frame_id = self.frame.dialog.confirmation_frame(f'{image_item.path_data[-1]}所选的保存文件夹{self.frame.controls.saving_path}内有其他文件' + '\n' + '请选择处理方式', yes='仍然保存', no='选择新的文件夹进行保存', cancel='创建文件树同级文件夹保存', help='跳过保存该文件')
             if frame_id == ID_YES:
                 return DO_NOT_USE_FOLDER
             elif frame_id == ID_NO:
@@ -164,14 +164,14 @@ class ImageSaver(object):
                 if path is None:
                     return
                 else:
-                    image_item.settings.saving_path = path
+                    self.frame.controls.saving_path = path
                     return DO_NOT_USE_FOLDER
             elif frame_id == ID_CANCEL:
                 return USE_FOLDER
             else:
                 return
         else:
-            frame_id = self.frame.dialog.confirmation_frame(f'{image_item.path_data[-1]}所选的保存文件夹{image_item.settings.saving_path}内有其他文件' + '\n' + '请选择处理方式', yes='仍然保存', no='选择新的文件夹进行保存', cancel='跳过保存该文件')
+            frame_id = self.frame.dialog.confirmation_frame(f'{image_item.path_data[-1]}所选的保存文件夹{self.frame.controls.saving_path}内有其他文件' + '\n' + '请选择处理方式', yes='仍然保存', no='选择新的文件夹进行保存', cancel='跳过保存该文件')
             if frame_id == ID_YES:
                 return DO_NOT_USE_FOLDER
             elif frame_id == ID_NO:
@@ -179,7 +179,7 @@ class ImageSaver(object):
                 if path is None:
                     return
                 else:
-                    image_item.settings.saving_path = path
+                    self.frame.controls.saving_path = path
                     return DO_NOT_USE_FOLDER
             else:
                 return
@@ -192,6 +192,7 @@ class ImageSaver(object):
 
     def _bulk_save_callback(self, future, tag_name, result):
         """批量保存回调函数"""
+        # TODO result疑似无法获取(疑似ProcessTaskManager.callback出现问题)
         with self.lock:     # 线程锁，防止进度累加错误
             error, data = result
             if error:
@@ -260,18 +261,17 @@ class Filter(NamedTuple):
     xor_filter: int = IGNORE
 
     def check(self, settings: 'Settings') -> bool:
-        if not settings.saving_path:
-            return True
+        """满足过滤要求则返回True"""
         if settings.proc_mode not in self.mode:
-            return True
+            return False
         if self.password is not IGNORE and convert_settings[settings.password == 'none'] is self.password:
-            return True
+            return False
         if self.shuffle is not IGNORE and convert_settings[settings.shuffle_chunks] is not self.shuffle:
-            return True
+            return False
         if self.flip_filter is not IGNORE and convert_settings[settings.flip_chunks] is not self.flip_filter:
-            return True
+            return False
         if self.mapping_filter is not IGNORE and convert_settings[settings.RGB_mapping] is not self.mapping_filter:
-            return True
+            return False
         if self.xor_filter is not IGNORE and convert_settings[bool(settings.XOR_channels)] is not self.xor_filter:
-            return True
-        return False
+            return False
+        return True
