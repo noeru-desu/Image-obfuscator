@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 15:26:46
+LastEditTime : 2022-02-02 20:39:24
 Description  : 节点树控制
 '''
 from abc import ABC
@@ -125,15 +125,17 @@ class ImageItem(Item):
         self.path_data = path_data
         self.loaded_image_path = join(*path_data)
         self.settings = settings
+        self.parent = None
+        self._init_cache()
+
+    def _init_cache(self):
         self.initial_preview = None
         self.processed_preview = None
         self.preview_size = None
         self.encryption_settings_md5 = None
-        self.manual_switch_mode = False
         self.encrypted_image = None
         self.encryption_data: 'EncryptionParameters' = None
         self.loading_image_data_error = None
-        self.parent = None
 
     def check_encryption_parameters(self):
         if self.encrypted_image is None:
@@ -169,9 +171,8 @@ class ImageItem(Item):
                 self.reload_done()
             return 0, 1
         self.loaded_image = loaded_image
-        self.initial_preview = None
-        self.processed_preview = None
-        self.preview_size = None
+        self._init_cache()
+        self.load_encryption_parameters()
         if dialog:
             self.frame.dialog.async_info('图像重载成功')
             self.reload_done()

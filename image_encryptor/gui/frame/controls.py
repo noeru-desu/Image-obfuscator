@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-02 20:14:41
+LastEditTime : 2022-02-02 20:42:47
 Description  : 整理
 '''
 from abc import ABC
@@ -606,7 +606,7 @@ class EncryptionParameters(EncryptionParametersData):
                 self.controls.password = self.password
         else:
             self.controls.frame.passwordCtrl.Disable()
-            self.controls.password = '无密码'
+            self.controls.password = 'none'
 
 
 class ProgressBar(object):
