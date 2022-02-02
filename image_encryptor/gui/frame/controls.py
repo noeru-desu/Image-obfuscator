@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-02 10:04:22
+LastEditTime : 2022-02-02 20:14:41
 Description  : 整理
 '''
 from abc import ABC
@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Callable, Iterable, Optional
 from hashlib import md5
 
 from wx import Bitmap
-from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS
+from image_encryptor.constants import ANTY_HARMONY_MODE, DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS
 
 from image_encryptor.gui.utils.misc_util import scale
 
@@ -508,6 +508,12 @@ class Settings(SettingsData):
 
     def backtrack_interface(self):
         self.controls.proc_mode = self.proc_mode if self.proc_mode != DECRYPTION_MODE else ENCRYPTION_MODE
+        if self.controls.proc_mode == ANTY_HARMONY_MODE:
+            self.controls.frame.processingSettingsPanel1.Disable()
+            self.controls.frame.passwordCtrl.Disable()
+        else:
+            self.controls.frame.processingSettingsPanel1.Enable()
+            self.controls.frame.passwordCtrl.Enable()
         self.controls.cutting_row = self.cutting_row
         self.controls.cutting_col = self.cutting_col
         self.controls.shuffle_chunks = self.shuffle_chunks

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-27 14:22:10
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 10:30:51
+LastEditTime : 2022-02-02 20:15:50
 Description  : 事件处理覆写
 '''
 from typing import TYPE_CHECKING
@@ -11,7 +11,7 @@ from wx import (DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
                 FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, ID_OK, DirDialog,
                 FileDialog)
 
-from image_encryptor.constants import DO_NOT_REFRESH, AUTO_REFRESH, DECRYPTION_MODE, ENCRYPTION_MODE
+from image_encryptor.constants import ANTY_HARMONY_MODE, DO_NOT_REFRESH, AUTO_REFRESH, DECRYPTION_MODE, ENCRYPTION_MODE
 from image_encryptor.gui.frame.main_frame import MainFrame as BasicMainFrame
 from image_encryptor.gui.frame.tree_manager import FolderItem, ImageItem
 
@@ -89,8 +89,12 @@ class MainFrame(BasicMainFrame):
         if self.image_item is None:
             return
         if self.controls.proc_mode != DECRYPTION_MODE:
-            self.processingSettingsPanel1.Enable()
-            self.passwordCtrl.Enable()
+            if self.controls.proc_mode == ANTY_HARMONY_MODE:
+                self.controls.frame.processingSettingsPanel1.Disable()
+                self.controls.frame.passwordCtrl.Disable()
+            else:
+                self.controls.frame.processingSettingsPanel1.Enable()
+                self.controls.frame.passwordCtrl.Enable()
         else:
             self.image_item.check_encryption_parameters()
             if self.image_item.loading_image_data_error is not None:

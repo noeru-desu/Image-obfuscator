@@ -83,9 +83,13 @@ class MainFrame (wx.Frame):
         bSizer40 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.m_button10 = wx.Button(self.imageTreePanel, wx.ID_ANY, u"删除此项", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button10.SetToolTip(u"卸载选中的项目")
+
         bSizer40.Add(self.m_button10, 1, 0, 5)
 
         self.reloadingBtn = wx.Button(self.imageTreePanel, wx.ID_ANY, u"重载此项", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.reloadingBtn.SetToolTip(u"重新加载选中项目的图像文件")
+
         bSizer40.Add(self.reloadingBtn, 1, 0, 5)
 
         bSizer262.Add(bSizer40, 0, wx.EXPAND, 5)
@@ -159,7 +163,9 @@ class MainFrame (wx.Frame):
 
         self.passwordCtrl = wx.TextCtrl(self.processingOptions, wx.ID_ANY, u"none", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_PROCESS_ENTER)
         self.passwordCtrl.SetMaxLength(32)
-        bSizer282.Add(self.passwordCtrl, 0, wx.ALL, 0)
+        self.passwordCtrl.SetToolTip(u"none表示不使用密码，密码长度不可超过32字节")
+
+        bSizer282.Add(self.passwordCtrl, 0, wx.ALL | wx.EXPAND, 0)
 
         bSizer12.Add(bSizer282, 0, wx.EXPAND, 5)
 
@@ -219,17 +225,25 @@ class MainFrame (wx.Frame):
 
         self.XORR = wx.CheckBox(self.xorPanel, wx.ID_ANY, u"R", wx.DefaultPosition, wx.Size(-1, -1), 0)
         self.XORR.SetValue(True)
+        self.XORR.SetToolTip(u"红色通道")
+
         bSizer42.Add(self.XORR, 0, wx.ALL, 0)
 
         self.XORG = wx.CheckBox(self.xorPanel, wx.ID_ANY, u"G", wx.DefaultPosition, wx.Size(-1, -1), 0)
         self.XORG.SetValue(True)
+        self.XORG.SetToolTip(u"绿色通道")
+
         bSizer42.Add(self.XORG, 0, wx.ALL, 0)
 
         self.XORB = wx.CheckBox(self.xorPanel, wx.ID_ANY, u"B", wx.DefaultPosition, wx.Size(-1, -1), 0)
         self.XORB.SetValue(True)
+        self.XORB.SetToolTip(u"蓝色通道")
+
         bSizer42.Add(self.XORB, 0, wx.ALL, 0)
 
         self.XORA = wx.CheckBox(self.xorPanel, wx.ID_ANY, u"A", wx.DefaultPosition, wx.Size(-1, -1), 0)
+        self.XORA.SetToolTip(u"透明通道")
+
         bSizer42.Add(self.XORA, 0, wx.ALL, 0)
 
         bSizer47.Add(bSizer42, 0, 0, 0)
@@ -237,6 +251,8 @@ class MainFrame (wx.Frame):
         bSizer44 = wx.BoxSizer(wx.VERTICAL)
 
         self.noiseXor = wx.CheckBox(self.xorPanel, wx.ID_ANY, u"噪音", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT)
+        self.noiseXor.SetToolTip(u"使用随机的数值异或每一像素")
+
         bSizer44.Add(self.noiseXor, 0, wx.ALIGN_RIGHT | wx.ALL, 0)
 
         bSizer331 = wx.BoxSizer(wx.HORIZONTAL)
@@ -296,9 +312,13 @@ class MainFrame (wx.Frame):
         bSizer29.Add(self.m_staticText14, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
         self.m_button31 = wx.Button(self.previewOptions, wx.ID_ANY, u"应用到全部", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button31.SetToolTip(u"将当前的处理设置应用到所有已加载的项目中")
+
         bSizer29.Add(self.m_button31, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
         self.m_button311 = wx.Button(self.previewOptions, wx.ID_ANY, u"设置为默认", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button311.SetToolTip(u"将当前的处理设置设置为默认设置，新加载的项目将会使用默认设置")
+
         bSizer29.Add(self.m_button311, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
         bSizer29.Add((0, 0), 1, wx.EXPAND, 5)
@@ -356,26 +376,26 @@ class MainFrame (wx.Frame):
         self.m_staticText81 = wx.StaticText(self.savingOptions, wx.ID_ANY, u"保存位置", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText81.Wrap(-1)
 
-        bSizer265.Add(self.m_staticText81, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+        bSizer265.Add(self.m_staticText81, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
         self.selectSavingPath = wx.DirPickerCtrl(self.savingOptions, wx.ID_ANY, wx.EmptyString, u"选择保存位置", wx.DefaultPosition, wx.DefaultSize, wx.DIRP_DEFAULT_STYLE | wx.DIRP_DIR_MUST_EXIST)
-        bSizer265.Add(self.selectSavingPath, 1, wx.ALL | wx.EXPAND, 3)
+        bSizer265.Add(self.selectSavingPath, 1, wx.ALL | wx.EXPAND, 2)
 
         savingFormatChoices = [u"blp", u"bmp", u"dib", u"bufr", u"cur", u"pcx", u"dcx", u"dds", u"ps", u"eps", u"fit", u"fits", u"fli", u"flc", u"ftc", u"ftu", u"gbr", u"gif", u"grib", u"h5", u"hdf", u"png", u"apng", u"jp2", u"j2k", u"jpc", u"jpf", u"jpx", u"j2c", u"icns", u"ico", u"im",
                                u"iim", u"tif", u"tiff", u"jfif", u"jpe", u"jpg", u"jpeg", u"mpg", u"mpeg", u"mpo", u"msp", u"palm", u"pcd", u"pdf", u"pxr", u"pbm", u"pgm", u"ppm", u"pnm", u"psd", u"bw", u"rgb", u"rgba", u"sgi", u"ras", u"tga", u"icb", u"vda", u"vst", u"webp", u"wmf", u"emf", u"xbm", u"xpm"]
         self.savingFormat = wx.Choice(self.savingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, savingFormatChoices, 0)
         self.savingFormat.SetSelection(21)
-        bSizer265.Add(self.savingFormat, 0, wx.ALIGN_CENTER | wx.ALL, 3)
+        bSizer265.Add(self.savingFormat, 0, wx.ALIGN_CENTER | wx.ALL, 4)
 
         bSizer191.Add(bSizer265, 0, wx.EXPAND, 0)
 
-        sbSizer61 = wx.StaticBoxSizer(wx.StaticBox(self.savingOptions, wx.ID_ANY, u"高级设置"), wx.HORIZONTAL)
+        sbSizer61 = wx.StaticBoxSizer(wx.StaticBox(self.savingOptions, wx.ID_ANY, u"高级设置(有损格式保存相关，如jpg)"), wx.HORIZONTAL)
 
         bSizer44 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer451 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText8212 = wx.StaticText(sbSizer61.GetStaticBox(), wx.ID_ANY, u"有损保存质量:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText8212 = wx.StaticText(sbSizer61.GetStaticBox(), wx.ID_ANY, u"保存质量:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText8212.Wrap(-1)
 
         self.m_staticText8212.SetToolTip(u"(1-100)保存为有损格式时，值越大保存的文件越大，质量越好")
@@ -398,7 +418,7 @@ class MainFrame (wx.Frame):
 
         bSizer461 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText82111 = wx.StaticText(sbSizer61.GetStaticBox(), wx.ID_ANY, u"有损色度抽样等级:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText82111 = wx.StaticText(sbSizer61.GetStaticBox(), wx.ID_ANY, u"色度抽样等级:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText82111.Wrap(-1)
 
         self.m_staticText82111.SetToolTip(u"(0-2) 0表示不使用，等级越高，保存有损格式时获得的文件大小越小，但会导致图片出现噪点，使图片解密后失真")

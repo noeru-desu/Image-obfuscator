@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 17:12:48
+LastEditTime : 2022-02-02 18:17:06
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
 from os import makedirs
@@ -43,9 +43,10 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
     image.putpixel((image.size[0] - 1, image.size[1] - 1), (randint(256), randint(256), randint(256)))
 
     if save:
+        gauge.SetValue(50)
         logger('完成，正在保存文件')
         name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
-        suffix = EXTENSION_KEYS[frame.controls.saving_path]
+        suffix = EXTENSION_KEYS[frame.controls.saving_format_index]
         name = f'{name}-anti-harmony.{suffix}'
         if suffix.lower() in ('jpg', 'jpeg'):
             image = image.convert('RGB')

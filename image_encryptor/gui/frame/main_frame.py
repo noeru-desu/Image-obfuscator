@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 10:20:51
+LastEditTime : 2022-02-02 13:37:40
 Description  : 覆写窗口
 '''
 from concurrent.futures import ThreadPoolExecutor
@@ -11,7 +11,7 @@ from os import getcwd
 from sys import version
 from typing import TYPE_CHECKING
 
-from image_encryptor.constants import BRANCH, OPEN_SOURCE_URL, SUB_VERSION_NUMBER, VERSION_BATCH, VERSION_NUMBER
+from image_encryptor.constants import BRANCH, OPEN_SOURCE_URL, SUB_VERSION_NUMBER, VERSION_BATCH, VERSION_NUMBER, VERSION_TYPE
 from image_encryptor.common.modules.password_verifier import PasswordDict
 from image_encryptor.common.utils.logger import Logger
 from image_encryptor.gui.frame.controls import Controls, SettingsManager
@@ -39,7 +39,10 @@ class MainFrame(MF):
 
     def __init__(self, parent, run_path=getcwd()):
         super().__init__(parent)
-        self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
+        if VERSION_TYPE > 0:
+            self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
+        else:
+            self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}')
 
         # 实例化组件
         self.logger = Logger('image-encryptor')
@@ -65,7 +68,6 @@ class MainFrame(MF):
         self.exit_processor.register(self.universal_thread_pool.shutdown, wait=False, cancel_futures=True)
 
         # 准备工作
-        self.xorPanel.Disable()
         self.run_path = run_path
 
         self.image_item: 'ImageItem' = None
