@@ -76,8 +76,9 @@ class MainFrame (wx.Frame):
         self.imageTreeSearchCtrl.ShowSearchButton(True)
         self.imageTreeSearchCtrl.ShowCancelButton(True)
         self.imageTreeSearchCtrl.Enable(False)
+        self.imageTreeSearchCtrl.Hide()
 
-        bSizer262.Add(self.imageTreeSearchCtrl, 0, wx.ALL | wx.EXPAND, 5)
+        bSizer262.Add(self.imageTreeSearchCtrl, 0, wx.ALL | wx.EXPAND, 2)
 
         bSizer40 = wx.BoxSizer(wx.HORIZONTAL)
 

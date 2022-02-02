@@ -669,7 +669,7 @@
                                     <property name="orient">wxVERTICAL</property>
                                     <property name="permission">none</property>
                                     <object class="sizeritem" expanded="0">
-                                        <property name="border">5</property>
+                                        <property name="border">2</property>
                                         <property name="flag">wxALL|wxEXPAND</property>
                                         <property name="proportion">0</property>
                                         <object class="wxSearchCtrl" expanded="0">
@@ -699,7 +699,7 @@
                                             <property name="floatable">1</property>
                                             <property name="font"></property>
                                             <property name="gripper">0</property>
-                                            <property name="hidden">0</property>
+                                            <property name="hidden">1</property>
                                             <property name="id">wxID_ANY</property>
                                             <property name="max_size"></property>
                                             <property name="maximize_button">0</property>

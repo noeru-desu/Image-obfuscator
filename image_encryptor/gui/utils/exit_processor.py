@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 12:19:41
+LastEditTime : 2022-02-02 09:39:00
 Description  : 处理退出时的相关操作
 '''
 from atexit import register
@@ -23,4 +23,3 @@ class ExitProcessor(object):
                 func(*args, **kwargs)
             except Exception:
                 print_exc()
-                pass

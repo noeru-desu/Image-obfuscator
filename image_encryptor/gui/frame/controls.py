@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 17:26:45
+LastEditTime : 2022-02-02 10:04:22
 Description  : 整理
 '''
 from abc import ABC
@@ -436,11 +436,17 @@ class SettingsBase(ABC):
         if isinstance(i, str):
             return getattr(self, i)
 
-    def generator(self):
+    def inherit_tuple(self, settings: tuple):
+        for n, v in zip(self.SETTING_NAMES, settings):
+            setattr(self, n, v)
+
+    @property
+    def properties(self):
         return (getattr(self, i) for i in self.SETTING_NAMES)
 
-    def get_tuple(self):
-        return tuple(self.generator())
+    @property
+    def properties_tuple(self):
+        return tuple(self.properties)
 
 
 class SettingsData(SettingsBase):
@@ -452,7 +458,7 @@ class SettingsData(SettingsBase):
         if isinstance(settings, dict):
             self._inherit_dict_settings(settings)
         elif isinstance(settings, tuple):
-            self.proc_mode, self.cutting_row, self.cutting_col, self.shuffle_chunks, self.flip_chunks, self.RGB_mapping, self.XOR_encryption, self.XOR_channels, self.noise_XOR, self.noise_factor, self.password, self.saving_path, self.saving_format_index, self.saving_quality, self.saving_subsampling_level = settings
+            self.inherit_tuple(settings)
 
     def _inherit_dict_settings(self, settings_dict):
         self.proc_mode = settings_dict['proc_mode']
@@ -472,7 +478,7 @@ class SettingsData(SettingsBase):
         self.saving_subsampling_level = settings_dict['saving_subsampling_level']
 
     def deepcopy(self):
-        return SettingsData(tuple(self.generator()))
+        return SettingsData(tuple(self.properties))
 
 
 class Settings(SettingsData):
@@ -512,13 +518,14 @@ class Settings(SettingsData):
         self.controls.noise_XOR = self.noise_XOR
         self.controls.noise_factor = self.noise_factor
         self.controls.noise_factor_info = str(self.noise_factor)
+        self.controls.frame.xorPanel.Enable(self.XOR_encryption)
         self.controls.frame.processingSettingsPanel1.Enable()
         self.controls.frame.passwordCtrl.Enable()
         for i in 'rgba':
             self.controls.XOR_checkboxes[i].SetValue(i in self.XOR_channels)
 
     def deepcopy(self):
-        return Settings(self.controls, tuple(self.generator()))
+        return Settings(self.controls, tuple(self.properties))
 
 
 class SavingSettings(SettingsBase):
@@ -541,7 +548,7 @@ class EncryptionParametersData(SettingsBase):
         if isinstance(parameters, dict):
             self._inherit_dict_settings(parameters)
         elif isinstance(parameters, tuple):
-            self.cutting_row, self.cutting_col, self.orig_width, self.orig_height, self.shuffle_chunks, self.flip_chunks, self.RGB_mapping, self.XOR_channels, self.noise_XOR, self.noise_factor, self.has_password, self.password_base64, self.password = parameters
+            self.inherit_tuple(parameters)
 
     def _inherit_dict_settings(self, parameters_dict):
         self.cutting_row = parameters_dict['row']
