@@ -110,8 +110,8 @@ jobs:
         mkdir nuitka
         mkdir unpackaged
         mkdir packaged
-        if ${{ matrix.build_type_a }} == cli nuitka --python-flag=-OO --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,pkg-resources,numpy,multiprocessing,upx --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --output-dir=nuitka --include-module=PIL.* image_encryptor_cli.py
-        if ${{ matrix.build_type_a }} == gui nuitka --python-flag=-OO --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,pkg-resources,numpy,multiprocessing,upx --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --include-module=wx._xml,PIL.* --output-dir=nuitka image_encryptor_gui.py
+        if ${{ matrix.build_type_a }} == cli nuitka --python-flag=-OO --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,pkg-resources,numpy,multiprocessing,upx --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --output-dir=nuitka --include-package=PIL image_encryptor_cli.py
+        if ${{ matrix.build_type_a }} == gui nuitka --python-flag=-OO --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,pkg-resources,numpy,multiprocessing,upx --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --include-module=wx._xml --include-package=PIL --output-dir=nuitka image_encryptor_gui.py
     - name: Basic tests
       shell: cmd
       run: |
