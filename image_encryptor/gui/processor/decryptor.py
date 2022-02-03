@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 17:22:12
+LastEditTime : 2022-02-03 13:49:28
 Description  : 单文件解密功能
 '''
 from os import makedirs
@@ -10,7 +10,6 @@ from os.path import isdir, join, split, splitext
 from traceback import format_exc
 from typing import TYPE_CHECKING
 
-from image_encryptor.constants import EXTENSION_KEYS
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
 from image_encryptor.common.utils.utils import FakeBar
 from image_encryptor.gui.frame.controls import ProgressBar, EncryptionParametersData, SavingSettings
@@ -61,6 +60,11 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
 
     bar = ProgressBar(gauge, step_count)
 
+    if encryption_data.XOR_channels:
+        logger('正在异或解密')
+        bar.next_step(1)
+        image = image_encrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
+
     if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.RGB_mapping:
         bar.next_step(encryption_data.cutting_col * encryption_data.cutting_row)
         logger('正在分割加密图像')
@@ -71,18 +75,13 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
         bar.next_step(encryption_data.cutting_col * encryption_data.cutting_row)
         image = image_encrypt.generate_image(bar)
 
-    if encryption_data.XOR_channels:
-        logger('正在异或解密')
-        bar.next_step(1)
-        image = image_encrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
-
     image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))
 
     if save:
         bar.next_step(1)
         logger('正在保存文件')
         name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
-        suffix = EXTENSION_KEYS[frame.controls.saving_format_index]
+        suffix = frame.controls.saving_format
         if suffix.lower() in ('jpg', 'jpeg'):
             image = image.convert('RGB')
         name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"
@@ -98,12 +97,12 @@ def _batch(image_data, path_data, encryption_data: 'EncryptionParametersData', s
     image = Image.frombytes(*image_data)
     image_encrypt = ImageEncrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, encryption_data.password if encryption_data.has_password else 100)
 
+    if encryption_data.XOR_channels:
+        image = image_encrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
+
     if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.RGB_mapping:
         image_encrypt.init_block_data(True, encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.RGB_mapping, FakeBar)
         image = image_encrypt.generate_image(FakeBar)
-
-    if encryption_data.XOR_channels:
-        image = image_encrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
 
     image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))
 
