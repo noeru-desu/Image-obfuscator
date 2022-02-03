@@ -2,12 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 14:14:27
+LastEditTime : 2022-02-03 20:25:56
 Description  : 节点树控制
 '''
 from abc import ABC
+from typing import Union
 from os.path import isdir, isfile, join, sep, split
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING, Generator, Optional
 
 from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
 from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE
@@ -98,9 +99,19 @@ class TreeManager(object):
             self.reloading_thread.start_new(self.tree_ctrl.GetItemData(item_id).reload_item)
 
     @property
-    def _all_item_data(self) -> Generator['ImageItem', None, None]:
-        for i in self.file_dict.values():
-            yield self.tree_ctrl.GetItemData(i)
+    def selected_item_data(self) -> Optional[Union['ImageItem', 'FolderItem']]:
+        try:
+            return self.tree_ctrl.GetItemData(self.tree_ctrl.Selection)
+        except RuntimeError:
+            return
+
+    @property
+    def _all_item_data(self) -> Generator[Union['ImageItem', 'FolderItem'], None, None]:
+        try:
+            for i in self.file_dict.values():
+                yield self.tree_ctrl.GetItemData(i)
+        except RuntimeError:
+            return
 
 
 class Item(ABC):

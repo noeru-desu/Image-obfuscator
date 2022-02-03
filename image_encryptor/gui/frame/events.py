@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-27 14:22:10
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 14:09:59
+LastEditTime : 2022-02-03 20:30:59
 Description  : 事件处理覆写
 '''
 from typing import TYPE_CHECKING
@@ -52,6 +52,8 @@ class MainFrame(BasicMainFrame):
             self.controls.regen_processed_preview(self.image_item.processed_preview)
 
     def force_refresh_preview(self, event):
+        if self.image_item is None:
+            return
         self.controls.regen_initial_preview(True)
         self.image_generator.generate_preview()
 
@@ -132,9 +134,10 @@ class MainFrame(BasicMainFrame):
             self.apply_settings_to_all()
 
         if not event.GetItem().IsOk():
+            self.image_item = None
             self.controls.clear_preview()
             return
-        image_data: 'ImageItem' = self.imageTreeCtrl.GetItemData(event.GetItem())
+        image_data = self.tree_manager.selected_item_data
         if isinstance(image_data, ImageItem):
             self.image_item = image_data
             if image_data.settings.proc_mode == DECRYPTION_MODE and image_data.encrypted_image:
@@ -150,6 +153,7 @@ class MainFrame(BasicMainFrame):
             if self.previewMode.Selection != AUTO_REFRESH:
                 self.controls.regen_initial_preview()
         elif isinstance(image_data, FolderItem):
+            self.image_item = None
             self.processingOptions.Disable()
             self.controls.clear_preview()
 
@@ -174,10 +178,13 @@ class MainFrame(BasicMainFrame):
     def check_saving_format(self, event):
         self.controls.saving_format = self.controls.saving_format.lower()
         if self.controls.saving_format in EXTENSION_KEYS:
-            self.controls.previous_saving_format = self.controls.saving_format
+            self.record_saving_format()
         else:
             self.dialog.async_warning('不支持的格式: {}，仅支持以下格式: \n{}'.format(self.controls.saving_format, '; '.join(i for i in EXTENSION_KEYS)), '保存格式错误')
             self.controls.saving_format = self.controls.previous_saving_format
+
+    def record_saving_format(self, event=None):
+        self.controls.previous_saving_format = self.controls.saving_format
 
     def stop_saving_event(self, event):
         self.image_saver.cancel()

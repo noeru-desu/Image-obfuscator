@@ -619,6 +619,7 @@ class MainFrame (wx.Frame):
         self.previewMode.Bind(wx.EVT_RADIOBOX, self.preview_mode_change)
         self.m_button3.Bind(wx.EVT_BUTTON, self.manual_refresh)
         self.resamplingFilter.Bind(wx.EVT_RADIOBOX, self.force_refresh_preview)
+        self.savingFormat.Bind(wx.EVT_COMBOBOX, self.record_saving_format)
         self.savingFormat.Bind(wx.EVT_TEXT_ENTER, self.check_saving_format)
         self.savingQuality.Bind(wx.EVT_SCROLL, self.update_quality_num)
         self.subsamplingLevel.Bind(wx.EVT_SCROLL, self.update_subsampling_num)
@@ -688,6 +689,9 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def force_refresh_preview(self, event):
+        event.Skip()
+
+    def record_saving_format(self, event):
         event.Skip()
 
     def check_saving_format(self, event):

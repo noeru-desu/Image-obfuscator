@@ -3957,6 +3957,7 @@
                                                                             <property name="window_extra_style"></property>
                                                                             <property name="window_name"></property>
                                                                             <property name="window_style"></property>
+                                                                            <event name="OnCombobox">record_saving_format</event>
                                                                             <event name="OnTextEnter">check_saving_format</event>
                                                                         </object>
                                                                     </object>

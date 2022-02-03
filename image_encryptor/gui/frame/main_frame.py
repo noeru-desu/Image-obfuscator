@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-02 13:37:40
+LastEditTime : 2022-02-03 20:13:31
 Description  : 覆写窗口
 '''
 from concurrent.futures import ThreadPoolExecutor
@@ -69,6 +69,7 @@ class MainFrame(MF):
 
         # 准备工作
         self.run_path = run_path
+        self.xorPanel.Disable()
 
         self.image_item: 'ImageItem' = None
 
@@ -123,7 +124,7 @@ class MainFrame(MF):
         if settings_list is None:
             settings = self.settings.all
             for i in self.tree_manager._all_item_data:
-                i.settings = i.settings.deepcopy()
+                i.settings = settings.deepcopy()
         else:
             settings = ((i, getattr(self.image_item, i)) for i in settings_list)
             for i in self.tree_manager._all_item_data:

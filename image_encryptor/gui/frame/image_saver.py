@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-02 09:54:10
+LastEditTime : 2022-02-03 20:20:31
 Description  : 文件保存功能
 '''
 from os import listdir
@@ -83,7 +83,7 @@ class ImageSaver(object):
             return
         self.show_saving_progress_plane(True)
         if self.frame.imageTreeCtrl.Selection.IsOk():   # 检查是否选择了某一文件
-            image_data: 'ImageItem' = self.frame.imageTreeCtrl.GetItemData(self.frame.imageTreeCtrl.Selection)
+            image_data = self.frame.tree_manager.selected_item_data
             if image_data is not None:                  # 是否选择的是文件夹，如果不是，则同步gui内容至对应image_item实例
                 image_data.settings = self.frame.settings.all
         else:

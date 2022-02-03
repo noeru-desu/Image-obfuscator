@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 12:05:40
+LastEditTime : 2022-02-03 20:36:49
 Description  : 整理
 '''
 from abc import ABC
@@ -340,8 +340,6 @@ class Controls(object):
 
     @property
     def XOR_channels(self):
-        if not self.XOR_encryption:
-            return ''
         channels = []
         if self.XOR_R:
             channels.append('r')
@@ -355,7 +353,6 @@ class Controls(object):
 
     def clear_preview(self):
         self.frame.importedBitmap.Bitmap = self.frame.previewedBitmap.Bitmap = Bitmap()
-        self.frame.image_item = None
 
     def regen_initial_preview(self, force=False):
         size = self.preview_size
@@ -553,7 +550,7 @@ class Settings(SettingsData):
             self.controls.XOR_checkboxes[i].SetValue(i in self.XOR_channels)
 
     def deepcopy(self):
-        return Settings(self.controls, tuple(self.properties))
+        return Settings(self.controls, self.properties_tuple)
 
 
 class SavingSettings(SettingsBase):
