@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-27 14:22:10
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-02 20:15:50
+LastEditTime : 2022-02-03 12:06:03
 Description  : 事件处理覆写
 '''
 from typing import TYPE_CHECKING
@@ -11,7 +11,7 @@ from wx import (DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
                 FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, ID_OK, DirDialog,
                 FileDialog)
 
-from image_encryptor.constants import ANTY_HARMONY_MODE, DO_NOT_REFRESH, AUTO_REFRESH, DECRYPTION_MODE, ENCRYPTION_MODE
+from image_encryptor.constants import ANTY_HARMONY_MODE, DO_NOT_REFRESH, AUTO_REFRESH, DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS
 from image_encryptor.gui.frame.main_frame import MainFrame as BasicMainFrame
 from image_encryptor.gui.frame.tree_manager import FolderItem, ImageItem
 
@@ -43,13 +43,17 @@ class MainFrame(BasicMainFrame):
     def refresh_preview(self, event=None):
         if self.image_item is None:
             return
-        if event is not None and self.controls.preview_mode != AUTO_REFRESH:  # 2为自动刷新
+        if event is not None and self.controls.preview_mode != AUTO_REFRESH:
             return
         size_changed = self.controls.regen_initial_preview()
         if size_changed or self.settings.encryption_settings_md5 != self.image_item.encryption_settings_md5:
             self.image_generator.generate_preview()
         elif self.image_item.processed_preview is not None:
             self.controls.regen_processed_preview(self.image_item.processed_preview)
+
+    def force_refresh_preview(self, event):
+        self.controls.regen_initial_preview(True)
+        self.image_generator.generate_preview()
 
     def load_file(self, event):
         with FileDialog(self, "选择图像", style=FD_OPEN | FD_CHANGE_DIR | FD_PREVIEW | FD_FILE_MUST_EXIST) as dialog:
@@ -165,6 +169,14 @@ class MainFrame(BasicMainFrame):
 
     def stop_loading_event(self, event):
         self.stop_loading_func.call()
+
+    def check_saving_format(self, event):
+        self.controls.saving_format = self.controls.saving_format.lower()
+        if self.controls.saving_format in EXTENSION_KEYS:
+            self.controls.previous_saving_format = self.controls.saving_format
+        else:
+            self.dialog.async_warning('不支持的格式: {}，仅支持以下格式: \n{}'.format(self.controls.saving_format, '; '.join(i for i in EXTENSION_KEYS)), '保存格式错误')
+            self.controls.saving_format = self.controls.previous_saving_format
 
     def stop_saving_event(self, event):
         self.image_saver.cancel()

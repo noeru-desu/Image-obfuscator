@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-02 20:42:47
+LastEditTime : 2022-02-03 12:05:40
 Description  : 整理
 '''
 from abc import ABC
@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Callable, Iterable, Optional
 from hashlib import md5
 
 from wx import Bitmap
-from image_encryptor.constants import ANTY_HARMONY_MODE, DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS
+from image_encryptor.constants import ANTY_HARMONY_MODE, DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS, RESAMPLING_FILTERS
 
 from image_encryptor.gui.utils.misc_util import scale
 
@@ -30,6 +30,7 @@ class Controls(object):
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
         self.XOR_checkboxes = {'r': frame.XORR, 'g': frame.XORG, 'b': frame.XORB, 'a': frame.XORA}
+        self.previous_saving_format = 'png'
 
     # ----------
     # properties
@@ -222,6 +223,22 @@ class Controls(object):
         self.frame.previewProgress.Value = v
 
     @property
+    def resampling_filter(self):
+        return RESAMPLING_FILTERS[self.frame.resamplingFilter.Selection]
+
+    @resampling_filter.setter
+    def resampling_filter(self, v):
+        self.frame.resamplingFilter.Selection = RESAMPLING_FILTERS.index(v)
+
+    @property
+    def resampling_filter_name(self) -> str:
+        return self.frame.resamplingFilter.StringSelection
+
+    @resampling_filter_name.setter
+    def resampling_filter_name(self, v: str):
+        self.frame.resamplingFilter.StringSelection = v
+
+    @property
     def max_image_pixels(self) -> int:
         return self.frame.maxImagePixels.Value
 
@@ -287,18 +304,18 @@ class Controls(object):
 
     @property
     def saving_format(self) -> str:
-        return self.frame.savingFormat.GetStringSelection()
+        return self.frame.savingFormat.Value
 
     @saving_format.setter
     def saving_format(self, v: str):
-        self.frame.savingFormat.SetStringSelection(v)
+        self.frame.savingFormat.Value = v
 
     @property
     def saving_format_index(self) -> int:
-        return self.frame.savingFormat.Selection
+        return EXTENSION_KEYS.index(self.frame.savingFormat.Value)
 
     @saving_format_index.setter
-    def saving_format(self, v: int):
+    def saving_format_index(self, v: int):
         self.frame.savingFormat.Selection = v
 
     @property
@@ -340,12 +357,12 @@ class Controls(object):
         self.frame.importedBitmap.Bitmap = self.frame.previewedBitmap.Bitmap = Bitmap()
         self.frame.image_item = None
 
-    def regen_initial_preview(self):
+    def regen_initial_preview(self, force=False):
         size = self.preview_size
-        if self.frame.image_item.initial_preview is not None and size == self.frame.image_item.preview_size:
+        if not force and self.frame.image_item.initial_preview is not None and size == self.frame.image_item.preview_size:
             self.imported_bitmap = self.frame.image_item.initial_preview
             return False
-        initial_preview = self.frame.image_item.loaded_image.resize(scale(self.frame.image_item.loaded_image, *size))
+        initial_preview = self.frame.image_item.loaded_image.resize(scale(self.frame.image_item.loaded_image, *size), self.resampling_filter)
         self.imported_bitmap = initial_preview
         self.frame.image_item.preview_size = size
         self.frame.image_item.initial_preview = initial_preview
@@ -357,7 +374,7 @@ class Controls(object):
         if try_not_to_zoom and self.frame.image_item.processed_preview is not None and size == self.frame.image_item.preview_size and self.frame.image_item.encryption_settings_md5 == md5:
             self.previewed_bitmap = image
         else:
-            self.previewed_bitmap = image.resize(scale(image, *size))
+            self.previewed_bitmap = image.resize(scale(image, *size), self.resampling_filter)
             self.frame.image_item.processed_preview = image
             self.frame.image_item.encryption_settings_md5 = self.frame.settings.encryption_settings_md5
 
@@ -378,11 +395,11 @@ class SettingsManager(object):
             'noise_factor': 128,
             'password': None,
             'saving_path': '',
-            'saving_format': 21,
+            'saving_format': 2,
             'quality': 98,
             'subsampling': 0
         }'''
-        self.default = Settings(self.controls, (0, 25, 25, True, True, False, False, 'rgb', False, 128, None, '', 21, 98, 0))
+        self.default = Settings(self.controls, (0, 25, 25, True, True, False, False, 'rgb', False, 128, None, '', 'png', 2, 98, 0))
 
     @property
     def encryption_settings(self):
@@ -390,7 +407,8 @@ class SettingsManager(object):
                 self.controls.shuffle_chunks, self.controls.flip_chunks, self.controls.RGB_mapping,
                 self.controls.XOR_encryption, self.controls.noise_XOR, self.controls.XOR_R,
                 self.controls.XOR_G, self.controls.XOR_B, self.controls.XOR_A,
-                self.controls.noise_XOR, self.controls.noise_factor, self.controls.password)
+                self.controls.noise_XOR, self.controls.noise_factor, self.controls.password,
+                self.controls.resampling_filter)
 
     @property
     def encryption_settings_md5(self):
@@ -411,6 +429,7 @@ class SettingsManager(object):
             'noise_factor': self.controls.noise_factor,
             'password': self.controls.password,
             'saving_path': self.controls.saving_path,
+            'saving_format': self.controls.saving_format,
             'saving_format_index': self.controls.saving_format_index,
             'saving_quality': self.controls.saving_quality,
             'saving_subsampling_level': self.controls.saving_subsampling_level
@@ -452,7 +471,8 @@ class SettingsBase(ABC):
 class SettingsData(SettingsBase):
     SETTING_NAMES = ('proc_mode', 'cutting_row', 'cutting_col', 'shuffle_chunks', 'flip_chunks',
                      'RGB_mapping', 'XOR_encryption', 'XOR_channels', 'noise_XOR', 'noise_factor',
-                     'password', 'saving_path', 'saving_format_index', 'saving_quality', 'saving_subsampling_level')
+                     'password', 'saving_path', 'saving_format', 'saving_format_index', 'saving_quality',
+                     'saving_subsampling_level')
 
     def __init__(self, settings):
         if isinstance(settings, dict):
@@ -473,6 +493,7 @@ class SettingsData(SettingsBase):
         self.noise_factor = settings_dict['noise_factor']
         self.password = settings_dict['password']
         self.saving_path = settings_dict['saving_path']
+        self.saving_format = settings_dict['saving_format']
         self.saving_format_index = settings_dict['saving_format_index']
         self.saving_quality = settings_dict['saving_quality']
         self.saving_subsampling_level = settings_dict['saving_subsampling_level']
@@ -502,6 +523,7 @@ class Settings(SettingsData):
         self.noise_factor = self.controls.noise_factor
         self.password = self.controls.password
         self.saving_path = self.controls.saving_path
+        self.saving_format = self.controls.saving_format
         self.saving_format_index = self.controls.saving_format_index
         self.saving_quality = self.controls.saving_quality
         self.saving_subsampling_level = self.controls.saving_subsampling_level

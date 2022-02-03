@@ -18,9 +18,9 @@ import wx.xrc
 class MainFrame (wx.Frame):
 
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=u"Image Encryptor", pos=wx.DefaultPosition, size=wx.Size(770, 900), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL, name=u"Image Encryptor")
+        wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=u"Image Encryptor", pos=wx.DefaultPosition, size=wx.Size(790, 900), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL, name=u"Image Encryptor")
 
-        self.SetSizeHints(wx.Size(770, 640), wx.DefaultSize)
+        self.SetSizeHints(wx.Size(790, 640), wx.DefaultSize)
         self.SetFont(wx.Font(9, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Segoe UI"))
         self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
 
@@ -154,7 +154,7 @@ class MainFrame (wx.Frame):
         procModeChoices = [u"加密模式", u"解密模式", u"QQ反屏蔽"]
         self.procMode = wx.RadioBox(self.processingOptions, wx.ID_ANY, u"处理模式", wx.DefaultPosition, wx.DefaultSize, procModeChoices, 1, wx.RA_SPECIFY_COLS)
         self.procMode.SetSelection(0)
-        bSizer282.Add(self.procMode, 0, wx.ALIGN_CENTER | wx.ALL, 3)
+        bSizer282.Add(self.procMode, 1, wx.ALIGN_CENTER | wx.ALL, 3)
 
         self.m_staticText12 = wx.StaticText(self.processingOptions, wx.ID_ANY, u"添加密码到密码字典", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText12.Wrap(-1)
@@ -202,17 +202,17 @@ class MainFrame (wx.Frame):
 
         self.shuffleChunks = wx.CheckBox(self.processingSettingsPanel1, wx.ID_ANY, u"随机打乱分块", wx.DefaultPosition, wx.DefaultSize, 0)
         self.shuffleChunks.SetValue(True)
-        bSizer13.Add(self.shuffleChunks, 0, wx.ALL, 3)
+        bSizer13.Add(self.shuffleChunks, 0, wx.ALL, 5)
 
         self.flipChunks = wx.CheckBox(self.processingSettingsPanel1, wx.ID_ANY, u"随机翻转分块", wx.DefaultPosition, wx.DefaultSize, 0)
         self.flipChunks.SetValue(True)
-        bSizer13.Add(self.flipChunks, 0, wx.ALL, 3)
+        bSizer13.Add(self.flipChunks, 0, wx.ALL, 5)
 
         self.rgbMapping = wx.CheckBox(self.processingSettingsPanel1, wx.ID_ANY, u"分块随机RGB映射", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer13.Add(self.rgbMapping, 0, wx.ALL, 3)
+        bSizer13.Add(self.rgbMapping, 0, wx.ALL, 5)
 
         self.XOREncryption = wx.CheckBox(self.processingSettingsPanel1, wx.ID_ANY, u"使用异或加密", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer13.Add(self.XOREncryption, 0, wx.ALL, 3)
+        bSizer13.Add(self.XOREncryption, 0, wx.ALL, 5)
 
         bSizer33.Add(bSizer13, 0, wx.EXPAND, 5)
 
@@ -286,11 +286,13 @@ class MainFrame (wx.Frame):
         self.processingSettingsPanel1.SetSizer(bSizer33)
         self.processingSettingsPanel1.Layout()
         bSizer33.Fit(self.processingSettingsPanel1)
-        bSizer12.Add(self.processingSettingsPanel1, 0, wx.ALL, 5)
+        bSizer12.Add(self.processingSettingsPanel1, 0, wx.ALL | wx.EXPAND, 5)
 
         bSizer12.Add((0, 0), 1, 0, 5)
 
         self.previewOptions = wx.Panel(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        bSizer40 = wx.BoxSizer(wx.HORIZONTAL)
+
         bSizer19 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer28 = wx.BoxSizer(wx.HORIZONTAL)
@@ -342,22 +344,31 @@ class MainFrame (wx.Frame):
         previewModeChoices = [u"不显示", u"手动刷新", u"自动刷新"]
         self.previewMode = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"预览图", wx.DefaultPosition, wx.DefaultSize, previewModeChoices, 1, wx.RA_SPECIFY_COLS)
         self.previewMode.SetSelection(2)
-        bSizer30.Add(self.previewMode, 0, wx.ALL, 3)
+        bSizer30.Add(self.previewMode, 1, wx.ALL, 3)
 
         self.m_button3 = wx.Button(self.previewOptions, wx.ID_ANY, u"刷新预览图", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer30.Add(self.m_button3, 0, wx.ALIGN_CENTER, 5)
 
-        bSizer28.Add(bSizer30, 0, 0, 5)
+        bSizer28.Add(bSizer30, 0, wx.EXPAND, 5)
 
-        bSizer19.Add(bSizer28, 0, wx.EXPAND, 5)
+        bSizer19.Add(bSizer28, 1, wx.EXPAND, 5)
 
         self.previewProgress = wx.Gauge(self.previewOptions, wx.ID_ANY, 100, wx.DefaultPosition, wx.Size(160, -1), wx.GA_HORIZONTAL)
         self.previewProgress.SetValue(0)
         bSizer19.Add(self.previewProgress, 0, wx.ALL, 5)
 
-        self.previewOptions.SetSizer(bSizer19)
+        bSizer40.Add(bSizer19, 1, wx.EXPAND, 5)
+
+        resamplingFilterChoices = [u"最邻近", u"单线性", u"双线性", u"Hamming", u"双三次", u"Lanczos"]
+        self.resamplingFilter = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"重采样方式", wx.DefaultPosition, wx.DefaultSize, resamplingFilterChoices, 1, 0)
+        self.resamplingFilter.SetSelection(4)
+        self.resamplingFilter.SetToolTip(u"缩放预览图使用的重采样方式，自上而下质量依次递增，性能依次递减，默认为双三次(Bicubic)")
+
+        bSizer40.Add(self.resamplingFilter, 0, wx.ALL, 5)
+
+        self.previewOptions.SetSizer(bSizer40)
         self.previewOptions.Layout()
-        bSizer19.Fit(self.previewOptions)
+        bSizer40.Fit(self.previewOptions)
         bSizer12.Add(self.previewOptions, 0, 0, 0)
 
         self.processingOptions.SetSizer(bSizer12)
@@ -381,13 +392,14 @@ class MainFrame (wx.Frame):
         self.selectSavingPath = wx.DirPickerCtrl(self.savingOptions, wx.ID_ANY, wx.EmptyString, u"选择保存位置", wx.DefaultPosition, wx.DefaultSize, wx.DIRP_DEFAULT_STYLE | wx.DIRP_DIR_MUST_EXIST)
         bSizer265.Add(self.selectSavingPath, 1, wx.ALL | wx.EXPAND, 2)
 
-        savingFormatChoices = [u"blp", u"bmp", u"dib", u"bufr", u"cur", u"pcx", u"dcx", u"dds", u"ps", u"eps", u"fit", u"fits", u"fli", u"flc", u"ftc", u"ftu", u"gbr", u"gif", u"grib", u"h5", u"hdf", u"png", u"apng", u"jp2", u"j2k", u"jpc", u"jpf", u"jpx", u"j2c", u"icns", u"ico", u"im",
-                               u"iim", u"tif", u"tiff", u"jfif", u"jpe", u"jpg", u"jpeg", u"mpg", u"mpeg", u"mpo", u"msp", u"palm", u"pcd", u"pdf", u"pxr", u"pbm", u"pgm", u"ppm", u"pnm", u"psd", u"bw", u"rgb", u"rgba", u"sgi", u"ras", u"tga", u"icb", u"vda", u"vst", u"webp", u"wmf", u"emf", u"xbm", u"xpm"]
-        self.savingFormat = wx.Choice(self.savingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, savingFormatChoices, 0)
-        self.savingFormat.SetSelection(21)
+        savingFormatChoices = [u"bmp", u"gif", u"png", u"ico", u"tif", u"tiff", u"jpg", u"jpeg", u"pdf", u"psd", u"tga", u"webp"]
+        self.savingFormat = wx.ComboBox(self.savingOptions, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, savingFormatChoices, wx.TE_PROCESS_ENTER)
+        self.savingFormat.SetSelection(2)
+        self.savingFormat.SetToolTip(u"如果下拉框中不存在所需的保存格式，可直接输入后缀名，将自动进行检查")
+
         bSizer265.Add(self.savingFormat, 0, wx.ALIGN_CENTER | wx.ALL, 4)
 
-        bSizer191.Add(bSizer265, 0, wx.EXPAND, 0)
+        bSizer191.Add(bSizer265, 1, wx.EXPAND, 0)
 
         sbSizer61 = wx.StaticBoxSizer(wx.StaticBox(self.savingOptions, wx.ID_ANY, u"高级设置(有损格式保存相关，如jpg)"), wx.HORIZONTAL)
 
@@ -507,7 +519,7 @@ class MainFrame (wx.Frame):
         bSizer311.Fit(self.savingFilters)
         bSizer23.Add(self.savingFilters, 0, wx.EXPAND | wx.ALL, 5)
 
-        bSizer264.Add(bSizer23, 0, wx.EXPAND, 5)
+        bSizer264.Add(bSizer23, 1, wx.EXPAND, 5)
 
         self.savingBtnPanel = wx.Panel(self.savingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer20 = wx.BoxSizer(wx.HORIZONTAL)
@@ -606,8 +618,8 @@ class MainFrame (wx.Frame):
         self.m_button311.Bind(wx.EVT_BUTTON, self.set_settings_as_default)
         self.previewMode.Bind(wx.EVT_RADIOBOX, self.preview_mode_change)
         self.m_button3.Bind(wx.EVT_BUTTON, self.manual_refresh)
-        self.selectSavingPath.Bind(wx.EVT_DIRPICKER_CHANGED, self.sync_saving_settings)
-        self.savingFormat.Bind(wx.EVT_CHOICE, self.sync_saving_settings)
+        self.resamplingFilter.Bind(wx.EVT_RADIOBOX, self.force_refresh_preview)
+        self.savingFormat.Bind(wx.EVT_TEXT_ENTER, self.check_saving_format)
         self.savingQuality.Bind(wx.EVT_SCROLL, self.update_quality_num)
         self.subsamplingLevel.Bind(wx.EVT_SCROLL, self.update_subsampling_num)
         self.m_button7.Bind(wx.EVT_BUTTON, self.save_selected_image)
@@ -675,7 +687,10 @@ class MainFrame (wx.Frame):
     def manual_refresh(self, event):
         event.Skip()
 
-    def sync_saving_settings(self, event):
+    def force_refresh_preview(self, event):
+        event.Skip()
+
+    def check_saving_format(self, event):
         event.Skip()
 
     def update_quality_num(self, event):

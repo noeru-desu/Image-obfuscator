@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-02 18:17:06
+LastEditTime : 2022-02-03 09:49:38
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
 from os import makedirs
@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING
 from numpy.random import randint
 from PIL import Image
 
-from image_encryptor.constants import EXTENSION_KEYS
 from image_encryptor.gui.frame.controls import SavingSettings
 
 if TYPE_CHECKING:
@@ -46,7 +45,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
         gauge.SetValue(50)
         logger('完成，正在保存文件')
         name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
-        suffix = EXTENSION_KEYS[frame.controls.saving_format_index]
+        suffix = frame.controls.saving_format
         name = f'{name}-anti-harmony.{suffix}'
         if suffix.lower() in ('jpg', 'jpeg'):
             image = image.convert('RGB')

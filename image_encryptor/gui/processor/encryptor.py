@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 17:12:40
+LastEditTime : 2022-02-03 13:48:31
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -11,7 +11,6 @@ from os.path import isdir, join, split, splitext
 from traceback import format_exc
 from typing import TYPE_CHECKING
 
-from image_encryptor.constants import EXTENSION_KEYS
 from image_encryptor.common.modules.image_encrypt import ImageEncrypt
 from image_encryptor.common.modules.password_verifier import PasswordDict
 from image_encryptor.common.modules.version_adapter import get_encryption_parameters
@@ -43,7 +42,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
     if save:
         has_password = settings.password != 'none'
         name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
-        suffix = EXTENSION_KEYS[settings.saving_format_index]
+        suffix = settings.saving_format
         original_size = image.size
 
         if suffix in ('jpg', 'jpeg', 'wmf', 'webp'):

@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-31 16:18:53
+LastEditTime : 2022-02-03 13:50:35
 Description  : 图片加密模块
 '''
 import random
 from math import ceil
 
-from numpy import random as np_random
+from numpy.random import randint, seed as np_seed
 from numpy import array, squeeze, uint8
 from PIL import Image
 
@@ -170,8 +170,8 @@ def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=Tr
         factor = 1
     random.seed(seed)
     seed = random.randrange(0, 2 ** 32)
-    np_random.seed(seed)
-    image = np_random.randint(0, factor + 1, (height, width, nc), uint8)   # [rc.4修改方法]
+    np_seed(seed)
+    image = randint(0, factor + 1, (height, width, nc), uint8)   # [rc.4修改方法]
     # image = (np_random.rand(height, width, nc) * factor).astype(uint8) [rc.3使用方法]
     if ndarray:
         return image
