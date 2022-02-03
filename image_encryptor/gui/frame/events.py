@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-27 14:22:10
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 12:06:03
+LastEditTime : 2022-02-03 14:09:59
 Description  : 事件处理覆写
 '''
 from typing import TYPE_CHECKING
@@ -82,6 +82,7 @@ class MainFrame(BasicMainFrame):
                 self.password_dict[password_base64] = self.controls.password
                 self.logger.info(f'更新密码字典[{password_base64}: {self.controls.password}](当前字典长度: {len(self.password_dict)})')
                 return True
+        return True
 
     def save_selected_image(self, event):
         self.image_saver.save_selected_image()

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-02 20:39:24
+LastEditTime : 2022-02-03 14:14:27
 Description  : 节点树控制
 '''
 from abc import ABC
@@ -176,6 +176,8 @@ class ImageItem(Item):
         if dialog:
             self.frame.dialog.async_info('图像重载成功')
             self.reload_done()
+            if self.encrypted_image:
+                self.encryption_data.backtrack_interface()
         return 1, 0
 
 
