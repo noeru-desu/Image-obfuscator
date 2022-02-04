@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 20:13:47
+LastEditTime : 2022-02-04 10:09:40
 Description  : 全局版本常量
 '''
 from PIL.Image import init as PIL_init
@@ -23,6 +23,7 @@ BRANCH = 'dev/1.x'
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
 
 EXTENSION_KEYS = [i.lstrip('.') for i in EXTENSION.keys()]
+EXTENSION_KEYS_STRING = ' '.join(i for i in EXTENSION_KEYS)
 RESAMPLING_FILTERS = (NEAREST, BOX, BILINEAR, HAMMING, BICUBIC, LANCZOS)
 
 DO_NOT_REFRESH = 0

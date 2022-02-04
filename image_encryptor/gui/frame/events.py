@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-27 14:22:10
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 20:30:59
+LastEditTime : 2022-02-04 10:27:58
 Description  : 事件处理覆写
 '''
 from typing import TYPE_CHECKING
@@ -11,7 +11,7 @@ from wx import (DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
                 FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, ID_OK, DirDialog,
                 FileDialog)
 
-from image_encryptor.constants import ANTY_HARMONY_MODE, DO_NOT_REFRESH, AUTO_REFRESH, DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS
+from image_encryptor.constants import ANTY_HARMONY_MODE, DO_NOT_REFRESH, AUTO_REFRESH, DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS, EXTENSION_KEYS_STRING
 from image_encryptor.gui.frame.main_frame import MainFrame as BasicMainFrame
 from image_encryptor.gui.frame.tree_manager import FolderItem, ImageItem
 
@@ -93,25 +93,22 @@ class MainFrame(BasicMainFrame):
         self.image_saver.bulk_save()
 
     def processing_mode_change(self, event):
-        if self.image_item is None:
+        if self.image_item is None and self.controls.proc_mode == DECRYPTION_MODE:
+            self.controls.proc_mode = self.controls.previous_proc_mode
             return
-        if self.controls.proc_mode != DECRYPTION_MODE:
+        elif self.controls.proc_mode != DECRYPTION_MODE:
             if self.controls.proc_mode == ANTY_HARMONY_MODE:
                 self.controls.frame.processingSettingsPanel1.Disable()
                 self.controls.frame.passwordCtrl.Disable()
             else:
                 self.controls.frame.processingSettingsPanel1.Enable()
                 self.controls.frame.passwordCtrl.Enable()
-        else:
+        elif self.image_item is not None:
             self.image_item.check_encryption_parameters()
             if self.image_item.loading_image_data_error is not None:
-                if self.image_item.settings.proc_mode != DECRYPTION_MODE:
-                    self.controls.proc_mode = self.image_item.settings.proc_mode
-                elif self.settings.default.proc_mode != DECRYPTION_MODE:
-                    self.controls.proc_mode = self.settings.default.proc_mode
-                else:
-                    self.controls.proc_mode = ENCRYPTION_MODE
+                self.controls.proc_mode = self.controls.previous_proc_mode
                 self.dialog.async_warning(self.image_item.loading_image_data_error)
+        self.controls.previous_proc_mode = self.controls.proc_mode
         self.refresh_preview(event)
 
     def preview_mode_change(self, event):
@@ -180,7 +177,7 @@ class MainFrame(BasicMainFrame):
         if self.controls.saving_format in EXTENSION_KEYS:
             self.record_saving_format()
         else:
-            self.dialog.async_warning('不支持的格式: {}，仅支持以下格式: \n{}'.format(self.controls.saving_format, '; '.join(i for i in EXTENSION_KEYS)), '保存格式错误')
+            self.dialog.async_warning('不支持的格式: {}，仅支持以下格式: \n{}'.format(self.controls.saving_format, EXTENSION_KEYS_STRING), '保存格式错误')
             self.controls.saving_format = self.controls.previous_saving_format
 
     def record_saving_format(self, event=None):

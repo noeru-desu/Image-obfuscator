@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 20:36:49
+LastEditTime : 2022-02-04 10:31:52
 Description  : 整理
 '''
 from abc import ABC
@@ -31,6 +31,7 @@ class Controls(object):
         self.frame = frame
         self.XOR_checkboxes = {'r': frame.XORR, 'g': frame.XORG, 'b': frame.XORB, 'a': frame.XORA}
         self.previous_saving_format = 'png'
+        self.previous_proc_mode = ENCRYPTION_MODE
 
     # ----------
     # properties
@@ -690,3 +691,4 @@ class SegmentTrigger(object):
         self._num = -1
         if self._initcall is not None:
             self._initcall(*self._args, **self._kwargs)
+

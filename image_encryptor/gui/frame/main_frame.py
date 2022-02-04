@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 20:13:31
+LastEditTime : 2022-02-04 10:27:37
 Description  : 覆写窗口
 '''
 from concurrent.futures import ThreadPoolExecutor
@@ -11,7 +11,7 @@ from os import getcwd
 from sys import version
 from typing import TYPE_CHECKING
 
-from image_encryptor.constants import BRANCH, OPEN_SOURCE_URL, SUB_VERSION_NUMBER, VERSION_BATCH, VERSION_NUMBER, VERSION_TYPE
+from image_encryptor.constants import BRANCH, OPEN_SOURCE_URL, SUB_VERSION_NUMBER, VERSION_BATCH, VERSION_NUMBER, VERSION_TYPE, EXTENSION_KEYS_STRING
 from image_encryptor.common.modules.password_verifier import PasswordDict
 from image_encryptor.common.utils.logger import Logger
 from image_encryptor.gui.frame.controls import Controls, SettingsManager
@@ -44,7 +44,7 @@ class MainFrame(MF):
         else:
             self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}')
 
-        # 实例化组件
+        # 组件
         self.logger = Logger('image-encryptor')
         self.logger.info(f'Python {version}')
         self.logger.info(f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})')
@@ -70,6 +70,7 @@ class MainFrame(MF):
         # 准备工作
         self.run_path = run_path
         self.xorPanel.Disable()
+        self.savingFormat.ToolTip = f'{self.savingFormat.GetToolTipText()}{EXTENSION_KEYS_STRING}'
 
         self.image_item: 'ImageItem' = None
 
@@ -123,10 +124,10 @@ class MainFrame(MF):
     def apply_settings_to_all(self, settings_list=None):
         if settings_list is None:
             settings = self.settings.all
-            for i in self.tree_manager._all_item_data:
+            for i in self.tree_manager.all_image_item_data:
                 i.settings = settings.deepcopy()
         else:
             settings = ((i, getattr(self.image_item, i)) for i in settings_list)
-            for i in self.tree_manager._all_item_data:
+            for i in self.tree_manager.all_image_item_data:
                 for n, v in settings:
                     setattr(i, n, v)

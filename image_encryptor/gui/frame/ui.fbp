@@ -3948,7 +3948,7 @@
                                                                             <property name="style">wxTE_PROCESS_ENTER</property>
                                                                             <property name="subclass">; ; forward_declare</property>
                                                                             <property name="toolbar_pane">0</property>
-                                                                            <property name="tooltip">如果下拉框中不存在所需的保存格式，可直接输入后缀名，将自动进行检查</property>
+                                                                            <property name="tooltip">如果下拉框中不存在所需的保存格式，可直接输入后缀名，将自动进行检查。支持的保存格式如下&#x0A;</property>
                                                                             <property name="validator_data_type"></property>
                                                                             <property name="validator_style">wxFILTER_NONE</property>
                                                                             <property name="validator_type">wxDefaultValidator</property>

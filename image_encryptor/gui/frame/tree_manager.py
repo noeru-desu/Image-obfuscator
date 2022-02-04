@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 20:25:56
+LastEditTime : 2022-02-04 10:03:16
 Description  : 节点树控制
 '''
 from abc import ABC
@@ -20,7 +20,7 @@ from image_encryptor.gui.utils.thread import ThreadManager
 
 if TYPE_CHECKING:
     from PIL.Image import Image
-    from wx import TreeCtrl, TreeItemId
+    from wx import TreeCtrl, TreeItemId, Bitmap
     from image_encryptor.gui.frame.controls import Settings
     from image_encryptor.gui.frame.events import MainFrame
 
@@ -106,9 +106,31 @@ class TreeManager(object):
             return
 
     @property
-    def _all_item_data(self) -> Generator[Union['ImageItem', 'FolderItem'], None, None]:
+    def all_item_data(self) -> Generator[Union['ImageItem', 'FolderItem'], None, None]:
+        try:
+            for i in self.root_dir_dict.values():
+                yield self.tree_ctrl.GetItemData(i)
+            for i in self.dir_dict.values():
+                yield self.tree_ctrl.GetItemData(i)
+            for i in self.file_dict.values():
+                yield self.tree_ctrl.GetItemData(i)
+        except RuntimeError:
+            return
+
+    @property
+    def all_image_item_data(self) -> Generator[Union['ImageItem', 'FolderItem'], None, None]:
         try:
             for i in self.file_dict.values():
+                yield self.tree_ctrl.GetItemData(i)
+        except RuntimeError:
+            return
+
+    @property
+    def all_folder_item_data(self) -> Generator[Union['ImageItem', 'FolderItem'], None, None]:
+        try:
+            for i in self.root_dir_dict.values():
+                yield self.tree_ctrl.GetItemData(i)
+            for i in self.dir_dict.values():
                 yield self.tree_ctrl.GetItemData(i)
         except RuntimeError:
             return
@@ -140,13 +162,13 @@ class ImageItem(Item):
         self._init_cache()
 
     def _init_cache(self):
-        self.initial_preview = None
-        self.processed_preview = None
-        self.preview_size = None
-        self.encryption_settings_md5 = None
-        self.encrypted_image = None
+        self.initial_preview: 'Bitmap' = None
+        self.processed_preview: 'Bitmap' = None
+        self.preview_size: tuple[int, int] = None
+        self.encryption_settings_md5: bytes = None
+        self.encrypted_image: bool = None
         self.encryption_data: 'EncryptionParameters' = None
-        self.loading_image_data_error = None
+        self.loading_image_data_error: str = None
 
     def check_encryption_parameters(self):
         if self.encrypted_image is None:

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 20:20:31
+LastEditTime : 2022-02-04 10:10:07
 Description  : 文件保存功能
 '''
 from os import listdir
@@ -103,10 +103,7 @@ class ImageSaver(object):
         self.task_num = 0
         self.lock.acquire()                                 # 锁住线程锁，防止在任务添加期间执行回调函数，而导致进度识别错误
 
-        for image_item in self.frame.tree_manager._all_item_data:
-            if image_item.encrypted_image and not image_item.manual_switch_mode:
-                image_item.settings.proc_mode = DECRYPTION_MODE
-
+        for image_item in self.frame.tree_manager.all_image_item_data:
             if not self.filter.check(image_item.settings):      # 进行设置过滤
                 continue
             uf = False                                      # use_folder的局部变量名
