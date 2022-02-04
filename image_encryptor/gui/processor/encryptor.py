@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 13:48:31
+LastEditTime : 2022-02-04 19:25:42
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -74,7 +74,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
         bar.next_step(block_num)
         image = image_encrypt.generate_image(bar)
 
-    if settings.XOR_channels:
+    if settings.XOR_encryption:
         bar.next_step(1)
         logger('正在异或加密')
         image = image_encrypt.xor_pixels(settings.XOR_channels, settings.noise_XOR, settings.noise_factor)
@@ -123,7 +123,7 @@ def _batch(image_data, path_data, settings: 'SettingsData', saving_settings: 'Sa
         image_encrypt.init_block_data(False, settings.shuffle_chunks, settings.flip_chunks, settings.RGB_mapping, FakeBar)
         image = image_encrypt.generate_image(FakeBar)
 
-    if settings.XOR_channels:
+    if settings.XOR_encryption:
         image = image_encrypt.xor_pixels(settings.XOR_channels, settings.noise_XOR, settings.noise_factor)
 
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
