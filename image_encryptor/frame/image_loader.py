@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 17:32:37
+LastEditTime : 2022-02-05 21:00:11
 Description  : 文件载入功能
 '''
 from os.path import isfile, isdir, join, split
@@ -32,7 +32,7 @@ class ImageLoader(object):
         self.bar = None
 
     def load(self, path_chosen: Iterable | str):
-        if self.loading_thread.is_running:
+        if not self.loading_thread.is_ended:
             self.frame.dialog.async_warning('请等待当前图片载入完成后再载入新的图片')
             return
         Image.MAX_IMAGE_PIXELS = self.frame.controls.max_image_pixels if self.frame.controls.max_image_pixels != 0 else None
@@ -73,7 +73,8 @@ class ImageLoader(object):
         self.frame.stop_loading_func.init()
 
     def _load_dir(self, path_chosen):
-        frame_id = self.frame.dialog.confirmation_frame('是否将文件夹内子文件夹中的文件也进行载入？', '选择', cancel='取消载入操作')
+        folder_name = split(path_chosen)[1]
+        frame_id = self.frame.dialog.confirmation_frame(f'是否将文件夹{folder_name}内子文件夹中的文件也进行载入？', '选择', cancel='取消载入操作')
         if frame_id == ID_YES:
             topdown = True
         elif frame_id == ID_NO:
@@ -83,7 +84,7 @@ class ImageLoader(object):
             return
         file_num, files = walk_file(path_chosen, topdown, EXTENSION_KEYS)
         if file_num == 0:
-            self.frame.dialog.async_info('没有载入任何文件')
+            self.frame.dialog.async_info(f'没有从文件夹{folder_name}中载入任何文件')
             self.finish_loading_progress()
             return
         self.init_loading_progress(file_num, True)
@@ -100,7 +101,7 @@ class ImageLoader(object):
                     return
         self.finish_loading_progress()
         self.frame.stop_loading_func.init()
-        self.frame.dialog.async_info(f'成功载入了{self.loading_progress}个文件')
+        self.frame.dialog.async_info(f'成功从文件夹{folder_name}载入了{self.loading_progress}个文件')
         self.loading_progress = 0
 
     def _hint_image(self, error, prompt=True, file_name='图片'):

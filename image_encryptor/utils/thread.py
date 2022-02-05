@@ -2,11 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2021-11-13 10:49:06
+LastEditTime : 2022-02-05 20:50:50
 Description  : 线程相关类
 '''
 from ctypes import c_long, py_object, pythonapi
 from threading import Thread as threading_Thread
+from traceback import print_exc
 from typing import Callable
 
 
@@ -30,20 +31,33 @@ class Thread(threading_Thread):
         self._callback = callback
         self._callback_args = callback_args
         self._callback_kwargs = callback_kwargs
+        self.ended = False
 
     def run(self):
         result = None
         try:
             result = self._target(*self._args, **self._kwargs)
         except Exception as e:
+            self.ended = True
             if self._callback is not None:
-                self._callback(e, result, *self._callback_args, **self._callback_kwargs)
+                try:
+                    self._callback(e, result, *self._callback_args, **self._callback_kwargs)
+                except Exception:
+                    print_exc()
         except ThreadKilled as e:
+            self.ended = True
             if self._callback is not None:
-                self._callback(e, result, *self._callback_args, **self._callback_kwargs)
+                try:
+                    self._callback(e, result, *self._callback_args, **self._callback_kwargs)
+                except Exception:
+                    print_exc()
         else:
+            self.ended = True
             if self._callback is not None:
-                self._callback(None, result, *self._callback_args, **self._callback_kwargs)
+                try:
+                    self._callback(None, result, *self._callback_args, **self._callback_kwargs)
+                except Exception:
+                    print_exc()
         finally:
             del self._target, self._args, self._kwargs
 
@@ -57,9 +71,9 @@ class ThreadManager(object):
         self.exit_signal = False
 
     def start_new(self, target: Callable, callback: Callable = None, args=(), kwargs=None, callback_args=(), callback_kwargs=None):
-        if not self._force and self.is_running:
+        if not self._force and not self.is_ended:
             raise ThreadIsRunningError
-        if self.is_running and not self.kill():
+        if self._force and self.is_alive and not self.kill():
             raise ThreadTerminationFailed
         self.exit_signal = False
         self._thread = Thread(callback, callback_args, callback_kwargs, target=target, name=self.thread_name, args=args, kwargs=kwargs, daemon=True)
@@ -77,5 +91,9 @@ class ThreadManager(object):
         self.exit_signal = signal
 
     @property
-    def is_running(self):
+    def is_alive(self):
         return False if self._thread is None else self._thread.is_alive()
+
+    @property
+    def is_ended(self):
+        return True if self._thread is None else self._thread.ended

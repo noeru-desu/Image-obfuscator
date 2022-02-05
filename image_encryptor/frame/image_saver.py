@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 15:52:39
+LastEditTime : 2022-02-05 20:46:27
 Description  : 文件保存功能
 '''
 from os import listdir
@@ -212,7 +212,7 @@ class ImageSaver(object):
         if not isdir(self.frame.controls.saving_path):
             self.frame.dialog.error('没有选择保存文件夹或选择的文件夹不存在', '保存时出现错误')
             return True
-        elif self.saving_thread.is_running or self.frame.process_pool.check_tag('bulk_save'):
+        elif self.saving_thread.is_alive or self.frame.process_pool.check_tag('bulk_save'):
             self.frame.dialog.error('请先等待当前已有的保存任务完成', '无法执行保存操作')
             return True
         return False

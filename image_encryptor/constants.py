@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 18:00:38
+LastEditTime : 2022-02-05 21:02:57
 Description  : 全局版本常量
 '''
 from PIL.Image import init as PIL_init
@@ -17,7 +17,7 @@ ALPHA = 3
 VERSION_TYPE = RELEASE_CANDIDATE
 VERSION_NUMBER = '1.0.0'
 SUB_VERSION_NUMBER = 'rc.12'
-VERSION_BATCH = '20220205-1'
+VERSION_BATCH = '20220205-2'
 BRANCH = 'dev/1.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
