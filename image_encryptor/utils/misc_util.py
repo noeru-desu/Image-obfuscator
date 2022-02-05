@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 16:45:14
+LastEditTime : 2022-02-05 14:57:53
 Description  : 一些小东西
 '''
 from threading import Lock
@@ -12,7 +12,7 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, Cancelle
 from traceback import print_exc
 from typing import TYPE_CHECKING, Callable
 
-from image_encryptor.common.utils.utils import walk_file as wf
+from image_encryptor.utils.utils import walk_file as wf
 
 if TYPE_CHECKING:
     from PIL.Image import Image

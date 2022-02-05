@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-04 10:27:37
+LastEditTime : 2022-02-05 14:57:00
 Description  : 覆写窗口
 '''
 from concurrent.futures import ThreadPoolExecutor
@@ -12,24 +12,24 @@ from sys import version
 from typing import TYPE_CHECKING
 
 from image_encryptor.constants import BRANCH, OPEN_SOURCE_URL, SUB_VERSION_NUMBER, VERSION_BATCH, VERSION_NUMBER, VERSION_TYPE, EXTENSION_KEYS_STRING
-from image_encryptor.common.modules.password_verifier import PasswordDict
-from image_encryptor.common.utils.logger import Logger
-from image_encryptor.gui.frame.controls import Controls, SettingsManager
-from image_encryptor.gui.frame.design_frame import MainFrame as MF
-from image_encryptor.gui.frame.dialog import Dialog
-from image_encryptor.gui.frame.drag_importer import DragLoader, DragSavingPath
-from image_encryptor.gui.frame.image_generator import ImageGenerator
-from image_encryptor.gui.frame.image_loader import ImageLoader
-from image_encryptor.gui.frame.image_saver import ImageSaver
-from image_encryptor.gui.frame.tree_manager import TreeManager
-from image_encryptor.gui.frame.controls import SegmentTrigger
-from image_encryptor.gui.utils.exit_processor import ExitProcessor
-from image_encryptor.gui.utils.misc_util import ProcessTaskManager
+from image_encryptor.modules.password_verifier import PasswordDict
+from image_encryptor.utils.logger import Logger
+from image_encryptor.frame.controls import Controls, SettingsManager
+from image_encryptor.frame.design_frame import MainFrame as MF
+from image_encryptor.frame.dialog import Dialog
+from image_encryptor.frame.drag_importer import DragLoader, DragSavingPath
+from image_encryptor.frame.image_generator import ImageGenerator
+from image_encryptor.frame.image_loader import ImageLoader
+from image_encryptor.frame.image_saver import ImageSaver
+from image_encryptor.frame.tree_manager import TreeManager
+from image_encryptor.frame.controls import SegmentTrigger
+from image_encryptor.utils.exit_processor import ExitProcessor
+from image_encryptor.utils.misc_util import ProcessTaskManager
 from wx import App
 from wx.core import EmptyString
 
 if TYPE_CHECKING:
-    from image_encryptor.gui.frame.tree_manager import ImageItem
+    from image_encryptor.frame.tree_manager import ImageItem
 
 
 class MainFrame(MF):

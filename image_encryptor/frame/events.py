@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-27 14:22:10
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-04 10:27:58
+LastEditTime : 2022-02-05 17:32:30
 Description  : 事件处理覆写
 '''
 from typing import TYPE_CHECKING
@@ -11,9 +11,9 @@ from wx import (DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
                 FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, ID_OK, DirDialog,
                 FileDialog)
 
-from image_encryptor.constants import ANTY_HARMONY_MODE, DO_NOT_REFRESH, AUTO_REFRESH, DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS, EXTENSION_KEYS_STRING
-from image_encryptor.gui.frame.main_frame import MainFrame as BasicMainFrame
-from image_encryptor.gui.frame.tree_manager import FolderItem, ImageItem
+from image_encryptor.constants import ANTY_HARMONY_MODE, DO_NOT_REFRESH, AUTO_REFRESH, DECRYPTION_MODE, EXTENSION_KEYS, EXTENSION_KEYS_STRING
+from image_encryptor.frame.main_frame import MainFrame as BasicMainFrame
+from image_encryptor.frame.tree_manager import FolderItem, ImageItem
 
 if TYPE_CHECKING:
     from wx import CommandEvent, TreeEvent, TreeItemId, SizeEvent
@@ -51,7 +51,7 @@ class MainFrame(BasicMainFrame):
         elif self.image_item.processed_preview is not None:
             self.controls.regen_processed_preview(self.image_item.processed_preview)
 
-    def force_refresh_preview(self, event):
+    def force_refresh_preview(self, event=None):
         if self.image_item is None:
             return
         self.controls.regen_initial_preview(True)

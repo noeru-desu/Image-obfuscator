@@ -2,19 +2,19 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 11:59:15
+LastEditTime : 2022-02-05 14:56:22
 Description  : 图片生成功能
 '''
 from typing import TYPE_CHECKING
 
 from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE
-import image_encryptor.gui.processor.qq_anti_harmony as qq_anti_harmony
-import image_encryptor.gui.processor.decryptor as decryptor
-import image_encryptor.gui.processor.encryptor as encryptor
-from image_encryptor.gui.utils.thread import ThreadManager
+import image_encryptor.processor.qq_anti_harmony as qq_anti_harmony
+import image_encryptor.processor.decryptor as decryptor
+import image_encryptor.processor.encryptor as encryptor
+from image_encryptor.utils.thread import ThreadManager
 
 if TYPE_CHECKING:
-    from image_encryptor.gui.frame.events import MainFrame
+    from image_encryptor.frame.events import MainFrame
 
 
 class ImageGenerator(object):

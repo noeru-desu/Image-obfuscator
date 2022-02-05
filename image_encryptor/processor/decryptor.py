@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 13:49:28
+LastEditTime : 2022-02-05 16:22:06
 Description  : 单文件解密功能
 '''
 from os import makedirs
@@ -10,13 +10,13 @@ from os.path import isdir, join, split, splitext
 from traceback import format_exc
 from typing import TYPE_CHECKING
 
-from image_encryptor.common.modules.image_encrypt import ImageEncrypt
-from image_encryptor.common.utils.utils import FakeBar
-from image_encryptor.gui.frame.controls import ProgressBar, EncryptionParametersData, SavingSettings
+from image_encryptor.modules.image_encrypt import ImageEncrypt
+from image_encryptor.utils.utils import FakeBar
+from image_encryptor.frame.controls import ProgressBar, EncryptionParametersData, SavingSettings
 from PIL import Image
 
 if TYPE_CHECKING:
-    from image_encryptor.gui.frame.events import MainFrame
+    from image_encryptor.frame.events import MainFrame
 
 
 def normal(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
@@ -51,7 +51,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
     logger('正在处理')
 
     step_count = 0
-    if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.RGB_mapping:
+    if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
         step_count += 2
     if encryption_data.XOR_channels:
         step_count += 1
@@ -65,10 +65,10 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
         bar.next_step(1)
         image = image_encrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
 
-    if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.RGB_mapping:
+    if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
         bar.next_step(encryption_data.cutting_col * encryption_data.cutting_row)
         logger('正在分割加密图像')
-        image_encrypt.init_block_data(True, encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.RGB_mapping, bar)
+        image_encrypt.init_block_data(True, encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels, encryption_data.old_mapping, bar)
 
         logger('正在重组')
 
@@ -100,8 +100,8 @@ def _batch(image_data, path_data, encryption_data: 'EncryptionParametersData', s
     if encryption_data.XOR_channels:
         image = image_encrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
 
-    if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.RGB_mapping:
-        image_encrypt.init_block_data(True, encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.RGB_mapping, FakeBar)
+    if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
+        image_encrypt.init_block_data(True, encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels, encryption_data.old_mapping, FakeBar)
         image = image_encrypt.generate_image(FakeBar)
 
     image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-04 19:25:42
+LastEditTime : 2022-02-05 17:47:10
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -11,15 +11,13 @@ from os.path import isdir, join, split, splitext
 from traceback import format_exc
 from typing import TYPE_CHECKING
 
-from image_encryptor.common.modules.image_encrypt import ImageEncrypt
-from image_encryptor.common.modules.password_verifier import PasswordDict
-from image_encryptor.common.modules.version_adapter import get_encryption_parameters
-from image_encryptor.common.utils.utils import FakeBar
-from image_encryptor.gui.frame.controls import ProgressBar, SettingsData, SavingSettings
+from image_encryptor.modules.image_encrypt import ImageEncrypt
+from image_encryptor.utils.utils import FakeBar
+from image_encryptor.frame.controls import ProgressBar, SettingsData, SavingSettings
 from PIL import Image
 
 if TYPE_CHECKING:
-    from image_encryptor.gui.frame.events import MainFrame
+    from image_encryptor.frame.events import MainFrame
 
 
 def normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save: bool):
@@ -40,19 +38,18 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
     settings = frame.settings.all
     password = 100 if settings.password == 'none' else settings.password
     if save:
-        has_password = settings.password != 'none'
         name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
         suffix = settings.saving_format
         original_size = image.size
 
         if suffix in ('jpg', 'jpeg', 'wmf', 'webp'):
-            if settings.RGB_mapping:
-                frame.dialog.warning('注意: 当前保存格式为有损压缩格式，在此情况下，使用RGB(A)随机映射会导致图片在解密后出现轻微的分界线', '不可逆处理警告')
+            if settings.mapping_channels:
+                frame.dialog.warning('注意: 当前保存格式为有损压缩格式，在此情况下，使用颜色通道随机映射会导致图片在解密后出现轻微的分界线', '不可逆处理警告')
             if settings.XOR_channels:
                 frame.dialog.warning('注意: 当前保存格式为有损压缩格式，在此情况下，使用异或加密会导致图片解密后出现严重失真', '不可逆处理警告')
 
     step_count = 0
-    if settings.shuffle_chunks or settings.flip_chunks or settings.RGB_mapping:
+    if settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels:
         step_count += 2
     if settings.XOR_channels:
         step_count += 1
@@ -64,11 +61,11 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
 
     bar = ProgressBar(gauge, step_count)
 
-    if settings.shuffle_chunks or settings.flip_chunks or settings.RGB_mapping:
+    if settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels:
         block_num = settings.cutting_row * settings.cutting_col
         logger('正在分割原图')
         bar.next_step(block_num)
-        image_encrypt.init_block_data(False, settings.shuffle_chunks, settings.flip_chunks, settings.RGB_mapping, bar)
+        image_encrypt.init_block_data(False, settings.shuffle_chunks, settings.flip_chunks, settings.mapping_channels, False, bar)
 
         logger('正在重组')
         bar.next_step(block_num)
@@ -89,20 +86,8 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
 
         image.save(output_path, quality=settings.saving_quality, subsampling=settings.saving_subsampling_level)
 
-        parameters = {
-            'col': settings.cutting_col,
-            'row': settings.cutting_row,
-            'shuffle': settings.shuffle_chunks,
-            'flip': settings.flip_chunks,
-            'rgb_mapping': settings.RGB_mapping,
-            'xor_channels': settings.XOR_channels,
-            'noise_xor': settings.noise_XOR,
-            'noise_factor': settings.noise_factor
-        }
-
-        password_base64 = PasswordDict.get_validation_field_base64(password) if has_password else 0
         with open(output_path, "a") as f:
-            f.write('\n' + dumps(get_encryption_parameters(*original_size, parameters, has_password, password_base64), separators=(',', ':')))
+            f.write('\n' + dumps(settings.encryption_parameters_data(*original_size).encryption_parameters_dict, separators=(',', ':')))
         bar.finish()
     bar.over()
     logger('完成')
@@ -112,15 +97,14 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
 def _batch(image_data, path_data, settings: 'SettingsData', saving_settings: 'SavingSettings', auto_folder):
     image = Image.frombytes(*image_data)
     password = 100 if settings.password == 'none' else settings.password
-    has_password = settings.password != 'none'
     name, suffix = splitext(path_data[-1])
     suffix = saving_settings.format
     original_size = image.size
 
     image_encrypt = ImageEncrypt(image, settings.cutting_row, settings.cutting_col, password)
 
-    if settings.shuffle_chunks or settings.flip_chunks or settings.RGB_mapping:
-        image_encrypt.init_block_data(False, settings.shuffle_chunks, settings.flip_chunks, settings.RGB_mapping, FakeBar)
+    if settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels:
+        image_encrypt.init_block_data(False, settings.shuffle_chunks, settings.flip_chunks, settings.mapping_channels, False, FakeBar)
         image = image_encrypt.generate_image(FakeBar)
 
     if settings.XOR_encryption:
@@ -139,17 +123,5 @@ def _batch(image_data, path_data, settings: 'SettingsData', saving_settings: 'Sa
 
     image.save(output_path, quality=saving_settings.quality, subsampling=saving_settings.subsampling_level)
 
-    parameters = {
-        'col': settings.cutting_col,
-        'row': settings.cutting_row,
-        'shuffle': settings.shuffle_chunks,
-        'flip': settings.flip_chunks,
-        'rgb_mapping': settings.RGB_mapping,
-        'xor_channels': settings.XOR_channels,
-        'noise_xor': settings.noise_XOR,
-        'noise_factor': settings.noise_factor
-    }
-
-    password_base64 = PasswordDict.get_validation_field_base64(password) if has_password else 0
     with open(output_path, "a") as f:
-        f.write('\n' + dumps(get_encryption_parameters(*original_size, parameters, has_password, password_base64), separators=(',', ':')))
+        f.write('\n' + dumps(settings.encryption_parameters_data(*original_size).encryption_parameters_dict, separators=(',', ':')))

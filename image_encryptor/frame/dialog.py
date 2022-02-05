@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-30 18:41:06
+LastEditTime : 2022-02-05 14:56:06
 Description  : 对话框相关
 '''
 from threading import Lock
@@ -14,7 +14,7 @@ from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
                 STAY_ON_TOP, YES_NO, DirDialog, FileDialog, MessageDialog)
 
 if TYPE_CHECKING:
-    from image_encryptor.gui.frame.events import MainFrame
+    from image_encryptor.frame.events import MainFrame
 
 
 class Dialog(object):

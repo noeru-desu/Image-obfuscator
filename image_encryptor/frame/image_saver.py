@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-04 10:10:07
+LastEditTime : 2022-02-05 15:52:39
 Description  : 文件保存功能
 '''
 from os import listdir
@@ -12,17 +12,17 @@ from threading import Lock
 
 from wx import ID_OK, ID_YES, ID_NO, DirDialog, DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, ID_CANCEL, CHK_UNCHECKED, CHK_CHECKED, CHK_UNDETERMINED
 
-import image_encryptor.gui.processor.qq_anti_harmony as qq_anti_harmony
-import image_encryptor.gui.processor.decryptor as decryptor
-import image_encryptor.gui.processor.encryptor as encryptor
+import image_encryptor.processor.qq_anti_harmony as qq_anti_harmony
+import image_encryptor.processor.decryptor as decryptor
+import image_encryptor.processor.encryptor as encryptor
 from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE
-from image_encryptor.gui.frame.controls import ProgressBar
-from image_encryptor.gui.utils.thread import ThreadManager
+from image_encryptor.frame.controls import ProgressBar
+from image_encryptor.utils.thread import ThreadManager
 
 if TYPE_CHECKING:
-    from image_encryptor.gui.frame.controls import Settings
-    from image_encryptor.gui.frame.events import MainFrame
-    from image_encryptor.gui.frame.tree_manager import ImageItem
+    from image_encryptor.frame.controls import Settings
+    from image_encryptor.frame.events import MainFrame
+    from image_encryptor.frame.tree_manager import ImageItem
 
 ENABLE = 2
 DISABLE = 3
@@ -265,7 +265,7 @@ class Filter(NamedTuple):
             return False
         if self.flip_filter is not IGNORE and convert_settings[settings.flip_chunks] is not self.flip_filter:
             return False
-        if self.mapping_filter is not IGNORE and convert_settings[settings.RGB_mapping] is not self.mapping_filter:
+        if self.mapping_filter is not IGNORE and convert_settings[bool(settings.mapping_channels)] is not self.mapping_filter:
             return False
         if self.xor_filter is not IGNORE and convert_settings[bool(settings.XOR_channels)] is not self.xor_filter:
             return False

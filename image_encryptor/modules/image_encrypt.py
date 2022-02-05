@@ -2,11 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 13:50:35
+LastEditTime : 2022-02-05 17:55:39
 Description  : 图片加密模块
 '''
+from re import sub
 import random
 from math import ceil
+from itertools import permutations
+from functools import cache
 
 from numpy.random import randint, seed as np_seed
 from numpy import array, squeeze, uint8
@@ -20,19 +23,19 @@ flip_func = (
 )
 
 
-encrypt_mapping_func = (
+old_encrypt_mapping_func = (
     lambda r, g, b, a: (b, r, g, a),
     lambda r, g, b, a: (g, r, b, a),
     lambda r, g, b, a: (b, g, r, a),
-    lambda r, g, b, a: (g, b, r, a),
+    lambda r, g, b, a: (g, b, r, a)
 )
 
 
-decrypt_mapping_func = (
+old_decrypt_mapping_func = (
     lambda r, g, b, a: (g, b, r, a),
     lambda r, g, b, a: (g, r, b, a),
     lambda r, g, b, a: (b, g, r, a),
-    lambda r, g, b, a: (b, r, g, a),
+    lambda r, g, b, a: (b, r, g, a)
 )
 
 channel_num = {'r': 0, 'g': 1, 'b': 2, 'a': 3}
@@ -67,16 +70,26 @@ class ImageEncrypt(object):
         self.image = image
         self.init = False
 
-    def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, rgb_mapping: bool, bar):
+    def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: str, old_mapping: bool, bar):
         '''
-        :description: 生成打乱后的图片分块、翻转分块，与每个分块所在的坐标列表
+        :old_mapping: 用于1.0.0-rc.12版本前的RGB随机映射, 为保证兼容性而保留
+        :description: 生成打乱后的图片分块、翻转分块, 与每个分块所在的坐标列表
         '''
         assert not self.init, 'ImageEncrypt instance has been initialized.'
         self.init = True
         self.decryption_mode = decryption_mode
         self.shuffle = shuffle
         self.flip = flip
-        self.rgb_mapping = rgb_mapping
+        if old_mapping:
+            self.mapped_channels = mapped_channels
+            self.encryption_mapping_table = old_encrypt_mapping_func
+            self.decryption_mapping_table = old_decrypt_mapping_func
+        elif len(mapped_channels) > 1:
+            self.mapped_channels = mapped_channels
+            self.encryption_mapping_table, self.decryption_mapping_table = gen_mapping_table(mapped_channels)
+        else:
+            self.mapped_channels = False
+            self.encryption_mapping_table, self.decryption_mapping_table = None, None
         for y in range(self.row):
             for x in range(self.col):
                 block_pos = (x * self.block_width, y * self.block_height)
@@ -89,10 +102,25 @@ class ImageEncrypt(object):
                 self.random.shuffle(self.block_pos_list)
             else:
                 self.random.shuffle(self.block_list)
-        if flip or rgb_mapping:
+        if flip:
+            self.block_flip_list = ([1, 2, 3, 0] * ceil(self.block_num / 4))[:self.block_num]
+            self.random.seed(self.random_seed)
+            self.random.shuffle(self.block_flip_list)
+        if old_mapping and flip:
+            self.block_mapping_list = self.block_flip_list
+        elif old_mapping:
             self.block_mapping_list = ([1, 2, 3, 0] * ceil(self.block_num / 4))[:self.block_num]
-        self.random.seed(self.random_seed)
-        self.random.shuffle(self.block_mapping_list)
+            self.random.seed(self.random_seed)
+            self.random.shuffle(self.block_mapping_list)
+        else:
+            if self.encryption_mapping_table is not None:
+                if len(self.encryption_mapping_table) != 1:
+                    self.block_mapping_list = (list(range(len(self.encryption_mapping_table))) * ceil(self.block_num / len(self.encryption_mapping_table)))[:self.block_num]
+                else:
+                    self.block_mapping_list = ([0] * ceil(self.block_num))
+        if not old_mapping:
+            self.random.seed(self.random_seed)
+            self.random.shuffle(self.block_mapping_list)
         bar.finish()
 
     def generate_image(self, bar):
@@ -102,22 +130,22 @@ class ImageEncrypt(object):
         '''
         assert self.init, 'ImageEncrypt instance is not initialized.'
         self.image = Image.new('RGBA', self.ceil_size)
-        mapping_func = decrypt_mapping_func if self.decryption_mode else encrypt_mapping_func
+        mapping_func = self.decryption_mapping_table if self.decryption_mode else self.encryption_mapping_table
         block_list = None
-        if self.flip and self.rgb_mapping:
+        if self.flip and self.mapped_channels:
             if block_list is None:
                 block_list = []
-            for block, pos, mapping in zip(self.block_list, self.block_pos_list, self.block_mapping_list):
-                block = Image.merge('RGBA', mapping_func[mapping](*flip_func[mapping](block).split()))
+            for block, pos, flip, mapping in zip(self.block_list, self.block_pos_list, self.block_flip_list, self.block_mapping_list):
+                block = Image.merge('RGBA', mapping_func[mapping](*flip_func[flip](block).split()))
                 self.image.paste(block, pos)
                 bar.update(bar.value + 1)
         elif self.flip:
             if block_list is None:
                 block_list = []
-            for block, pos, mapping in zip(self.block_list, self.block_pos_list, self.block_mapping_list):
-                self.image.paste(flip_func[mapping](block), pos)
+            for block, pos, flip in zip(self.block_list, self.block_pos_list, self.block_flip_list):
+                self.image.paste(flip_func[flip](block), pos)
                 bar.update(bar.value + 1)
-        elif self.rgb_mapping:
+        elif self.mapped_channels:
             if block_list is None:
                 block_list = []
             for block, pos, mapping in zip(self.block_list, self.block_pos_list, self.block_mapping_list):
@@ -148,6 +176,23 @@ class ImageEncrypt(object):
                 pixel_array[:, :, channel_num[channel]] ^= xor_num
         self.image = Image.fromarray(pixel_array)
         return self.image
+
+
+@cache
+def gen_mapping_table(nc):
+    if not nc or len(nc) == 1:
+        return None, None
+    nc_str = sub(f'[{nc}]', '{}', 'r, g, b, a')
+    lambda_str_for_encryption = f'lambda r, g, b, a: ({nc_str})'
+    lambda_str_for_decryption = f'lambda {nc_str}: (r, g, b, a)'
+    if len(nc) == 2:
+        return (eval(lambda_str_for_encryption.format(nc[1], nc[0])),), (eval(lambda_str_for_decryption.format(nc[1], nc[0])),)
+    mapping_table_for_encryption = []
+    mapping_table_for_decryption = []
+    for i in permutations(nc, len(nc)):
+        mapping_table_for_encryption.append(eval(lambda_str_for_encryption.format(*i)))
+        mapping_table_for_decryption.append(eval(lambda_str_for_decryption.format(*i)))
+    return mapping_table_for_encryption, mapping_table_for_decryption
 
 
 def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=True):

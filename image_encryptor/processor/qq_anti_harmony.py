@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-03 09:49:38
+LastEditTime : 2022-02-05 14:57:34
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
 from os import makedirs
@@ -13,10 +13,10 @@ from typing import TYPE_CHECKING
 from numpy.random import randint
 from PIL import Image
 
-from image_encryptor.gui.frame.controls import SavingSettings
+from image_encryptor.frame.controls import SavingSettings
 
 if TYPE_CHECKING:
-    from image_encryptor.gui.frame.events import MainFrame
+    from image_encryptor.frame.events import MainFrame
 
 
 def normal(frame, logger, gauge, image: 'Image.Image', save: bool):

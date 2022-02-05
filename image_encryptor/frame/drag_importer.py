@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-01-31 16:28:30
+LastEditTime : 2022-02-05 14:56:08
 Description  : 拖放处理
 '''
 from os.path import isdir
@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from wx import FileDropTarget
 
 if TYPE_CHECKING:
-    from image_encryptor.gui.frame.events import MainFrame
+    from image_encryptor.frame.events import MainFrame
 
 
 class DragLoader(FileDropTarget):

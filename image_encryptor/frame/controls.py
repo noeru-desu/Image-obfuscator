@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-04 10:31:52
+LastEditTime : 2022-02-05 17:59:42
 Description  : 整理
 '''
 from abc import ABC
@@ -12,13 +12,14 @@ from hashlib import md5
 from wx import Bitmap
 from image_encryptor.constants import ANTY_HARMONY_MODE, DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS, RESAMPLING_FILTERS
 
-from image_encryptor.gui.utils.misc_util import scale
+from image_encryptor.modules.password_verifier import PasswordDict
+from image_encryptor.utils.misc_util import scale
 
 if TYPE_CHECKING:
     from PIL.Image import Image
     from wx import Gauge
 
-    from image_encryptor.gui.frame.events import MainFrame
+    from image_encryptor.frame.events import MainFrame
 
 
 class ItemNotFoundError(Exception):
@@ -29,6 +30,7 @@ class Controls(object):
     "控件/控制器"
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
+        self.mapping_checkboxes = {'r': frame.mappingR, 'g': frame.mappingG, 'b': frame.mappingB, 'a': frame.mappingA}
         self.XOR_checkboxes = {'r': frame.XORR, 'g': frame.XORG, 'b': frame.XORB, 'a': frame.XORA}
         self.previous_saving_format = 'png'
         self.previous_proc_mode = ENCRYPTION_MODE
@@ -128,12 +130,36 @@ class Controls(object):
         self.frame.flipChunks.Value = v
 
     @property
-    def RGB_mapping(self) -> bool:
-        return self.frame.rgbMapping.Value
+    def mapping_R(self) -> bool:
+        return self.frame.mappingR.Value
 
-    @RGB_mapping.setter
-    def RGB_mapping(self, v: bool):
-        self.frame.rgbMapping.Value = v
+    @mapping_R.setter
+    def mapping_R(self, v: bool):
+        self.frame.mappingR.Value = v
+
+    @property
+    def mapping_G(self) -> bool:
+        return self.frame.mappingG.Value
+
+    @mapping_G.setter
+    def mapping_G(self, v: bool):
+        self.frame.mappingG.Value = v
+
+    @property
+    def mapping_B(self) -> bool:
+        return self.frame.mappingB.Value
+
+    @mapping_B.setter
+    def mapping_B(self, v: bool):
+        self.frame.mappingB.Value = v
+
+    @property
+    def mapping_A(self) -> bool:
+        return self.frame.mappingA.Value
+
+    @mapping_A.setter
+    def mapping_A(self, v: bool):
+        self.frame.mappingA.Value = v
 
     @property
     def XOR_encryption(self) -> bool:
@@ -340,6 +366,24 @@ class Controls(object):
         self.frame.savingProgress.Value = v
 
     @property
+    def mapping_channels(self):
+        channels = []
+        if self.mapping_R:
+            channels.append('r')
+        if self.mapping_G:
+            channels.append('g')
+        if self.mapping_B:
+            channels.append('b')
+        if self.mapping_A:
+            channels.append('a')
+        return ''.join(channels)
+
+    @mapping_channels.setter
+    def mapping_channels(self, v):
+        for i in 'rgba':
+            self.mapping_checkboxes[i].SetValue(i in v)
+
+    @property
     def XOR_channels(self):
         channels = []
         if self.XOR_R:
@@ -351,6 +395,11 @@ class Controls(object):
         if self.XOR_A:
             channels.append('a')
         return ''.join(channels)
+
+    @XOR_channels.setter
+    def XOR_channels(self, v):
+        for i in 'rgba':
+            self.XOR_checkboxes[i].SetValue(i in v)
 
     def clear_preview(self):
         self.frame.importedBitmap.Bitmap = self.frame.previewedBitmap.Bitmap = Bitmap()
@@ -386,7 +435,7 @@ class SettingsManager(object):
             'cutting_col': 25,
             'shuffle': True,
             'flip': True,
-            'rgb_mapping': False,
+            'mapping_channels': '',
             'xor_encryption': False,
             'xor_channels': 'rgb',
             'noise_xor': False,
@@ -397,12 +446,13 @@ class SettingsManager(object):
             'quality': 98,
             'subsampling': 0
         }'''
-        self.default = Settings(self.controls, (0, 25, 25, True, True, False, False, 'rgb', False, 128, None, '', 'png', 2, 98, 0))
+        self.default = Settings(self.controls, (0, 25, 25, True, True, '', False, 'rgb', False, 128, None, '', 'png', 2, 98, 0))
 
     @property
     def encryption_settings(self):
         return (self.controls.proc_mode, self.controls.cutting_row, self.controls.cutting_col,
-                self.controls.shuffle_chunks, self.controls.flip_chunks, self.controls.RGB_mapping,
+                self.controls.shuffle_chunks, self.controls.flip_chunks, self.controls.mapping_R,
+                self.controls.mapping_G, self.controls.mapping_B, self.controls.mapping_A,
                 self.controls.XOR_encryption, self.controls.noise_XOR, self.controls.XOR_R,
                 self.controls.XOR_G, self.controls.XOR_B, self.controls.XOR_A,
                 self.controls.noise_XOR, self.controls.noise_factor, self.controls.password,
@@ -420,7 +470,7 @@ class SettingsManager(object):
             'cutting_col': self.controls.cutting_col,
             'shuffle_chunks': self.controls.shuffle_chunks,
             'flip_chunks': self.controls.flip_chunks,
-            'RGB_mapping': self.controls.RGB_mapping,
+            'mapping_channels': self.controls.mapping_channels,
             'XOR_encryption': self.controls.XOR_encryption,
             'XOR_channels': self.controls.XOR_channels,
             'noise_XOR': self.controls.noise_XOR,
@@ -468,7 +518,7 @@ class SettingsBase(ABC):
 
 class SettingsData(SettingsBase):
     SETTING_NAMES = ('proc_mode', 'cutting_row', 'cutting_col', 'shuffle_chunks', 'flip_chunks',
-                     'RGB_mapping', 'XOR_encryption', 'XOR_channels', 'noise_XOR', 'noise_factor',
+                     'mapping_channels', 'XOR_encryption', 'XOR_channels', 'noise_XOR', 'noise_factor',
                      'password', 'saving_path', 'saving_format', 'saving_format_index', 'saving_quality',
                      'saving_subsampling_level')
 
@@ -484,7 +534,7 @@ class SettingsData(SettingsBase):
         self.cutting_col = settings_dict['cutting_col']
         self.shuffle_chunks = settings_dict['shuffle_chunks']
         self.flip_chunks = settings_dict['flip_chunks']
-        self.RGB_mapping = settings_dict['RGB_mapping']
+        self.mapping_channels = settings_dict['mapping_channels']
         self.XOR_channels = settings_dict['XOR_channels']
         self.XOR_encryption = settings_dict['XOR_encryption'] if 'XOR_encryption' in settings_dict else bool(self.XOR_channels)
         self.noise_XOR = settings_dict['noise_XOR']
@@ -498,6 +548,14 @@ class SettingsData(SettingsBase):
 
     def deepcopy(self):
         return SettingsData(tuple(self.properties))
+
+    def encryption_parameters_data(self, orig_width, orig_height):
+        has_password = self.password != 'none'
+        password = 100 if has_password else self.password
+        return EncryptionParametersData((self.cutting_col, self.cutting_row, orig_width, orig_height, self.shuffle_chunks,
+                                        self.flip_chunks, False, self.mapping_channels, self.XOR_channels if self.XOR_encryption else '',
+                                        self.noise_XOR, self.noise_factor, has_password,
+                                        PasswordDict.get_validation_field_base64(password) if has_password else 0, self.password))
 
 
 class Settings(SettingsData):
@@ -514,7 +572,7 @@ class Settings(SettingsData):
         self.cutting_col = self.controls.cutting_col
         self.shuffle_chunks = self.controls.shuffle_chunks
         self.flip_chunks = self.controls.flip_chunks
-        self.RGB_mapping = self.controls.RGB_mapping
+        self.mapping_channels = self.controls.mapping_channels
         self.XOR_encryption = self.controls.XOR_encryption
         self.XOR_channels = self.controls.XOR_channels
         self.noise_XOR = self.controls.noise_XOR
@@ -537,18 +595,17 @@ class Settings(SettingsData):
         self.controls.cutting_row = self.cutting_row
         self.controls.cutting_col = self.cutting_col
         self.controls.shuffle_chunks = self.shuffle_chunks
-        self.controls.RGB_mapping = self.RGB_mapping
+        self.controls.mapping_channels = self.mapping_channels
         self.controls.flip_chunks = self.flip_chunks
         self.controls.password = self.password
         self.controls.XOR_encryption = self.XOR_encryption
+        self.controls.XOR_channels = self.XOR_channels
         self.controls.noise_XOR = self.noise_XOR
         self.controls.noise_factor = self.noise_factor
         self.controls.noise_factor_info = str(self.noise_factor)
         self.controls.frame.xorPanel.Enable(self.XOR_encryption)
         self.controls.frame.processingSettingsPanel1.Enable()
         self.controls.frame.passwordCtrl.Enable()
-        for i in 'rgba':
-            self.controls.XOR_checkboxes[i].SetValue(i in self.XOR_channels)
 
     def deepcopy(self):
         return Settings(self.controls, self.properties_tuple)
@@ -567,8 +624,8 @@ class SavingSettings(SettingsBase):
 
 class EncryptionParametersData(SettingsBase):
     SETTING_NAMES = ('cutting_row', 'cutting_col', 'orig_width', 'orig_height', 'shuffle_chunks',
-                     'flip_chunks', 'RGB_mapping', 'XOR_channels', 'noise_XOR', 'noise_factor',
-                     'has_password', 'password_base64', 'password')
+                     'flip_chunks', 'old_mapping', 'mapping_channels', 'XOR_channels', 'noise_XOR',
+                     'noise_factor', 'has_password', 'password_base64', 'password')
 
     def __init__(self, parameters):
         if isinstance(parameters, dict):
@@ -577,19 +634,27 @@ class EncryptionParametersData(SettingsBase):
             self.inherit_tuple(parameters)
 
     def _inherit_dict_settings(self, parameters_dict):
-        self.cutting_row = parameters_dict['row']
-        self.cutting_col = parameters_dict['col']
-        self.orig_width = parameters_dict['width']
-        self.orig_height = parameters_dict['height']
-        self.shuffle_chunks = parameters_dict['shuffle']
-        self.flip_chunks = parameters_dict['flip']
-        self.RGB_mapping = parameters_dict['rgb_mapping']
-        self.XOR_channels = parameters_dict['xor_channels']
-        self.noise_XOR = parameters_dict['noise_xor']
+        self.cutting_row = parameters_dict['cutting_row']
+        self.cutting_col = parameters_dict['cutting_col']
+        self.orig_width = parameters_dict['orig_width']
+        self.orig_height = parameters_dict['orig_height']
+        self.shuffle_chunks = parameters_dict['shuffle_chunks']
+        self.flip_chunks = parameters_dict['flip_chunks']
+        self.old_mapping = parameters_dict['old_mapping']
+        self.mapping_channels = parameters_dict['mapping_channels']
+        self.XOR_channels = parameters_dict['XOR_channels']
+        self.noise_XOR = parameters_dict['noise_XOR']
         self.noise_factor = parameters_dict['noise_factor']
         self.has_password = parameters_dict['has_password']
         self.password_base64 = parameters_dict['password_base64']
         self.password = None
+
+    @property
+    def encryption_parameters_dict(self):
+        parameters = {k: getattr(self, k) for k in self.SETTING_NAMES}
+        del parameters['password']
+        parameters['version'] = 5
+        return parameters
 
 
 class EncryptionParameters(EncryptionParametersData):
@@ -603,15 +668,14 @@ class EncryptionParameters(EncryptionParametersData):
         self.controls.cutting_row = self.cutting_row
         self.controls.cutting_col = self.cutting_col
         self.controls.shuffle_chunks = self.shuffle_chunks
-        self.controls.RGB_mapping = self.RGB_mapping
+        self.controls.mapping_channels = self.mapping_channels
         self.controls.flip_chunks = self.flip_chunks
         self.controls.noise_XOR = self.noise_XOR
         self.controls.noise_factor = self.noise_factor
         self.controls.noise_factor_info = str(self.noise_factor)
         if self.XOR_channels:
             self.controls.XOR_encryption = True
-        for i in 'rgba':
-            self.controls.XOR_checkboxes[i].SetValue(i in self.XOR_channels)
+        self.controls.XOR_channels = self.XOR_channels
         if self.has_password:
             if self.password is None:
                 self.password = self.controls.frame.password_dict.get_password(self.password_base64)
@@ -691,4 +755,3 @@ class SegmentTrigger(object):
         self._num = -1
         if self._initcall is not None:
             self._initcall(*self._args, **self._kwargs)
-

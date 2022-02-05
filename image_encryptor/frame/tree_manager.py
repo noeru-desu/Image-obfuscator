@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-04 10:03:16
+LastEditTime : 2022-02-05 17:32:19
 Description  : 节点树控制
 '''
 from abc import ABC
@@ -13,16 +13,16 @@ from typing import TYPE_CHECKING, Generator, Optional
 from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
 from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE
 
-from image_encryptor.common.utils.utils import open_image
-from image_encryptor.gui.modules.password_verifier import get_image_data
-from image_encryptor.gui.frame.controls import EncryptionParameters
-from image_encryptor.gui.utils.thread import ThreadManager
+from image_encryptor.utils.utils import open_image
+from image_encryptor.modules.password_verifier import get_image_data
+from image_encryptor.frame.controls import EncryptionParameters
+from image_encryptor.utils.thread import ThreadManager
 
 if TYPE_CHECKING:
     from PIL.Image import Image
     from wx import TreeCtrl, TreeItemId, Bitmap
-    from image_encryptor.gui.frame.controls import Settings
-    from image_encryptor.gui.frame.events import MainFrame
+    from image_encryptor.frame.controls import Settings
+    from image_encryptor.frame.events import MainFrame
 
 
 class TreeManager(object):
@@ -211,6 +211,7 @@ class ImageItem(Item):
             self.reload_done()
             if self.encrypted_image:
                 self.encryption_data.backtrack_interface()
+                self.frame.force_refresh_preview()
         return 1, 0
 
 

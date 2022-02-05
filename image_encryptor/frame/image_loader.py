@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-01 17:00:25
+LastEditTime : 2022-02-05 17:32:37
 Description  : 文件载入功能
 '''
 from os.path import isfile, isdir, join, split
@@ -12,14 +12,14 @@ from PIL import Image
 from wx import ID_YES, ID_NO
 
 from image_encryptor.constants import EXTENSION_KEYS
-from image_encryptor.common.utils.utils import open_image
-from image_encryptor.gui.frame.tree_manager import ImageItem
-from image_encryptor.gui.frame.controls import ProgressBar
-from image_encryptor.gui.utils.thread import ThreadManager
-from image_encryptor.gui.utils.misc_util import walk_file
+from image_encryptor.utils.utils import open_image
+from image_encryptor.frame.tree_manager import ImageItem
+from image_encryptor.frame.controls import ProgressBar
+from image_encryptor.utils.thread import ThreadManager
+from image_encryptor.utils.misc_util import walk_file
 
 if TYPE_CHECKING:
-    from image_encryptor.gui.frame.events import MainFrame
+    from image_encryptor.frame.events import MainFrame
 
 
 class ImageLoader(object):
@@ -66,8 +66,8 @@ class ImageLoader(object):
         if self._hint_image(error):
             path, name = split(path_chosen)
             image_item = ImageItem(self.frame, loaded_image, (path, '', name), self.frame.settings.default.deepcopy())
-            image_item.load_encryption_parameters()
             self.frame.tree_manager.add_file(path_chosen, data=image_item)
+            image_item.check_encryption_parameters()
             self.frame.imageTreeCtrl.SelectItem(list(self.frame.tree_manager.file_dict.values())[-1])
         self.finish_loading_progress()
         self.frame.stop_loading_func.init()
@@ -92,8 +92,8 @@ class ImageLoader(object):
                 loaded_image, error = open_image(join(path_chosen, r, n))
                 if self._hint_image(error, False, n):
                     image_item = ImageItem(self.frame, loaded_image, (path_chosen, r, n), self.frame.settings.default.deepcopy())
-                    image_item.load_encryption_parameters()
                     self.frame.tree_manager.add_file(path_chosen, r, n, image_item, False)
+                    image_item.load_encryption_parameters()
                     self.add_loading_progress()
                 if self.loading_thread.exit_signal:
                     self.frame.stop_loading(False)
