@@ -2,9 +2,10 @@
 Author       : noeru_desu
 Date         : 2022-01-27 14:22:10
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 20:46:21
+LastEditTime : 2022-02-06 13:42:15
 Description  : 事件处理覆写
 '''
+from sys import exit as sys_exit
 from typing import TYPE_CHECKING
 
 from wx import (DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
@@ -211,4 +212,4 @@ class MainFrame(BasicMainFrame):
     def exit(self, event):
         self.logger.info('窗口退出')
         self.Destroy()
-        exit()
+        sys_exit()
