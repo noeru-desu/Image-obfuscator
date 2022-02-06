@@ -13,7 +13,7 @@ on:
 env:
   ORIGINAL_PROJECT: "noeru-desu/Image-encryptor"
   PROGRAM_NAME: "ImageEncryptor"
-  BUILD_ENV: "win64-nuitka-msvc-14.2"
+  BUILD_ENV: "win64-nuitka-msvc"
 
 jobs:
   build:
@@ -105,5 +105,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.BUILD_ENV }}-build.${{ env.GITHUB_RUN_NUMBER }}
+          name: ${{ env.BUILD_ENV }}-${{ env.VCToolsVersion }}-build.${{ github.run_number }}
           path: nuitka/ImageEncryptor.exe
