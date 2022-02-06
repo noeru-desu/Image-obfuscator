@@ -40,8 +40,8 @@ jobs:
           path: ./
       - name: Unzip UPX
         run: |
-          Expand-Archive -Path ./upx-*.zip -DestinationPath ./
-          Move-Item ./upx-*/upx.exe ./
+          Expand-Archive -Path "./upx-*.zip" -DestinationPath "./"
+          Move-Item "./upx-*/upx.exe" "./"
       - name: Set up Python 3.10
         uses: actions/setup-python@v2
         with:
