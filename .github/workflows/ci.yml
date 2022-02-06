@@ -36,7 +36,7 @@ jobs:
           owner: upx
           repo: upx
           tag: latest
-          file: /upx-[0-9.]+-win${{ matrix.bit }}.zip/
+          file: /upx-[0-9.]+-win64.zip/
           path: ./
       - name: Unzip UPX
         run: |
