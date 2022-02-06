@@ -30,18 +30,18 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-      - name: Download UPX
-        uses: i3h/download-release-asset@v1.3.2
-        with:
-          owner: upx
-          repo: upx
-          tag: latest
-          file: /upx-[0-9.]+-win64.zip/
-          path: ./
-      - name: Unzip UPX
-        run: |
-          Expand-Archive -Path "./upx-*.zip" -DestinationPath "./"
-          Move-Item "./upx-*/upx.exe" "./"
+      #- name: Download UPX
+      #  uses: i3h/download-release-asset@v1.3.2
+      #  with:
+      #    owner: upx
+      #    repo: upx
+      #    tag: latest
+      #    file: /upx-[0-9.]+-win64.zip/
+      #    path: ./
+      #- name: Unzip UPX
+      #  run: |
+      #    Expand-Archive -Path "./upx-*.zip" -DestinationPath "./"
+      #    Move-Item "./upx-*/upx.exe" "./"
       - name: Set up Python 3.10
         uses: actions/setup-python@v2
         with:
@@ -69,7 +69,7 @@ jobs:
         shell: cmd
         run: |
           mkdir nuitka
-          nuitka --python-flag=-OO --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --upx-binary=upx.exe --plugin-enable=anti-bloat,pkg-resources,numpy,multiprocessing,upx --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --include-module=wx._xml --include-package=PIL --output-dir=nuitka ImageEncryptor.py
+          nuitka --python-flag=-OO --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,pkg-resources,numpy,multiprocessing --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --include-module=wx._xml --include-package=PIL --output-dir=nuitka ImageEncryptor.py
       - name: Basic tests
         shell: cmd
         run: |
