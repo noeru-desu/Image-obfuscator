@@ -67,8 +67,9 @@ class ImageLoader(object):
             path, name = split(path_chosen)
             image_item = ImageItem(self.frame, loaded_image, (path, '', name), self.frame.settings.default.deepcopy())
             self.frame.tree_manager.add_file(path_chosen, data=image_item)
+            image_item.load_encryption_parameters()
+            self.frame.imageTreeCtrl.SelectItem(tuple(self.frame.tree_manager.file_dict.values())[-1])
             image_item.check_encryption_parameters()
-            self.frame.imageTreeCtrl.SelectItem(list(self.frame.tree_manager.file_dict.values())[-1])
         self.finish_loading_progress()
         self.frame.stop_loading_func.init()
 
