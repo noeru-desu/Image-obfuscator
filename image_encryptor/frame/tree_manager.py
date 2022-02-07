@@ -2,12 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 17:32:19
+LastEditTime : 2022-02-07 15:21:02
 Description  : 节点树控制
 '''
 from abc import ABC
 from typing import Union
-from os.path import isdir, isfile, join, sep, split
+from os.path import isdir, join, sep, split
 from typing import TYPE_CHECKING, Generator, Optional
 
 from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
@@ -73,7 +73,6 @@ class TreeManager(object):
             relative_path = ''
             root_path, file = split(root_path)
         absolute_path = join(root_path, relative_path, file)
-        assert isfile(absolute_path), f'{file} is not a file.'
         if absolute_path in self.file_dict:
             return
         root = self.root
@@ -152,14 +151,18 @@ class Item(ABC):
 class ImageItem(Item):
     """每个载入的图片的存储实例"""
 
-    def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: tuple[str, str, str], settings: 'Settings'):
+    def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: Union[tuple[str, str, str], str], settings: 'Settings', no_file=False):
         self.frame = frame
         self.loaded_image = loaded_image
         self.path_data = path_data
-        self.loaded_image_path = join(*path_data)
+        self.loaded_image_path = path_data if no_file else join(*path_data)
         self.settings = settings
         self.parent = None
+        self.no_file = no_file
         self._init_cache()
+        if self.no_file:
+            self.encrypted_image = False
+            self.loading_image_data_error = '来自剪贴板的文件不支持解密操作'
 
     def _init_cache(self):
         self.initial_preview: 'Bitmap' = None
@@ -171,6 +174,8 @@ class ImageItem(Item):
         self.loading_image_data_error: str = None
 
     def check_encryption_parameters(self):
+        if self.no_file:
+            return
         if self.encrypted_image is None:
             self.load_encryption_parameters()
         if self.encrypted_image:
@@ -194,7 +199,11 @@ class ImageItem(Item):
                 del self.parent.children[item_id]
         del self.frame.tree_manager.file_dict[self.loaded_image_path]
 
-    def reload_item(self, dialog=True):
+    def reload_item(self, dialog=True) -> Optional[tuple[int, int]]:
+        if self.no_file:
+            self.frame.dialog.async_warning('来自剪贴板的文件不支持重载操作')
+            self.reload_done()
+            return
         if self.frame.tree_manager.reloading_thread.exit_signal:
             return 0, 0
         loaded_image, error = open_image(self.loaded_image_path)
@@ -245,6 +254,8 @@ class FolderItem(Item):
             add_success_num, add_fail_num = data.reload_item(False)
             success_num += add_success_num
             fail_num += add_fail_num
+            if self.frame.tree_manager.reloading_thread.exit_signal:
+                break
         if dialog:
             self.frame.dialog.async_info(f'重载成功: {success_num}个, 失败: {fail_num}个')
             self.reload_done()

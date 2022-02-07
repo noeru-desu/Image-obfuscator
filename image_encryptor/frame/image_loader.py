@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 21:00:11
+LastEditTime : 2022-02-07 15:20:46
 Description  : 文件载入功能
 '''
 from os.path import isfile, isdir, join, split
@@ -29,19 +29,24 @@ class ImageLoader(object):
         self.progress_plane_displayed = False
         self.file_count = 0
         self.loading_progress = 0
+        self.clipboard_count = 0
         self.bar = None
 
-    def load(self, path_chosen: Iterable | str):
+    def load(self, path_chosen: Iterable | str | Image.Image):
         if not self.loading_thread.is_ended:
             self.frame.dialog.async_warning('请等待当前图片载入完成后再载入新的图片')
             return
         Image.MAX_IMAGE_PIXELS = self.frame.controls.max_image_pixels if self.frame.controls.max_image_pixels != 0 else None
         if not self.frame.tree_manager.file_dict:
             self.frame.set_settings_as_default()  # 当没有加载任何图片时，将当前的设置设为默认设置
-        if isinstance(path_chosen, str):
+        if isinstance(path_chosen, Image.Image):
+            self.loading_thread.start_new(self._load_image_object, self._loading_callback, (path_chosen,), callback_args=(None,))
+        elif isinstance(path_chosen, str):
             self.loading_thread.start_new(self._load_selected_path, self._loading_callback, (path_chosen,), callback_args=(None,))
-        else:
+        elif isinstance(path_chosen[0], str):
             self.loading_thread.start_new(self._load_selected_path, self._loading_callback, (path_chosen[0],), callback_args=(path_chosen[1:],))
+        else:
+            raise Exception(f'Unsupported type: {type(path_chosen)}')
 
     def _loading_callback(self, error, result, path_chosen):
         if error is not None:
@@ -50,6 +55,17 @@ class ImageLoader(object):
             self.hide_loading_progress_plane()
             return
         self.loading_thread.start_new(self._load_selected_path, self._loading_callback, (path_chosen[0],), callback_args=(path_chosen[1:],))
+
+    def _load_image_object(self, image: 'Image.Image'):
+        self.show_loading_progress_plane()
+        self.init_loading_progress(1)
+        self.clipboard_count += 1
+        name = f'clipboard-{self.clipboard_count}'
+        image_item = ImageItem(self.frame, image.convert('RGBA'), name, self.frame.settings.default.deepcopy(), True)
+        self.frame.tree_manager.add_file('', '', name, image_item)
+        self.frame.imageTreeCtrl.SelectItem(tuple(self.frame.tree_manager.file_dict.values())[-1])
+        self.finish_loading_progress()
+        self.frame.stop_loading_func.init()
 
     def _load_selected_path(self, path_chosen):
         if self._exist(path_chosen):

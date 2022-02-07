@@ -2,12 +2,13 @@
 Author       : noeru_desu
 Date         : 2022-01-27 14:22:10
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-06 13:42:15
+LastEditTime : 2022-02-07 15:10:51
 Description  : 事件处理覆写
 '''
 from sys import exit as sys_exit
 from typing import TYPE_CHECKING
 
+from PIL import ImageGrab
 from wx import (DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
                 FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, ID_OK, DirDialog,
                 FileDialog)
@@ -67,6 +68,13 @@ class MainFrame(BasicMainFrame):
         with DirDialog(self, "选择文件夹", style=DIRP_CHANGE_DIR | DIRP_DIR_MUST_EXIST) as dialog:
             if ID_OK == dialog.ShowModal():
                 self.image_loader.load(dialog.GetPath())
+
+    def load_image_from_clipboard(self, event):
+        clipboard = ImageGrab.grabclipboard()
+        if clipboard is None:
+            self.dialog.async_warning('没有从剪切板导入任何图像')
+        else:
+            self.image_loader.load(clipboard)
 
     def update_password_dict(self, event=None):
         """更新成功则返回True"""
@@ -128,8 +136,8 @@ class MainFrame(BasicMainFrame):
                 image_data.settings = settings
         elif self.deleted_item:
             self.deleted_item = False
-        else:
-            self.apply_settings_to_all()
+        # else:
+        #     self.apply_settings_to_all()
 
         if not event.GetItem().IsOk():
             self.image_item = None

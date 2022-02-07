@@ -55,7 +55,10 @@ class MainFrame (wx.Frame):
         bSizer91.Add(self.m_button5, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         self.m_button6 = wx.Button(self.loadingPanel, wx.ID_ANY, u"载入文件夹", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer91.Add(self.m_button6, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        bSizer91.Add(self.m_button6, 0, wx.ALIGN_CENTER_VERTICAL, 5)
+
+        self.m_button32 = wx.Button(self.loadingPanel, wx.ID_ANY, u"从剪贴板载入", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer91.Add(self.m_button32, 0, wx.ALL, 5)
 
         self.imageInfo = wx.StaticText(self.loadingPanel, wx.ID_ANY, u"图像信息：未选择图片", wx.DefaultPosition, wx.DefaultSize, 0)
         self.imageInfo.Wrap(-1)
@@ -613,6 +616,7 @@ class MainFrame (wx.Frame):
         self.stopLoadingBtn.Bind(wx.EVT_BUTTON, self.stop_loading_event)
         self.m_button5.Bind(wx.EVT_BUTTON, self.load_file)
         self.m_button6.Bind(wx.EVT_BUTTON, self.load_dir)
+        self.m_button32.Bind(wx.EVT_BUTTON, self.load_image_from_clipboard)
         self.m_button10.Bind(wx.EVT_BUTTON, self.del_item)
         self.reloadingBtn.Bind(wx.EVT_BUTTON, self.reload_item)
         self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.switch_image)
@@ -669,6 +673,9 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def load_dir(self, event):
+        event.Skip()
+
+    def load_image_from_clipboard(self, event):
         event.Skip()
 
     def del_item(self, event):
