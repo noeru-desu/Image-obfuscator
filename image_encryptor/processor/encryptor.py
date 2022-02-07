@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 17:47:10
+LastEditTime : 2022-02-07 14:02:45
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -11,10 +11,11 @@ from os.path import isdir, join, split, splitext
 from traceback import format_exc
 from typing import TYPE_CHECKING
 
+from PIL import Image
+
 from image_encryptor.modules.image_encrypt import ImageEncrypt
 from image_encryptor.utils.utils import FakeBar
 from image_encryptor.frame.controls import ProgressBar, SettingsData, SavingSettings
-from PIL import Image
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
@@ -65,7 +66,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
         block_num = settings.cutting_row * settings.cutting_col
         logger('正在分割原图')
         bar.next_step(block_num)
-        image_encrypt.init_block_data(False, settings.shuffle_chunks, settings.flip_chunks, settings.mapping_channels, False, bar)
+        image_encrypt.init_block_data(settings.shuffle_chunks, settings.flip_chunks, settings.mapping_channels, bar)
 
         logger('正在重组')
         bar.next_step(block_num)
@@ -104,7 +105,7 @@ def _batch(image_data, path_data, settings: 'SettingsData', saving_settings: 'Sa
     image_encrypt = ImageEncrypt(image, settings.cutting_row, settings.cutting_col, password)
 
     if settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels:
-        image_encrypt.init_block_data(False, settings.shuffle_chunks, settings.flip_chunks, settings.mapping_channels, False, FakeBar)
+        image_encrypt.init_block_data(settings.shuffle_chunks, settings.flip_chunks, settings.mapping_channels, FakeBar)
         image = image_encrypt.generate_image(FakeBar)
 
     if settings.XOR_encryption:

@@ -2,18 +2,18 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 17:55:39
+LastEditTime : 2022-02-06 19:32:19
 Description  : 图片加密模块
 '''
-from re import sub
+from abc import ABC
 import random
 from math import ceil
-from itertools import permutations
-from functools import cache
 
-from numpy.random import randint, seed as np_seed
-from numpy import array, squeeze, uint8
+from numpy.random import randint
+from numpy import array, uint8
 from PIL import Image
+
+from image_encryptor.utils.image import gen_mapping_table, random_noise
 
 flip_func = (
     lambda img: img,
@@ -41,7 +41,7 @@ old_decrypt_mapping_func = (
 channel_num = {'r': 0, 'g': 1, 'b': 2, 'a': 3}
 
 
-class ImageEncrypt(object):
+class ImageEncryptBase(ABC):
     '''
     用于图像的加解密
     '''
@@ -178,54 +178,25 @@ class ImageEncrypt(object):
         return self.image
 
 
-@cache
-def gen_mapping_table(nc):
-    if not nc or len(nc) == 1:
-        return None, None
-    nc_str = sub(f'[{nc}]', '{}', 'r, g, b, a')
-    lambda_str_for_encryption = f'lambda r, g, b, a: ({nc_str})'
-    lambda_str_for_decryption = f'lambda {nc_str}: (r, g, b, a)'
-    if len(nc) == 2:
-        return (eval(lambda_str_for_encryption.format(nc[1], nc[0])),), (eval(lambda_str_for_decryption.format(nc[1], nc[0])),)
-    mapping_table_for_encryption = []
-    mapping_table_for_decryption = []
-    for i in permutations(nc, len(nc)):
-        mapping_table_for_encryption.append(eval(lambda_str_for_encryption.format(*i)))
-        mapping_table_for_decryption.append(eval(lambda_str_for_decryption.format(*i)))
-    return mapping_table_for_encryption, mapping_table_for_decryption
+class ImageEncrypt(ImageEncryptBase):
+    def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: str, bar):
+        return super().init_block_data(False, shuffle, flip, mapped_channels, False, bar)
 
 
-def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=True):
-    '''Generator a random noise image from numpy.array.
+class ImageDecrypt(ImageEncryptBase):
+    def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: str, old_mapping: bool, bar):
+        return super().init_block_data(True, shuffle, flip, mapped_channels, old_mapping, bar)
 
-    If nc is 1, the Grayscale image will be created.
-    If nc is 3, the RGB image will be generated.
-    If nc is 4, the RGBA image will be generated.
 
-    Args:
-        nc (int): (1, 3 or 4) number of channels.
-        width (int): width of output image.
-        height (int): height of output image.
-    Returns:
-        PIL Image.
-    '''
-    if factor > 255:
-        factor = 255
-    elif factor < 1:
-        factor = 1
-    random.seed(seed)
-    seed = random.randrange(0, 2 ** 32)
-    np_seed(seed)
-    image = randint(0, factor + 1, (height, width, nc), uint8)   # [rc.4修改方法]
-    # image = (np_random.rand(height, width, nc) * factor).astype(uint8) [rc.3使用方法]
-    if ndarray:
-        return image
-    else:
-        if nc == 1:
-            return Image.fromarray(squeeze(image), mode='L')
-        elif nc == 3:
-            return Image.fromarray(image, mode='RGB')
-        elif nc == 4:
-            return Image.fromarray(image, mode='RGBA')
-        else:
-            raise ValueError(f'Input nc should be 1/3/4. Got {nc}.')
+class AntiHarmony(object):
+    def __init__(self, image: 'Image.Image'):
+        self.image = image
+        self.right_pos = self.image.size[0] - 1
+        self.button_pos = self.image.size[1] - 1
+
+    def generate_image(self):
+        self.image.putpixel((0, 0), (randint(256), randint(256), randint(256)))
+        self.image.putpixel((self.right_pos, 0), (randint(256), randint(256), randint(256)))
+        self.image.putpixel((0, self.button_pos), (randint(256), randint(256), randint(256)))
+        self.image.putpixel((self.right_pos, self.button_pos), (randint(256), randint(256), randint(256)))
+        return self.image

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 17:59:42
+LastEditTime : 2022-02-07 14:02:58
 Description  : 整理
 '''
 from abc import ABC
@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING, Callable, Iterable, Optional
 from hashlib import md5
 
 from wx import Bitmap
-from image_encryptor.constants import ANTY_HARMONY_MODE, DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS, RESAMPLING_FILTERS
 
+from image_encryptor.constants import ANTY_HARMONY_MODE, DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS, RESAMPLING_FILTERS
 from image_encryptor.modules.password_verifier import PasswordDict
 from image_encryptor.utils.misc_util import scale
 

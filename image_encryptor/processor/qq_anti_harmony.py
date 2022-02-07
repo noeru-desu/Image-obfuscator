@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 14:57:34
+LastEditTime : 2022-02-06 18:48:50
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 '''
 from os import makedirs
@@ -10,16 +10,18 @@ from os.path import join, split, splitext, isdir
 from traceback import format_exc
 from typing import TYPE_CHECKING
 
-from numpy.random import randint
 from PIL import Image
 
 from image_encryptor.frame.controls import SavingSettings
+from image_encryptor.modules.image_encrypt import AntiHarmony
 
 if TYPE_CHECKING:
+    from wx import Gauge
+
     from image_encryptor.frame.events import MainFrame
 
 
-def normal(frame, logger, gauge, image: 'Image.Image', save: bool):
+def normal(frame: 'MainFrame', logger, gauge: 'Gauge', image: 'Image.Image', save: bool):
     try:
         return False, _normal(frame, logger, gauge, image, save)
     except Exception:
@@ -33,17 +35,14 @@ def batch(image_data, path_data, saving_settings, auto_folder):
         return True, format_exc()
 
 
-def _normal(frame: 'MainFrame', logger, gauge, image, save):
+def _normal(frame: 'MainFrame', logger, gauge: 'Gauge', image, save):
     logger('开始处理')
 
-    image.putpixel((0, 0), (randint(256), randint(256), randint(256)))
-    image.putpixel((image.size[0] - 1, 0), (randint(256), randint(256), randint(256)))
-    image.putpixel((0, image.size[1] - 1), (randint(256), randint(256), randint(256)))
-    image.putpixel((image.size[0] - 1, image.size[1] - 1), (randint(256), randint(256), randint(256)))
+    image = AntiHarmony(image).generate_image()
 
     if save:
         gauge.SetValue(50)
-        logger('完成，正在保存文件')
+        logger('完成, 正在保存文件')
         name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
         suffix = frame.controls.saving_format
         name = f'{name}-anti-harmony.{suffix}'
@@ -56,11 +55,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
 
 
 def _batch(image_data, path_data, saving_settings: 'SavingSettings', auto_folder):
-    image = Image.frombytes(*image_data)
-    image.putpixel((0, 0), (randint(256), randint(256), randint(256)))
-    image.putpixel((image.size[0] - 1, 0), (randint(256), randint(256), randint(256)))
-    image.putpixel((0, image.size[1] - 1), (randint(256), randint(256), randint(256)))
-    image.putpixel((image.size[0] - 1, image.size[1] - 1), (randint(256), randint(256), randint(256)))
+    image = AntiHarmony(Image.frombytes(*image_data)).generate_image()
 
     name, suffix = splitext(path_data[-1])
     suffix = saving_settings.format
