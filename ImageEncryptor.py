@@ -3,7 +3,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 14:56:02
+LastEditTime : 2022-02-08 12:10:58
 Description  : GUI程序
 '''
 from multiprocessing import freeze_support
@@ -17,6 +17,6 @@ filterwarnings('error')
 
 if __name__ == '__main__':
     freeze_support()
-    if len(argv) > 1 and argv[1] == '+test':
+    if '+test' in argv:
         exit()
     MainFrame.run()

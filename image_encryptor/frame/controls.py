@@ -2,10 +2,11 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-07 14:02:58
+LastEditTime : 2022-02-08 14:10:27
 Description  : 整理
 '''
 from abc import ABC
+from os.path import splitext
 from typing import TYPE_CHECKING, Callable, Iterable, Optional
 from hashlib import md5
 
@@ -20,6 +21,7 @@ if TYPE_CHECKING:
     from wx import Gauge
 
     from image_encryptor.frame.events import MainFrame
+    from image_encryptor.frame.tree_manager import ImageItem
 
 
 class ItemNotFoundError(Exception):
@@ -61,7 +63,10 @@ class Controls(object):
 
     @image_info.setter
     def image_info(self, v):
-        self.frame.imageInfo.Label = v
+        try:
+            self.frame.imageInfo.Label = v
+        except RuntimeError:
+            return
 
     @property
     def imported_bitmap(self) -> Bitmap:
@@ -400,6 +405,14 @@ class Controls(object):
     def XOR_channels(self, v):
         for i in 'rgba':
             self.XOR_checkboxes[i].SetValue(i in v)
+
+    def gen_image_info(self, item: 'ImageItem' = None):
+        if item is None:
+            self.image_info = '未选择图片'
+        else:
+            self.image_info = '大小: {}x{} 格式: {}'.format(*item.loaded_image.size,
+                                                        '未知' if item.no_file else splitext(item.loaded_image_path)[1].lstrip('.')
+                                                        )
 
     def clear_preview(self):
         self.frame.importedBitmap.Bitmap = self.frame.previewedBitmap.Bitmap = Bitmap()

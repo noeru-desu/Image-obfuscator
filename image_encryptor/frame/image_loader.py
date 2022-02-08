@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-07 15:20:46
+LastEditTime : 2022-02-08 13:56:32
 Description  : 文件载入功能
 '''
 from os.path import isfile, isdir, join, split
@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Iterable
 from PIL import Image
 from wx import ID_YES, ID_NO
 
-from image_encryptor.constants import EXTENSION_KEYS
+from image_encryptor.constants import EXTENSION_KEYS, LOW_MEMORY
 from image_encryptor.utils.utils import open_image
 from image_encryptor.frame.tree_manager import ImageItem
 from image_encryptor.frame.controls import ProgressBar
@@ -57,39 +57,38 @@ class ImageLoader(object):
         self.loading_thread.start_new(self._load_selected_path, self._loading_callback, (path_chosen[0],), callback_args=(path_chosen[1:],))
 
     def _load_image_object(self, image: 'Image.Image'):
-        self.show_loading_progress_plane()
-        self.init_loading_progress(1)
+        self.frame.loadingPanel.Disable()
         self.clipboard_count += 1
         name = f'clipboard-{self.clipboard_count}'
         image_item = ImageItem(self.frame, image.convert('RGBA'), name, self.frame.settings.default.deepcopy(), True)
         self.frame.tree_manager.add_file('', '', name, image_item)
         self.frame.imageTreeCtrl.SelectItem(tuple(self.frame.tree_manager.file_dict.values())[-1])
-        self.finish_loading_progress()
+        self.frame.loadingPanel.Enable()
         self.frame.stop_loading_func.init()
 
     def _load_selected_path(self, path_chosen):
         if self._exist(path_chosen):
             return
-        self.show_loading_progress_plane()
         if isfile(path_chosen):
             self._load_file(path_chosen)
         elif isdir(path_chosen):
             self._load_dir(path_chosen)
 
     def _load_file(self, path_chosen):
-        self.init_loading_progress(1)
+        self.frame.loadingPanel.Disable()
         loaded_image, error = open_image(path_chosen)
         if self._hint_image(error):
             path, name = split(path_chosen)
-            image_item = ImageItem(self.frame, loaded_image, (path, '', name), self.frame.settings.default.deepcopy())
+            image_item = ImageItem(self.frame, None if LOW_MEMORY else loaded_image, (path, '', name), self.frame.settings.default.deepcopy())
             self.frame.tree_manager.add_file(path_chosen, data=image_item)
             image_item.load_encryption_parameters()
             self.frame.imageTreeCtrl.SelectItem(tuple(self.frame.tree_manager.file_dict.values())[-1])
             image_item.check_encryption_parameters()
-        self.finish_loading_progress()
+        self.frame.loadingPanel.Enable()
         self.frame.stop_loading_func.init()
 
     def _load_dir(self, path_chosen):
+        self.show_loading_progress_plane()
         folder_name = split(path_chosen)[1]
         frame_id = self.frame.dialog.confirmation_frame(f'是否将文件夹{folder_name}内子文件夹中的文件也进行载入？', '选择', cancel='取消载入操作')
         if frame_id == ID_YES:
@@ -109,7 +108,7 @@ class ImageLoader(object):
             for n in fl:
                 loaded_image, error = open_image(join(path_chosen, r, n))
                 if self._hint_image(error, False, n):
-                    image_item = ImageItem(self.frame, loaded_image, (path_chosen, r, n), self.frame.settings.default.deepcopy())
+                    image_item = ImageItem(self.frame, None if LOW_MEMORY else loaded_image, (path_chosen, r, n), self.frame.settings.default.deepcopy())
                     self.frame.tree_manager.add_file(path_chosen, r, n, image_item, False)
                     image_item.load_encryption_parameters()
                     self.add_loading_progress()

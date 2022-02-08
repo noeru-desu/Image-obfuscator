@@ -2,14 +2,19 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 14:57:00
+LastEditTime : 2022-02-08 13:27:52
 Description  : 覆写窗口
 '''
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import cpu_count
 from os import getcwd
-from sys import version
+from sys import argv, version
 from typing import TYPE_CHECKING
+from inspect import isroutine
+from functools import cached_property
+
+from wx import App
+from wx.core import EmptyString, STAY_ON_TOP
 
 from image_encryptor.constants import BRANCH, OPEN_SOURCE_URL, SUB_VERSION_NUMBER, VERSION_BATCH, VERSION_NUMBER, VERSION_TYPE, EXTENSION_KEYS_STRING
 from image_encryptor.modules.password_verifier import PasswordDict
@@ -25,8 +30,6 @@ from image_encryptor.frame.tree_manager import TreeManager
 from image_encryptor.frame.controls import SegmentTrigger
 from image_encryptor.utils.exit_processor import ExitProcessor
 from image_encryptor.utils.misc_util import ProcessTaskManager
-from wx import App
-from wx.core import EmptyString
 
 if TYPE_CHECKING:
     from image_encryptor.frame.tree_manager import ImageItem
@@ -45,6 +48,8 @@ class MainFrame(MF):
             self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}')
 
         # 组件
+        if '--dark-mode' in argv:
+            self.dark_mode()
         self.logger = Logger('image-encryptor')
         self.logger.info(f'Python {version}')
         self.logger.info(f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})')
@@ -76,9 +81,24 @@ class MainFrame(MF):
 
         self.logger.info('窗口初始化完成')
 
+    @cached_property
+    def get_frame_items(self):
+        for i in set(dir(self)) - set(dir(MF)):
+            target = getattr(self, i)
+            if not isroutine(target) and hasattr(target, 'SetBackgroundColour'):
+                yield target
+
+    def dark_mode(self):
+        self.SetBackgroundColour('Dark Grey')
+        for i in self.get_frame_items:
+            i.SetBackgroundColour('Dark Grey')
+            i.SetForegroundColour('White')
+
     @classmethod
     def run(cls, path=getcwd()):
         app = App(useBestVisual=True)
+        if len(argv) > 1:
+            Dialog.singel_dialog(f'当前启动参数: {" ".join(argv[1:])}', '启动参数', STAY_ON_TOP)
         self = cls(None, path)
 
         self.Show()

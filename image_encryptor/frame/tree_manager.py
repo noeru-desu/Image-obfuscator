@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-07 15:21:02
+LastEditTime : 2022-02-08 14:06:09
 Description  : 节点树控制
 '''
 from abc import ABC
@@ -11,8 +11,8 @@ from os.path import isdir, join, sep, split
 from typing import TYPE_CHECKING, Generator, Optional
 
 from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
-from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE
 
+from image_encryptor.constants import BLACK_IMAGE, DECRYPTION_MODE, ENCRYPTION_MODE, LOW_MEMORY
 from image_encryptor.utils.utils import open_image
 from image_encryptor.modules.password_verifier import get_image_data
 from image_encryptor.frame.controls import EncryptionParameters
@@ -153,16 +153,38 @@ class ImageItem(Item):
 
     def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: Union[tuple[str, str, str], str], settings: 'Settings', no_file=False):
         self.frame = frame
+        self._loaded_image = None
         self.loaded_image = loaded_image
         self.path_data = path_data
         self.loaded_image_path = path_data if no_file else join(*path_data)
         self.settings = settings
         self.parent = None
+        self.selected = False
         self.no_file = no_file
         self._init_cache()
         if self.no_file:
             self.encrypted_image = False
             self.loading_image_data_error = '来自剪贴板的文件不支持解密操作'
+
+    @property
+    def loaded_image(self) -> 'Image':
+        if self.selected and self._loaded_image is None:
+            self._loaded_image, self.loading_image_data_error = open_image(self.loaded_image_path)
+            if self.loading_image_data_error is not None:
+                self.frame.dialog.async_error(self.loading_image_data_error, '重新载入图片时出现错误')
+                self._loaded_image = BLACK_IMAGE
+        if not LOW_MEMORY or self.selected:
+            return self._loaded_image
+
+    @loaded_image.setter
+    def loaded_image(self, v):
+        self._loaded_image = v
+
+    def unselect(self):
+        self.selected = False
+        if LOW_MEMORY:
+            self._loaded_image = None
+            self._init_cache()
 
     def _init_cache(self):
         self.initial_preview: 'Bitmap' = None
@@ -198,6 +220,8 @@ class ImageItem(Item):
             if self.parent is not None:
                 del self.parent.children[item_id]
         del self.frame.tree_manager.file_dict[self.loaded_image_path]
+        self._loaded_image = None
+        self._init_cache()
 
     def reload_item(self, dialog=True) -> Optional[tuple[int, int]]:
         if self.no_file:

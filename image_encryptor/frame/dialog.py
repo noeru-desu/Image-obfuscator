@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 14:56:06
+LastEditTime : 2022-02-08 12:15:45
 Description  : 对话框相关
 '''
 from threading import Lock
@@ -140,7 +140,7 @@ class Dialog(object):
         self.frame.universal_thread_pool.submit(self.confirmation_frame, message, title, additional_style, yes, no, cancel, help).add_done_callback(self._async_dialog_callback)
         return True
 
-
-def singel_dialog(message, title, style=None):
-    with MessageDialog(None, message, title, style=style) as dialog:
-        return dialog.ShowModal()
+    @staticmethod
+    def singel_dialog(message, title, style=None):
+        with MessageDialog(None, message, title, style=style) as dialog:
+            return dialog.ShowModal()

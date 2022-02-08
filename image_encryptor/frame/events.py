@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-27 14:22:10
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-07 15:10:51
+LastEditTime : 2022-02-08 13:50:30
 Description  : 事件处理覆写
 '''
 from sys import exit as sys_exit
@@ -134,6 +134,7 @@ class MainFrame(BasicMainFrame):
             if isinstance(image_data, ImageItem):
                 settings = self.settings.all
                 image_data.settings = settings
+                image_data.unselect()
         elif self.deleted_item:
             self.deleted_item = False
         # else:
@@ -146,6 +147,8 @@ class MainFrame(BasicMainFrame):
         image_data = self.tree_manager.selected_item_data
         if isinstance(image_data, ImageItem):
             self.image_item = image_data
+            image_data.selected = True
+            self.controls.gen_image_info(image_data)
             if image_data.settings.proc_mode == DECRYPTION_MODE and image_data.encrypted_image:
                 image_data.encryption_data.backtrack_interface()
             else:
@@ -160,13 +163,18 @@ class MainFrame(BasicMainFrame):
                 self.controls.regen_initial_preview()
         elif isinstance(image_data, FolderItem):
             self.image_item = None
+            self.controls.gen_image_info()
             self.processingOptions.Disable()
             self.controls.clear_preview()
+        else:
+            self.controls.gen_image_info()
 
     def del_item(self, event):
         if self.imageTreeCtrl.Selection.IsOk():
             self.deleted_item = True
             self.tree_manager.del_item(self.imageTreeCtrl.Selection)
+        if not self.tree_manager.file_dict:
+            self.controls.gen_image_info()
 
     def reload_item(self, event):
         if self.imageTreeCtrl.Selection.IsOk():
