@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-08 14:06:09
+LastEditTime : 2022-02-09 19:06:15
 Description  : 节点树控制
 '''
 from abc import ABC
@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Generator, Optional
 
 from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
 
-from image_encryptor.constants import BLACK_IMAGE, DECRYPTION_MODE, ENCRYPTION_MODE, LOW_MEMORY
+from image_encryptor.constants import BLACK_IMAGE, DECRYPTION_MODE, ENCRYPTION_MODE
 from image_encryptor.utils.utils import open_image
 from image_encryptor.modules.password_verifier import get_image_data
 from image_encryptor.frame.controls import EncryptionParameters
@@ -173,7 +173,7 @@ class ImageItem(Item):
             if self.loading_image_data_error is not None:
                 self.frame.dialog.async_error(self.loading_image_data_error, '重新载入图片时出现错误')
                 self._loaded_image = BLACK_IMAGE
-        if not LOW_MEMORY or self.selected:
+        if not self.frame.startup_parameters.low_memory or self.selected:
             return self._loaded_image
 
     @loaded_image.setter
@@ -182,7 +182,7 @@ class ImageItem(Item):
 
     def unselect(self):
         self.selected = False
-        if LOW_MEMORY:
+        if self.frame.startup_parameters.low_memory:
             self._loaded_image = None
             self._init_cache()
 

@@ -2,11 +2,9 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-08 14:13:08
+LastEditTime : 2022-02-09 19:03:31
 Description  : 全局版本常量
 '''
-from sys import argv
-
 from PIL.Image import init as PIL_init
 from PIL.Image import EXTENSION, NEAREST, BOX, BILINEAR, HAMMING, BICUBIC, LANCZOS, new
 
@@ -36,8 +34,3 @@ ENCRYPTION_MODE = 0
 DECRYPTION_MODE = 1
 ANTY_HARMONY_MODE = 2
 BLACK_IMAGE = new('RGBA', (1, 1))
-
-if '--low-memory' in argv:
-    LOW_MEMORY = True
-else:
-    LOW_MEMORY = False

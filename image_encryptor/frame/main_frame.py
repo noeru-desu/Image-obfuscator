@@ -2,19 +2,19 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-08 13:27:52
+LastEditTime : 2022-02-09 19:05:34
 Description  : 覆写窗口
 '''
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import cpu_count
 from os import getcwd
-from sys import argv, version
+from sys import version
 from typing import TYPE_CHECKING
 from inspect import isroutine
 from functools import cached_property
 
 from wx import App
-from wx.core import EmptyString, STAY_ON_TOP
+from wx.core import EmptyString
 
 from image_encryptor.constants import BRANCH, OPEN_SOURCE_URL, SUB_VERSION_NUMBER, VERSION_BATCH, VERSION_NUMBER, VERSION_TYPE, EXTENSION_KEYS_STRING
 from image_encryptor.modules.password_verifier import PasswordDict
@@ -33,6 +33,7 @@ from image_encryptor.utils.misc_util import ProcessTaskManager
 
 if TYPE_CHECKING:
     from image_encryptor.frame.tree_manager import ImageItem
+    from image_encryptor.modules.argparse import Parameters
 
 
 class MainFrame(MF):
@@ -40,7 +41,7 @@ class MainFrame(MF):
     主窗口类
     """
 
-    def __init__(self, parent, run_path=getcwd()):
+    def __init__(self, parent, startup_parameters: 'Parameters', run_path=getcwd()):
         super().__init__(parent)
         if VERSION_TYPE > 0:
             self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
@@ -48,8 +49,9 @@ class MainFrame(MF):
             self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}')
 
         # 组件
-        if '--dark-mode' in argv:
+        if startup_parameters.dark_mode:
             self.dark_mode()
+        self.startup_parameters = startup_parameters
         self.logger = Logger('image-encryptor')
         self.logger.info(f'Python {version}')
         self.logger.info(f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})')
@@ -97,8 +99,6 @@ class MainFrame(MF):
     @classmethod
     def run(cls, path=getcwd()):
         app = App(useBestVisual=True)
-        if len(argv) > 1:
-            Dialog.singel_dialog(f'当前启动参数: {" ".join(argv[1:])}', '启动参数', STAY_ON_TOP)
         self = cls(None, path)
 
         self.Show()
