@@ -3,9 +3,10 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-09 19:10:11
+LastEditTime : 2022-02-09 19:38:30
 Description  : GUI程序
 '''
+from sys import exit
 from multiprocessing import freeze_support
 from warnings import filterwarnings
 
@@ -18,7 +19,6 @@ filterwarnings('error')
 if __name__ == '__main__':
     freeze_support()
     startup_parameters = Arguments().parse_args()
-    print(repr(startup_parameters))
     if startup_parameters.test:
         exit()
     MainFrame.run(startup_parameters)
