@@ -2,12 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-09 19:06:15
+LastEditTime : 2022-02-10 13:00:04
 Description  : 节点树控制
 '''
 from abc import ABC
 from typing import Union
-from os.path import isdir, join, sep, split
+from os.path import isfile, isdir, join, sep, split
 from typing import TYPE_CHECKING, Generator, Optional
 
 from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
@@ -196,7 +196,7 @@ class ImageItem(Item):
         self.loading_image_data_error: str = None
 
     def check_encryption_parameters(self):
-        if self.no_file:
+        if self.no_file or not isfile(self.loaded_image_path):
             return
         if self.encrypted_image is None:
             self.load_encryption_parameters()

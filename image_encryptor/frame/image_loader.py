@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-09 19:06:01
+LastEditTime : 2022-02-10 12:58:45
 Description  : 文件载入功能
 '''
 from os.path import isfile, isdir, join, split
@@ -79,7 +79,10 @@ class ImageLoader(object):
         loaded_image, error = open_image(path_chosen)
         if self._hint_image(error):
             path, name = split(path_chosen)
-            image_item = ImageItem(self.frame, None if self.frame.startup_parameters.low_memory else loaded_image, (path, '', name), self.frame.settings.default.deepcopy())
+            image_item = ImageItem(
+                self.frame, None if self.frame.startup_parameters.low_memory else loaded_image, (path, '', name),
+                self.frame.settings.default.deepcopy()
+            )
             self.frame.tree_manager.add_file(path_chosen, data=image_item)
             image_item.load_encryption_parameters()
             self.frame.imageTreeCtrl.SelectItem(tuple(self.frame.tree_manager.file_dict.values())[-1])
@@ -108,7 +111,10 @@ class ImageLoader(object):
             for n in fl:
                 loaded_image, error = open_image(join(path_chosen, r, n))
                 if self._hint_image(error, False, n):
-                    image_item = ImageItem(self.frame, None if self.frame.startup_parameters.low_memory else loaded_image, (path_chosen, r, n), self.frame.settings.default.deepcopy())
+                    image_item = ImageItem(
+                        self.frame, None if self.frame.startup_parameters.low_memory else loaded_image,
+                        (path_chosen, r, n), self.frame.settings.default.deepcopy()
+                    )
                     self.frame.tree_manager.add_file(path_chosen, r, n, image_item, False)
                     image_item.load_encryption_parameters()
                     self.add_loading_progress()
