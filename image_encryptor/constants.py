@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-09 19:03:31
+LastEditTime : 2022-02-11 17:34:01
 Description  : 全局版本常量
 '''
 from PIL.Image import init as PIL_init
@@ -15,9 +15,9 @@ RELEASE_CANDIDATE = 1
 DEV = 2
 BETA = 3
 ALPHA = 4
-VERSION_TYPE = DEV
+VERSION_TYPE = RELEASE
 VERSION_NUMBER = '1.1.0'
-SUB_VERSION_NUMBER = 'dev.2'
+SUB_VERSION_NUMBER = 'release'
 VERSION_BATCH = '20220208-1'
 BRANCH = 'dev/1.x'
 
