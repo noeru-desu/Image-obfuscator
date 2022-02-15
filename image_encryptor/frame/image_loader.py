@@ -9,7 +9,7 @@ from os.path import isfile, isdir, join, split
 from typing import TYPE_CHECKING, Iterable
 
 from PIL import Image
-from wx import ID_YES, ID_NO
+from wx import ID_YES, ID_NO, ID_CANCEL
 
 from image_encryptor.constants import EXTENSION_KEYS
 from image_encryptor.utils.utils import open_image
@@ -58,9 +58,21 @@ class ImageLoader(object):
 
     def _load_image_object(self, image: 'Image.Image'):
         self.frame.loadingPanel.Disable()
+        if self.frame.startup_parameters.low_memory:
+            result = self.frame.dialog.confirmation_frame('是否将该剪切板中的图片缓存在内存中?', cancel='取消载入')
+            if result == ID_CANCEL:
+                self.frame.loadingPanel.Enable()
+                self.frame.stop_loading_func.init()
+                return
+            elif result == ID_YES:
+                cache = True
+            elif result == ID_NO:
+                cache = False
+        else:
+            cache = True
         self.clipboard_count += 1
         name = f'clipboard-{self.clipboard_count}'
-        image_item = ImageItem(self.frame, image.convert('RGBA'), name, self.frame.settings.default.deepcopy(), True)
+        image_item = ImageItem(self.frame, image.convert('RGBA'), name, self.frame.settings.default.deepcopy(), True, cache)
         self.frame.tree_manager.add_file('', '', name, image_item)
         self.frame.imageTreeCtrl.SelectItem(tuple(self.frame.tree_manager.file_dict.values())[-1])
         self.frame.loadingPanel.Enable()

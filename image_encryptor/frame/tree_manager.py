@@ -151,7 +151,7 @@ class Item(ABC):
 class ImageItem(Item):
     """每个载入的图片的存储实例"""
 
-    def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: Union[tuple[str, str, str], str], settings: 'Settings', no_file=False):
+    def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: Union[tuple[str, str, str], str], settings: 'Settings', no_file=False, cache_loaded_image=True):
         self.frame = frame
         self._loaded_image = None
         self.loaded_image = loaded_image
@@ -161,6 +161,7 @@ class ImageItem(Item):
         self.parent = None
         self.selected = False
         self.no_file = no_file
+        self.cache_loaded_image = cache_loaded_image
         self._init_cache()
         if self.no_file:
             self.encrypted_image = False
@@ -183,7 +184,8 @@ class ImageItem(Item):
     def unselect(self):
         self.selected = False
         if self.frame.startup_parameters.low_memory:
-            self._loaded_image = None
+            if not self.cache_loaded_image:
+                self._loaded_image = None
             self._init_cache()
 
     def _init_cache(self):
@@ -193,7 +195,6 @@ class ImageItem(Item):
         self.encryption_settings_md5: bytes = None
         self.encrypted_image: bool = None
         self.encryption_data: 'EncryptionParameters' = None
-        self.loading_image_data_error: str = None
 
     def check_encryption_parameters(self):
         if self.no_file or not isfile(self.loaded_image_path):
