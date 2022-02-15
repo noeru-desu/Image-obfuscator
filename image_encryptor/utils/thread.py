@@ -2,13 +2,17 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 20:50:50
+LastEditTime : 2022-02-12 12:52:58
 Description  : 线程相关类
 '''
 from ctypes import c_long, py_object, pythonapi
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, CancelledError
 from threading import Thread as threading_Thread
 from traceback import print_exc
-from typing import Callable
+from typing import Any, Callable, NamedTuple, Optional, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from concurrent.futures import Future
 
 
 class ThreadKilled(SystemExit):
@@ -97,3 +101,177 @@ class ThreadManager(object):
     @property
     def is_ended(self):
         return True if self._thread is None else self._thread.ended
+
+
+class TaskTag(NamedTuple):
+    single: bool
+    overwrite: bool
+    futures: Optional[Union['Future', list['Future']]]
+
+
+class ThreadTaskManager(ThreadPoolExecutor):
+    def __init__(self, max_workers: int = ..., *args, **kwargs):
+        if 'thread_name_prefix' not in kwargs:
+            kwargs['thread_name_prefix'] = 'worker_thread'
+        super().__init__(max_workers, *args, **kwargs)
+        self.task_dict: dict[Any, TaskTag] = {}
+
+    def create_tag(self, tag_name, single: bool, overwrite: bool = True):
+        self.task_dict[tag_name] = TaskTag(single, overwrite, None if single else [])
+
+    def add_task(self, tag_name, future: 'Future', callback=None, *callback_args, **callback_kwargs):
+        future.add_done_callback(lambda future: self.callback(tag_name, future, callback, *callback_args, **callback_kwargs))
+        if self.task_dict[tag_name].single:
+            self.task_dict[tag_name].futures = future
+        else:
+            self.task_dict[tag_name].futures.append(future)
+
+    def callback(self, tag_name, future, callback=None, *callback_args, **callback_kwargs):
+        if callback is not None:
+            try:
+                callback(future, tag_name, *callback_args, **callback_kwargs)
+            except Exception:
+                print_exc()
+        self.del_future(tag_name, future)
+
+    def cancel_task(self, tag_name=None, future: 'Future' = None) -> bool:
+        if future is not None:
+            if future.running():
+                return False
+            if not future.done():
+                return future.cancel()
+        elif tag_name is None:
+            return True
+
+        if self.task_dict[tag_name].futures is not None:
+            if self.task_dict[tag_name].single:
+                if self.task_dict[tag_name].futures.running():
+                    return False
+                if not self.task_dict[tag_name].futures.done():
+                    return self.task_dict[tag_name].futures.cancel()
+            else:
+                all_cancelled = True
+                for i in self.task_dict[tag_name].futures:
+                    if i.done():
+                        continue
+                    if i.running():
+                        all_cancelled = False
+                        continue
+                    if not i.cancel():
+                        all_cancelled = False
+                return all_cancelled
+
+        return True
+
+    def check_tag(self, tag_name):
+        if not self.task_dict[tag_name].futures:
+            return None
+        if self.task_dict[tag_name].overwrite:
+            if self.cancel_task(tag_name):
+                return None
+            else:
+                if self.task_dict[tag_name].single:
+                    return '已有一个无法打断的任务正在进行'
+                else:
+                    return '任务列表没有被完全取消'
+        else:
+            return '已有一个任务正在进行'
+
+    def del_future(self, tag_name, futures=None):
+        if not (futures is None or self.task_dict[tag_name].single):
+            self.task_dict[tag_name].futures.remove(futures)
+        else:
+            self.task_dict[tag_name].futures = None
+
+
+class ProcessTaskManager(ProcessPoolExecutor):
+    def __init__(self, max_workers: int = ..., *args, **kwargs):
+        super().__init__(max_workers, *args, **kwargs)
+        self.watchdog = ThreadTaskManager(max_workers, thread_name_prefix='process_pool_watchdog')
+        self.task_dict: dict[Any, TaskTag] = {}
+
+    def create_tag(self, tag_name: str, single: bool, overwrite: bool = True):
+        self.watchdog.create_tag(tag_name, single, overwrite)
+        self.task_dict[tag_name] = TaskTag(single, overwrite, None if single else [])
+
+    def add_task(self, tag_name, future, callback=None, *callback_args, **callback_kwargs):
+        if self.task_dict[tag_name].single:
+            self.task_dict[tag_name].futures = future
+        else:
+            self.task_dict[tag_name].futures.append(future)
+        self.watchdog.add_task(tag_name, self.watchdog.submit(self.wait, future), self.callback, future, callback, *callback_args, **callback_kwargs)
+
+    def wait(self, future: 'Future'):
+        try:
+            error = future.exception()
+        except CancelledError:
+            pass
+        if error is not None:
+            print(error)
+
+    def callback(self, watchdog_future, tag_name, future: 'Future', callback=None, *callback_args, **callback_kwargs):
+        if callback is not None:
+            try:
+                callback(future, tag_name, future.result(), *callback_args, **callback_kwargs)
+            except Exception:
+                print_exc()
+        self.del_future(tag_name, future)
+
+    def cancel_task(self, tag_name=None, future: 'Future' = None):
+        if future is not None:
+            if future.running():
+                return False
+            if not future.done():
+                if future.cancel():
+                    self.watchdog.cancel_task(tag_name, future)
+                    return True
+                else:
+                    return False
+        elif tag_name is None:
+            return True
+
+        if self.task_dict[tag_name].futures is not None:
+            if self.task_dict[tag_name].single:
+                if self.task_dict[tag_name].futures.running():
+                    return False
+                if not self.task_dict[tag_name].futures.done():
+                    if self.task_dict[tag_name].futures.cancel():
+                        self.watchdog.cancel_task(tag_name)
+                        return True
+                    else:
+                        return False
+            else:
+                all_cancelled = True
+                for i in self.task_dict[tag_name].futures:
+                    if i.done():
+                        continue
+                    if i.running():
+                        all_cancelled = False
+                        continue
+                    if not i.cancel():
+                        all_cancelled = False
+                    else:
+                        self.watchdog.cancel_task(tag_name, i)
+                return all_cancelled
+
+        return True
+
+    def check_tag(self, tag_name):
+        if not self.task_dict[tag_name].futures:
+            return None
+        if self.task_dict[tag_name].overwrite:
+            if self.cancel_task(tag_name):
+                return None
+            else:
+                if self.task_dict[tag_name].single:
+                    return '已有一个无法打断的任务正在进行'
+                else:
+                    return '任务列表没有被完全取消'
+        else:
+            return '已有一个任务正在进行'
+
+    def del_future(self, tag_name, futures=None):
+        if not (futures is None or self.task_dict[tag_name].single):
+            self.task_dict[tag_name].futures.remove(futures)
+        else:
+            self.task_dict[tag_name].futures = None

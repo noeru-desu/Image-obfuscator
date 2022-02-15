@@ -1,11 +1,11 @@
 #! python3.10
-'''
+"""
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-09 19:38:30
+LastEditTime : 2022-02-15 09:46:27
 Description  : GUI程序
-'''
+"""
 from sys import exit
 from multiprocessing import freeze_support
 from warnings import filterwarnings

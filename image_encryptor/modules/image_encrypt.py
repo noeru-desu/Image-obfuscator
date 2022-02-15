@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-06 19:32:19
+LastEditTime : 2022-02-12 12:48:02
 Description  : 图片加密模块
 '''
 from abc import ABC
@@ -14,6 +14,7 @@ from numpy import array, uint8
 from PIL import Image
 
 from image_encryptor.utils.image import gen_mapping_table, random_noise
+from image_encryptor.utils.utils import FakeBar
 
 flip_func = (
     lambda img: img,
@@ -70,7 +71,7 @@ class ImageEncryptBase(ABC):
         self.image = image
         self.init = False
 
-    def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: str, old_mapping: bool, bar):
+    def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: str, old_mapping: bool, bar=FakeBar):
         '''
         :old_mapping: 用于1.0.0-rc.12版本前的RGB随机映射, 为保证兼容性而保留
         :description: 生成打乱后的图片分块、翻转分块, 与每个分块所在的坐标列表
@@ -80,6 +81,7 @@ class ImageEncryptBase(ABC):
         self.decryption_mode = decryption_mode
         self.shuffle = shuffle
         self.flip = flip
+        # 使用对应的映射表
         if old_mapping:
             self.mapped_channels = mapped_channels
             self.encryption_mapping_table = old_encrypt_mapping_func
@@ -90,18 +92,21 @@ class ImageEncryptBase(ABC):
         else:
             self.mapped_channels = False
             self.encryption_mapping_table, self.decryption_mapping_table = None, None
+        # 切割图片并记录坐标
         for y in range(self.row):
             for x in range(self.col):
                 block_pos = (x * self.block_width, y * self.block_height)
                 self.block_pos_list.append(block_pos)
                 self.block_list.append(self.image.crop((*block_pos, block_pos[0] + self.block_width, block_pos[1] + self.block_height)))
                 bar.update(bar.value + 1)
-        self.random.seed(self.random_seed)
+        # 随机打乱
         if shuffle:
+            self.random.seed(self.random_seed)
             if decryption_mode:
                 self.random.shuffle(self.block_pos_list)
             else:
                 self.random.shuffle(self.block_list)
+        # 随机翻转
         if flip:
             self.block_flip_list = ([1, 2, 3, 0] * ceil(self.block_num / 4))[:self.block_num]
             self.random.seed(self.random_seed)
@@ -123,7 +128,7 @@ class ImageEncryptBase(ABC):
             self.random.shuffle(self.block_mapping_list)
         bar.finish()
 
-    def generate_image(self, bar):
+    def generate_image(self, bar=FakeBar):
         '''
         :description: 生成处理后的图片
         :return: 处理后的图片

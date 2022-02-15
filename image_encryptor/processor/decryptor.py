@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-07 14:02:28
+LastEditTime : 2022-02-12 12:48:23
 Description  : 单文件解密功能
 '''
 from os import makedirs
@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING
 from PIL import Image
 
 from image_encryptor.modules.image_encrypt import ImageDecrypt
-from image_encryptor.utils.utils import FakeBar
 from image_encryptor.frame.controls import ProgressBar, EncryptionParametersData, SavingSettings
 
 if TYPE_CHECKING:
@@ -102,8 +101,8 @@ def _batch(image_data, path_data, encryption_data: 'EncryptionParametersData', s
         image = image_encrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
 
     if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
-        image_encrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels, encryption_data.old_mapping, FakeBar)
-        image = image_encrypt.generate_image(FakeBar)
+        image_encrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels, encryption_data.old_mapping)
+        image = image_encrypt.generate_image()
 
     image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))
 

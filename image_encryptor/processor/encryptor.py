@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-07 14:02:45
+LastEditTime : 2022-02-12 12:48:34
 Description  : 单文件加密功能
 '''
 from json import dumps
@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 from PIL import Image
 
 from image_encryptor.modules.image_encrypt import ImageEncrypt
-from image_encryptor.utils.utils import FakeBar
 from image_encryptor.frame.controls import ProgressBar, SettingsData, SavingSettings
 
 if TYPE_CHECKING:
@@ -105,8 +104,8 @@ def _batch(image_data, path_data, settings: 'SettingsData', saving_settings: 'Sa
     image_encrypt = ImageEncrypt(image, settings.cutting_row, settings.cutting_col, password)
 
     if settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels:
-        image_encrypt.init_block_data(settings.shuffle_chunks, settings.flip_chunks, settings.mapping_channels, FakeBar)
-        image = image_encrypt.generate_image(FakeBar)
+        image_encrypt.init_block_data(settings.shuffle_chunks, settings.flip_chunks, settings.mapping_channels)
+        image = image_encrypt.generate_image()
 
     if settings.XOR_encryption:
         image = image_encrypt.xor_pixels(settings.XOR_channels, settings.noise_XOR, settings.noise_factor)

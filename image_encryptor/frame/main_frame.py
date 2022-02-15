@@ -2,24 +2,22 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-09 19:05:34
+LastEditTime : 2022-02-12 12:54:24
 Description  : 覆写窗口
 '''
 from concurrent.futures import ThreadPoolExecutor
+from functools import cached_property
+from inspect import isroutine
 from multiprocessing import cpu_count
 from os import getcwd
 from sys import version
 from typing import TYPE_CHECKING
-from inspect import isroutine
-from functools import cached_property
 
-from wx import App
-from wx.core import EmptyString
-
-from image_encryptor.constants import BRANCH, OPEN_SOURCE_URL, SUB_VERSION_NUMBER, VERSION_BATCH, VERSION_NUMBER, VERSION_TYPE, EXTENSION_KEYS_STRING
-from image_encryptor.modules.password_verifier import PasswordDict
-from image_encryptor.utils.logger import Logger
-from image_encryptor.frame.controls import Controls, SettingsManager
+from image_encryptor.constants import (BRANCH, EXTENSION_KEYS_STRING,
+                                       OPEN_SOURCE_URL, SUB_VERSION_NUMBER,
+                                       VERSION_BATCH, VERSION_NUMBER,
+                                       VERSION_TYPE)
+from image_encryptor.frame.controls import Controls, SegmentTrigger, SettingsManager
 from image_encryptor.frame.design_frame import MainFrame as MF
 from image_encryptor.frame.dialog import Dialog
 from image_encryptor.frame.drag_importer import DragLoader, DragSavingPath
@@ -27,9 +25,12 @@ from image_encryptor.frame.image_generator import ImageGenerator
 from image_encryptor.frame.image_loader import ImageLoader
 from image_encryptor.frame.image_saver import ImageSaver
 from image_encryptor.frame.tree_manager import TreeManager
-from image_encryptor.frame.controls import SegmentTrigger
+from image_encryptor.modules.password_verifier import PasswordDict
 from image_encryptor.utils.exit_processor import ExitProcessor
-from image_encryptor.utils.misc_util import ProcessTaskManager
+from image_encryptor.utils.logger import Logger
+from image_encryptor.utils.thread import ProcessTaskManager
+from wx import App
+from wx.core import EmptyString
 
 if TYPE_CHECKING:
     from image_encryptor.frame.tree_manager import ImageItem
