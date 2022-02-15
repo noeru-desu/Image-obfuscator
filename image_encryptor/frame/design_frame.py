@@ -152,6 +152,8 @@ class MainFrame (wx.Frame):
         self.processingOptions = wx.Panel(self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer12 = wx.BoxSizer(wx.HORIZONTAL)
 
+        bSizer12.Add((0, 0), 1, 0, 5)
+
         bSizer282 = wx.BoxSizer(wx.VERTICAL)
 
         procModeChoices = [u"加密模式", u"解密模式", u"QQ反屏蔽"]
@@ -310,37 +312,26 @@ class MainFrame (wx.Frame):
         bSizer33.Fit(self.processingSettingsPanel1)
         bSizer12.Add(self.processingSettingsPanel1, 0, wx.EXPAND, 5)
 
-        bSizer12.Add((0, 0), 1, 0, 5)
-
-        self.previewOptions = wx.Panel(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        bSizer40 = wx.BoxSizer(wx.HORIZONTAL)
-
-        bSizer19 = wx.BoxSizer(wx.VERTICAL)
-
-        bSizer28 = wx.BoxSizer(wx.HORIZONTAL)
-
-        bSizer32 = wx.BoxSizer(wx.VERTICAL)
-
         bSizer31 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticline31 = wx.StaticLine(self.previewOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_VERTICAL)
-        bSizer31.Add(self.m_staticline31, 0, wx.EXPAND | wx.ALL, 2)
+        self.m_staticline31 = wx.StaticLine(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_VERTICAL)
+        bSizer31.Add(self.m_staticline31, 0, wx.EXPAND | wx.ALL, 5)
 
         bSizer29 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer29.Add((0, 0), 1, wx.EXPAND, 5)
 
-        self.m_staticText14 = wx.StaticText(self.previewOptions, wx.ID_ANY, u"同步加密设置", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText14 = wx.StaticText(self.processingOptions, wx.ID_ANY, u"同步加密设置", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText14.Wrap(-1)
 
         bSizer29.Add(self.m_staticText14, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
-        self.m_button31 = wx.Button(self.previewOptions, wx.ID_ANY, u"应用到全部", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button31 = wx.Button(self.processingOptions, wx.ID_ANY, u"应用到全部", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_button31.SetToolTip(u"将当前的处理设置应用到所有已加载的项目中")
 
         bSizer29.Add(self.m_button31, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
-        self.m_button311 = wx.Button(self.previewOptions, wx.ID_ANY, u"设置为默认", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button311 = wx.Button(self.processingOptions, wx.ID_ANY, u"设置为默认", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_button311.SetToolTip(u"将当前的处理设置设置为默认设置，新加载的项目将会使用默认设置")
 
         bSizer29.Add(self.m_button311, 0, wx.ALIGN_CENTER | wx.ALL, 2)
@@ -349,29 +340,46 @@ class MainFrame (wx.Frame):
 
         bSizer31.Add(bSizer29, 0, wx.ALL | wx.EXPAND, 2)
 
-        self.m_staticline4 = wx.StaticLine(self.previewOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_VERTICAL)
-        bSizer31.Add(self.m_staticline4, 0, wx.EXPAND | wx.ALL, 2)
+        self.m_staticline4 = wx.StaticLine(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_VERTICAL)
+        bSizer31.Add(self.m_staticline4, 0, wx.ALL | wx.EXPAND, 5)
 
-        bSizer32.Add(bSizer31, 1, wx.EXPAND, 5)
+        bSizer12.Add(bSizer31, 1, wx.EXPAND, 5)
 
-        self.previewProgressInfo = wx.StaticText(self.previewOptions, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
-        self.previewProgressInfo.Wrap(-1)
+        bSizer12.Add((0, 0), 1, 0, 5)
 
-        bSizer32.Add(self.previewProgressInfo, 0, wx.ALL | wx.EXPAND, 5)
+        self.processingOptions.SetSizer(bSizer12)
+        self.processingOptions.Layout()
+        bSizer12.Fit(self.processingOptions)
+        self.settingsPanel.AddPage(self.processingOptions, u"图像加密设置", True)
+        self.previewOptions = wx.Panel(self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        bSizer401 = wx.BoxSizer(wx.HORIZONTAL)
 
-        bSizer28.Add(bSizer32, 0, wx.EXPAND, 5)
+        bSizer401.Add((0, 0), 1, 0, 5)
+
+        bSizer19 = wx.BoxSizer(wx.VERTICAL)
+
+        bSizer28 = wx.BoxSizer(wx.HORIZONTAL)
 
         bSizer30 = wx.BoxSizer(wx.VERTICAL)
 
         previewModeChoices = [u"不显示", u"手动刷新", u"自动刷新"]
         self.previewMode = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"预览图", wx.DefaultPosition, wx.DefaultSize, previewModeChoices, 1, wx.RA_SPECIFY_COLS)
         self.previewMode.SetSelection(2)
-        bSizer30.Add(self.previewMode, 1, wx.ALL, 3)
+        bSizer30.Add(self.previewMode, 1, wx.ALL | wx.EXPAND, 3)
+
+        bSizer40 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.previewProgressInfo = wx.StaticText(self.previewOptions, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.previewProgressInfo.Wrap(-1)
+
+        bSizer40.Add(self.previewProgressInfo, 1, wx.ALL, 5)
 
         self.m_button3 = wx.Button(self.previewOptions, wx.ID_ANY, u"刷新预览图", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer30.Add(self.m_button3, 0, wx.ALIGN_CENTER | wx.ALL, 1)
+        bSizer40.Add(self.m_button3, 0, wx.ALIGN_CENTER | wx.ALL, 1)
 
-        bSizer28.Add(bSizer30, 0, wx.EXPAND, 5)
+        bSizer30.Add(bSizer40, 0, wx.EXPAND, 5)
+
+        bSizer28.Add(bSizer30, 1, wx.EXPAND, 5)
 
         bSizer19.Add(bSizer28, 1, wx.EXPAND, 5)
 
@@ -379,24 +387,21 @@ class MainFrame (wx.Frame):
         self.previewProgress.SetValue(0)
         bSizer19.Add(self.previewProgress, 0, wx.ALL, 5)
 
-        bSizer40.Add(bSizer19, 1, wx.EXPAND, 5)
+        bSizer401.Add(bSizer19, 0, wx.EXPAND, 5)
 
         resamplingFilterChoices = [u"最邻近", u"单线性", u"双线性", u"Hamming", u"双三次", u"Lanczos"]
         self.resamplingFilter = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"重采样方式", wx.DefaultPosition, wx.DefaultSize, resamplingFilterChoices, 1, 0)
         self.resamplingFilter.SetSelection(4)
         self.resamplingFilter.SetToolTip(u"缩放预览图使用的重采样方式，自上而下质量依次递增，性能依次递减，默认为双三次(Bicubic)")
 
-        bSizer40.Add(self.resamplingFilter, 0, wx.ALL, 5)
+        bSizer401.Add(self.resamplingFilter, 0, wx.ALL, 5)
 
-        self.previewOptions.SetSizer(bSizer40)
+        bSizer401.Add((0, 0), 1, 0, 5)
+
+        self.previewOptions.SetSizer(bSizer401)
         self.previewOptions.Layout()
-        bSizer40.Fit(self.previewOptions)
-        bSizer12.Add(self.previewOptions, 0, 0, 0)
-
-        self.processingOptions.SetSizer(bSizer12)
-        self.processingOptions.Layout()
-        bSizer12.Fit(self.processingOptions)
-        self.settingsPanel.AddPage(self.processingOptions, u"处理方式", True)
+        bSizer401.Fit(self.previewOptions)
+        self.settingsPanel.AddPage(self.previewOptions, u"预览图相关设置", False)
         self.savingOptions = wx.Panel(self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer264 = wx.BoxSizer(wx.VERTICAL)
 
