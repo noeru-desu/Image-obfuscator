@@ -93,7 +93,7 @@ class ImageLoader(object):
             path, name = split(path_chosen)
             image_item = ImageItem(
                 self.frame, None if self.frame.startup_parameters.low_memory else loaded_image, (path, '', name),
-                self.frame.settings.default.deepcopy()
+                self.frame.settings.default.deepcopy(), cache_loaded_image=not self.frame.startup_parameters.low_memory
             )
             self.frame.tree_manager.add_file(path_chosen, data=image_item)
             image_item.load_encryption_parameters()
@@ -125,7 +125,7 @@ class ImageLoader(object):
                 if self._hint_image(error, False, n):
                     image_item = ImageItem(
                         self.frame, None if self.frame.startup_parameters.low_memory else loaded_image,
-                        (path_chosen, r, n), self.frame.settings.default.deepcopy()
+                        (path_chosen, r, n), self.frame.settings.default.deepcopy(), cache_loaded_image=not self.frame.startup_parameters.low_memory
                     )
                     self.frame.tree_manager.add_file(path_chosen, r, n, image_item, False)
                     image_item.load_encryption_parameters()

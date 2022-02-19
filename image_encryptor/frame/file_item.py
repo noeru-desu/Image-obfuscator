@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-19 21:50:35
+LastEditTime : 2022-02-20 07:42:46
 Description  : 图像项目
 """
 from abc import ABC
@@ -39,13 +39,13 @@ class Item(ABC):
 class ImageItemCache(object):
     """图像项目缓存控制器"""
 
-    def __init__(self, item: 'ImageItem'):
+    def __init__(self, item: 'ImageItem', loaded_image=None):
         self._item = item
         self.initial_preview: 'Image' = None
         self.processed_previews: dict[bytes, 'Image'] = {}
         self.preview_size: tuple[int, int] = None
         self._encryption_data = None
-        self._loaded_image = None
+        self._loaded_image = loaded_image
 
     @property
     def loaded_image(self) -> 'Image':
@@ -77,6 +77,7 @@ class ImageItemCache(object):
 
     @property
     def processed_preview(self) -> 'Image':
+        # 使用get_processed_preview_cache代替
         try:
             raise
         except Exception:
@@ -114,13 +115,12 @@ class ImageItem(Item):
 
     def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: Union[tuple[str, str, str], str], settings: 'Settings', no_file=False, cache_loaded_image=True):
         self.frame = frame
-        self.cache = ImageItemCache(self)
+        self.cache = ImageItemCache(self, loaded_image)
 
         self.path_data = path_data
         self.loaded_image_path = path_data if no_file else join(*path_data)
         self.settings = settings
 
-        self.cache.loaded_image = loaded_image
         self.parent = None
         self.selected = False
         self.no_file = no_file
@@ -135,7 +135,6 @@ class ImageItem(Item):
         self.selected = False
         if self.frame.startup_parameters.low_memory:
             if not self.cache_loaded_image:
-                del self.cache._loaded_image
                 self.cache._loaded_image = None
             self.cache.clear_cache()
         else:
