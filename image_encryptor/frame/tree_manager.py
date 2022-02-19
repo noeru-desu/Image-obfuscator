@@ -5,24 +5,19 @@ LastEditors  : noeru_desu
 LastEditTime : 2022-02-10 13:00:04
 Description  : 节点树控制
 '''
-from abc import ABC
 from typing import Union
-from os.path import isfile, isdir, join, sep, split
+from os.path import isdir, join, sep, split
 from typing import TYPE_CHECKING, Generator, Optional
 
 from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
 
-from image_encryptor.constants import BLACK_IMAGE, DECRYPTION_MODE, ENCRYPTION_MODE
-from image_encryptor.utils.utils import open_image
-from image_encryptor.modules.password_verifier import get_image_data
-from image_encryptor.frame.controls import EncryptionParameters
+from image_encryptor.frame.file_item import FolderItem
 from image_encryptor.utils.thread import ThreadManager
 
 if TYPE_CHECKING:
-    from PIL.Image import Image
-    from wx import TreeCtrl, TreeItemId, Bitmap
-    from image_encryptor.frame.controls import Settings
+    from wx import TreeCtrl, TreeItemId
     from image_encryptor.frame.events import MainFrame
+    from image_encryptor.frame.file_item import ImageItem
 
 
 class TreeManager(object):
@@ -133,155 +128,3 @@ class TreeManager(object):
                 yield self.tree_ctrl.GetItemData(i)
         except RuntimeError:
             return
-
-
-class Item(ABC):
-    def del_item(self, item_id: 'TreeItemId', del_item=True):
-        ...
-
-    def reload_item(self, dialog=True):
-        ...
-
-    def reload_done(self):
-        if self.frame.tree_manager.reloading_thread.exit_signal:
-            self.frame.stop_reloading(False)
-        self.frame.stop_reloading_func.init()
-
-
-class ImageItem(Item):
-    """每个载入的图片的存储实例"""
-
-    def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: Union[tuple[str, str, str], str], settings: 'Settings', no_file=False, cache_loaded_image=True):
-        self.frame = frame
-        self._loaded_image = None
-        self.loaded_image = loaded_image
-        self.path_data = path_data
-        self.loaded_image_path = path_data if no_file else join(*path_data)
-        self.settings = settings
-        self.parent = None
-        self.selected = False
-        self.no_file = no_file
-        self.cache_loaded_image = cache_loaded_image
-        self._init_cache()
-        if self.no_file:
-            self.encrypted_image = False
-            self.loading_image_data_error = '来自剪贴板的文件不支持解密操作'
-
-    @property
-    def loaded_image(self) -> 'Image':
-        if self.selected and self._loaded_image is None:
-            self._loaded_image, self.loading_image_data_error = open_image(self.loaded_image_path)
-            if self.loading_image_data_error is not None:
-                self.frame.dialog.async_error(self.loading_image_data_error, '重新载入图片时出现错误')
-                self._loaded_image = BLACK_IMAGE
-        if not self.frame.startup_parameters.low_memory or self.selected:
-            return self._loaded_image
-
-    @loaded_image.setter
-    def loaded_image(self, v):
-        self._loaded_image = v
-
-    def unselect(self):
-        self.selected = False
-        if self.frame.startup_parameters.low_memory:
-            if not self.cache_loaded_image:
-                self._loaded_image = None
-            self._init_cache()
-
-    def _init_cache(self):
-        self.initial_preview: 'Bitmap' = None
-        self.processed_preview: 'Bitmap' = None
-        self.preview_size: tuple[int, int] = None
-        self.encryption_settings_md5: bytes = None
-        self.encrypted_image: bool = None
-        self.encryption_data: 'EncryptionParameters' = None
-
-    def check_encryption_parameters(self):
-        if self.no_file or not isfile(self.loaded_image_path):
-            return
-        if self.encrypted_image is None:
-            self.load_encryption_parameters()
-        if self.encrypted_image:
-            self.encryption_data.backtrack_interface()
-
-    def load_encryption_parameters(self):
-        encryption_data, self.loading_image_data_error = get_image_data(self.loaded_image_path, skip_password=True)
-        if self.loading_image_data_error is None:
-            self.encrypted_image = True
-            self.settings.proc_mode = DECRYPTION_MODE
-            self.encryption_data = EncryptionParameters(self.frame.controls, encryption_data)
-        else:
-            default_proc_mode = self.frame.settings.default.proc_mode
-            self.encrypted_image = False
-            self.settings.proc_mode = default_proc_mode if default_proc_mode != DECRYPTION_MODE else ENCRYPTION_MODE
-
-    def del_item(self, item_id: 'TreeItemId', del_item=True):
-        if del_item:
-            self.frame.imageTreeCtrl.Delete(item_id)
-            if self.parent is not None:
-                del self.parent.children[item_id]
-        del self.frame.tree_manager.file_dict[self.loaded_image_path]
-        self._loaded_image = None
-        self._init_cache()
-
-    def reload_item(self, dialog=True) -> Optional[tuple[int, int]]:
-        if self.no_file:
-            self.frame.dialog.async_warning('来自剪贴板的文件不支持重载操作')
-            self.reload_done()
-            return
-        if self.frame.tree_manager.reloading_thread.exit_signal:
-            return 0, 0
-        loaded_image, error = open_image(self.loaded_image_path)
-        if error is not None:
-            if dialog:
-                self.frame.dialog.async_warning(f'图像重载失败: {error}')
-                self.reload_done()
-            return 0, 1
-        self.loaded_image = loaded_image
-        self._init_cache()
-        self.load_encryption_parameters()
-        if dialog:
-            self.frame.dialog.async_info('图像重载成功')
-            self.reload_done()
-            if self.encrypted_image:
-                self.encryption_data.backtrack_interface()
-                self.frame.force_refresh_preview()
-        return 1, 0
-
-
-class FolderItem(Item):
-    def __init__(self, frame: 'MainFrame', path, root=False):
-        self.frame = frame
-        self.path = path
-        self.root = root
-        self.children = {}
-        self.parent = None
-
-    def del_item(self, item_id: 'TreeItemId', del_item=True):
-        for id, data in tuple(self.children.items()):
-            data.del_item(id, False)
-            del self.children[id]
-        if del_item:
-            self.frame.imageTreeCtrl.Delete(item_id)
-            if self.parent is not None:
-                del self.parent.children[item_id]
-        if self.path in self.frame.tree_manager.root_dir_dict:
-            del self.frame.tree_manager.root_dir_dict[self.path]
-        else:
-            del self.frame.tree_manager.dir_dict[self.path]
-
-    def reload_item(self, dialog=True):
-        if self.frame.tree_manager.reloading_thread.exit_signal:
-            return 0, 0
-        fail_num = 0
-        success_num = 0
-        for data in self.children.values():
-            add_success_num, add_fail_num = data.reload_item(False)
-            success_num += add_success_num
-            fail_num += add_fail_num
-            if self.frame.tree_manager.reloading_thread.exit_signal:
-                break
-        if dialog:
-            self.frame.dialog.async_info(f'重载成功: {success_num}个, 失败: {fail_num}个')
-            self.reload_done()
-        return success_num, fail_num

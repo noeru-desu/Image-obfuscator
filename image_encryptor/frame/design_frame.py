@@ -60,7 +60,7 @@ class MainFrame (wx.Frame):
         self.m_button32 = wx.Button(self.loadingPanel, wx.ID_ANY, u"从剪贴板载入", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer91.Add(self.m_button32, 0, wx.ALL, 5)
 
-        self.imageInfo = wx.StaticText(self.loadingPanel, wx.ID_ANY, u"图像信息：未选择图片", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.imageInfo = wx.StaticText(self.loadingPanel, wx.ID_ANY, u"未选择图片", wx.DefaultPosition, wx.DefaultSize, 0)
         self.imageInfo.Wrap(-1)
 
         bSizer91.Add(self.imageInfo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)

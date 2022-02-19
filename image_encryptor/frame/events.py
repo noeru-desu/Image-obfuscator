@@ -15,7 +15,7 @@ from wx import (DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
 
 from image_encryptor.constants import ANTY_HARMONY_MODE, DO_NOT_REFRESH, AUTO_REFRESH, DECRYPTION_MODE, EXTENSION_KEYS, EXTENSION_KEYS_STRING
 from image_encryptor.frame.main_frame import MainFrame as BasicMainFrame
-from image_encryptor.frame.tree_manager import FolderItem, ImageItem
+from image_encryptor.frame.file_item import FolderItem, ImageItem
 
 if TYPE_CHECKING:
     from wx import CommandEvent, TreeEvent, TreeItemId, SizeEvent
@@ -48,16 +48,17 @@ class MainFrame(BasicMainFrame):
         if event is not None and self.controls.preview_mode != AUTO_REFRESH:
             return
         size_changed = self.controls.regen_initial_preview()
-        if size_changed or self.settings.encryption_settings_md5 != self.image_item.encryption_settings_md5:
-            self.image_generator.generate_preview()
-        elif self.image_item.processed_preview is not None:
-            self.controls.regen_processed_preview(self.image_item.processed_preview)
+        md5 = self.settings.encryption_settings_md5
+        if size_changed or md5 not in self.image_item.cache.processed_previews:
+            self.preview_generator.generate_preview()
+        else:
+            self.controls.regen_processed_preview(self.image_item.cache.get_processed_preview_cache(md5))
 
     def force_refresh_preview(self, event=None):
         if self.image_item is None:
             return
         self.controls.regen_initial_preview(True)
-        self.image_generator.generate_preview()
+        self.preview_generator.generate_preview()
 
     def load_file(self, event):
         with FileDialog(self, "选择图像", style=FD_OPEN | FD_CHANGE_DIR | FD_PREVIEW | FD_FILE_MUST_EXIST) as dialog:
@@ -150,15 +151,16 @@ class MainFrame(BasicMainFrame):
             image_data.selected = True
             self.controls.gen_image_info(image_data)
             if image_data.settings.proc_mode == DECRYPTION_MODE and image_data.encrypted_image:
-                image_data.encryption_data.backtrack_interface()
+                image_data.cache.encryption_data.backtrack_interface()
             else:
                 image_data.settings.backtrack_interface()
             self.processingOptions.Enable()
 
+            processed_preview = self.image_item.cache.get_processed_preview_cache(self.settings.encryption_settings_md5)
             if self.previewMode.Selection == AUTO_REFRESH:
                 self.refresh_preview(event)
-            elif self.image_item.processed_preview is not None:
-                self.controls.regen_processed_preview(self.image_item.processed_preview, True)
+            elif processed_preview is not None:
+                self.controls.regen_processed_preview(processed_preview, True)
             if self.previewMode.Selection != AUTO_REFRESH:
                 self.controls.regen_initial_preview()
         elif isinstance(image_data, FolderItem):
@@ -194,7 +196,7 @@ class MainFrame(BasicMainFrame):
         if self.controls.saving_format in EXTENSION_KEYS:
             self.record_saving_format()
         else:
-            self.dialog.async_warning('不支持的格式: {}，仅支持以下格式: \n{}'.format(self.controls.saving_format, EXTENSION_KEYS_STRING), '保存格式错误')
+            self.dialog.async_warning('不支持的格式: {}, 仅支持以下格式: \n{}'.format(self.controls.saving_format, EXTENSION_KEYS_STRING), '保存格式错误')
             self.controls.saving_format = self.controls.previous_saving_format
 
     def record_saving_format(self, event=None):

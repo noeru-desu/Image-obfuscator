@@ -13,7 +13,7 @@ from wx import ID_YES, ID_NO, ID_CANCEL
 
 from image_encryptor.constants import EXTENSION_KEYS
 from image_encryptor.utils.utils import open_image
-from image_encryptor.frame.tree_manager import ImageItem
+from image_encryptor.frame.file_item import ImageItem
 from image_encryptor.frame.controls import ProgressBar
 from image_encryptor.utils.thread import ThreadManager
 from image_encryptor.utils.misc_util import walk_file

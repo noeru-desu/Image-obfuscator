@@ -410,7 +410,7 @@ class Controls(object):
         if item is None:
             self.image_info = '未选择图片'
         else:
-            self.image_info = '大小: {}x{} 格式: {}'.format(*item.loaded_image.size,
+            self.image_info = '大小: {}x{} 格式: {}'.format(*item.cache.loaded_image.size,
                                                         '未知' if item.no_file else splitext(item.loaded_image_path)[1].lstrip('.')
                                                         )
 
@@ -419,24 +419,23 @@ class Controls(object):
 
     def regen_initial_preview(self, force=False):
         size = self.preview_size
-        if not force and self.frame.image_item.initial_preview is not None and size == self.frame.image_item.preview_size:
-            self.imported_bitmap = self.frame.image_item.initial_preview
+        if not force and self.frame.image_item.cache.initial_preview is not None and size == self.frame.image_item.cache.preview_size:
+            self.imported_bitmap = self.frame.image_item.cache.initial_preview
             return False
-        initial_preview = self.frame.image_item.loaded_image.resize(scale(self.frame.image_item.loaded_image, *size), self.resampling_filter)
+        initial_preview = self.frame.image_item.cache.loaded_image.resize(scale(self.frame.image_item.cache.loaded_image, *size), self.resampling_filter)
         self.imported_bitmap = initial_preview
-        self.frame.image_item.preview_size = size
-        self.frame.image_item.initial_preview = initial_preview
+        self.frame.image_item.cache.preview_size = size
+        self.frame.image_item.cache.initial_preview = initial_preview
         return True
 
     def regen_processed_preview(self, image: 'Image', try_not_to_zoom=False):
         size = self.preview_size
         md5 = self.frame.settings.encryption_settings_md5
-        if try_not_to_zoom and self.frame.image_item.processed_preview is not None and size == self.frame.image_item.preview_size and self.frame.image_item.encryption_settings_md5 == md5:
+        if (try_not_to_zoom and md5 in self.frame.image_item.cache.processed_previews and size == self.frame.image_item.cache.preview_size):
             self.previewed_bitmap = image
         else:
             self.previewed_bitmap = image.resize(scale(image, *size), self.resampling_filter)
-            self.frame.image_item.processed_preview = image
-            self.frame.image_item.encryption_settings_md5 = self.frame.settings.encryption_settings_md5
+            self.frame.image_item.cache.add_processed_preview(md5, image)
 
 
 class SettingsManager(object):

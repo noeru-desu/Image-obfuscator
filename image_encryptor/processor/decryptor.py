@@ -34,7 +34,7 @@ def batch(image_data, path_data, encryption_data, saving_settings, auto_folder):
 
 
 def _normal(frame: 'MainFrame', logger, gauge, image, save):
-    encryption_data = frame.image_item.encryption_data
+    encryption_data = frame.image_item.cache.encryption_data
     if encryption_data.has_password:
         if encryption_data.password is None:
             encryption_data.password = frame.password_dict.get_password(encryption_data.password_base64)

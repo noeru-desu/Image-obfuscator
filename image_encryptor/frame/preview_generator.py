@@ -1,10 +1,10 @@
-'''
+"""
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-05 14:56:22
+LastEditTime : 2022-02-19 21:05:26
 Description  : 图片生成功能
-'''
+"""
 from typing import TYPE_CHECKING
 
 from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
 
 
-class ImageGenerator(object):
+class PreviewGenerator(object):
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
         self.preview_thread = ThreadManager('preview-thread', True)
@@ -26,11 +26,11 @@ class ImageGenerator(object):
         if not self.frame.update_password_dict():
             self.frame.controls.password = 'none'
         if self.frame.controls.proc_mode == ENCRYPTION_MODE:
-            self.preview_thread.start_new(encryptor.normal, self._generate_preview_call_back, (self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress, self.frame.image_item.initial_preview, False))
+            self.preview_thread.start_new(encryptor.normal, self._generate_preview_call_back, (self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress, self.frame.image_item.cache.initial_preview, False))
         elif self.frame.controls.proc_mode == DECRYPTION_MODE:
-            self.preview_thread.start_new(decryptor.normal, self._generate_preview_call_back, (self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress, self.frame.image_item.loaded_image, False))
+            self.preview_thread.start_new(decryptor.normal, self._generate_preview_call_back, (self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress, self.frame.image_item.cache.loaded_image, False))
         else:
-            self.preview_thread.start_new(qq_anti_harmony.normal, self._generate_preview_call_back, (self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress, self.frame.image_item.initial_preview, False))
+            self.preview_thread.start_new(qq_anti_harmony.normal, self._generate_preview_call_back, (self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress, self.frame.image_item.cache.initial_preview, False))
 
     def _generate_preview_call_back(self, error, result):
         error, data = result

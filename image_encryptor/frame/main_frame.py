@@ -21,7 +21,7 @@ from image_encryptor.frame.controls import Controls, SegmentTrigger, SettingsMan
 from image_encryptor.frame.design_frame import MainFrame as MF
 from image_encryptor.frame.dialog import Dialog
 from image_encryptor.frame.drag_importer import DragLoader, DragSavingPath
-from image_encryptor.frame.image_generator import ImageGenerator
+from image_encryptor.frame.preview_generator import PreviewGenerator
 from image_encryptor.frame.image_loader import ImageLoader
 from image_encryptor.frame.image_saver import ImageSaver
 from image_encryptor.frame.tree_manager import TreeManager
@@ -66,7 +66,7 @@ class MainFrame(MF):
         self.process_pool = ProcessTaskManager(1 if cpu_count() < 4 else cpu_count() - 2)
         self.tree_manager = TreeManager(self, self.imageTreeCtrl, '已加载文件列表')
         self.image_loader = ImageLoader(self)
-        self.image_generator = ImageGenerator(self)
+        self.preview_generator = PreviewGenerator(self)
         self.image_saver = ImageSaver(self)
         self.imageTreeCtrl.SetDropTarget(DragLoader(self))
         self.savingOptions.SetDropTarget(DragSavingPath(self))
