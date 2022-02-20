@@ -70,6 +70,8 @@ jobs:
         run: |
           mkdir nuitka
           nuitka --python-flag=-OO --clang --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,dll-files,pkg-resources,numpy,multiprocessing --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --include-module=wx._xml --include-package=PIL --output-dir=nuitka --windows-disable-console ImageEncryptor.py
+      - name: Build artifacts (with console)
+        run: |
           nuitka --python-flag=-OO --clang --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,dll-files,pkg-resources,numpy,multiprocessing --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --include-module=wx._xml --include-package=PIL --output-dir=nuitka -o ImageEncryptor_with_console.exe ImageEncryptor.py
       - name: Basic tests
         shell: cmd
