@@ -69,7 +69,7 @@ jobs:
         shell: cmd
         run: |
           mkdir nuitka
-          nuitka --python-flag=-OO --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,pkg-resources,numpy,multiprocessing --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --include-module=wx._xml --include-package=PIL --output-dir=nuitka ImageEncryptor.py
+          nuitka --python-flag=-OO --clang --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,pkg-resources,numpy,multiprocessing --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --include-module=wx._xml --include-package=PIL --output-dir=nuitka ImageEncryptor.py
       - name: Basic tests
         shell: cmd
         run: |
