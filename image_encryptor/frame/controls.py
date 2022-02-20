@@ -36,6 +36,7 @@ class Controls(object):
         self.XOR_checkboxes = {'r': frame.XORR, 'g': frame.XORG, 'b': frame.XORB, 'a': frame.XORA}
         self.previous_saving_format = 'png'
         self.previous_proc_mode = ENCRYPTION_MODE
+        self.imported_image_id = 0
 
     # ----------
     # properties
@@ -69,20 +70,42 @@ class Controls(object):
             return
 
     @property
-    def imported_bitmap(self) -> Bitmap:
+    def imported_bitmap(self) -> 'Bitmap':
         return self.frame.importedBitmap.Bitmap
 
     @imported_bitmap.setter
-    def imported_bitmap(self, v: 'Image'):
+    def imported_bitmap(self, v: 'Bitmap'):
+        self.frame.importedBitmap.Bitmap = v
+        self.frame.importedBitmapPlanel.Layout()
+
+    @property
+    def imported_image(self) -> 'Image':
+        raise NotImplementedError
+
+    @imported_image.setter
+    def imported_image(self, v: 'Image'):
+        addr = id(v)
+        if addr == self.imported_image_id:
+            return
+        self.imported_image_id = addr
         self.frame.importedBitmap.Bitmap = Bitmap.FromBuffer(*v.size, v.convert('RGB').tobytes())
         self.frame.importedBitmapPlanel.Layout()
 
     @property
-    def previewed_bitmap(self) -> Bitmap:
+    def previewed_bitmap(self) -> 'Bitmap':
         return self.frame.previewedBitmap.Bitmap
 
     @previewed_bitmap.setter
-    def previewed_bitmap(self, v: 'Image'):
+    def previewed_bitmap(self, v: 'Bitmap'):
+        self.frame.previewedBitmap.Bitmap = v
+        self.frame.previewedBitmapPlanel.Layout()
+
+    @property
+    def previewed_image(self) -> 'Image':
+        raise NotImplementedError
+
+    @previewed_image.setter
+    def previewed_image(self, v: 'Image'):
         self.frame.previewedBitmap.Bitmap = Bitmap.FromBuffer(*v.size, v.convert('RGB').tobytes())
         self.frame.previewedBitmapPlanel.Layout()
 
@@ -237,6 +260,22 @@ class Controls(object):
     @preview_mode.setter
     def preview_mode(self, v: int):
         self.frame.previewMode.Selection = v
+
+    @property
+    def preview_source(self) -> int:
+        return self.frame.previewSource.Selection
+
+    @preview_source.setter
+    def preview_source(self, v: int):
+        self.frame.previewSource.Selection = v
+
+    @property
+    def saving_progress(self) -> int:
+        return self.frame.savingProgress.Value
+
+    @saving_progress.setter
+    def saving_progress(self, v):
+        self.frame.savingProgress.Value = v
 
     @property
     def preview_progress_info(self) -> str:
@@ -420,22 +459,22 @@ class Controls(object):
     def regen_initial_preview(self, force=False):
         size = self.preview_size
         if not force and self.frame.image_item.cache.initial_preview is not None and size == self.frame.image_item.cache.preview_size:
-            self.imported_bitmap = self.frame.image_item.cache.initial_preview
+            self.imported_image = self.frame.image_item.cache.initial_preview
             return False
-        initial_preview = self.frame.image_item.cache.loaded_image.resize(scale(self.frame.image_item.cache.loaded_image, *size), self.resampling_filter)
-        self.imported_bitmap = initial_preview
+        image = self.frame.image_item.cache.loaded_image.resize(scale(self.frame.image_item.cache.loaded_image, *size), self.resampling_filter)
+        self.imported_image = image
         self.frame.image_item.cache.preview_size = size
-        self.frame.image_item.cache.initial_preview = initial_preview
+        self.frame.image_item.cache.initial_preview = image
         return True
 
     def regen_processed_preview(self, image: 'Image', try_not_to_zoom=False):
         size = self.preview_size
         md5 = self.frame.settings.encryption_settings_md5
         if (try_not_to_zoom and md5 in self.frame.image_item.cache.processed_previews and size == self.frame.image_item.cache.preview_size):
-            self.previewed_bitmap = image
+            self.previewed_image = image
         else:
-            self.previewed_bitmap = image.resize(scale(image, *size), self.resampling_filter)
-            self.frame.image_item.cache.add_processed_preview(md5, image)
+            self.previewed_image = image.resize(scale(image, *size), self.resampling_filter)
+            self.frame.image_item.cache.add_processed_preview(md5, self.previewed_bitmap)
 
 
 class SettingsManager(object):
@@ -462,17 +501,19 @@ class SettingsManager(object):
 
     @property
     def encryption_settings(self):
-        return (self.controls.proc_mode, self.controls.cutting_row, self.controls.cutting_col,
-                self.controls.shuffle_chunks, self.controls.flip_chunks, self.controls.mapping_R,
-                self.controls.mapping_G, self.controls.mapping_B, self.controls.mapping_A,
-                self.controls.XOR_encryption, self.controls.noise_XOR, self.controls.XOR_R,
-                self.controls.XOR_G, self.controls.XOR_B, self.controls.XOR_A,
-                self.controls.noise_XOR, self.controls.noise_factor, self.controls.password,
-                self.controls.resampling_filter)
+        return (
+            self.controls.proc_mode, self.controls.cutting_row, self.controls.cutting_col,
+            self.controls.shuffle_chunks, self.controls.flip_chunks, self.controls.mapping_R,
+            self.controls.mapping_G, self.controls.mapping_B, self.controls.mapping_A,
+            self.controls.XOR_encryption, self.controls.noise_XOR, self.controls.XOR_R,
+            self.controls.XOR_G, self.controls.XOR_B, self.controls.XOR_A,
+            self.controls.noise_XOR, self.controls.noise_factor, self.controls.password,    # 后面是预览设置
+            self.controls.resampling_filter, self.controls.preview_source
+        )
 
     @property
     def encryption_settings_md5(self):
-        return md5(str(self.encryption_settings).encode()).digest()
+        return md5(repr(self.encryption_settings).encode()).digest()
 
     @property
     def all_dict(self):

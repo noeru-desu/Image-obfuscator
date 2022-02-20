@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-20 07:42:46
+LastEditTime : 2022-02-20 14:47:45
 Description  : 图像项目
 """
 from abc import ABC
@@ -18,7 +18,7 @@ from image_encryptor.frame.controls import EncryptionParameters
 
 if TYPE_CHECKING:
     from PIL.Image import Image
-    from wx import TreeItemId
+    from wx import Bitmap, TreeItemId
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.controls import Settings
 
@@ -42,7 +42,7 @@ class ImageItemCache(object):
     def __init__(self, item: 'ImageItem', loaded_image=None):
         self._item = item
         self.initial_preview: 'Image' = None
-        self.processed_previews: dict[bytes, 'Image'] = {}
+        self.processed_previews: dict[bytes, 'Bitmap'] = {}
         self.preview_size: tuple[int, int] = None
         self._encryption_data = None
         self._loaded_image = loaded_image
@@ -57,26 +57,25 @@ class ImageItemCache(object):
         if not self._item.frame.startup_parameters.low_memory or self._item.selected:
             return self._loaded_image
 
-    def get_processed_preview_cache(self, md5):
-        return self.processed_previews.get(md5, None)
+    def get_processed_preview_cache(self, md5) -> Optional['Bitmap']:
+        return self.processed_previews.get(md5)
 
     @loaded_image.setter
     def loaded_image(self, v):
         self._loaded_image = v
 
     @property
-    def encryption_data(self) -> 'EncryptionParameters':
+    def encryption_data(self) -> Optional['EncryptionParameters']:
         if self._encryption_data is None:
             self._item.load_encryption_parameters()
-        else:
-            return self._encryption_data
+        return self._encryption_data
 
     @encryption_data.setter
     def encryption_data(self, v):
         self._encryption_data = v
 
     @property
-    def processed_preview(self) -> 'Image':
+    def processed_preview(self) -> 'Bitmap':
         # 使用get_processed_preview_cache代替
         try:
             raise
@@ -84,13 +83,13 @@ class ImageItemCache(object):
             print_exc()
         return list(self.processed_previews.values())[-1]
 
-    def add_processed_preview(self, md5, image):
+    def add_processed_preview(self, md5, bitmap):
         if md5 in self.processed_previews:
             return
         keys = self.processed_previews.keys()
         if len(keys) >= self._item.frame.startup_parameters.maximum_redundant_cache_length:
             del self.processed_previews[list(keys)[0]]
-        self.processed_previews[md5] = image
+        self.processed_previews[md5] = bitmap
 
     def clear_redundant_cache(self):
         for i in list(self.processed_previews.keys())[:-1]:

@@ -52,7 +52,7 @@ class MainFrame(BasicMainFrame):
         if size_changed or md5 not in self.image_item.cache.processed_previews:
             self.preview_generator.generate_preview()
         else:
-            self.controls.regen_processed_preview(self.image_item.cache.get_processed_preview_cache(md5))
+            self.controls.previewed_bitmap = self.image_item.cache.get_processed_preview_cache(md5)
 
     def force_refresh_preview(self, event=None):
         if self.image_item is None:
@@ -160,7 +160,7 @@ class MainFrame(BasicMainFrame):
             if self.previewMode.Selection == AUTO_REFRESH:
                 self.refresh_preview(event)
             elif processed_preview is not None:
-                self.controls.regen_processed_preview(processed_preview, True)
+                self.controls.previewed_bitmap = processed_preview
             if self.previewMode.Selection != AUTO_REFRESH:
                 self.controls.regen_initial_preview()
         elif isinstance(image_data, FolderItem):

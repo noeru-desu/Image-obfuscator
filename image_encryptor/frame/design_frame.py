@@ -124,7 +124,7 @@ class MainFrame (wx.Frame):
 
         gSizer1.Add(sbSizer2, 1, wx.EXPAND, 5)
 
-        sbSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.imagePanel, wx.ID_ANY, u"处理结果-预览图(不准确)"), wx.VERTICAL)
+        sbSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.imagePanel, wx.ID_ANY, u"处理结果-预览图"), wx.VERTICAL)
 
         self.previewedBitmapPlanel = wx.Panel(sbSizer3.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer27 = wx.BoxSizer(wx.VERTICAL)
@@ -362,10 +362,21 @@ class MainFrame (wx.Frame):
 
         bSizer30 = wx.BoxSizer(wx.VERTICAL)
 
+        bSizer40 = wx.BoxSizer(wx.HORIZONTAL)
+
         previewModeChoices = [u"不显示", u"手动刷新", u"自动刷新"]
         self.previewMode = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"预览图", wx.DefaultPosition, wx.DefaultSize, previewModeChoices, 1, wx.RA_SPECIFY_COLS)
         self.previewMode.SetSelection(2)
-        bSizer30.Add(self.previewMode, 1, wx.ALL | wx.EXPAND, 3)
+        bSizer40.Add(self.previewMode, 1, wx.ALL | wx.EXPAND, 3)
+
+        previewSourceChoices = [u"预览图", u"原图"]
+        self.previewSource = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"加密时使用图源", wx.DefaultPosition, wx.DefaultSize, previewSourceChoices, 1, wx.RA_SPECIFY_COLS)
+        self.previewSource.SetSelection(0)
+        self.previewSource.SetToolTip(u"生成\"处理结果-预览图\"时使用的图源\n选择\"预览图\"可获得更好的性能，但结果会有所偏差\n选择\"原图\"将不会出现偏差，但性能低于\"预览图\"选项")
+
+        bSizer40.Add(self.previewSource, 1, wx.ALL | wx.EXPAND, 3)
+
+        bSizer30.Add(bSizer40, 1, wx.EXPAND, 5)
 
         bSizer40 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -385,7 +396,7 @@ class MainFrame (wx.Frame):
 
         self.previewProgress = wx.Gauge(self.previewOptions, wx.ID_ANY, 100, wx.DefaultPosition, wx.Size(160, -1), wx.GA_HORIZONTAL)
         self.previewProgress.SetValue(0)
-        bSizer19.Add(self.previewProgress, 0, wx.ALL, 5)
+        bSizer19.Add(self.previewProgress, 0, wx.ALL | wx.EXPAND, 3)
 
         bSizer401.Add(bSizer19, 0, wx.EXPAND, 5)
 
@@ -648,6 +659,7 @@ class MainFrame (wx.Frame):
         self.m_button31.Bind(wx.EVT_BUTTON, self.apply_to_all)
         self.m_button311.Bind(wx.EVT_BUTTON, self.set_settings_as_default)
         self.previewMode.Bind(wx.EVT_RADIOBOX, self.preview_mode_change)
+        self.previewSource.Bind(wx.EVT_RADIOBOX, self.force_refresh_preview)
         self.m_button3.Bind(wx.EVT_BUTTON, self.manual_refresh)
         self.resamplingFilter.Bind(wx.EVT_RADIOBOX, self.force_refresh_preview)
         self.savingFormat.Bind(wx.EVT_COMBOBOX, self.record_saving_format)
@@ -719,10 +731,10 @@ class MainFrame (wx.Frame):
     def preview_mode_change(self, event):
         event.Skip()
 
-    def manual_refresh(self, event):
+    def force_refresh_preview(self, event):
         event.Skip()
 
-    def force_refresh_preview(self, event):
+    def manual_refresh(self, event):
         event.Skip()
 
     def record_saving_format(self, event):
