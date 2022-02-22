@@ -604,7 +604,7 @@ class SettingsData(SettingsBase):
 
     def encryption_parameters_data(self, orig_width, orig_height):
         has_password = self.password != 'none'
-        password = 100 if has_password else self.password
+        password = self.password if has_password else 100
         return EncryptionParametersData((self.cutting_col, self.cutting_row, orig_width, orig_height, self.shuffle_chunks,
                                         self.flip_chunks, False, self.mapping_channels, self.XOR_channels if self.XOR_encryption else '',
                                         self.noise_XOR, self.noise_factor, has_password,
