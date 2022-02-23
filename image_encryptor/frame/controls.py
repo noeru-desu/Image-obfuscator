@@ -88,7 +88,7 @@ class Controls(object):
         if addr == self.imported_image_id:
             return
         self.imported_image_id = addr
-        self.frame.importedBitmap.Bitmap = Bitmap.FromBuffer(*v.size, v.convert('RGB').tobytes())
+        self.frame.importedBitmap.Bitmap = Bitmap.FromBufferRGBA(*v.size, v.tobytes())
         self.frame.importedBitmapPlanel.Layout()
 
     @property
@@ -106,7 +106,7 @@ class Controls(object):
 
     @previewed_image.setter
     def previewed_image(self, v: 'Image'):
-        self.frame.previewedBitmap.Bitmap = Bitmap.FromBuffer(*v.size, v.convert('RGB').tobytes())
+        self.frame.previewedBitmap.Bitmap = Bitmap.FromBufferRGBA(*v.size, v.tobytes())
         self.frame.previewedBitmapPlanel.Layout()
 
     @property
