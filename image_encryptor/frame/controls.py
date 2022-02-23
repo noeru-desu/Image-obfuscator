@@ -730,17 +730,20 @@ class EncryptionParameters(EncryptionParametersData):
             self.controls.XOR_encryption = True
         self.controls.XOR_channels = self.XOR_channels
         if self.has_password:
-            if self.password is None:
+            while True:
+                if self.password is not None:
+                    break
                 self.password = self.controls.frame.password_dict.get_password(self.password_base64)
-                if self.password is None:
-                    self.controls.password = ''
-                    self.controls.frame.passwordCtrl.Enable()
-                else:
-                    self.controls.frame.passwordCtrl.Disable()
-                    self.controls.password = self.password
-            else:
-                self.controls.frame.passwordCtrl.Disable()
-                self.controls.password = self.password
+                if self.password is not None:
+                    break
+                self.password = self.controls.frame.dialog.password_dialog(self.password_base64, True)
+                if self.password is not None:
+                    break
+                self.controls.password = ''
+                self.controls.frame.passwordCtrl.Enable()
+                return
+            self.controls.frame.passwordCtrl.Disable()
+            self.controls.password = self.password
         else:
             self.controls.frame.passwordCtrl.Disable()
             self.controls.password = 'none'

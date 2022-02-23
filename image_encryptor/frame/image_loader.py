@@ -9,7 +9,7 @@ from os.path import isfile, isdir, join, split
 from typing import TYPE_CHECKING, Iterable
 
 from PIL import Image
-from wx import ID_YES, ID_NO, ID_CANCEL
+from wx import ID_YES, ID_NO, ID_CANCEL, CallAfter
 
 from image_encryptor.constants import EXTENSION_KEYS
 from image_encryptor.utils.utils import open_image
@@ -95,10 +95,9 @@ class ImageLoader(object):
                 self.frame, None if self.frame.startup_parameters.low_memory else loaded_image, (path, '', name),
                 self.frame.settings.default.deepcopy(), cache_loaded_image=not self.frame.startup_parameters.low_memory
             )
-            self.frame.tree_manager.add_file(path_chosen, data=image_item)
+            item_id = self.frame.tree_manager.add_file(path_chosen, data=image_item)
             image_item.load_encryption_parameters()
-            self.frame.imageTreeCtrl.SelectItem(tuple(self.frame.tree_manager.file_dict.values())[-1])
-            image_item.check_encryption_parameters()
+            CallAfter(self.frame.imageTreeCtrl.SelectItem, item_id)     # 此方法在加密模式下会调用密码输入框，需回到主线程执行
         self.frame.loadingPanel.Enable()
         self.frame.stop_loading_func.init()
 

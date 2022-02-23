@@ -757,3 +757,87 @@ class MainFrame (wx.Frame):
 
     def stop_saving_event(self, event):
         event.Skip()
+
+
+###########################################################################
+# Class PasswordDialog
+###########################################################################
+
+class PasswordDialog (wx.Dialog):
+
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"请输入密码", pos=wx.DefaultPosition, size=wx.Size(317, 156), style=wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP)
+
+        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+        self.SetFont(wx.Font(9, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Segoe UI"))
+        self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
+
+        bSizer43 = wx.BoxSizer(wx.VERTICAL)
+
+        bSizer43.Add((0, 0), 1, wx.EXPAND, 5)
+
+        bSizer46 = wx.BoxSizer(wx.HORIZONTAL)
+
+        bSizer46.Add((0, 0), 0, wx.ALL, 20)
+
+        self.mainPanel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        bSizer45 = wx.BoxSizer(wx.VERTICAL)
+
+        self.m_staticText18 = wx.StaticText(self.mainPanel, wx.ID_ANY, u"请输入密码", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText18.Wrap(-1)
+
+        self.m_staticText18.SetFont(wx.Font(9, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Segoe UI"))
+
+        bSizer45.Add(self.m_staticText18, 0, wx.ALIGN_CENTER | wx.ALL, 3)
+
+        self.tipText = wx.StaticText(self.mainPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.tipText.Wrap(-1)
+
+        bSizer45.Add(self.tipText, 0, wx.ALIGN_CENTER | wx.ALL, 3)
+
+        self.passwordTextCtrl = wx.TextCtrl(self.mainPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_PROCESS_ENTER)
+        self.passwordTextCtrl.SetMaxLength(32)
+        bSizer45.Add(self.passwordTextCtrl, 1, wx.ALL | wx.EXPAND, 0)
+
+        self.mainPanel.SetSizer(bSizer45)
+        self.mainPanel.Layout()
+        bSizer45.Fit(self.mainPanel)
+        bSizer46.Add(self.mainPanel, 1, wx.EXPAND, 5)
+
+        bSizer46.Add((0, 0), 0, wx.ALL, 20)
+
+        bSizer43.Add(bSizer46, 1, wx.EXPAND, 5)
+
+        bSizer43.Add((0, 0), 1, wx.EXPAND, 5)
+
+        bSizer48 = wx.BoxSizer(wx.HORIZONTAL)
+
+        bSizer48.Add((0, 0), 1, wx.EXPAND, 5)
+
+        self.m_button13 = wx.Button(self, wx.ID_ANY, u"确认", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer48.Add(self.m_button13, 0, wx.ALL, 5)
+
+        self.m_button131 = wx.Button(self, wx.ID_ANY, u"取消", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer48.Add(self.m_button131, 0, wx.ALL, 5)
+
+        bSizer43.Add(bSizer48, 1, wx.EXPAND, 5)
+
+        self.SetSizer(bSizer43)
+        self.Layout()
+
+        self.Centre(wx.BOTH)
+
+        # Connect Events
+        self.passwordTextCtrl.Bind(wx.EVT_TEXT_ENTER, self.user_confirm)
+        self.m_button13.Bind(wx.EVT_BUTTON, self.user_confirm)
+        self.m_button131.Bind(wx.EVT_BUTTON, self.user_cancel)
+
+    def __del__(self):
+        pass
+
+    # Virtual event handlers, override them in your derived class
+    def user_confirm(self, event):
+        event.Skip()
+
+    def user_cancel(self, event):
+        event.Skip()

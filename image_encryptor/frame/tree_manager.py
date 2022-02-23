@@ -52,7 +52,7 @@ class TreeManager(object):
         else:
             root = self.root_dir_dict[root_path]
         if relative_path == '':
-            return
+            return root
         for r_path, name in self._recursively_merge_list(dir_list):
             path = join(root_path, r_path)
             if path not in self.dir_dict:
@@ -62,6 +62,7 @@ class TreeManager(object):
                 self.dir_dict[path] = root = self.tree_ctrl.AppendItem(root, name, 0, data=data)
                 parent_data.children[root] = data
                 data.parent = parent_data
+        return root
 
     def add_file(self, root_path: str, relative_path: str = None, file: str = None, data: dict = None, add_to_root=True):
         if relative_path is None and file is None:
@@ -69,7 +70,7 @@ class TreeManager(object):
             root_path, file = split(root_path)
         absolute_path = join(root_path, relative_path, file)
         if absolute_path in self.file_dict:
-            return
+            return self.file_dict[absolute_path]
         root = self.root
         if not add_to_root:
             parent_folder_path = join(root_path, relative_path)
@@ -83,6 +84,7 @@ class TreeManager(object):
             parent_data.children[item_id] = data
             data.parent = parent_data
         # self.frame.logger.info(f'文件添加至文件树: {file}')
+        return item_id
 
     def del_item(self, item_id: 'TreeItemId'):
         if item_id.IsOk():

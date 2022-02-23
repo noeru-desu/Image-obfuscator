@@ -26,6 +26,7 @@ class MainFrame(BasicMainFrame):
         super().__init__(parent, run_path)
         self.deleted_item = False
         self.resized = False
+        self.first_choice = True
 
     def on_move_end(self, event):
         if self.resized:
@@ -77,6 +78,18 @@ class MainFrame(BasicMainFrame):
         else:
             self.image_loader.load(clipboard)
 
+    def add_password_dict(self, password):
+        """添加成功则返回True"""
+        try:
+            password_base64 = self.password_dict.get_validation_field_base64(password)
+        except ValueError:
+            self.dialog.async_error('密码长度超过AES加密限制, 请确保密码长度不超过32字节', '用于验证密码正确性的字符串生成时出现错误')
+            return False
+        else:
+            self.password_dict[password_base64] = password
+            self.logger.info(f'更新密码字典[{password_base64}: {password}](当前字典长度: {len(self.password_dict)})')
+            return True
+
     def update_password_dict(self, event=None):
         """更新成功则返回True"""
         if self.controls.password == '':
@@ -84,16 +97,11 @@ class MainFrame(BasicMainFrame):
         if event is not None:
             self.refresh_preview(event)
         if self.controls.password != 'none' and self.controls.password not in self.password_dict.values():
-            try:
-                password_base64 = self.password_dict.get_validation_field_base64(self.controls.password)
-            except ValueError:
-                self.dialog.async_error('密码长度超过AES加密限制，请确保密码长度不超过32字节', '用于验证密码正确性的字符串生成时出现错误')
+            if self.add_password_dict(self.controls.password):
+                return True
+            else:
                 self.controls.password = ''
                 return False
-            else:
-                self.password_dict[password_base64] = self.controls.password
-                self.logger.info(f'更新密码字典[{password_base64}: {self.controls.password}](当前字典长度: {len(self.password_dict)})')
-                return True
         return True
 
     def save_selected_image(self, event):
@@ -130,7 +138,7 @@ class MainFrame(BasicMainFrame):
 
     def switch_image(self, event: 'TreeEvent'):
         image_item: 'TreeItemId' = event.GetOldItem()
-        if image_item.IsOk():
+        if image_item.IsOk() and not self.first_choice:
             image_data: 'ImageItem' = self.imageTreeCtrl.GetItemData(image_item)
             if isinstance(image_data, ImageItem):
                 settings = self.settings.all
@@ -140,6 +148,8 @@ class MainFrame(BasicMainFrame):
             self.deleted_item = False
         # else:
         #     self.apply_settings_to_all()
+        if self.first_choice:
+            self.first_choice = False
 
         if not event.GetItem().IsOk():
             self.image_item = None

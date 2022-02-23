@@ -11,7 +11,9 @@ from typing import TYPE_CHECKING
 from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
                 FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, HELP, ICON_ERROR,
                 ICON_INFORMATION, ICON_QUESTION, ICON_WARNING, ID_OK,
-                STAY_ON_TOP, YES_NO, DirDialog, FileDialog, MessageDialog)
+                STAY_ON_TOP, YES_NO, ID_CANCEL, DirDialog, FileDialog, MessageDialog)
+
+from image_encryptor.frame.design_frame import PasswordDialog as PD
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
@@ -82,6 +84,15 @@ class Dialog(object):
             dialog.SetYesNoCancelLabels(yes, no, cancel)
             return dialog.ShowModal()
 
+    def password_dialog(self, correct_base64, until_correct=False):
+        dialog = PasswordDialog(self.frame, correct_base64, until_correct)
+        with dialog:
+            return_code = dialog.ShowModal()
+        if return_code == ID_CANCEL:
+            return None
+        elif return_code == ID_OK:
+            return dialog.correct_password
+
     def _register_async_dialog(self, force):
         """注册成功则返回True，反之则返回False"""
         with self.lock:
@@ -144,3 +155,43 @@ class Dialog(object):
     def singel_dialog(message, title, style=None):
         with MessageDialog(None, message, title, style=style) as dialog:
             return dialog.ShowModal()
+
+
+class PasswordDialog(PD):
+    def __init__(self, parent: 'MainFrame', correct_base64, until_correct=False):
+        super().__init__(parent)
+        self._parent = parent
+        self._correct_base64 = correct_base64
+        self._until_correct = until_correct
+        self.correct_password: str = None
+        self.SetReturnCode(ID_CANCEL)
+
+    def user_confirm(self, event):
+        password = self.passwordTextCtrl.Value
+        if not password:
+            if self._until_correct:
+                self.tipText.LabelText = '密码为空! 取消输入密码请点击[取消]'
+                self.mainPanel.Layout()
+            else:
+                self.user_cancel(event)
+        elif self._parent.add_password_dict(password):
+            password = self._parent.password_dict.get_password(self._correct_base64)
+            if password is not None:
+                self.correct_password = password
+                self.EndModal(ID_OK)
+            elif self._until_correct:
+                self.tipText.LabelText = '密码错误! 请重新输入'
+                self.mainPanel.Layout()
+                self.passwordTextCtrl.Clear()
+            else:
+                self.user_cancel(event)
+        else:
+            if self._until_correct:
+                self.tipText.LabelText = '密码不符合要求, 请重新输入'
+                self.mainPanel.Layout()
+                self.passwordTextCtrl.Clear()
+            else:
+                self.user_cancel(event)
+
+    def user_cancel(self, event):
+        self.EndModal(ID_CANCEL)
