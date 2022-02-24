@@ -27,65 +27,75 @@ class Dialog(object):
         self.maximum_number = 5
         self.lock = Lock()
 
-    def dialog(self, message, title, style):
-        with MessageDialog(self.frame, message, title, style=style) as dialog:
+    def dialog(self, message, title, style, parent=...):
+        if parent is Ellipsis:
+            parent = self.frame
+        with MessageDialog(parent, message, title, style=style) as dialog:
             return dialog.ShowModal()
 
-    def select_file(self, title, wildcard='', style=FD_OPEN | FD_CHANGE_DIR | FD_PREVIEW | FD_FILE_MUST_EXIST):
-        with FileDialog(self.frame, title, style=style, wildcard=wildcard) as dialog:
+    def select_file(self, title, wildcard='', style=FD_OPEN | FD_CHANGE_DIR | FD_PREVIEW | FD_FILE_MUST_EXIST, parent=...):
+        if parent is Ellipsis:
+            parent = self.frame
+        with FileDialog(parent, title, style=style, wildcard=wildcard) as dialog:
             if ID_OK == dialog.ShowModal():
                 return dialog.GetPath()
 
-    def select_dir(self, title, style=DIRP_CHANGE_DIR | DIRP_DIR_MUST_EXIST):
-        with DirDialog(self.frame, title, style=style) as dialog:
+    def select_dir(self, title, style=DIRP_CHANGE_DIR | DIRP_DIR_MUST_EXIST, parent=...):
+        if parent is Ellipsis:
+            parent = self.frame
+        with DirDialog(parent, title, style=style) as dialog:
             if ID_OK == dialog.ShowModal():
                 return dialog.GetPath()
 
-    def info(self, message, title='信息', additional_style=None, log=True):
+    def info(self, message, title='信息', additional_style=..., log=True, parent=...):
         style = ICON_INFORMATION | STAY_ON_TOP
-        if additional_style is not None:
+        if additional_style is not Ellipsis:
             style |= additional_style
         if log:
             self.frame.logger.info(f'[{title}]{message}')
-        return self.dialog(message, title, style)
+        return self.dialog(message, title, style, parent)
 
-    def question(self, message, title='确认', additional_style=None, log=True):
+    def question(self, message, title='确认', additional_style=..., log=True, parent=...):
         style = ICON_QUESTION | STAY_ON_TOP
-        if additional_style is not None:
+        if additional_style is not Ellipsis:
             style |= additional_style
         if log:
             self.frame.logger.info(f'[{title}]{message}')
-        return self.dialog(message, title, style)
+        return self.dialog(message, title, style, parent)
 
-    def warning(self, message, title='警告', additional_style=None, log=True):
+    def warning(self, message, title='警告', additional_style=..., log=True, parent=...):
         style = ICON_WARNING | STAY_ON_TOP
-        if additional_style is not None:
+        if additional_style is not Ellipsis:
             style |= additional_style
         if log:
             self.frame.logger.warning(f'[{title}]{message}')
-        return self.dialog(message, title, style)
+        return self.dialog(message, title, style, parent)
 
-    def error(self, message, title='错误', additional_style=None, log=True):
+    def error(self, message, title='错误', additional_style=..., log=True, parent=...):
         style = ICON_ERROR | STAY_ON_TOP
-        if additional_style is not None:
+        if additional_style is not Ellipsis:
             style |= additional_style
         if log:
             self.frame.logger.error(f'[{title}]{message}')
-        return self.dialog(message, title, style)
+        return self.dialog(message, title, style, parent)
 
-    def confirmation_frame(self, message, title='确认', style=YES_NO | CANCEL, yes='是', no='否', cancel='取消', help=None):
+    def confirmation_frame(self, message, title='确认', style=YES_NO | CANCEL, yes='是', no='否', cancel='取消', help=None, parent=...):
+        if parent is Ellipsis:
+            parent = self.frame
         if help is not None:
             style = YES_NO | CANCEL | HELP
         else:
             style = YES_NO | CANCEL
-        with MessageDialog(self.frame, message, title, style=style | STAY_ON_TOP) as dialog:
+        with MessageDialog(parent, message, title, style=style | STAY_ON_TOP) as dialog:
             if help is not None:
                 dialog.SetOKLabel(help)
             dialog.SetYesNoCancelLabels(yes, no, cancel)
             return dialog.ShowModal()
 
-    def password_dialog(self, correct_base64, until_correct=False):
-        dialog = PasswordDialog(self.frame, correct_base64, until_correct)
+    def password_dialog(self, correct_base64, until_correct=False, parent=...):
+        if parent is Ellipsis:
+            parent = self.frame
+        dialog = PasswordDialog(parent, correct_base64, until_correct)
         with dialog:
             return_code = dialog.ShowModal()
         if return_code == ID_CANCEL:
@@ -109,46 +119,46 @@ class Dialog(object):
             if self.async_dialog_num == 0:
                 self.async_dialog_exist = False
 
-    def async_select_file(self, title, wildcard='', style=FD_OPEN | FD_CHANGE_DIR | FD_PREVIEW | FD_FILE_MUST_EXIST, force=False):
+    def async_select_file(self, title, wildcard='', style=FD_OPEN | FD_CHANGE_DIR | FD_PREVIEW | FD_FILE_MUST_EXIST, force=False, parent=...):
         if not self._register_async_dialog(force):
             return False
-        self.frame.universal_thread_pool.submit(self.select_file, title, wildcard, style).add_done_callback(self._async_dialog_callback)
+        self.frame.universal_thread_pool.submit(self.select_file, title, wildcard, style, parent).add_done_callback(self._async_dialog_callback)
         return True
 
-    def async_select_dir(self, title, style=DIRP_CHANGE_DIR | DIRP_DIR_MUST_EXIST, force=False):
+    def async_select_dir(self, title, style=DIRP_CHANGE_DIR | DIRP_DIR_MUST_EXIST, force=False, parent=...):
         if not self._register_async_dialog(force):
             return False
-        self.frame.universal_thread_pool.submit(self.select_dir, title, style).add_done_callback(self._async_dialog_callback)
+        self.frame.universal_thread_pool.submit(self.select_dir, title, style, parent).add_done_callback(self._async_dialog_callback)
         return True
 
-    def async_info(self, message, title='信息', additional_style=None, log=True, force=False):
+    def async_info(self, message, title='信息', additional_style=..., log=True, force=False, parent=...):
         if not self._register_async_dialog(force):
             return False
-        self.frame.universal_thread_pool.submit(self.info, message, title, additional_style, log).add_done_callback(self._async_dialog_callback)
+        self.frame.universal_thread_pool.submit(self.info, message, title, additional_style, log, parent).add_done_callback(self._async_dialog_callback)
         return True
 
-    def async_question(self, message, title='确认', additional_style=None, log=True, force=False):
+    def async_question(self, message, title='确认', additional_style=..., log=True, force=False, parent=...):
         if not self._register_async_dialog(force):
             return False
-        self.frame.universal_thread_pool.submit(self.question, message, title, additional_style, log).add_done_callback(self._async_dialog_callback)
+        self.frame.universal_thread_pool.submit(self.question, message, title, additional_style, log, parent).add_done_callback(self._async_dialog_callback)
         return True
 
-    def async_warning(self, message, title='警告', additional_style=None, log=True, force=False):
+    def async_warning(self, message, title='警告', additional_style=..., log=True, force=False, parent=...):
         if not self._register_async_dialog(force):
             return False
-        self.frame.universal_thread_pool.submit(self.warning, message, title, additional_style, log).add_done_callback(self._async_dialog_callback)
+        self.frame.universal_thread_pool.submit(self.warning, message, title, additional_style, log, parent).add_done_callback(self._async_dialog_callback)
         return True
 
-    def async_error(self, message, title='错误', additional_style=None, log=True, force=False):
+    def async_error(self, message, title='错误', additional_style=..., log=True, force=False, parent=...):
         if not self._register_async_dialog(force):
             return False
-        self.frame.universal_thread_pool.submit(self.error, message, title, additional_style, log).add_done_callback(self._async_dialog_callback)
+        self.frame.universal_thread_pool.submit(self.error, message, title, additional_style, log, parent).add_done_callback(self._async_dialog_callback)
         return True
 
-    def async_confirmation_frame(self, message, title='确认', additional_style=None, yes='是', no='否', cancel='取消', help=None, force=False):
+    def async_confirmation_frame(self, message, title='确认', additional_style=..., yes='是', no='否', cancel='取消', help=None, force=False, parent=...):
         if not self._register_async_dialog(force):
             return False
-        self.frame.universal_thread_pool.submit(self.confirmation_frame, message, title, additional_style, yes, no, cancel, help).add_done_callback(self._async_dialog_callback)
+        self.frame.universal_thread_pool.submit(self.confirmation_frame, message, title, additional_style, yes, no, cancel, help, parent).add_done_callback(self._async_dialog_callback)
         return True
 
     @staticmethod
@@ -174,7 +184,7 @@ class PasswordDialog(PD):
                 self.mainPanel.Layout()
             else:
                 self.user_cancel(event)
-        elif self._parent.add_password_dict(password):
+        elif self._parent.add_password_dict(password, self):
             password = self._parent.password_dict.get_password(self._correct_base64)
             if password is not None:
                 self.correct_password = password
