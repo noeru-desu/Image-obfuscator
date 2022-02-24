@@ -1,4 +1,4 @@
-'''
+"""
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
@@ -149,17 +149,17 @@ class ImageLoader(object):
 
     def _exist(self, path_chosen):
         if path_chosen in self.frame.tree_manager.file_dict:
-            self.frame.imageTreeCtrl.SelectItem(self.frame.tree_manager.file_dict[path_chosen])
+            CallAfter(self.frame.imageTreeCtrl.SelectItem, self.frame.tree_manager.file_dict[path_chosen])
             self.frame.imageTreeCtrl.Expand(self.frame.tree_manager.file_dict[path_chosen])
             self.frame.dialog.async_warning('已存在同路径文件\n已自动跳转到相应位置')
             return True
         elif path_chosen in self.frame.tree_manager.root_dir_dict:
-            self.frame.imageTreeCtrl.SelectItem(self.frame.tree_manager.root_dir_dict[path_chosen])
+            CallAfter(self.frame.imageTreeCtrl.SelectItem, self.frame.tree_manager.root_dir_dict[path_chosen])
             self.frame.imageTreeCtrl.Expand(self.frame.tree_manager.root_dir_dict[path_chosen])
             self.frame.dialog.async_warning('已存在同路径文件夹\n已自动跳转到相应位置')
             return True
         elif path_chosen in self.frame.tree_manager.dir_dict:
-            self.frame.imageTreeCtrl.SelectItem(self.frame.tree_manager.dir_dict[path_chosen])
+            CallAfter(self.frame.imageTreeCtrl.SelectItem, self.frame.tree_manager.dir_dict[path_chosen])
             self.frame.imageTreeCtrl.Expand(self.frame.tree_manager.dir_dict[path_chosen])
             self.frame.dialog.async_warning('已存在同路径文件夹\n已自动跳转到相应位置')
             return True
