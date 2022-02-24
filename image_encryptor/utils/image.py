@@ -1,10 +1,10 @@
-'''
+"""
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-07 14:02:17
+LastEditTime : 2022-02-24 21:15:14
 Description  : 图像相关工具
-'''
+"""
 from functools import cache
 from itertools import permutations
 from random import randrange
@@ -35,7 +35,7 @@ def gen_mapping_table(nc):
 
 
 def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=True):
-    '''Generator a random noise image from numpy.array.
+    """Generator a random noise image from numpy.array.
 
     If nc is 1, the Grayscale image will be created.
     If nc is 3, the RGB image will be generated.
@@ -47,7 +47,7 @@ def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=Tr
         height (int): height of output image.
     Returns:
         ndarray or PIL Image.
-    '''
+    """
     if factor > 255:
         factor = 255
     elif factor < 1:

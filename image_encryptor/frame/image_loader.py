@@ -2,9 +2,9 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-10 12:58:45
+LastEditTime : 2022-02-24 21:13:49
 Description  : 文件载入功能
-'''
+"""
 from os.path import isfile, isdir, join, split
 from typing import TYPE_CHECKING, Iterable
 

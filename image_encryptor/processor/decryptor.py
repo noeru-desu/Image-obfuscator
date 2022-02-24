@@ -1,10 +1,10 @@
-'''
+"""
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-12 12:48:23
+LastEditTime : 2022-02-24 21:14:37
 Description  : 单文件解密功能
-'''
+"""
 from os import makedirs
 from os.path import isdir, join, split, splitext
 from traceback import format_exc

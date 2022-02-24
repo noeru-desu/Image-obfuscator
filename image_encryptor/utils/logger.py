@@ -1,10 +1,10 @@
-'''
+"""
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2021-10-06 14:30:00
+LastEditTime : 2022-02-24 21:15:19
 Description  : logger
-'''
+"""
 from logging import StreamHandler, getLogger
 
 from colorlog import ColoredFormatter

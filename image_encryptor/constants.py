@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-23 20:55:12
+LastEditTime : 2022-02-24 20:39:55
 Description  : 常量
 """
 from PIL.Image import init as PIL_init

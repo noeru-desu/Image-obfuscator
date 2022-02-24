@@ -1,10 +1,10 @@
-'''
+"""
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-08 14:10:27
+LastEditTime : 2022-02-24 21:13:40
 Description  : 整理
-'''
+"""
 from abc import ABC
 from os.path import splitext
 from typing import TYPE_CHECKING, Callable, Iterable, Optional

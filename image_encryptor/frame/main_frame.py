@@ -1,10 +1,10 @@
-'''
+"""
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-12 12:54:24
+LastEditTime : 2022-02-24 21:13:55
 Description  : 覆写窗口
-'''
+"""
 from concurrent.futures import ThreadPoolExecutor
 from functools import cached_property
 from inspect import isroutine

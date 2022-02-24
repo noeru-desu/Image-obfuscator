@@ -1,10 +1,10 @@
-'''
+"""
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-08 12:15:45
+LastEditTime : 2022-02-24 21:13:43
 Description  : 对话框相关
-'''
+"""
 from threading import Lock
 from typing import TYPE_CHECKING
 

@@ -1,10 +1,10 @@
-'''
+"""
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-12 12:52:58
+LastEditTime : 2022-02-24 21:15:26
 Description  : 线程相关类
-'''
+"""
 from ctypes import c_long, py_object, pythonapi
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, CancelledError
 from threading import Thread as threading_Thread

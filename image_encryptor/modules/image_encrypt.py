@@ -1,10 +1,10 @@
-'''
+"""
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-12 12:48:02
+LastEditTime : 2022-02-24 21:14:21
 Description  : 图片加密模块
-'''
+"""
 from abc import ABC
 import random
 from math import ceil
@@ -43,18 +43,18 @@ channel_num = {'r': 0, 'g': 1, 'b': 2, 'a': 3}
 
 
 class ImageEncryptBase(ABC):
-    '''
+    """
     用于图像的加解密
-    '''
+    """
     random = random
 
     def __init__(self, image: Image.Image, row: int, col: int, random_seed):
-        '''
+        """
         :param image: 需要加密的图片
         :param row: 切割行数
         :param col: 切割列数
         :param random_seed: 加密密码
-        '''
+        """
         self.row = row
         self.col = col
         self.random_seed = random_seed
@@ -72,10 +72,10 @@ class ImageEncryptBase(ABC):
         self.init = False
 
     def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: str, old_mapping: bool, bar=FakeBar):
-        '''
+        """
         :old_mapping: 用于1.0.0-rc.12版本前的RGB随机映射, 为保证兼容性而保留
         :description: 生成打乱后的图片分块、翻转分块, 与每个分块所在的坐标列表
-        '''
+        """
         assert not self.init, 'ImageEncrypt instance has been initialized.'
         self.init = True
         self.decryption_mode = decryption_mode
@@ -129,10 +129,10 @@ class ImageEncryptBase(ABC):
         bar.finish()
 
     def generate_image(self, bar=FakeBar):
-        '''
+        """
         :description: 生成处理后的图片
         :return: 处理后的图片
-        '''
+        """
         assert self.init, 'ImageEncrypt instance is not initialized.'
         self.image = Image.new('RGBA', self.ceil_size)
         mapping_func = self.decryption_mapping_table if self.decryption_mode else self.encryption_mapping_table
@@ -165,10 +165,10 @@ class ImageEncryptBase(ABC):
         return self.image
 
     def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
-        '''
+        """
         :description: 异或图片中每个像素点的RGB(A)通道
         :return: 异或后的图片
-        '''
+        """
         pixel_array = array(self.image, uint8)
         if noise:
             noise_array = random_noise(*self.image.size, len(channels), self.random_seed, noise_factor)

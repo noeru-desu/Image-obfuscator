@@ -1,10 +1,10 @@
-'''
+"""
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-06 18:48:50
+LastEditTime : 2022-02-24 21:14:43
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
-'''
+"""
 from os import makedirs
 from os.path import join, split, splitext, isdir
 from traceback import format_exc

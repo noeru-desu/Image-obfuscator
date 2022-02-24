@@ -1,10 +1,10 @@
-'''
+"""
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-12 12:48:34
+LastEditTime : 2022-02-24 21:14:40
 Description  : 单文件加密功能
-'''
+"""
 from json import dumps
 from os import makedirs
 from os.path import isdir, join, split, splitext

@@ -1,10 +1,10 @@
-'''
+"""
 Author       : noeru_desu
-Date         : 2022-01-27 14:22:10
+Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-08 13:50:30
-Description  : 事件处理覆写
-'''
+LastEditTime : 2022-02-24 21:16:20
+Description  : 事件处理
+"""
 from sys import exit as sys_exit
 from typing import TYPE_CHECKING
 
