@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 06:21:47
+LastEditTime : 2022-02-26 06:30:42
 Description  : 对话框相关
 """
 from threading import Lock
@@ -173,10 +173,10 @@ class PasswordDialog(PD):
     __slots__ = ('_parent', '_correct_base64', '_until_correct', 'correct_password')
 
     def __init__(self, parent: 'MainFrame', file_name, correct_base64, until_correct=False):
-        o_args = set(dir(self))
+        # o_args = set(dir(self))
         super().__init__(parent)
-        n_args = set(dir(self))
-        print(n_args - o_args)
+        # n_args = set(dir(self))
+        # print(n_args - o_args)
         self._parent = parent
         self._correct_base64 = correct_base64
         self._until_correct = until_correct
