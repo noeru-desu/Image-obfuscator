@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:13:52
+LastEditTime : 2022-02-26 05:47:11
 Description  : 文件保存功能
 """
 from os import listdir
@@ -36,6 +36,11 @@ convert_settings = {True: ENABLE, False: DISABLE}
 
 class ImageSaver(object):
     """文件保存相关功能"""
+    __slots__ = (
+        'frame', 'saving_thread', 'lock', 'progress_plane_displayed', 'file_count', 'loading_progress',
+        'task_num', 'bar', 'filter'
+    )
+
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
         self.frame.process_pool.create_tag('bulk_save', False, False)   # 注册线程池标签
@@ -125,7 +130,7 @@ class ImageSaver(object):
             elif image_item.settings.proc_mode == DECRYPTION_MODE:
                 image_item.cache.encryption_data.password = self.frame.password_dict.get_password(image_item.cache.encryption_data.password_base64)
                 if image_item.cache.encryption_data.password is None:
-                    self.frame.logger.warning(f'[{image_item.path_data[-1]}]未找到密码，跳过保存')
+                    self.frame.logger.warning(f'[{image_item.path_data.file_name}]未找到密码，跳过保存')
                     continue
                 self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(decryptor.batch, image_data, image_item.path_data, image_item.cache.encryption_data.properties_tuple, self.frame.settings.saving_settings.properties_tuple, uf), self._bulk_save_callback)
             else:
@@ -150,12 +155,12 @@ class ImageSaver(object):
         """文件夹相关检查"""
         if not listdir(self.frame.controls.saving_path):     # 是否为空文件夹
             return DO_NOT_USE_FOLDER
-        if image_item.path_data[1]:                             # 是否有多级文件夹可使用
-            frame_id = self.frame.dialog.confirmation_frame(f'{image_item.path_data[-1]}所选的保存文件夹{self.frame.controls.saving_path}内有其他文件' + '\n' + '请选择处理方式', yes='仍然保存', no='选择新的文件夹进行保存', cancel='创建文件树同级文件夹保存', help='跳过保存该文件')
+        if image_item.path_data.relative_path:                             # 是否有多级文件夹可使用
+            frame_id = self.frame.dialog.confirmation_frame(f'{image_item.path_data.file_name}所选的保存文件夹{self.frame.controls.saving_path}内有其他文件' + '\n' + '请选择处理方式', yes='仍然保存', no='选择新的文件夹进行保存', cancel='创建文件树同级文件夹保存', help='跳过保存该文件')
             if frame_id == ID_YES:
                 return DO_NOT_USE_FOLDER
             elif frame_id == ID_NO:
-                path = self._select_dir(image_item.path_data[0])
+                path = self._select_dir(image_item.path_data.root_path)
                 if path is None:
                     return
                 else:
@@ -166,11 +171,11 @@ class ImageSaver(object):
             else:
                 return
         else:
-            frame_id = self.frame.dialog.confirmation_frame(f'{image_item.path_data[-1]}所选的保存文件夹{self.frame.controls.saving_path}内有其他文件' + '\n' + '请选择处理方式', yes='仍然保存', no='选择新的文件夹进行保存', cancel='跳过保存该文件')
+            frame_id = self.frame.dialog.confirmation_frame(f'{image_item.path_data.file_name}所选的保存文件夹{self.frame.controls.saving_path}内有其他文件' + '\n' + '请选择处理方式', yes='仍然保存', no='选择新的文件夹进行保存', cancel='跳过保存该文件')
             if frame_id == ID_YES:
                 return DO_NOT_USE_FOLDER
             elif frame_id == ID_NO:
-                path = self._select_dir(image_item.path_data[0])
+                path = self._select_dir(image_item.path_data.root_path)
                 if path is None:
                     return
                 else:

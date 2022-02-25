@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:13:49
+LastEditTime : 2022-02-25 21:37:55
 Description  : 文件载入功能
 """
 from os.path import isfile, isdir, join, split
@@ -13,7 +13,7 @@ from wx import ID_YES, ID_NO, ID_CANCEL, CallAfter
 
 from image_encryptor.constants import EXTENSION_KEYS
 from image_encryptor.utils.utils import open_image
-from image_encryptor.frame.file_item import ImageItem
+from image_encryptor.frame.file_item import ImageItem, PathData
 from image_encryptor.frame.controls import ProgressBar
 from image_encryptor.utils.thread import ThreadManager
 from image_encryptor.utils.misc_util import walk_file
@@ -23,6 +23,11 @@ if TYPE_CHECKING:
 
 
 class ImageLoader(object):
+    __slots__ = (
+        'frame', 'loading_thread', 'progress_plane_displayed', 'file_count', 'loading_progress',
+        'clipboard_count', 'bar'
+    )
+
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
         self.loading_thread = ThreadManager('loading-thread')
@@ -72,9 +77,9 @@ class ImageLoader(object):
             cache = True
         self.clipboard_count += 1
         name = f'clipboard-{self.clipboard_count}'
-        image_item = ImageItem(self.frame, image.convert('RGBA'), name, self.frame.settings.default.deepcopy(), True, cache)
-        self.frame.tree_manager.add_file('', '', name, image_item)
-        self.frame.imageTreeCtrl.SelectItem(tuple(self.frame.tree_manager.file_dict.values())[-1])
+        image_item = ImageItem(self.frame, image.convert('RGBA'), PathData('', '', name), self.frame.settings.default.deepcopy(), True, cache)
+        item_id = self.frame.tree_manager.add_file('', '', name, image_item)
+        self.frame.imageTreeCtrl.SelectItem(item_id)
         self.frame.loadingPanel.Enable()
         self.frame.stop_loading_func.init()
 
@@ -92,7 +97,7 @@ class ImageLoader(object):
         if self._hint_image(error):
             path, name = split(path_chosen)
             image_item = ImageItem(
-                self.frame, None if self.frame.startup_parameters.low_memory else loaded_image, (path, '', name),
+                self.frame, None if self.frame.startup_parameters.low_memory else loaded_image, PathData(path, '', name),
                 self.frame.settings.default.deepcopy(), cache_loaded_image=not self.frame.startup_parameters.low_memory
             )
             item_id = self.frame.tree_manager.add_file(path_chosen, data=image_item)
@@ -124,7 +129,7 @@ class ImageLoader(object):
                 if self._hint_image(error, False, n):
                     image_item = ImageItem(
                         self.frame, None if self.frame.startup_parameters.low_memory else loaded_image,
-                        (path_chosen, r, n), self.frame.settings.default.deepcopy(), cache_loaded_image=not self.frame.startup_parameters.low_memory
+                        PathData(path_chosen, r, n), self.frame.settings.default.deepcopy(), cache_loaded_image=not self.frame.startup_parameters.low_memory
                     )
                     self.frame.tree_manager.add_file(path_chosen, r, n, image_item, False)
                     image_item.load_encryption_parameters()

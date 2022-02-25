@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:14:21
+LastEditTime : 2022-02-26 06:24:40
 Description  : 图片加密模块
 """
 from abc import ABC
@@ -46,6 +46,12 @@ class ImageEncryptBase(ABC):
     """
     用于图像的加解密
     """
+    __slots__ = (
+        'row', 'col', 'random_seed', 'block_num', 'block_width', 'block_height', 'ceil_size',
+        'block_list', 'block_pos_list', 'block_mapping_list', 'image', 'init', 'decryption_mode',
+        'shuffle', 'flip', 'mapped_channels', 'encryption_mapping_table', 'decryption_mapping_table',
+        'block_flip_list'
+    )
     random = random
 
     def __init__(self, image: Image.Image, row: int, col: int, random_seed):
@@ -184,16 +190,22 @@ class ImageEncryptBase(ABC):
 
 
 class ImageEncrypt(ImageEncryptBase):
+    __slots__ = ()
+
     def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: str, bar):
         return super().init_block_data(False, shuffle, flip, mapped_channels, False, bar)
 
 
 class ImageDecrypt(ImageEncryptBase):
+    __slots__ = ()
+
     def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: str, old_mapping: bool, bar):
         return super().init_block_data(True, shuffle, flip, mapped_channels, old_mapping, bar)
 
 
 class AntiHarmony(object):
+    __slots__ = ('image', 'right_pos', 'button_pos')
+
     def __init__(self, image: 'Image.Image'):
         self.image = image
         self.right_pos = self.image.size[0] - 1

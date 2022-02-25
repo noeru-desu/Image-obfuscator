@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:13:24
+LastEditTime : 2022-02-26 05:49:19
 Description  : 节点树控制
 """
 from typing import Union
@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 class TreeManager(object):
     'wx.TreeCtrl类的控制器'
+    __slots__ = ('frame', 'tree_ctrl', 'reloading_thread', 'root', 'root_dir_dict', 'dir_dict', 'file_dict')
 
     def __init__(self, frame: 'MainFrame', tree_ctrl: 'TreeCtrl', root_name: str, root_icon_index=0):
         self.frame = frame

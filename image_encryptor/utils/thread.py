@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:15:26
+LastEditTime : 2022-02-26 06:16:44
 Description  : 线程相关类
 """
 from ctypes import c_long, py_object, pythonapi
@@ -28,6 +28,8 @@ class ThreadIsRunningError(Exception):
 
 
 class Thread(threading_Thread):
+    __slots__ = ('_callback', '_callback_args', '_callback_kwargs', 'ended')
+
     def __init__(self, callback: Callable, callback_args=(), callback_kwargs=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if callback_kwargs is None:
@@ -67,6 +69,8 @@ class Thread(threading_Thread):
 
 
 class ThreadManager(object):
+    __slots__ = ('thread_name', '_force', '_thread', '_raise_error', 'exit_signal')
+
     def __init__(self, thread_name: str = 'Worker', force: bool = False, raise_error=SystemExit):
         self.thread_name = thread_name
         self._force = force
@@ -110,6 +114,8 @@ class TaskTag(NamedTuple):
 
 
 class ThreadTaskManager(ThreadPoolExecutor):
+    __slots__ = ('task_dict')
+
     def __init__(self, max_workers: int = ..., *args, **kwargs):
         if 'thread_name_prefix' not in kwargs:
             kwargs['thread_name_prefix'] = 'worker_thread'
@@ -185,6 +191,8 @@ class ThreadTaskManager(ThreadPoolExecutor):
 
 
 class ProcessTaskManager(ProcessPoolExecutor):
+    __slots__ = ('task_dict', 'watchdog')
+
     def __init__(self, max_workers: int = ..., *args, **kwargs):
         super().__init__(max_workers, *args, **kwargs)
         self.watchdog = ThreadTaskManager(max_workers, thread_name_prefix='process_pool_watchdog')

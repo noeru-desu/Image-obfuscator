@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:14:40
+LastEditTime : 2022-02-25 06:30:00
 Description  : 单文件加密功能
 """
 from json import dumps
@@ -18,6 +18,7 @@ from image_encryptor.frame.controls import ProgressBar, SettingsData, SavingSett
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
+    from image_encryptor.frame.file_item import PathData
 
 
 def normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save: bool):
@@ -94,10 +95,10 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
     return image
 
 
-def _batch(image_data, path_data, settings: 'SettingsData', saving_settings: 'SavingSettings', auto_folder):
+def _batch(image_data, path_data: 'PathData', settings: 'SettingsData', saving_settings: 'SavingSettings', auto_folder):
     image = Image.frombytes(*image_data)
     password = 100 if settings.password == 'none' else settings.password
-    name, suffix = splitext(path_data[-1])
+    name, suffix = splitext(path_data.file_name)
     suffix = saving_settings.format
     original_size = image.size
 
@@ -112,7 +113,7 @@ def _batch(image_data, path_data, settings: 'SettingsData', saving_settings: 'Sa
 
     name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
     if auto_folder:
-        save_dir = join(saving_settings.path, path_data[1])
+        save_dir = join(saving_settings.path, path_data.relative_path)
         if not isdir(save_dir):
             makedirs(save_dir)
     else:

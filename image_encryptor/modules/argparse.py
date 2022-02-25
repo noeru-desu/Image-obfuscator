@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-09 18:44:07
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-19 21:04:55
+LastEditTime : 2022-02-26 06:11:05
 Description  : 参数解析
 """
 from argparse import ArgumentParser
@@ -11,11 +11,13 @@ from image_encryptor.constants import VERSION_NUMBER, SUB_VERSION_NUMBER, BRANCH
 
 
 class Parameters(object):
-    PARAMETER_NAMES = ('test', 'low_memory', 'dark_mode', '_dark_mode', 'maximum_redundant_cache_length')
-    test: bool
-    low_memory: bool
-    maximum_redundant_cache_length: int
-    _dark_mode: bool
+    __slots__ = PARAMETER_NAMES = ('test', 'low_memory', '_dark_mode', 'maximum_redundant_cache_length')
+
+    def __init__(self) -> None:
+        self.test: bool = False
+        self.low_memory: bool = False
+        self.maximum_redundant_cache_length: int = 5
+        self._dark_mode: bool = None
 
     def __repr__(self) -> str:
         return ', '.join(f'{n} = {getattr(self, n)}' for n in self.PARAMETER_NAMES)
@@ -30,6 +32,8 @@ class Parameters(object):
 
 
 class Arguments(object):
+    __slots__ = ('argparser')
+
     def __init__(self):
         self.argparser = ArgumentParser(add_help=False)
         self.argparser.add_argument('-h', '--help', action='help', help='输出参数帮助信息并退出')

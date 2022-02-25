@@ -2,14 +2,16 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-20 14:47:45
+LastEditTime : 2022-02-25 21:36:58
 Description  : 图像项目
 """
 from abc import ABC
 from os.path import isfile, join
 from traceback import print_exc
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, NamedTuple, Optional
 from gc import collect
+
+from wx import CallAfter
 
 from image_encryptor.constants import BLACK_IMAGE, DECRYPTION_MODE, ENCRYPTION_MODE
 from image_encryptor.utils.utils import open_image
@@ -24,6 +26,8 @@ if TYPE_CHECKING:
 
 
 class Item(ABC):
+    __slots__ = ()
+
     def del_item(self, item_id: 'TreeItemId', del_item=True):
         ...
 
@@ -38,6 +42,7 @@ class Item(ABC):
 
 class ImageItemCache(object):
     """图像项目缓存控制器"""
+    __slots__ = ('_item', 'initial_preview', 'processed_previews', 'preview_size', '_encryption_data', '_loaded_image')
 
     def __init__(self, item: 'ImageItem', loaded_image=None):
         self._item = item
@@ -109,15 +114,25 @@ class ImageItemCache(object):
         del self._loaded_image
 
 
+class PathData(NamedTuple):
+    root_path: str
+    relative_path: str
+    file_name: str
+
+
 class ImageItem(Item):
     """每个载入的图片的存储实例"""
+    __slots__ = (
+        'frame', 'cache', 'path_data', 'loaded_image_path', 'settings', 'parent', 'selected',
+        'no_file', 'cache_loaded_image', 'encrypted_image', 'loading_image_data_error'
+    )
 
-    def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: Union[tuple[str, str, str], str], settings: 'Settings', no_file=False, cache_loaded_image=True):
+    def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: 'PathData', settings: 'Settings', no_file=False, cache_loaded_image=True):
         self.frame = frame
         self.cache = ImageItemCache(self, loaded_image)
 
         self.path_data = path_data
-        self.loaded_image_path = path_data if no_file else join(*path_data)
+        self.loaded_image_path = path_data.file_name if no_file else join(*path_data)
         self.settings = settings
 
         self.parent = None
@@ -189,12 +204,17 @@ class ImageItem(Item):
             self.frame.dialog.async_info('图像重载成功')
             self.reload_done()
             if self.encrypted_image:
-                self.cache.encryption_data.backtrack_interface()
-                self.frame.force_refresh_preview()
+                CallAfter(self._refresh_encrypted_image)
         return 1, 0
+
+    def _refresh_encrypted_image(self):
+        self.cache.encryption_data.backtrack_interface()
+        self.frame.force_refresh_preview()
 
 
 class FolderItem(Item):
+    __slots__ = ('frame', 'path', 'root', 'children', 'parent')
+
     def __init__(self, frame: 'MainFrame', path, root=False):
         self.frame = frame
         self.path = path

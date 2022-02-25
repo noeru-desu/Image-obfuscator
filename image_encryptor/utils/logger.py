@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:15:19
+LastEditTime : 2022-02-26 06:13:33
 Description  : logger
 """
 from logging import StreamHandler, getLogger
@@ -11,6 +11,8 @@ from colorlog import ColoredFormatter
 
 
 class Logger(object):
+    __slots__ = ('logger', 'ch', 'debug', 'info', 'warning', 'error', 'critical', 'exception')
+
     def __init__(self, logger_registered_name: str = 'logger', initial_level: int = 20, debug_format=False):
         self.logger = getLogger(logger_registered_name)
         self.logger.setLevel(initial_level)

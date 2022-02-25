@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:13:40
+LastEditTime : 2022-02-25 21:12:32
 Description  : 整理
 """
 from abc import ABC
@@ -30,6 +30,8 @@ class ItemNotFoundError(Exception):
 
 class Controls(object):
     "控件/控制器"
+    __slots__ = ('frame', 'mapping_checkboxes', 'XOR_checkboxes', 'previous_saving_format', 'previous_proc_mode', 'imported_image_id')
+
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
         self.mapping_checkboxes = {'r': frame.mappingR, 'g': frame.mappingG, 'b': frame.mappingB, 'a': frame.mappingA}
@@ -478,6 +480,8 @@ class Controls(object):
 
 
 class SettingsManager(object):
+    __slots__ = ('controls', 'default')
+
     def __init__(self, controls: 'Controls'):
         self.controls = controls
         '''{
@@ -547,7 +551,8 @@ class SettingsManager(object):
 
 
 class SettingsBase(ABC):
-    SETTING_NAMES: tuple
+    __slots__ = ()
+    SETTING_NAMES: Iterable
 
     def __repr__(self) -> str:
         return ', '.join(f'{i}: {getattr(self, i)}' for i in self.SETTING_NAMES)
@@ -570,10 +575,12 @@ class SettingsBase(ABC):
 
 
 class SettingsData(SettingsBase):
-    SETTING_NAMES = ('proc_mode', 'cutting_row', 'cutting_col', 'shuffle_chunks', 'flip_chunks',
-                     'mapping_channels', 'XOR_encryption', 'XOR_channels', 'noise_XOR', 'noise_factor',
-                     'password', 'saving_path', 'saving_format', 'saving_format_index', 'saving_quality',
-                     'saving_subsampling_level')
+    __slots__ = SETTING_NAMES = (
+        'proc_mode', 'cutting_row', 'cutting_col', 'shuffle_chunks', 'flip_chunks',
+        'mapping_channels', 'XOR_encryption', 'XOR_channels', 'noise_XOR', 'noise_factor',
+        'password', 'saving_path', 'saving_format', 'saving_format_index', 'saving_quality',
+        'saving_subsampling_level'
+    )
 
     def __init__(self, settings):
         if isinstance(settings, dict):
@@ -612,6 +619,8 @@ class SettingsData(SettingsBase):
 
 
 class Settings(SettingsData):
+    __slots__ = ('controls',)
+
     def __init__(self, controls: 'Controls', settings=None):
         self.controls = controls
         if settings is None:
@@ -665,7 +674,7 @@ class Settings(SettingsData):
 
 
 class SavingSettings(SettingsBase):
-    SETTING_NAMES = ('path', 'format_index', 'format', 'quality', 'subsampling_level')
+    __slots__ = SETTING_NAMES = ('path', 'format_index', 'format', 'quality', 'subsampling_level')
 
     def __init__(self, path: str, format_index: int, format: str, quality: int, subsampling_level: int):
         self.path = path
@@ -676,9 +685,11 @@ class SavingSettings(SettingsBase):
 
 
 class EncryptionParametersData(SettingsBase):
-    SETTING_NAMES = ('cutting_row', 'cutting_col', 'orig_width', 'orig_height', 'shuffle_chunks',
-                     'flip_chunks', 'old_mapping', 'mapping_channels', 'XOR_channels', 'noise_XOR',
-                     'noise_factor', 'has_password', 'password_base64', 'password')
+    __slots__ = SETTING_NAMES = (
+        'cutting_row', 'cutting_col', 'orig_width', 'orig_height', 'shuffle_chunks',
+        'flip_chunks', 'old_mapping', 'mapping_channels', 'XOR_channels', 'noise_XOR',
+        'noise_factor', 'has_password', 'password_base64', 'password'
+    )
 
     def __init__(self, parameters):
         if isinstance(parameters, dict):
@@ -711,6 +722,8 @@ class EncryptionParametersData(SettingsBase):
 
 
 class EncryptionParameters(EncryptionParametersData):
+    __slots__ = ('controls',)
+
     def __init__(self, controls: 'Controls', parameters):
         self.controls = controls
         super().__init__(parameters)
@@ -736,7 +749,7 @@ class EncryptionParameters(EncryptionParametersData):
                 self.password = self.controls.frame.password_dict.get_password(self.password_base64)
                 if self.password is not None:
                     break
-                self.password = self.controls.frame.dialog.password_dialog(self.password_base64, True)
+                self.password = self.controls.frame.dialog.password_dialog(self.controls.frame.image_item.path_data.file_name, self.password_base64, True)
                 if self.password is not None:
                     break
                 self.controls.password = ''
@@ -750,6 +763,8 @@ class EncryptionParameters(EncryptionParametersData):
 
 
 class ProgressBar(object):
+    __slots__ = ('target', 'step_count', 'step', 'value', 'finished_step', 'max_value', 'step_progress', 'next_step_progress', 'max')
+
     def __init__(self, target: 'Gauge', step_count: int = 1):
         self.target = target
         self.step_count = step_count
@@ -792,6 +807,8 @@ class ProgressBar(object):
 
 
 class SegmentTrigger(object):
+    __slots__ = ('_callbacks', '_initcall', '_args', '_kwargs', '_max_num', '_num')
+
     def __init__(self, callbacks: Iterable[Callable], initcall: Optional[Callable] = None, *args, **kwargs):
         self._callbacks = callbacks
         self._initcall = initcall

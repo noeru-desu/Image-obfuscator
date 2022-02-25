@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:13:46
+LastEditTime : 2022-02-25 21:04:51
 Description  : 拖放处理
 """
 from os.path import isdir
@@ -15,6 +15,8 @@ if TYPE_CHECKING:
 
 
 class DragLoader(FileDropTarget):
+    __slots__ = ('frame',)
+
     def __init__(self, frame: 'MainFrame'):
         super().__init__()
         self.frame = frame
@@ -33,6 +35,8 @@ class DragLoader(FileDropTarget):
 
 
 class DragSavingPath(FileDropTarget):
+    __slots__ = ('frame',)
+
     def __init__(self, frame: 'MainFrame'):
         super().__init__()
         self.frame = frame

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:14:43
+LastEditTime : 2022-02-25 06:30:37
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 """
 from os import makedirs
@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from wx import Gauge
 
     from image_encryptor.frame.events import MainFrame
+    from image_encryptor.frame.file_item import PathData
 
 
 def normal(frame: 'MainFrame', logger, gauge: 'Gauge', image: 'Image.Image', save: bool):
@@ -54,16 +55,16 @@ def _normal(frame: 'MainFrame', logger, gauge: 'Gauge', image, save):
     return image
 
 
-def _batch(image_data, path_data, saving_settings: 'SavingSettings', auto_folder):
+def _batch(image_data, path_data: 'PathData', saving_settings: 'SavingSettings', auto_folder):
     image = AntiHarmony(Image.frombytes(*image_data)).generate_image()
 
-    name, suffix = splitext(path_data[-1])
+    name, suffix = splitext(path_data.file_name)
     suffix = saving_settings.format
     name = f'{name}-anti-harmony.{suffix}'
     if suffix.lower() in ('jpg', 'jpeg'):
         image = image.convert('RGB')
     if auto_folder:
-        save_dir = join(saving_settings.path, path_data[1])
+        save_dir = join(saving_settings.path, path_data.relative_path)
         if not isdir(save_dir):
             makedirs(save_dir)
     else:

@@ -2,19 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:15:36
+LastEditTime : 2022-02-26 06:23:06
 Description  : 一些小东西
 """
-from os import system, walk
+from os import walk
 from os.path import normpath, split
 from time import perf_counter
 
 from PIL import Image, UnidentifiedImageError
-
-
-def pause():
-    """输入cmd命令以暂停"""
-    system('pause>nul')
 
 
 def walk_file(path, topdown=False):

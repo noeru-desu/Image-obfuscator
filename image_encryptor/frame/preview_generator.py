@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-20 15:34:50
+LastEditTime : 2022-02-26 05:48:20
 Description  : 图片生成功能
 """
 from typing import TYPE_CHECKING
@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 
 
 class PreviewGenerator(object):
+    __slots__ = ('frame', 'preview_thread')
+
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
         self.preview_thread = ThreadManager('preview-thread', True)

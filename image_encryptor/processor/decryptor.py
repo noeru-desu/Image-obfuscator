@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:14:37
+LastEditTime : 2022-02-25 06:29:25
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -17,6 +17,7 @@ from image_encryptor.frame.controls import ProgressBar, EncryptionParametersData
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
+    from image_encryptor.frame.file_item import PathData
 
 
 def normal(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
@@ -93,7 +94,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
     return image
 
 
-def _batch(image_data, path_data, encryption_data: 'EncryptionParametersData', saving_settings: 'SavingSettings', auto_folder):
+def _batch(image_data, path_data: 'PathData', encryption_data: 'EncryptionParametersData', saving_settings: 'SavingSettings', auto_folder):
     image = Image.frombytes(*image_data)
     image_encrypt = ImageDecrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, encryption_data.password if encryption_data.has_password else 100)
 
@@ -106,13 +107,13 @@ def _batch(image_data, path_data, encryption_data: 'EncryptionParametersData', s
 
     image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))
 
-    name, suffix = splitext(path_data[-1])
+    name, suffix = splitext(path_data.file_name)
     suffix = saving_settings.format
     if suffix.lower() in ('jpg', 'jpeg'):
         image = image.convert('RGB')
     name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"
     if auto_folder:
-        save_dir = join(saving_settings.path, path_data[1])
+        save_dir = join(saving_settings.path, path_data.relative_path)
         if not isdir(save_dir):
             makedirs(save_dir)
     else:

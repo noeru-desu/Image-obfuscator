@@ -16,6 +16,7 @@ import wx.xrc
 
 
 class MainFrame (wx.Frame):
+    __slots__ = 'XorFilter', 'previewMode', 'm_button5', 'm_button32', 'previewSource', 'flipFilter', 'shuffleFilter', 'XORG', 'savingProgressInfo', 'stopSavingBtn', 'previewProgress', 'loadingPrograss', 'imagePanel', 'stopLoadingBtn', 'reloadingBtn', 'm_button311', 'savingOptions', 'm_staticText81', 'savingProgress', 'settingsPanel', 'qualityInfo', 'm_button10', 'XOREncryption', 'savingBtnPanel', 'flipChunks', 'processingSettingsPanel1', 'processingOptions', 'm_button7', 'passwordCtrl', 'maxImagePixels', 'cuttingRow', 'loadingPrograssInfo', 'cuttingCol', 'resamplingFilter', 'loadingPrograssPanel', 'selectSavingPath', 'm_button6', 'm_button3', 'importedBitmapPlanel', 'XORB', 'm_staticline31', 'savingQuality', 'imageTreeCtrl', 'mappingR', 'mappingFilter', 'noiseFactor', 'xorPanel', 'm_staticline4', 'm_button31', 'savingFormat', 'loadingPanel', 'passwordFilter', 'mappingB', 'procMode', 'm_staticText8212', 'subsamplingLevel', 'm_staticText141', 'm_staticText82111', 'decryptionFilter', 'encryptionFilter', 'imageInfo', 'noiseXor', 'm_staticText8', 'savingFilters', 'XORR', 'previewOptions', 'savingPrograssPanel', 'noiseFactorNum', 'm_staticText12', 'm_staticText9', 'm_button8', 'imageTreePanel', 'XORA', 'previewProgressInfo', 'mappingG', 'mappingA', 'subsamplingInfo', 'shuffleChunks', 'm_staticText14', 'previewedBitmap', 'qqFilter', 'importedBitmap', 'm_staticText82', 'imageTreeSearchCtrl', 'previewedBitmapPlanel'
 
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=u"Image Encryptor", pos=wx.DefaultPosition, size=wx.Size(790, 900), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL, name=u"Image Encryptor")
@@ -764,9 +765,10 @@ class MainFrame (wx.Frame):
 ###########################################################################
 
 class PasswordDialog (wx.Dialog):
+    __slots__ = 'fileNameText', 'mainPanel', 'passwordTextCtrl', 'tipText', 'm_staticText18', 'm_button13', 'm_staticText20', 'm_button131', 'm_staticText22'
 
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"请输入密码", pos=wx.DefaultPosition, size=wx.Size(317, 156), style=wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP)
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"请输入密码", pos=wx.DefaultPosition, size=wx.Size(320, 180), style=wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP)
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
         self.SetFont(wx.Font(9, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Segoe UI"))
@@ -781,6 +783,37 @@ class PasswordDialog (wx.Dialog):
         bSizer46.Add((0, 0), 0, wx.ALL, 20)
 
         self.mainPanel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        bSizer52 = wx.BoxSizer(wx.VERTICAL)
+
+        bSizer51 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText20 = wx.StaticText(self.mainPanel, wx.ID_ANY, u"图像", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText20.Wrap(-1)
+
+        self.m_staticText20.SetFont(wx.Font(9, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Segoe UI"))
+
+        bSizer51.Add(self.m_staticText20, 0, 0, 3)
+
+        bSizer54 = wx.BoxSizer(wx.VERTICAL)
+
+        self.fileNameText = wx.StaticText(self.mainPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.ST_ELLIPSIZE_END)
+        self.fileNameText.Wrap(-1)
+
+        self.fileNameText.SetFont(wx.Font(9, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Segoe UI"))
+
+        bSizer54.Add(self.fileNameText, 0, wx.ALIGN_CENTER, 0)
+
+        bSizer51.Add(bSizer54, 1, wx.EXPAND, 5)
+
+        self.m_staticText22 = wx.StaticText(self.mainPanel, wx.ID_ANY, u"被加密", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText22.Wrap(-1)
+
+        self.m_staticText22.SetFont(wx.Font(9, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Segoe UI"))
+
+        bSizer51.Add(self.m_staticText22, 0, 0, 3)
+
+        bSizer52.Add(bSizer51, 0, wx.ALIGN_CENTER, 5)
+
         bSizer45 = wx.BoxSizer(wx.VERTICAL)
 
         self.m_staticText18 = wx.StaticText(self.mainPanel, wx.ID_ANY, u"请输入密码", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -799,9 +832,11 @@ class PasswordDialog (wx.Dialog):
         self.passwordTextCtrl.SetMaxLength(32)
         bSizer45.Add(self.passwordTextCtrl, 1, wx.ALL | wx.EXPAND, 0)
 
-        self.mainPanel.SetSizer(bSizer45)
+        bSizer52.Add(bSizer45, 1, wx.EXPAND, 5)
+
+        self.mainPanel.SetSizer(bSizer52)
         self.mainPanel.Layout()
-        bSizer45.Fit(self.mainPanel)
+        bSizer52.Fit(self.mainPanel)
         bSizer46.Add(self.mainPanel, 1, wx.EXPAND, 5)
 
         bSizer46.Add((0, 0), 0, wx.ALL, 20)

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:13:55
+LastEditTime : 2022-02-26 06:21:15
 Description  : 覆写窗口
 """
 from concurrent.futures import ThreadPoolExecutor
@@ -41,9 +41,17 @@ class MainFrame(MF):
     """
     主窗口类
     """
+    __slots__ = (
+        'startup_parameters', 'logger', 'controls', 'settings', 'dialog', 'universal_thread_pool',
+        'password_dict', 'exit_processor', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator',
+        'image_saver', 'stop_loading_func', 'stop_reloading_func', 'exit_processor'
+    )
 
     def __init__(self, parent, startup_parameters: 'Parameters', run_path=getcwd()):
+        # o_args = set(dir(self))
         super().__init__(parent)
+        # n_args = set(dir(self))
+        # print(n_args - o_args)
         if VERSION_TYPE > 0:
             self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
         else:

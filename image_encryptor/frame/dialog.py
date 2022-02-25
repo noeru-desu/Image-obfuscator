@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:13:43
+LastEditTime : 2022-02-26 06:21:47
 Description  : 对话框相关
 """
 from threading import Lock
@@ -20,6 +20,8 @@ if TYPE_CHECKING:
 
 
 class Dialog(object):
+    __slots__ = ('frame', 'async_dialog_exist', 'async_dialog_num', 'maximum_number', 'lock')
+
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
         self.async_dialog_exist = False
@@ -92,10 +94,10 @@ class Dialog(object):
             dialog.SetYesNoCancelLabels(yes, no, cancel)
             return dialog.ShowModal()
 
-    def password_dialog(self, correct_base64, until_correct=False, parent=...):
+    def password_dialog(self, file_name, correct_base64, until_correct=False, parent=...):
         if parent is Ellipsis:
             parent = self.frame
-        dialog = PasswordDialog(parent, correct_base64, until_correct)
+        dialog = PasswordDialog(parent, file_name, correct_base64, until_correct)
         with dialog:
             return_code = dialog.ShowModal()
         if return_code == ID_CANCEL:
@@ -168,13 +170,20 @@ class Dialog(object):
 
 
 class PasswordDialog(PD):
-    def __init__(self, parent: 'MainFrame', correct_base64, until_correct=False):
+    __slots__ = ('_parent', '_correct_base64', '_until_correct', 'correct_password')
+
+    def __init__(self, parent: 'MainFrame', file_name, correct_base64, until_correct=False):
+        o_args = set(dir(self))
         super().__init__(parent)
+        n_args = set(dir(self))
+        print(n_args - o_args)
         self._parent = parent
         self._correct_base64 = correct_base64
         self._until_correct = until_correct
         self.correct_password: str = None
         self.SetReturnCode(ID_CANCEL)
+        self.fileNameText.LabelText = file_name
+        self.mainPanel.Layout()
 
     def user_confirm(self, event):
         password = self.passwordTextCtrl.Value

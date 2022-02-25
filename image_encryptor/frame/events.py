@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:16:20
+LastEditTime : 2022-02-25 21:02:15
 Description  : 事件处理
 """
 from sys import exit as sys_exit
@@ -22,6 +22,8 @@ if TYPE_CHECKING:
 
 
 class MainFrame(BasicMainFrame):
+    __slots__ = ('deleted_item', 'resized', 'first_choice')
+
     def __init__(self, parent, run_path=...):
         super().__init__(parent, run_path)
         self.deleted_item = False
