@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-25 21:36:58
+LastEditTime : 2022-02-26 06:41:04
 Description  : 图像项目
 """
 from abc import ABC
@@ -59,6 +59,7 @@ class ImageItemCache(object):
             if self._item.loading_image_data_error is not None:
                 self._item.frame.dialog.async_error(self._item.loading_image_data_error, '重新载入图片时出现错误')
                 self._loaded_image = BLACK_IMAGE
+                self._item.encrypted_image = False
         if not self._item.frame.startup_parameters.low_memory or self._item.selected:
             return self._loaded_image
 
