@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 06:41:04
+LastEditTime : 2022-02-26 20:54:29
 Description  : 图像项目
 """
 from abc import ABC
@@ -15,7 +15,7 @@ from wx import CallAfter
 
 from image_encryptor.constants import BLACK_IMAGE, DECRYPTION_MODE, ENCRYPTION_MODE
 from image_encryptor.utils.utils import open_image
-from image_encryptor.modules.password_verifier import get_image_data
+from image_encryptor.modules.version_adapter import load_encryption_attributes
 from image_encryptor.frame.controls import EncryptionParameters
 
 if TYPE_CHECKING:
@@ -164,7 +164,7 @@ class ImageItem(Item):
     def load_encryption_parameters(self):
         if self.no_file or not isfile(self.loaded_image_path):
             return
-        encryption_data, self.loading_image_data_error = get_image_data(self.loaded_image_path, skip_password=True)
+        encryption_data, self.loading_image_data_error = load_encryption_attributes(self.loaded_image_path)
         if self.loading_image_data_error is None:
             self.encrypted_image = True
             self.settings.proc_mode = DECRYPTION_MODE

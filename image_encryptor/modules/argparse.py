@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-09 18:44:07
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 06:11:05
+LastEditTime : 2022-02-26 21:20:10
 Description  : 参数解析
 """
 from argparse import ArgumentParser
@@ -32,7 +32,7 @@ class Parameters(object):
 
 
 class Arguments(object):
-    __slots__ = ('argparser')
+    __slots__ = ('argparser',)
 
     def __init__(self):
         self.argparser = ArgumentParser(add_help=False)
