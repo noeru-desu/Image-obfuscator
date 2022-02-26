@@ -2,13 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-25 21:12:32
+LastEditTime : 2022-02-27 07:31:28
 Description  : 整理
 """
 from abc import ABC
 from os.path import splitext
 from typing import TYPE_CHECKING, Callable, Iterable, Optional
-from hashlib import md5
 
 from wx import Bitmap
 
@@ -471,12 +470,12 @@ class Controls(object):
 
     def regen_processed_preview(self, image: 'Image', try_not_to_zoom=False):
         size = self.preview_size
-        md5 = self.frame.settings.encryption_settings_md5
-        if (try_not_to_zoom and md5 in self.frame.image_item.cache.processed_previews and size == self.frame.image_item.cache.preview_size):
+        hash = self.frame.settings.encryption_settings_hash
+        if (try_not_to_zoom and hash in self.frame.image_item.cache.processed_previews and size == self.frame.image_item.cache.preview_size):
             self.previewed_image = image
         else:
             self.previewed_image = image.resize(scale(image, *size), self.resampling_filter)
-            self.frame.image_item.cache.add_processed_preview(md5, self.previewed_bitmap)
+            self.frame.image_item.cache.add_processed_preview(hash, self.previewed_bitmap)
 
 
 class SettingsManager(object):
@@ -516,8 +515,9 @@ class SettingsManager(object):
         )
 
     @property
-    def encryption_settings_md5(self):
-        return md5(repr(self.encryption_settings).encode()).digest()
+    def encryption_settings_hash(self):
+        # hash(self.encryption_settings) 耗时约为 hashlib.md5(repr(self.encryption_settings).encode()).digest() 的 55%
+        return hash(self.encryption_settings)
 
     @property
     def all_dict(self):

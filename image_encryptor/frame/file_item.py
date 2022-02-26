@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 20:54:29
+LastEditTime : 2022-02-26 21:34:02
 Description  : 图像项目
 """
 from abc import ABC
@@ -63,8 +63,8 @@ class ImageItemCache(object):
         if not self._item.frame.startup_parameters.low_memory or self._item.selected:
             return self._loaded_image
 
-    def get_processed_preview_cache(self, md5) -> Optional['Bitmap']:
-        return self.processed_previews.get(md5)
+    def get_processed_preview_cache(self, hash) -> Optional['Bitmap']:
+        return self.processed_previews.get(hash)
 
     @loaded_image.setter
     def loaded_image(self, v):
@@ -89,13 +89,13 @@ class ImageItemCache(object):
             print_exc()
         return list(self.processed_previews.values())[-1]
 
-    def add_processed_preview(self, md5, bitmap):
-        if md5 in self.processed_previews:
+    def add_processed_preview(self, hash, bitmap):
+        if hash in self.processed_previews:
             return
         keys = self.processed_previews.keys()
         if len(keys) >= self._item.frame.startup_parameters.maximum_redundant_cache_length:
             del self.processed_previews[list(keys)[0]]
-        self.processed_previews[md5] = bitmap
+        self.processed_previews[hash] = bitmap
 
     def clear_redundant_cache(self):
         for i in list(self.processed_previews.keys())[:-1]:
