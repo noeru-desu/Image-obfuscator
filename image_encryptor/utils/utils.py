@@ -2,12 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 06:23:06
+LastEditTime : 2022-02-26 21:39:26
 Description  : 一些小东西
 """
 from os import walk
 from os.path import normpath, split
-from time import perf_counter
+from time import perf_counter_ns, perf_counter
 
 from PIL import Image, UnidentifiedImageError
 
@@ -57,9 +57,9 @@ def timeit(fn):
     def wrap(*args, **kwargs):
         if fn.__name__ not in timeit_targets:
             timeit_targets[fn.__name__] = 0
-        start = perf_counter()
+        start = perf_counter_ns()
         result = fn(*args, **kwargs)
-        running_time = perf_counter() - start
+        running_time = perf_counter_ns() - start
         print(f'{fn.__name__}运行时间：{running_time}')
         timeit_targets[fn.__name__] += running_time
         print(f'{fn.__name__}总运行时间：{timeit_targets[fn.__name__]}')
