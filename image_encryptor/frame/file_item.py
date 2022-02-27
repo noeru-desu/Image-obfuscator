@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 21:34:02
+LastEditTime : 2022-02-27 19:45:58
 Description  : 图像项目
 """
 from abc import ABC
@@ -42,13 +42,17 @@ class Item(ABC):
 
 class ImageItemCache(object):
     """图像项目缓存控制器"""
-    __slots__ = ('_item', 'initial_preview', 'processed_previews', 'preview_size', '_encryption_data', '_loaded_image')
+    __slots__ = (
+        '_item', 'initial_preview', 'processed_previews', 'preview_size', '_encryption_data', '_loaded_image',
+        'loading_encryption_attributes_error'
+    )
 
     def __init__(self, item: 'ImageItem', loaded_image=None):
         self._item = item
         self.initial_preview: 'Image' = None
         self.processed_previews: dict[bytes, 'Bitmap'] = {}
         self.preview_size: tuple[int, int] = None
+        self.loading_encryption_attributes_error = None
         self._encryption_data = None
         self._loaded_image = loaded_image
 
@@ -164,8 +168,8 @@ class ImageItem(Item):
     def load_encryption_parameters(self):
         if self.no_file or not isfile(self.loaded_image_path):
             return
-        encryption_data, self.loading_image_data_error = load_encryption_attributes(self.loaded_image_path)
-        if self.loading_image_data_error is None:
+        encryption_data, self.cache.loading_encryption_attributes_error = load_encryption_attributes(self.loaded_image_path)
+        if self.cache.loading_encryption_attributes_error is None:
             self.encrypted_image = True
             self.settings.proc_mode = DECRYPTION_MODE
             self.cache.encryption_data = EncryptionParameters(self.frame.controls, encryption_data)

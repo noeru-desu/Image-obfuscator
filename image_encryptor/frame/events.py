@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 21:33:42
+LastEditTime : 2022-02-27 19:46:24
 Description  : 事件处理
 """
 from sys import exit as sys_exit
@@ -113,9 +113,10 @@ class MainFrame(BasicMainFrame):
                 self.controls.frame.passwordCtrl.Enable()
         elif self.image_item is not None:
             self.image_item.check_encryption_parameters()
-            if self.image_item.loading_image_data_error is not None:
+            if self.image_item.cache.loading_encryption_attributes_error is not None:
                 self.controls.proc_mode = self.controls.previous_proc_mode
-                self.dialog.async_warning(self.image_item.loading_image_data_error)
+                self.dialog.async_warning(self.image_item.cache.loading_encryption_attributes_error)
+                return
         self.controls.previous_proc_mode = self.controls.proc_mode
         self.refresh_preview(event)
 
