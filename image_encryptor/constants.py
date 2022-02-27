@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-27 07:35:26
+LastEditTime : 2022-02-27 14:14:00
 Description  : 常量
 """
 from PIL.Image import init as PIL_init
@@ -15,9 +15,9 @@ RELEASE_CANDIDATE = 1
 DEV = 2
 BETA = 3
 ALPHA = 4
-VERSION_TYPE = DEV
+VERSION_TYPE = RELEASE
 VERSION_NUMBER = '1.2.0'
-SUB_VERSION_NUMBER = 'dev.11'
+SUB_VERSION_NUMBER = 'release'
 VERSION_BATCH = '20220227-1'
 BRANCH = 'dev/1.x'
 
