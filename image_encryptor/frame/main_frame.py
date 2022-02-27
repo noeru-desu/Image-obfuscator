@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 06:21:15
+LastEditTime : 2022-02-27 19:49:35
 Description  : 覆写窗口
 """
 from concurrent.futures import ThreadPoolExecutor
@@ -117,13 +117,12 @@ class MainFrame(MF):
     def add_password_dict(self, password, dialog_parent=...):
         """添加成功则返回True"""
         try:
-            password_base64 = self.password_dict.get_validation_field_base64(password)
+            self.password_dict[self.password_dict.get_validation_field_base64(password)] = password
+            self.password_dict[self.password_dict.get_validation_field_base64(password, False)] = password
         except ValueError:
             self.dialog.async_error('密码长度超过AES加密限制, 请确保密码长度不超过32字节', '用于验证密码正确性的字符串生成时出现错误', parent=dialog_parent)
             return False
         else:
-            self.password_dict[password_base64] = password
-            self.logger.info(f'更新密码字典[{password_base64}: {password}](当前字典长度: {len(self.password_dict)})')
             return True
 
     def init_loading_btn(self):

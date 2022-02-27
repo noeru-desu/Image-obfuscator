@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 11:33:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:15:03
+LastEditTime : 2022-02-27 19:28:47
 Description  : 粗略包装的AES加密方法
 """
 from base64 import decodebytes, encodebytes
@@ -10,16 +10,18 @@ from base64 import decodebytes, encodebytes
 from Crypto.Cipher import AES
 
 
-def _add_16(par, fill=b'\x00'):
-    """填充到16的倍数字节"""
-    if isinstance(par, str):
-        par = par.encode()
-    while len(par) % 16 != 0:
-        par += fill
+def _auto_fill(par: bytes, fill=b'\x00'):
+    """长度小于16时填充至16字节, 大于时填充至8的倍数字节"""
+    if len(par) == 16:
+        return par
+    elif len(par) < 16:
+        par += fill * (16 - len(par))
+    else:
+        par += fill * (len(par) % 8)
     return par
 
 
-def encrypt(model, key, text, iv=b'0000000000000000', base64=False, output_string=True):
+def encrypt(model, key: bytes, text: bytes, iv=b'0000000000000000', base64=False, output_string=True):
     """
     :description: 使用AES加密信息
     :param model: AES加密模式
@@ -30,10 +32,12 @@ def encrypt(model, key, text, iv=b'0000000000000000', base64=False, output_strin
     :param output_string: 是否将base64编码为字符串
     :return 加密后的信息
     """
-    if isinstance(text, str):
-        text = text.encode()
-    key = _add_16(key)
-    iv = _add_16(iv, b'0')
+    if len(key) > 32:
+        raise ValueError('key must be 16, 24 or 32 bytes long.')
+    key = _auto_fill(key)
+    if len(iv) > 16:
+        raise ValueError('iv must be 16 bytes long.')
+    iv = _auto_fill(iv, b'0')
     if model == AES.MODE_ECB:
         aes = AES.new(key, model)
     else:
@@ -44,7 +48,7 @@ def encrypt(model, key, text, iv=b'0000000000000000', base64=False, output_strin
         return aes.encrypt(text)
 
 
-def decrypt(model, key, text, iv=b'0000000000000000', base64=False, output_string=True):
+def decrypt(model, key: bytes, text: bytes, iv=b'0000000000000000', base64=False, output_string=True):
     """
     :description: 使用AES解密信息
     :param model: AES解密模式
@@ -55,8 +59,12 @@ def decrypt(model, key, text, iv=b'0000000000000000', base64=False, output_strin
     :param output_string: 是否将解密内容编码为字符串
     :return 解密后的信息
     """
-    key = _add_16(key)
-    iv = _add_16(iv, b'0')
+    if len(key) > 32:
+        raise ValueError('key must be 16, 24 or 32 bytes long.')
+    key = _auto_fill(key)
+    if len(iv) > 16:
+        raise ValueError('iv must be 16 bytes long.')
+    iv = _auto_fill(iv, b'0')
     if base64:
         text = base64_decode(text.replace('\r', '').replace('\n', ''))
         if text is None:

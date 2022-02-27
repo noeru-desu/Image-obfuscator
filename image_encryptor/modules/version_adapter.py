@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:14:34
+LastEditTime : 2022-02-27 19:36:11
 Description  : 对低版本加密的图片的加密信息进行转换, 向下兼容
 """
 from json import JSONDecodeError, loads
@@ -55,13 +55,19 @@ def v_4_to_5(data):
     else:
         data['mapping_channels'] = ''
     data['version'] = 5
+    return v_5_to_6(data)
+
+
+def v_5_to_6(data):
+    data['dynamic_auth'] = False
+    data['version'] = 6
     return data
 
 
 def check_version(data):
     if 'version' not in data:
         return None, '该版本不支持0.1.0-BETA版加密器加密的图片'
-    elif data['version'] > 5:
+    elif data['version'] > 6:
         return None, '选择的图片文件由更高版本的加密器加密, 请使用最新版的加密器进行解密'
     if data['version'] == 1:
         data = v_1_to_2(data)
@@ -71,6 +77,8 @@ def check_version(data):
         data = v_3_to_4(data)
     elif data['version'] == 4:
         data = v_4_to_5(data)
+    elif data['version'] == 5:
+        data = v_5_to_6(data)
     return data, None
 
 
@@ -78,7 +86,7 @@ def load_encryption_attributes(file):
     data = None
     last_line = read_last_line(file)
     if last_line is None:
-        return '选择的图片中没有数据'
+        return None, '选择的图片中没有数据'
     try:
         data = last_line.decode()
         return check_version(loads(data))
@@ -95,7 +103,7 @@ def read_last_line(file):
     if file_size == 0:
         return None
     with open(file, 'rb') as f:
-        offset = -280
+        offset = -300
         while True:
             if file_size > -offset:
                 f.seek(offset, 2)
@@ -110,5 +118,5 @@ def read_last_line(file):
                 last_line = lines[-1]
                 break
             else:
-                offset *= 2
+                offset -= 25
     return last_line

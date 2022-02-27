@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-27 07:31:28
+LastEditTime : 2022-02-27 19:03:38
 Description  : 整理
 """
 from abc import ABC
@@ -615,7 +615,7 @@ class SettingsData(SettingsBase):
         return EncryptionParametersData((self.cutting_col, self.cutting_row, orig_width, orig_height, self.shuffle_chunks,
                                         self.flip_chunks, False, self.mapping_channels, self.XOR_channels if self.XOR_encryption else '',
                                         self.noise_XOR, self.noise_factor, has_password,
-                                        PasswordDict.get_validation_field_base64(password) if has_password else 0, self.password))
+                                        PasswordDict.get_validation_field_base64(password) if has_password else 0, True, self.password))
 
 
 class Settings(SettingsData):
@@ -688,7 +688,7 @@ class EncryptionParametersData(SettingsBase):
     __slots__ = SETTING_NAMES = (
         'cutting_row', 'cutting_col', 'orig_width', 'orig_height', 'shuffle_chunks',
         'flip_chunks', 'old_mapping', 'mapping_channels', 'XOR_channels', 'noise_XOR',
-        'noise_factor', 'has_password', 'password_base64', 'password'
+        'noise_factor', 'has_password', 'password_base64', 'dynamic_auth', 'password'
     )
 
     def __init__(self, parameters):
@@ -711,13 +711,15 @@ class EncryptionParametersData(SettingsBase):
         self.noise_factor = parameters_dict['noise_factor']
         self.has_password = parameters_dict['has_password']
         self.password_base64 = parameters_dict['password_base64']
+        self.dynamic_auth = parameters_dict['dynamic_auth'] if 'dynamic_auth' in parameters_dict else True
         self.password = None
 
     @property
     def encryption_parameters_dict(self):
         parameters = {k: getattr(self, k) for k in self.SETTING_NAMES}
         del parameters['password']
-        parameters['version'] = 5
+        del parameters['dynamic_auth']
+        parameters['version'] = 6
         return parameters
 
 
