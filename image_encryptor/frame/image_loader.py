@@ -77,7 +77,7 @@ class ImageLoader(object):
             cache = True
         self.clipboard_count += 1
         name = f'clipboard-{self.clipboard_count}'
-        image_item = ImageItem(self.frame, image.convert('RGBA'), PathData('', '', name), self.frame.settings.default.deepcopy(), True, cache)
+        image_item = ImageItem(self.frame, image.convert('RGBA'), PathData('', '', name), self.frame.settings.default.copy(), True, cache)
         item_id = self.frame.tree_manager.add_file('', '', name, image_item)
         self.frame.imageTreeCtrl.SelectItem(item_id)
         self.frame.loadingPanel.Enable()
@@ -98,7 +98,7 @@ class ImageLoader(object):
             path, name = split(path_chosen)
             image_item = ImageItem(
                 self.frame, None if self.frame.startup_parameters.low_memory else loaded_image, PathData(path, '', name),
-                self.frame.settings.default.deepcopy(), cache_loaded_image=not self.frame.startup_parameters.low_memory
+                self.frame.settings.default.copy(), cache_loaded_image=not self.frame.startup_parameters.low_memory
             )
             item_id = self.frame.tree_manager.add_file(path_chosen, data=image_item)
             image_item.load_encryption_parameters()

@@ -165,7 +165,7 @@ class MainFrame(MF):
         if settings_list is None:
             settings = self.settings.all
             for i in self.tree_manager.all_image_item_data:
-                i.settings = settings.deepcopy()
+                i.settings = settings.copy()
         else:
             settings = ((i, getattr(self.image_item, i)) for i in settings_list)
             for i in self.tree_manager.all_image_item_data:

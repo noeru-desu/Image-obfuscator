@@ -606,7 +606,7 @@ class SettingsData(SettingsBase):
         self.saving_quality = settings_dict['saving_quality']
         self.saving_subsampling_level = settings_dict['saving_subsampling_level']
 
-    def deepcopy(self):
+    def copy(self):
         return SettingsData(tuple(self.properties))
 
     def encryption_parameters_data(self, orig_width, orig_height):
@@ -669,7 +669,8 @@ class Settings(SettingsData):
         self.controls.frame.processingSettingsPanel1.Enable()
         self.controls.frame.passwordCtrl.Enable()
 
-    def deepcopy(self):
+    def copy(self):
+        """将设置实例浅拷贝"""
         return Settings(self.controls, self.properties_tuple)
 
 
