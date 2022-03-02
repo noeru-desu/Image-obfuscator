@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-25 21:37:55
+LastEditTime : 2022-03-03 06:20:24
 Description  : 文件载入功能
 """
 from os.path import isfile, isdir, join, split
@@ -14,7 +14,7 @@ from wx import ID_YES, ID_NO, ID_CANCEL, CallAfter
 from image_encryptor.constants import EXTENSION_KEYS
 from image_encryptor.utils.utils import open_image
 from image_encryptor.frame.file_item import ImageItem, PathData
-from image_encryptor.frame.controls import ProgressBar
+from image_encryptor.frame.controls import ProgressBar, Settings
 from image_encryptor.utils.thread import ThreadManager
 from image_encryptor.utils.misc_util import walk_file
 
@@ -123,13 +123,14 @@ class ImageLoader(object):
             self.finish_loading_progress()
             return
         self.init_loading_progress(file_num, True)
+        settings_tuple = self.frame.settings.default.properties_tuple
         for r, fl in files:
             for n in fl:
                 loaded_image, error = open_image(join(path_chosen, r, n))
                 if self._hint_image(error, False, n):
                     image_item = ImageItem(
                         self.frame, None if self.frame.startup_parameters.low_memory else loaded_image,
-                        PathData(path_chosen, r, n), self.frame.settings.default.copy(), cache_loaded_image=not self.frame.startup_parameters.low_memory
+                        PathData(path_chosen, r, n), Settings(self.frame.controls, settings_tuple), cache_loaded_image=not self.frame.startup_parameters.low_memory
                     )
                     self.frame.tree_manager.add_file(path_chosen, r, n, image_item, False)
                     image_item.load_encryption_parameters()

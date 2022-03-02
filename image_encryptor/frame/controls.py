@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-01 21:42:59
+LastEditTime : 2022-03-03 06:22:41
 Description  : 整理
 """
 from abc import ABC
@@ -582,11 +582,12 @@ class SettingsData(SettingsBase):
         'saving_subsampling_level'
     )
 
-    def __init__(self, settings):
-        if isinstance(settings, dict):
-            self._inherit_dict_settings(settings)
-        elif isinstance(settings, tuple):
-            self.inherit_tuple(settings)
+    def __init__(self, settings: tuple):
+        self.inherit_tuple(settings)
+        # if isinstance(settings, tuple):
+        #     self.inherit_tuple(settings)
+        # elif isinstance(settings, dict):
+        #     self._inherit_dict_settings(settings)
 
     def _inherit_dict_settings(self, settings_dict):
         self.proc_mode = settings_dict['proc_mode']
