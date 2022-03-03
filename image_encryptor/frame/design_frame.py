@@ -337,6 +337,11 @@ class MainFrame (wx.Frame):
 
         bSizer29.Add(self.m_button311, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
+        self.m_button312 = wx.Button(self.processingOptions, wx.ID_ANY, u"恢复为默认", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button312.SetToolTip(u"将默认处理设置应用到当前的项目中")
+
+        bSizer29.Add(self.m_button312, 0, wx.ALL, 2)
+
         bSizer29.Add((0, 0), 1, wx.EXPAND, 5)
 
         bSizer31.Add(bSizer29, 0, wx.ALL | wx.EXPAND, 2)
@@ -659,6 +664,7 @@ class MainFrame (wx.Frame):
         self.noiseFactor.Bind(wx.EVT_SCROLL_CHANGED, self.refresh_preview)
         self.m_button31.Bind(wx.EVT_BUTTON, self.apply_to_all)
         self.m_button311.Bind(wx.EVT_BUTTON, self.set_settings_as_default)
+        self.m_button312.Bind(wx.EVT_BUTTON, self.revert_to_default)
         self.previewMode.Bind(wx.EVT_RADIOBOX, self.preview_mode_change)
         self.previewSource.Bind(wx.EVT_RADIOBOX, self.force_refresh_preview)
         self.m_button3.Bind(wx.EVT_BUTTON, self.manual_refresh)
@@ -727,6 +733,9 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def set_settings_as_default(self, event):
+        event.Skip()
+
+    def revert_to_default(self, event):
         event.Skip()
 
     def preview_mode_change(self, event):

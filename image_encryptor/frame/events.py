@@ -211,6 +211,11 @@ class MainFrame(BasicMainFrame):
     def apply_to_all(self, event):
         self.apply_settings_to_all()
 
+    def revert_to_default(self, event):
+        self.image_item.settings = self.settings.default.copy()
+        self.image_item.settings.backtrack_interface()
+        self.refresh_preview()
+
     def toggle_factor_slider_switch(self, event: 'CommandEvent'):
         self.noiseFactor.Enable(event.IsChecked())
         self.refresh_preview(event)
