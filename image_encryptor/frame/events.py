@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from PIL import ImageGrab
 from wx import (DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
-                FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, ID_OK, DirDialog,
+                FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, ID_OK, WXK_DELETE, DirDialog,
                 FileDialog)
 
 from image_encryptor.constants import ANTY_HARMONY_MODE, DO_NOT_REFRESH, AUTO_REFRESH, DECRYPTION_MODE, EXTENSION_KEYS, EXTENSION_KEYS_STRING
@@ -185,6 +185,10 @@ class MainFrame(BasicMainFrame):
             if self.tree_manager.reloading_thread.is_alive:
                 return
             self.tree_manager.reload_item(self.imageTreeCtrl.Selection)
+
+    def tree_key_down(self, event: 'TreeEvent'):
+        if event.GetKeyCode() == WXK_DELETE:
+            self.del_item(event)
 
     def set_settings_as_default(self, event=None):
         self.settings.default = self.settings.all
