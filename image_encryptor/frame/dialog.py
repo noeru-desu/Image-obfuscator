@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 06:30:42
+LastEditTime : 2022-02-28 21:22:23
 Description  : 对话框相关
 """
 from threading import Lock
@@ -167,6 +167,12 @@ class Dialog(object):
     def singel_dialog(message, title, style=None):
         with MessageDialog(None, message, title, style=style) as dialog:
             return dialog.ShowModal()
+
+
+PD.__slots__ = (
+    'fileNameText', 'mainPanel', 'passwordTextCtrl', 'tipText', 'm_staticText18', 'm_button13', 'm_staticText20',
+    'm_button131', 'm_staticText22'
+)
 
 
 class PasswordDialog(PD):

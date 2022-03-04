@@ -16,7 +16,6 @@ import wx.xrc
 
 
 class MainFrame (wx.Frame):
-    __slots__ = 'XorFilter', 'previewMode', 'm_button5', 'm_button32', 'previewSource', 'flipFilter', 'shuffleFilter', 'XORG', 'savingProgressInfo', 'stopSavingBtn', 'previewProgress', 'loadingPrograss', 'imagePanel', 'stopLoadingBtn', 'reloadingBtn', 'm_button311', 'savingOptions', 'm_staticText81', 'savingProgress', 'settingsPanel', 'qualityInfo', 'm_button10', 'XOREncryption', 'savingBtnPanel', 'flipChunks', 'processingSettingsPanel1', 'processingOptions', 'm_button7', 'passwordCtrl', 'maxImagePixels', 'cuttingRow', 'loadingPrograssInfo', 'cuttingCol', 'resamplingFilter', 'loadingPrograssPanel', 'selectSavingPath', 'm_button6', 'm_button3', 'importedBitmapPlanel', 'XORB', 'm_staticline31', 'savingQuality', 'imageTreeCtrl', 'mappingR', 'mappingFilter', 'noiseFactor', 'xorPanel', 'm_staticline4', 'm_button31', 'savingFormat', 'loadingPanel', 'passwordFilter', 'mappingB', 'procMode', 'm_staticText8212', 'subsamplingLevel', 'm_staticText141', 'm_staticText82111', 'decryptionFilter', 'encryptionFilter', 'imageInfo', 'noiseXor', 'm_staticText8', 'savingFilters', 'XORR', 'previewOptions', 'savingPrograssPanel', 'noiseFactorNum', 'm_staticText12', 'm_staticText9', 'm_button8', 'imageTreePanel', 'XORA', 'previewProgressInfo', 'mappingG', 'mappingA', 'subsamplingInfo', 'shuffleChunks', 'm_staticText14', 'previewedBitmap', 'qqFilter', 'importedBitmap', 'm_staticText82', 'imageTreeSearchCtrl', 'previewedBitmapPlanel'
 
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=u"Image Encryptor", pos=wx.DefaultPosition, size=wx.Size(790, 900), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL, name=u"Image Encryptor")
@@ -99,7 +98,7 @@ class MainFrame (wx.Frame):
         bSizer262.Add(bSizer40, 0, wx.EXPAND, 5)
 
         self.imageTreeCtrl = wx.TreeCtrl(self.imageTreePanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_DEFAULT_STYLE | wx.TR_FULL_ROW_HIGHLIGHT |
-                                         wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT | wx.TR_HIDE_ROOT | wx.TR_ROW_LINES | wx.TR_SINGLE | wx.TR_TWIST_BUTTONS)
+                                         wx.TR_HAS_VARIABLE_ROW_HEIGHT | wx.TR_HIDE_ROOT | wx.TR_NO_BUTTONS | wx.TR_ROW_LINES | wx.TR_SINGLE | wx.TR_TWIST_BUTTONS)
         bSizer262.Add(self.imageTreeCtrl, 1, wx.EXPAND, 5)
 
         self.imageTreePanel.SetSizer(bSizer262)
@@ -605,10 +604,10 @@ class MainFrame (wx.Frame):
         self.savingOptions.Layout()
         bSizer264.Fit(self.savingOptions)
         self.settingsPanel.AddPage(self.savingOptions, u"保存图片", False)
+        self.otherOptions = wx.Panel(self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        bSizer74 = wx.BoxSizer(wx.VERTICAL)
 
-        bSizer43.Add(self.settingsPanel, 1, wx.ALL | wx.EXPAND, 5)
-
-        sbSizer6 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"高级导入设置"), wx.VERTICAL)
+        sbSizer6 = wx.StaticBoxSizer(wx.StaticBox(self.otherOptions, wx.ID_ANY, u"高级导入设置"), wx.HORIZONTAL)
 
         self.m_staticText82 = wx.StaticText(sbSizer6.GetStaticBox(), wx.ID_ANY, u"允许最大像素量", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText82.Wrap(-1)
@@ -620,9 +619,16 @@ class MainFrame (wx.Frame):
         self.maxImagePixels = wx.SpinCtrl(sbSizer6.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 0, 1000000000, 89478485)
         self.maxImagePixels.SetToolTip(u"允许载入的最大图片像素量，0为禁用(谨防DOS压缩炸弹图片)")
 
-        sbSizer6.Add(self.maxImagePixels, 0, wx.ALL | wx.EXPAND, 0)
+        sbSizer6.Add(self.maxImagePixels, 1, wx.ALL, 0)
 
-        bSizer43.Add(sbSizer6, 0, wx.ALL | wx.EXPAND, 5)
+        bSizer74.Add(sbSizer6, 0, wx.ALL, 5)
+
+        self.otherOptions.SetSizer(bSizer74)
+        self.otherOptions.Layout()
+        bSizer74.Fit(self.otherOptions)
+        self.settingsPanel.AddPage(self.otherOptions, u"其他设置", False)
+
+        bSizer43.Add(self.settingsPanel, 1, wx.ALL | wx.EXPAND, 5)
 
         bSizer26.Add(bSizer43, 0, wx.EXPAND, 5)
 
@@ -641,6 +647,7 @@ class MainFrame (wx.Frame):
         self.m_button32.Bind(wx.EVT_BUTTON, self.load_image_from_clipboard)
         self.m_button10.Bind(wx.EVT_BUTTON, self.del_item)
         self.reloadingBtn.Bind(wx.EVT_BUTTON, self.reload_item)
+        self.imageTreeCtrl.Bind(wx.EVT_TREE_KEY_DOWN, self.tree_key_down)
         self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.switch_image)
         self.procMode.Bind(wx.EVT_RADIOBOX, self.processing_mode_change)
         self.passwordCtrl.Bind(wx.EVT_TEXT_ENTER, self.update_password_dict)
@@ -706,6 +713,9 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def reload_item(self, event):
+        event.Skip()
+
+    def tree_key_down(self, event):
         event.Skip()
 
     def switch_image(self, event):
@@ -774,7 +784,6 @@ class MainFrame (wx.Frame):
 ###########################################################################
 
 class PasswordDialog (wx.Dialog):
-    __slots__ = 'fileNameText', 'mainPanel', 'passwordTextCtrl', 'tipText', 'm_staticText18', 'm_button13', 'm_staticText20', 'm_button131', 'm_staticText22'
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"请输入密码", pos=wx.DefaultPosition, size=wx.Size(320, 180), style=wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP)

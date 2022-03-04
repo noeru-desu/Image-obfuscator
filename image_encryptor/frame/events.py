@@ -2,10 +2,9 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-27 19:46:24
+LastEditTime : 2022-03-04 19:39:06
 Description  : 事件处理
 """
-from sys import exit as sys_exit
 from typing import TYPE_CHECKING
 
 from PIL import ImageGrab
@@ -240,4 +239,3 @@ class MainFrame(BasicMainFrame):
     def exit(self, event):
         self.logger.info('窗口退出')
         self.Destroy()
-        sys_exit()

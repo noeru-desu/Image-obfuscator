@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-03 06:20:24
+LastEditTime : 2022-03-04 18:55:58
 Description  : 文件载入功能
 """
 from os.path import isfile, isdir, join, split
@@ -71,7 +71,7 @@ class ImageLoader(object):
         self.clipboard_count += 1
         name = f'clipboard-{self.clipboard_count}'
         image_item = ImageItem(self.frame, image.convert('RGBA'), PathData('', '', name), self.frame.settings.default.copy(), True, cache)
-        item_id = self.frame.tree_manager.add_file('', '', name, image_item)
+        item_id = self.frame.tree_manager.add_file(image_item, '', '', name)
         self.frame.imageTreeCtrl.SelectItem(item_id)
         self.frame.stop_loading_func.init()
 
@@ -95,7 +95,7 @@ class ImageLoader(object):
                 self.frame, None if self.frame.startup_parameters.low_memory else loaded_image, PathData(path, '', name),
                 self.frame.settings.default.copy(), cache_loaded_image=not self.frame.startup_parameters.low_memory
             )
-            item_id = self.frame.tree_manager.add_file(path_chosen, data=image_item)
+            item_id = self.frame.tree_manager.add_file(image_item, path_chosen)
             image_item.load_encryption_parameters()
             CallAfter(self.frame.imageTreeCtrl.SelectItem, item_id)     # 此方法在加密模式下会调用密码输入框，需回到主线程执行
         self.frame.stop_loading_func.init()
@@ -126,7 +126,7 @@ class ImageLoader(object):
                         self.frame, None if self.frame.startup_parameters.low_memory else loaded_image,
                         PathData(path_chosen, r, n), Settings(self.frame.controls, settings_tuple), cache_loaded_image=not self.frame.startup_parameters.low_memory
                     )
-                    self.frame.tree_manager.add_file(path_chosen, r, n, image_item, False)
+                    self.frame.tree_manager.add_file(image_item, path_chosen, r, n, False)
                     image_item.load_encryption_parameters()
                     self.add_loading_progress()
                 if self.loading_thread.exit_signal:

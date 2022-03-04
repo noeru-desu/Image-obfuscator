@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 05:49:19
+LastEditTime : 2022-03-04 06:38:04
 Description  : 节点树控制
 """
 from typing import Union
@@ -65,8 +65,8 @@ class TreeManager(object):
                 data.parent = parent_data
         return root
 
-    def add_file(self, root_path: str, relative_path: str = None, file: str = None, data: dict = None, add_to_root=True):
-        if relative_path is None and file is None:
+    def add_file(self, data: 'ImageItem', root_path: str, relative_path: str = ..., file: str = ..., add_to_root=True):
+        if relative_path is Ellipsis and file is Ellipsis:
             relative_path = ''
             root_path, file = split(root_path)
         absolute_path = join(root_path, relative_path, file)

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-27 19:49:35
+LastEditTime : 2022-03-04 20:02:56
 Description  : 覆写窗口
 """
 from concurrent.futures import ThreadPoolExecutor
@@ -37,6 +37,23 @@ if TYPE_CHECKING:
     from image_encryptor.modules.argparse import Parameters
 
 
+MF.__slots__ = (
+    'XorFilter', 'previewMode', 'm_button5', 'm_button32', 'previewSource', 'flipFilter', 'shuffleFilter', 'XORG',
+    'savingProgressInfo', 'stopSavingBtn', 'previewProgress', 'loadingPrograss', 'imagePanel', 'stopLoadingBtn',
+    'reloadingBtn', 'm_button311', 'savingOptions', 'm_staticText81', 'savingProgress', 'settingsPanel', 'qualityInfo',
+    'm_button10', 'XOREncryption', 'savingBtnPanel', 'flipChunks', 'processingSettingsPanel1', 'processingOptions',
+    'm_button7', 'passwordCtrl', 'maxImagePixels', 'cuttingRow', 'loadingPrograssInfo', 'cuttingCol', 'resamplingFilter',
+    'loadingPrograssPanel', 'selectSavingPath', 'm_button6', 'm_button3', 'importedBitmapPlanel', 'XORB', 'm_staticline31',
+    'savingQuality', 'imageTreeCtrl', 'mappingR', 'mappingFilter', 'noiseFactor', 'xorPanel', 'm_staticline4', 'm_button31',
+    'savingFormat', 'loadingPanel', 'passwordFilter', 'mappingB', 'procMode', 'm_staticText8212', 'subsamplingLevel',
+    'm_staticText141', 'm_staticText82111', 'decryptionFilter', 'encryptionFilter', 'imageInfo', 'noiseXor', 'm_staticText8',
+    'savingFilters', 'XORR', 'previewOptions', 'savingPrograssPanel', 'noiseFactorNum', 'm_staticText12', 'm_staticText9',
+    'm_button8', 'imageTreePanel', 'XORA', 'previewProgressInfo', 'mappingG', 'mappingA', 'subsamplingInfo', 'shuffleChunks',
+    'm_staticText14', 'previewedBitmap', 'qqFilter', 'importedBitmap', 'm_staticText82', 'imageTreeSearchCtrl',
+    'previewedBitmapPlanel', 'm_button312', 'otherOptions'
+)
+
+
 class MainFrame(MF):
     """
     主窗口类
@@ -48,10 +65,14 @@ class MainFrame(MF):
     )
 
     def __init__(self, parent, startup_parameters: 'Parameters', run_path=getcwd()):
+        # args = set(MF._slots__)
         # o_args = set(dir(self))
         super().__init__(parent)
         # n_args = set(dir(self))
-        # print(n_args - o_args)
+        # a_args = n_args - o_args
+        # print(a_args)
+        # print(args - a_args)
+        # print(a_args - args)
         if VERSION_TYPE > 0:
             self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
         else:

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 21:39:26
+LastEditTime : 2022-03-04 19:55:17
 Description  : 一些小东西
 """
 from os import walk
@@ -10,6 +10,8 @@ from os.path import normpath, split
 from time import perf_counter_ns, perf_counter
 
 from PIL import Image, UnidentifiedImageError
+
+from image_encryptor.constants import OIERR_NOT_EXIST, OIERR_UNSUPPORTED_FORMAT, OIERR_EXCEED_LIMIT
 
 
 def walk_file(path, topdown=False):
@@ -86,11 +88,11 @@ def open_image(file):
     try:
         image = Image.open(file).convert('RGBA')
     except FileNotFoundError:
-        return split(file)[1], '文件不存在'
+        return split(file)[1], OIERR_NOT_EXIST
     except UnidentifiedImageError:
-        return split(file)[1], '无法打开或识别图像格式，或输入了不受支持的格式'
+        return split(file)[1], OIERR_UNSUPPORTED_FORMAT
     except Image.DecompressionBombWarning:
-        return split(file)[1], '图片像素量超过允许最大像素量'
+        return split(file)[1], OIERR_EXCEED_LIMIT
     except Exception as e:
         return split(file)[1], repr(e)
     return image, None
