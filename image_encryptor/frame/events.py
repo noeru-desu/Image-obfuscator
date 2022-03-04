@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-04 19:39:06
+LastEditTime : 2022-03-04 21:00:51
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -149,6 +149,7 @@ class MainFrame(BasicMainFrame):
         if isinstance(image_data, ImageItem):
             self.image_item = image_data
             image_data.selected = True
+            self.controls.imported_image_id = 0
             self.controls.gen_image_info(image_data)
             if image_data.settings.proc_mode == DECRYPTION_MODE and image_data.encrypted_image:
                 image_data.cache.encryption_data.backtrack_interface()
