@@ -45,28 +45,21 @@ class ImageLoader(object):
         if not self.frame.tree_manager.file_dict:
             self.frame.set_settings_as_default()  # 当没有加载任何图片时，将当前的设置设为默认设置
         if isinstance(path_chosen, Image.Image):
-            self.loading_thread.start_new(self._load_image_object, self._loading_callback, (path_chosen,), callback_args=(None,))
-        elif isinstance(path_chosen, str):
-            self.loading_thread.start_new(self._load_selected_path, self._loading_callback, (path_chosen,), callback_args=(None,))
-        elif isinstance(path_chosen[0], str):
-            self.loading_thread.start_new(self._load_selected_path, self._loading_callback, (path_chosen[0],), callback_args=(path_chosen[1:],))
+            self.loading_thread.start_new(self._load_image_object, self._loading_callback, (path_chosen,))
         else:
-            raise Exception(f'Unsupported type: {type(path_chosen)}')
+            self.loading_thread.start_new(self._load_selected_path, self._loading_callback, (path_chosen,))
 
-    def _loading_callback(self, error, result, path_chosen):
+    def _loading_callback(self, error, result):
         if error is not None:
             self.frame.dialog.async_error(repr(error))
-        if not path_chosen:
-            self.hide_loading_progress_plane()
-            return
-        self.loading_thread.start_new(self._load_selected_path, self._loading_callback, (path_chosen[0],), callback_args=(path_chosen[1:],))
+        self.frame.loadingPanel.Enable()
+        self.hide_loading_progress_plane()
 
     def _load_image_object(self, image: 'Image.Image'):
         self.frame.loadingPanel.Disable()
         if self.frame.startup_parameters.low_memory:
             result = self.frame.dialog.confirmation_frame('是否将该剪切板中的图片缓存在内存中?', cancel='取消载入')
             if result == ID_CANCEL:
-                self.frame.loadingPanel.Enable()
                 self.frame.stop_loading_func.init()
                 return
             elif result == ID_YES:
@@ -80,19 +73,21 @@ class ImageLoader(object):
         image_item = ImageItem(self.frame, image.convert('RGBA'), PathData('', '', name), self.frame.settings.default.copy(), True, cache)
         item_id = self.frame.tree_manager.add_file('', '', name, image_item)
         self.frame.imageTreeCtrl.SelectItem(item_id)
-        self.frame.loadingPanel.Enable()
         self.frame.stop_loading_func.init()
 
     def _load_selected_path(self, path_chosen):
-        if self._exist(path_chosen):
-            return
-        if isfile(path_chosen):
-            self._load_file(path_chosen)
-        elif isdir(path_chosen):
-            self._load_dir(path_chosen)
+        if isinstance(path_chosen, str):
+            path_chosen = (path_chosen,)
+        for i in path_chosen:
+            if self._exist(i):
+                continue
+            if isfile(i):
+                self.frame.loadingPanel.Disable()
+                self._load_file(i)
+            elif isdir(i):
+                self._load_dir(i)
 
     def _load_file(self, path_chosen):
-        self.frame.loadingPanel.Disable()
         loaded_image, error = open_image(path_chosen)
         if self._hint_image(error):
             path, name = split(path_chosen)
@@ -103,7 +98,6 @@ class ImageLoader(object):
             item_id = self.frame.tree_manager.add_file(path_chosen, data=image_item)
             image_item.load_encryption_parameters()
             CallAfter(self.frame.imageTreeCtrl.SelectItem, item_id)     # 此方法在加密模式下会调用密码输入框，需回到主线程执行
-        self.frame.loadingPanel.Enable()
         self.frame.stop_loading_func.init()
 
     def _load_dir(self, path_chosen):
@@ -157,17 +151,17 @@ class ImageLoader(object):
         if path_chosen in self.frame.tree_manager.file_dict:
             CallAfter(self.frame.imageTreeCtrl.SelectItem, self.frame.tree_manager.file_dict[path_chosen])
             self.frame.imageTreeCtrl.Expand(self.frame.tree_manager.file_dict[path_chosen])
-            self.frame.dialog.async_warning('已存在同路径文件\n已自动跳转到相应位置')
+            self.frame.dialog.warning('已存在同路径文件\n已自动跳转到相应位置')
             return True
         elif path_chosen in self.frame.tree_manager.root_dir_dict:
             CallAfter(self.frame.imageTreeCtrl.SelectItem, self.frame.tree_manager.root_dir_dict[path_chosen])
             self.frame.imageTreeCtrl.Expand(self.frame.tree_manager.root_dir_dict[path_chosen])
-            self.frame.dialog.async_warning('已存在同路径文件夹\n已自动跳转到相应位置')
+            self.frame.dialog.warning('已存在同路径文件夹\n已自动跳转到相应位置')
             return True
         elif path_chosen in self.frame.tree_manager.dir_dict:
             CallAfter(self.frame.imageTreeCtrl.SelectItem, self.frame.tree_manager.dir_dict[path_chosen])
             self.frame.imageTreeCtrl.Expand(self.frame.tree_manager.dir_dict[path_chosen])
-            self.frame.dialog.async_warning('已存在同路径文件夹\n已自动跳转到相应位置')
+            self.frame.dialog.warning('已存在同路径文件夹\n已自动跳转到相应位置')
             return True
         else:
             return False
