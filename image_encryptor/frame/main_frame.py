@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-04 20:02:56
+LastEditTime : 2022-03-04 20:56:18
 Description  : 覆写窗口
 """
 from concurrent.futures import ThreadPoolExecutor
@@ -17,7 +17,7 @@ from image_encryptor.constants import (BRANCH, EXTENSION_KEYS_STRING,
                                        OPEN_SOURCE_URL, SUB_VERSION_NUMBER,
                                        VERSION_BATCH, VERSION_NUMBER,
                                        VERSION_TYPE)
-from image_encryptor.frame.controls import Controls, SegmentTrigger, SettingsManager
+from image_encryptor.frame.controls import Controls, SegmentTrigger, SettingsManager, Settings
 from image_encryptor.frame.design_frame import MainFrame as MF
 from image_encryptor.frame.dialog import Dialog
 from image_encryptor.frame.drag_importer import DragLoader, DragSavingPath
@@ -31,6 +31,8 @@ from image_encryptor.utils.logger import Logger
 from image_encryptor.utils.thread import ProcessTaskManager
 from wx import App
 from wx.core import EmptyString
+
+from image_encryptor.utils.utils import timeit
 
 if TYPE_CHECKING:
     from image_encryptor.frame.tree_manager import ImageItem
@@ -182,11 +184,12 @@ class MainFrame(MF):
         self.tree_manager.reloading_thread.set_exit_signal()
         self.controls.stop_loading_btn_text = '强制终止重载'
 
+    @timeit
     def apply_settings_to_all(self, settings_list=None):
         if settings_list is None:
-            settings = self.settings.all
+            properties_tuple = self.settings.all.properties_tuple
             for i in self.tree_manager.all_image_item_data:
-                i.settings = settings.copy()
+                i.settings = Settings(self.controls, properties_tuple)
         else:
             settings = ((i, getattr(self.image_item, i)) for i in settings_list)
             for i in self.tree_manager.all_image_item_data:
