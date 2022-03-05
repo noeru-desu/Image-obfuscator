@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-03 06:22:41
+LastEditTime : 2022-03-05 10:11:34
 Description  : 整理
 """
 from abc import ABC
@@ -407,8 +407,24 @@ class Controls(object):
         return self.frame.savingProgress.Value
 
     @saving_progress.setter
-    def saving_progress(self, v):
+    def saving_progress(self, v: int):
         self.frame.savingProgress.Value = v
+
+    @property
+    def redundant_cache_length(self) -> int:
+        return self.frame.redundantCacheLength.Value
+
+    @redundant_cache_length.setter
+    def redundant_cache_length(self, v: int):
+        self.frame.redundantCacheLength.Value = v
+
+    @property
+    def low_memory_mode(self) -> bool:
+        return self.frame.lowMemoryMode.Value
+
+    @low_memory_mode.setter
+    def low_memory_mode(self, v: bool):
+        self.frame.lowMemoryMode.Value = v
 
     @property
     def mapping_channels(self):

@@ -620,7 +620,7 @@ class MainFrame (wx.Frame):
         bSizer264.Fit(self.savingOptions)
         self.settingsPanel.AddPage(self.savingOptions, u"保存图片", False)
         self.otherOptions = wx.Panel(self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        bSizer74 = wx.BoxSizer(wx.VERTICAL)
+        bSizer74 = wx.BoxSizer(wx.HORIZONTAL)
 
         sbSizer6 = wx.StaticBoxSizer(wx.StaticBox(self.otherOptions, wx.ID_ANY, u"高级导入设置"), wx.HORIZONTAL)
 
@@ -637,6 +637,31 @@ class MainFrame (wx.Frame):
         sbSizer6.Add(self.maxImagePixels, 1, wx.ALL, 0)
 
         bSizer74.Add(sbSizer6, 0, wx.ALL, 5)
+
+        self.m_panel25 = wx.Panel(self.otherOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.m_panel25.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行")
+
+        sbSizer17 = wx.StaticBoxSizer(wx.StaticBox(self.m_panel25, wx.ID_ANY, u"启动参数"), wx.VERTICAL)
+
+        bSizer75 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText34 = wx.StaticText(sbSizer17.GetStaticBox(), wx.ID_ANY, u"预览图冗余缓存量", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText34.Wrap(-1)
+
+        bSizer75.Add(self.m_staticText34, 0, wx.ALL, 5)
+
+        self.redundantCacheLength = wx.SpinCtrl(sbSizer17.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 0, 10, 5)
+        bSizer75.Add(self.redundantCacheLength, 0, wx.ALL | wx.EXPAND, 0)
+
+        sbSizer17.Add(bSizer75, 0, wx.EXPAND, 5)
+
+        self.lowMemoryMode = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"低内存占用模式", wx.DefaultPosition, wx.DefaultSize, 0)
+        sbSizer17.Add(self.lowMemoryMode, 0, wx.ALL, 5)
+
+        self.m_panel25.SetSizer(sbSizer17)
+        self.m_panel25.Layout()
+        sbSizer17.Fit(self.m_panel25)
+        bSizer74.Add(self.m_panel25, 0, wx.ALL, 5)
 
         self.otherOptions.SetSizer(bSizer74)
         self.otherOptions.Layout()
@@ -698,6 +723,8 @@ class MainFrame (wx.Frame):
         self.m_button7.Bind(wx.EVT_BUTTON, self.save_selected_image)
         self.m_button8.Bind(wx.EVT_BUTTON, self.bulk_save)
         self.stopSavingBtn.Bind(wx.EVT_BUTTON, self.stop_saving_event)
+        self.redundantCacheLength.Bind(wx.EVT_TEXT_ENTER, self.change_redundant_cache_length)
+        self.lowMemoryMode.Bind(wx.EVT_CHECKBOX, self.toggle_low_memory_usage_mode)
 
     def __del__(self):
         pass
@@ -791,6 +818,12 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def stop_saving_event(self, event):
+        event.Skip()
+
+    def change_redundant_cache_length(self, event):
+        event.Skip()
+
+    def toggle_low_memory_usage_mode(self, event):
         event.Skip()
 
 

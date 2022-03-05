@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-04 21:00:51
+LastEditTime : 2022-03-05 08:59:44
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -17,7 +17,7 @@ from image_encryptor.frame.main_frame import MainFrame as BasicMainFrame
 from image_encryptor.frame.file_item import FolderItem, ImageItem
 
 if TYPE_CHECKING:
-    from wx import CommandEvent, TreeEvent, TreeItemId, SizeEvent
+    from wx import CommandEvent, TreeEvent, TreeItemId, SizeEvent, SpinEvent
 
 
 class MainFrame(BasicMainFrame):
@@ -236,6 +236,12 @@ class MainFrame(BasicMainFrame):
 
     def update_subsampling_num(self, event: 'CommandEvent' = None):
         self.controls.saving_subsampling_info = str(self.controls.saving_subsampling_level)
+
+    def change_redundant_cache_length(self, event: 'SpinEvent'):
+        self.startup_parameters.maximum_redundant_cache_length = event.Int
+
+    def toggle_low_memory_usage_mode(self, event: 'CommandEvent'):
+        self.startup_parameters.low_memory = event.IsChecked()
 
     def exit(self, event):
         self.logger.info('窗口退出')

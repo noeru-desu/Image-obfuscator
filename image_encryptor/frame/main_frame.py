@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-04 20:56:18
+LastEditTime : 2022-03-05 10:28:52
 Description  : 覆写窗口
 """
 from concurrent.futures import ThreadPoolExecutor
@@ -50,14 +50,10 @@ class MainFrame(MF):
     )
 
     def __init__(self, parent, startup_parameters: 'Parameters', run_path=getcwd()):
-        # args = set(MF._slots__)
         # o_args = set(dir(self))
         super().__init__(parent)
         # n_args = set(dir(self))
-        # a_args = n_args - o_args
-        # print(a_args)
-        # print(args - a_args)
-        # print(a_args - args)
+        # gen_slots_str(n_args - o_args)
         if VERSION_TYPE > 0:
             self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
         else:
@@ -93,6 +89,8 @@ class MainFrame(MF):
         self.run_path = run_path
         self.xorPanel.Disable()
         self.savingFormat.ToolTip = f'{self.savingFormat.GetToolTipText()}{EXTENSION_KEYS_STRING}'
+        self.controls.redundant_cache_length = self.startup_parameters.maximum_redundant_cache_length
+        self.controls.low_memory_mode = self.startup_parameters.low_memory
 
         self.image_item: 'ImageItem' = None
 
@@ -167,7 +165,6 @@ class MainFrame(MF):
         self.tree_manager.reloading_thread.set_exit_signal()
         self.controls.stop_loading_btn_text = '强制终止重载'
 
-    @timeit
     def apply_settings_to_all(self, settings_list=None):
         if settings_list is None:
             properties_tuple = self.settings.all.properties_tuple

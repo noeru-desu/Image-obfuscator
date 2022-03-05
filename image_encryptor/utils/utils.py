@@ -2,12 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-04 19:55:17
+LastEditTime : 2022-03-05 07:38:33
 Description  : 一些小东西
 """
 from os import walk
 from os.path import normpath, split
 from time import perf_counter_ns, perf_counter
+from typing import Union
 
 from PIL import Image, UnidentifiedImageError
 
@@ -78,7 +79,7 @@ def return_execution_time(fn):
     return wrap
 
 
-def open_image(file):
+def open_image(file) -> Union[tuple[str, str], tuple['Image.Image', None]]:
     """
     :description: 打开图片
     :param file: 要打开的文件

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-27 19:45:58
+LastEditTime : 2022-03-05 10:19:00
 Description  : 图像项目
 """
 from abc import ABC
@@ -129,10 +129,10 @@ class ImageItem(Item):
     """每个载入的图片的存储实例"""
     __slots__ = (
         'frame', 'cache', 'path_data', 'loaded_image_path', 'settings', 'parent', 'selected',
-        'no_file', 'cache_loaded_image', 'encrypted_image', 'loading_image_data_error'
+        'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error'
     )
 
-    def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: 'PathData', settings: 'Settings', no_file=False, cache_loaded_image=True):
+    def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: 'PathData', settings: 'Settings', no_file=False, keep_cache_loaded_image=False):
         self.frame = frame
         self.cache = ImageItemCache(self, loaded_image)
 
@@ -143,7 +143,7 @@ class ImageItem(Item):
         self.parent = None
         self.selected = False
         self.no_file = no_file
-        self.cache_loaded_image = cache_loaded_image
+        self.keep_cache_loaded_image = keep_cache_loaded_image
 
         self.encrypted_image: bool = None
         if self.no_file:
@@ -153,7 +153,7 @@ class ImageItem(Item):
     def unselect(self):
         self.selected = False
         if self.frame.startup_parameters.low_memory:
-            if not self.cache_loaded_image:
+            if not self.keep_cache_loaded_image:
                 self.cache._loaded_image = None
             self.cache.clear_cache()
         else:
