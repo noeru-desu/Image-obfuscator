@@ -16,6 +16,21 @@ import wx.xrc
 
 
 class MainFrame (wx.Frame):
+    __slots__ = (
+        'noiseFactor', 'm_staticText141', 'flipFilter', 'passwordFilter', 'm_staticText12', 'shuffleFilter', 'mappingA',
+        'savingOptions''m_button10', 'm_button3', 'm_button31', 'XORG', 'XORB', 'previewMode', 'mappingG', 'loadingPrograss',
+        'm_staticText14''resamplingFilter', 'm_staticText82111', 'shuffleChunks', 'cuttingRow', 'm_button8', 'maxImagePixels',
+        'passwordCtrl''m_staticText8212', 'savingPrograssPanel', 'imageTreeCtrl', 'XorFilter', 'lowMemoryMode', 'savingProgress',
+        'loadingPanel''noiseFactorNum', 'previewSource', 'previewOptions', 'm_spinCtrl4', 'otherOptions', 'stopLoadingBtn',
+        'loadingPrograssInfo''m_staticText81', 'm_staticline31', 'imagePanel', 'importedBitmap', 'XOREncryption',
+        'processingSettingsPanel1''savingFormat', 'savingQuality', 'qualityInfo', 'm_staticText82', 'importedBitmapPlanel',
+        'flipChunks''m_button312', 'm_button32', 'cuttingCol', 'settingsPanel', 'mappingR', 'previewedBitmap', 'm_staticText8',
+        'm_button6''m_staticText34', 'reloadingBtn', 'noiseXor', 'xorPanel', 'previewProgressInfo', 'imageTreePanel', 'qqFilter',
+        'previewProgress''m_staticText9', 'm_button7', 'stopSavingBtn', 'subsamplingInfo', 'savingProgressInfo', 'm_staticline4',
+        'subsamplingLevel''processingOptions', 'decryptionFilter', 'imageInfo', 'imageTreeSearchCtrl', 'procMode', 'mappingFilter',
+        'XORA''mappingB', 'savingFilters', 'm_panel25', 'loadingPrograssPanel', 'encryptionFilter', 'savingBtnPanel',
+        'selectSavingPath''m_button311', 'previewedBitmapPlanel', 'm_button5', 'XORR'
+    )
 
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=u"Image Encryptor", pos=wx.DefaultPosition, size=wx.Size(790, 900), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL, name=u"Image Encryptor")
@@ -784,6 +799,10 @@ class MainFrame (wx.Frame):
 ###########################################################################
 
 class PasswordDialog (wx.Dialog):
+    __slots__ = (
+        'passwordTextCtrl', 'm_staticText20', 'm_staticText22', 'fileNameText', 'tipText', 'mainPanel', 'm_button13',
+        'm_staticText18''m_button131'
+    )
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"请输入密码", pos=wx.DefaultPosition, size=wx.Size(320, 180), style=wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP)

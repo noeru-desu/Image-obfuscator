@@ -15,6 +15,8 @@ from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
 
 from image_encryptor.frame.design_frame import PasswordDialog as PD
 
+# from image_encryptor.utils.misc_util import gen_slots_str
+
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
 
@@ -169,12 +171,6 @@ class Dialog(object):
             return dialog.ShowModal()
 
 
-PD.__slots__ = (
-    'fileNameText', 'mainPanel', 'passwordTextCtrl', 'tipText', 'm_staticText18', 'm_button13', 'm_staticText20',
-    'm_button131', 'm_staticText22'
-)
-
-
 class PasswordDialog(PD):
     __slots__ = ('_parent', '_correct_base64', '_until_correct', 'correct_password')
 
@@ -182,7 +178,7 @@ class PasswordDialog(PD):
         # o_args = set(dir(self))
         super().__init__(parent)
         # n_args = set(dir(self))
-        # print(n_args - o_args)
+        # gen_slots_str(n_args - o_args)
         self._parent = parent
         self._correct_base64 = correct_base64
         self._until_correct = until_correct

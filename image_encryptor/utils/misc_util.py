@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-24 21:15:22
+LastEditTime : 2022-03-05 09:59:47
 Description  : 一些小东西
 """
 from threading import RLock
@@ -76,3 +76,22 @@ def in_try(func):
         copy_signature(wrap, func)
         wrap.original = func
     return wrap
+
+
+def gen_slots_str(a_set):
+    a_args_str = ('\000' * 4) + '__slots__ = ('
+    b_args_str = ''
+    start = True
+    for i in a_set:
+        if len(b_args_str) + len(i) + 2 > 120:
+            a_args_str += '\n' + ('\000' * 8) + b_args_str + ','
+            b_args_str = f"'{i}'"
+            start = True
+        elif start:
+            start = False
+            b_args_str += f"'{i}'"
+        else:
+            b_args_str += f", '{i}'"
+    a_args_str += '\n' + ('\000' * 8) + b_args_str
+    a_args_str += '\n' + ('\000' * 4) + ')'
+    print(a_args_str)

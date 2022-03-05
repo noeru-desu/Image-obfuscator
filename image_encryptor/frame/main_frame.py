@@ -32,28 +32,11 @@ from image_encryptor.utils.thread import ProcessTaskManager
 from wx import App
 from wx.core import EmptyString
 
-from image_encryptor.utils.utils import timeit
+# from image_encryptor.utils.misc_util import gen_slots_str
 
 if TYPE_CHECKING:
     from image_encryptor.frame.tree_manager import ImageItem
     from image_encryptor.modules.argparse import Parameters
-
-
-MF.__slots__ = (
-    'XorFilter', 'previewMode', 'm_button5', 'm_button32', 'previewSource', 'flipFilter', 'shuffleFilter', 'XORG',
-    'savingProgressInfo', 'stopSavingBtn', 'previewProgress', 'loadingPrograss', 'imagePanel', 'stopLoadingBtn',
-    'reloadingBtn', 'm_button311', 'savingOptions', 'm_staticText81', 'savingProgress', 'settingsPanel', 'qualityInfo',
-    'm_button10', 'XOREncryption', 'savingBtnPanel', 'flipChunks', 'processingSettingsPanel1', 'processingOptions',
-    'm_button7', 'passwordCtrl', 'maxImagePixels', 'cuttingRow', 'loadingPrograssInfo', 'cuttingCol', 'resamplingFilter',
-    'loadingPrograssPanel', 'selectSavingPath', 'm_button6', 'm_button3', 'importedBitmapPlanel', 'XORB', 'm_staticline31',
-    'savingQuality', 'imageTreeCtrl', 'mappingR', 'mappingFilter', 'noiseFactor', 'xorPanel', 'm_staticline4', 'm_button31',
-    'savingFormat', 'loadingPanel', 'passwordFilter', 'mappingB', 'procMode', 'm_staticText8212', 'subsamplingLevel',
-    'm_staticText141', 'm_staticText82111', 'decryptionFilter', 'encryptionFilter', 'imageInfo', 'noiseXor', 'm_staticText8',
-    'savingFilters', 'XORR', 'previewOptions', 'savingPrograssPanel', 'noiseFactorNum', 'm_staticText12', 'm_staticText9',
-    'm_button8', 'imageTreePanel', 'XORA', 'previewProgressInfo', 'mappingG', 'mappingA', 'subsamplingInfo', 'shuffleChunks',
-    'm_staticText14', 'previewedBitmap', 'qqFilter', 'importedBitmap', 'm_staticText82', 'imageTreeSearchCtrl',
-    'previewedBitmapPlanel', 'm_button312', 'otherOptions'
-)
 
 
 class MainFrame(MF):
