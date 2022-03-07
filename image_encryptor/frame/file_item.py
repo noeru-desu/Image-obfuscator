@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-05 10:19:00
+LastEditTime : 2022-03-07 09:56:50
 Description  : 图像项目
 """
 from abc import ABC
@@ -14,7 +14,7 @@ from gc import collect
 from wx import CallAfter
 
 from image_encryptor.constants import BLACK_IMAGE, DECRYPTION_MODE, ENCRYPTION_MODE
-from image_encryptor.utils.utils import open_image
+from image_encryptor.utils.misc_util import open_image
 from image_encryptor.modules.version_adapter import load_encryption_attributes
 from image_encryptor.frame.controls import EncryptionParameters
 

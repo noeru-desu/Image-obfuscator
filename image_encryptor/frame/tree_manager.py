@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-04 06:38:04
+LastEditTime : 2022-03-06 16:35:01
 Description  : 节点树控制
 """
 from typing import Union
@@ -52,7 +52,7 @@ class TreeManager(object):
             self.root_dir_dict[root_path] = root = self.tree_ctrl.AppendItem(self.root, root_path, 0, data=FolderItem(self.frame, root_path, True))
         else:
             root = self.root_dir_dict[root_path]
-        if relative_path == '':
+        if not relative_path:
             return root
         for r_path, name in self._recursively_merge_list(dir_list):
             path = join(root_path, r_path)

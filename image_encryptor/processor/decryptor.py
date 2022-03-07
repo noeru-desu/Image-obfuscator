@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-25 06:29:25
+LastEditTime : 2022-03-06 09:37:23
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -48,7 +48,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
             password = encryption_data.password
     else:
         password = 100
-    image_encrypt = ImageDecrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, password)
+    image_encrypt = ImageDecrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, password, encryption_data.version)
     logger('正在处理')
 
     step_count = 0
@@ -69,7 +69,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
     if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
         bar.next_step(encryption_data.cutting_col * encryption_data.cutting_row)
         logger('正在分割加密图像')
-        image_encrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels, encryption_data.old_mapping, bar)
+        image_encrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels, bar)
 
         logger('正在重组')
 
@@ -96,13 +96,13 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
 
 def _batch(image_data, path_data: 'PathData', encryption_data: 'EncryptionParametersData', saving_settings: 'SavingSettings', auto_folder):
     image = Image.frombytes(*image_data)
-    image_encrypt = ImageDecrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, encryption_data.password if encryption_data.has_password else 100)
+    image_encrypt = ImageDecrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, encryption_data.password if encryption_data.has_password else 100, encryption_data.version)
 
     if encryption_data.XOR_channels:
         image = image_encrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
 
     if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
-        image_encrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels, encryption_data.old_mapping)
+        image_encrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels)
         image = image_encrypt.generate_image()
 
     image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))

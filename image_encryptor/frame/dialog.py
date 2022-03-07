@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-28 21:22:23
+LastEditTime : 2022-03-06 16:36:43
 Description  : 对话框相关
 """
 from threading import Lock
@@ -86,10 +86,7 @@ class Dialog(object):
     def confirmation_frame(self, message, title='确认', style=YES_NO | CANCEL, yes='是', no='否', cancel='取消', help=None, parent=...):
         if parent is Ellipsis:
             parent = self.frame
-        if help is not None:
-            style = YES_NO | CANCEL | HELP
-        else:
-            style = YES_NO | CANCEL
+        style = YES_NO | CANCEL | HELP if help is not None else YES_NO | CANCEL
         with MessageDialog(parent, message, title, style=style | STAY_ON_TOP) as dialog:
             if help is not None:
                 dialog.SetOKLabel(help)
@@ -112,10 +109,9 @@ class Dialog(object):
         with self.lock:
             if (not force and self.async_dialog_exist) or self.async_dialog_num >= self.maximum_number:
                 return False
-            else:
-                self.async_dialog_num += 1
-                self.async_dialog_exist = True
-                return True
+            self.async_dialog_num += 1
+            self.async_dialog_exist = True
+            return True
 
     def _async_dialog_callback(self, future):
         with self.lock:
@@ -206,13 +202,12 @@ class PasswordDialog(PD):
                 self.passwordTextCtrl.Clear()
             else:
                 self.user_cancel(event)
+        elif self._until_correct:
+            self.tipText.LabelText = '密码不符合要求, 请重新输入'
+            self.mainPanel.Layout()
+            self.passwordTextCtrl.Clear()
         else:
-            if self._until_correct:
-                self.tipText.LabelText = '密码不符合要求, 请重新输入'
-                self.mainPanel.Layout()
-                self.passwordTextCtrl.Clear()
-            else:
-                self.user_cancel(event)
+            self.user_cancel(event)
 
     def user_cancel(self, event):
         self.EndModal(ID_CANCEL)

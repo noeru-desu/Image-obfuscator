@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 06:16:44
+LastEditTime : 2022-03-06 16:46:25
 Description  : 线程相关类
 """
 from ctypes import c_long, py_object, pythonapi
@@ -172,16 +172,14 @@ class ThreadTaskManager(ThreadPoolExecutor):
     def check_tag(self, tag_name):
         if not self.task_dict[tag_name].futures:
             return None
-        if self.task_dict[tag_name].overwrite:
-            if self.cancel_task(tag_name):
-                return None
-            else:
-                if self.task_dict[tag_name].single:
-                    return '已有一个无法打断的任务正在进行'
-                else:
-                    return '任务列表没有被完全取消'
-        else:
+        if not self.task_dict[tag_name].overwrite:
             return '已有一个任务正在进行'
+        if self.cancel_task(tag_name):
+            return None
+        if self.task_dict[tag_name].single:
+            return '已有一个无法打断的任务正在进行'
+        else:
+            return '任务列表没有被完全取消'
 
     def del_future(self, tag_name, futures=None):
         if not (futures is None or self.task_dict[tag_name].single):
@@ -243,11 +241,10 @@ class ProcessTaskManager(ProcessPoolExecutor):
                 if self.task_dict[tag_name].futures.running():
                     return False
                 if not self.task_dict[tag_name].futures.done():
-                    if self.task_dict[tag_name].futures.cancel():
-                        self.watchdog.cancel_task(tag_name)
-                        return True
-                    else:
+                    if not self.task_dict[tag_name].futures.cancel():
                         return False
+                    self.watchdog.cancel_task(tag_name)
+                    return True
             else:
                 all_cancelled = True
                 for i in self.task_dict[tag_name].futures:
@@ -267,16 +264,14 @@ class ProcessTaskManager(ProcessPoolExecutor):
     def check_tag(self, tag_name):
         if not self.task_dict[tag_name].futures:
             return None
-        if self.task_dict[tag_name].overwrite:
-            if self.cancel_task(tag_name):
-                return None
-            else:
-                if self.task_dict[tag_name].single:
-                    return '已有一个无法打断的任务正在进行'
-                else:
-                    return '任务列表没有被完全取消'
-        else:
+        if not self.task_dict[tag_name].overwrite:
             return '已有一个任务正在进行'
+        if self.cancel_task(tag_name):
+            return None
+        if self.task_dict[tag_name].single:
+            return '已有一个无法打断的任务正在进行'
+        else:
+            return '任务列表没有被完全取消'
 
     def del_future(self, tag_name, futures=None):
         if not (futures is None or self.task_dict[tag_name].single):

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 11:33:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-27 19:28:47
+LastEditTime : 2022-03-06 16:39:49
 Description  : 粗略包装的AES加密方法
 """
 from base64 import decodebytes, encodebytes
@@ -38,10 +38,7 @@ def encrypt(model, key: bytes, text: bytes, iv=b'0000000000000000', base64=False
     if len(iv) > 16:
         raise ValueError('iv must be 16 bytes long.')
     iv = _auto_fill(iv, b'0')
-    if model == AES.MODE_ECB:
-        aes = AES.new(key, model)
-    else:
-        aes = AES.new(key, model, iv)
+    aes = AES.new(key, model) if model == AES.MODE_ECB else AES.new(key, model, iv)
     if base64:
         return base64_encode(aes.encrypt(text), output_string).replace('\r', '').replace('\n', '')
     else:
@@ -69,17 +66,13 @@ def decrypt(model, key: bytes, text: bytes, iv=b'0000000000000000', base64=False
         text = base64_decode(text.replace('\r', '').replace('\n', ''))
         if text is None:
             return None
-    if model == AES.MODE_ECB:
-        aes = AES.new(key, model)
-    else:
-        aes = AES.new(key, model, iv)
-    if output_string:
-        try:
-            return aes.decrypt(text).strip(b"\x00").decode()
-        except UnicodeDecodeError:
-            return None
-    else:
+    aes = AES.new(key, model) if model == AES.MODE_ECB else AES.new(key, model, iv)
+    if not output_string:
         return aes.decrypt(text).strip(b"\x00")
+    try:
+        return aes.decrypt(text).strip(b"\x00").decode()
+    except UnicodeDecodeError:
+        return None
 
 
 def base64_encode(byt, output_string=True):

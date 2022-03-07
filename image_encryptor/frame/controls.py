@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-05 10:11:34
+LastEditTime : 2022-03-06 16:35:20
 Description  : 整理
 """
 from abc import ABC
@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Callable, Iterable, Optional
 
 from wx import Bitmap
 
-from image_encryptor.constants import ANTY_HARMONY_MODE, DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS, RESAMPLING_FILTERS
+from image_encryptor.constants import ANTY_HARMONY_MODE, DECRYPTION_MODE, ENCRYPTION_MODE, EXTENSION_KEYS, RESAMPLING_FILTERS, EA_VERSION
 from image_encryptor.modules.password_verifier import PasswordDict
 from image_encryptor.utils.misc_util import scale
 
@@ -630,9 +630,10 @@ class SettingsData(SettingsBase):
         has_password = self.password != 'none'
         password = self.password if has_password else 100
         return EncryptionParametersData((self.cutting_col, self.cutting_row, orig_width, orig_height, self.shuffle_chunks,
-                                        self.flip_chunks, False, self.mapping_channels, self.XOR_channels if self.XOR_encryption else '',
+                                        self.flip_chunks, self.mapping_channels, self.XOR_channels if self.XOR_encryption else '',
                                         self.noise_XOR, self.noise_factor, has_password,
-                                        PasswordDict.get_validation_field_base64(password) if has_password else 0, True, self.password))
+                                        PasswordDict.get_validation_field_base64(password) if has_password else 0, EA_VERSION,
+                                        True, self.password))
 
 
 class Settings(SettingsData):
@@ -705,8 +706,9 @@ class SavingSettings(SettingsBase):
 class EncryptionParametersData(SettingsBase):
     __slots__ = SETTING_NAMES = (
         'cutting_row', 'cutting_col', 'orig_width', 'orig_height', 'shuffle_chunks',
-        'flip_chunks', 'old_mapping', 'mapping_channels', 'XOR_channels', 'noise_XOR',
-        'noise_factor', 'has_password', 'password_base64', 'dynamic_auth', 'password'
+        'flip_chunks', 'mapping_channels', 'XOR_channels', 'noise_XOR', 'noise_factor',
+        'has_password', 'password_base64', 'version', 'dynamic_auth', 'password'
+        # 需保证dynamic_auth与password在最后，参考self.encryption_parameters_dict
     )
 
     def __init__(self, parameters):
@@ -716,29 +718,25 @@ class EncryptionParametersData(SettingsBase):
             self.inherit_tuple(parameters)
 
     def _inherit_dict_settings(self, parameters_dict):
-        self.cutting_row = parameters_dict['cutting_row']
-        self.cutting_col = parameters_dict['cutting_col']
-        self.orig_width = parameters_dict['orig_width']
-        self.orig_height = parameters_dict['orig_height']
-        self.shuffle_chunks = parameters_dict['shuffle_chunks']
-        self.flip_chunks = parameters_dict['flip_chunks']
-        self.old_mapping = parameters_dict['old_mapping']
-        self.mapping_channels = parameters_dict['mapping_channels']
-        self.XOR_channels = parameters_dict['XOR_channels']
-        self.noise_XOR = parameters_dict['noise_XOR']
-        self.noise_factor = parameters_dict['noise_factor']
-        self.has_password = parameters_dict['has_password']
-        self.password_base64 = parameters_dict['password_base64']
-        self.dynamic_auth = parameters_dict['dynamic_auth'] if 'dynamic_auth' in parameters_dict else True
-        self.password = None
+        self.cutting_row: int = parameters_dict['cutting_row']
+        self.cutting_col: int = parameters_dict['cutting_col']
+        self.orig_width: int = parameters_dict['orig_width']
+        self.orig_height: int = parameters_dict['orig_height']
+        self.shuffle_chunks: bool = parameters_dict['shuffle_chunks']
+        self.flip_chunks: bool = parameters_dict['flip_chunks']
+        self.mapping_channels: str = parameters_dict['mapping_channels']
+        self.XOR_channels: str = parameters_dict['XOR_channels']
+        self.noise_XOR: bool = parameters_dict['noise_XOR']
+        self.noise_factor: int = parameters_dict['noise_factor']
+        self.has_password: bool = parameters_dict['has_password']
+        self.password_base64: str = parameters_dict['password_base64']
+        self.version: int = parameters_dict['version']
+        self.dynamic_auth: bool = self.version >= 6
+        self.password: str = None
 
     @property
     def encryption_parameters_dict(self):
-        parameters = {k: getattr(self, k) for k in self.SETTING_NAMES}
-        del parameters['password']
-        del parameters['dynamic_auth']
-        parameters['version'] = 6
-        return parameters
+        return {k: getattr(self, k) for k in self.SETTING_NAMES[:-2]}
 
 
 class EncryptionParameters(EncryptionParametersData):

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 05:47:11
+LastEditTime : 2022-03-06 16:34:24
 Description  : 文件保存功能
 """
 from os import listdir
@@ -163,9 +163,8 @@ class ImageSaver(object):
                 path = self._select_dir(image_item.path_data.root_path)
                 if path is None:
                     return
-                else:
-                    self.frame.controls.saving_path = path
-                    return DO_NOT_USE_FOLDER
+                self.frame.controls.saving_path = path
+                return DO_NOT_USE_FOLDER
             elif frame_id == ID_CANCEL:
                 return USE_FOLDER
             else:
@@ -178,9 +177,8 @@ class ImageSaver(object):
                 path = self._select_dir(image_item.path_data.root_path)
                 if path is None:
                     return
-                else:
-                    self.frame.controls.saving_path = path
-                    return DO_NOT_USE_FOLDER
+                self.frame.controls.saving_path = path
+                return DO_NOT_USE_FOLDER
             else:
                 return
 
