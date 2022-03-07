@@ -2,14 +2,15 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-06 16:46:25
+LastEditTime : 2022-03-07 10:13:34
 Description  : 线程相关类
 """
+from concurrent.futures import (CancelledError, ProcessPoolExecutor,
+                                ThreadPoolExecutor)
 from ctypes import c_long, py_object, pythonapi
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, CancelledError
 from threading import Thread as threading_Thread
 from traceback import print_exc
-from typing import Any, Callable, NamedTuple, Optional, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, Union
 
 if TYPE_CHECKING:
     from concurrent.futures import Future

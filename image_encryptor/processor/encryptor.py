@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-25 06:30:00
+LastEditTime : 2022-03-07 10:12:36
 Description  : 单文件加密功能
 """
 from json import dumps
@@ -13,8 +13,9 @@ from typing import TYPE_CHECKING
 
 from PIL import Image
 
+from image_encryptor.frame.controls import (ProgressBar, SavingSettings,
+                                            SettingsData)
 from image_encryptor.modules.image_encrypt import ImageEncrypt
-from image_encryptor.frame.controls import ProgressBar, SettingsData, SavingSettings
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame

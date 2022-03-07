@@ -2,18 +2,20 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:08:48
+LastEditTime : 2022-03-07 10:12:06
 Description  : 图片加密模块
 """
-from random import Random
 from math import ceil
+from random import Random
 from typing import TYPE_CHECKING
 
+from numpy import ascontiguousarray, hsplit, uint8, vsplit, zeros
 from numpy.random import randint
-from numpy import uint8, zeros, ascontiguousarray, vsplit, hsplit
 from PIL import Image
 
-from image_encryptor.utils.image import gen_mapping_table, random_noise, split_channels, merge_channels, array_to_image
+from image_encryptor.utils.image import (array_to_image, gen_mapping_table,
+                                         merge_channels, random_noise,
+                                         split_channels)
 from image_encryptor.utils.misc_util import FakeBar
 
 if TYPE_CHECKING:

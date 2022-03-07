@@ -2,11 +2,11 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-25 06:30:37
+LastEditTime : 2022-03-07 10:12:49
 Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
 """
 from os import makedirs
-from os.path import join, split, splitext, isdir
+from os.path import isdir, join, split, splitext
 from traceback import format_exc
 from typing import TYPE_CHECKING
 
@@ -17,7 +17,6 @@ from image_encryptor.modules.image_encrypt import AntiHarmony
 
 if TYPE_CHECKING:
     from wx import Gauge
-
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.file_item import PathData
 

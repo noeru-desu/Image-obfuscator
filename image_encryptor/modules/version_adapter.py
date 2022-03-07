@@ -2,14 +2,15 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 09:46:37
+LastEditTime : 2022-03-07 10:12:21
 Description  : 对低版本加密的图片的加密信息进行转换, 向下兼容
 """
 from json import JSONDecodeError, loads
 from os.path import getsize
 
-from image_encryptor.constants import EA_VERSION, EAERR_NO_DATA, EAERR_NO_ATTRIBUTES, EAERR_DECODE_FAILED, EAERR_INCOMPATIBLE, EAERR_NOT_SUPPORT
-
+from image_encryptor.constants import (EA_VERSION, EAERR_DECODE_FAILED,
+                                       EAERR_INCOMPATIBLE, EAERR_NO_ATTRIBUTES,
+                                       EAERR_NO_DATA, EAERR_NOT_SUPPORT)
 
 # 1 初始版本
 # 2 可开关normal_encryption设置

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-06 16:36:43
+LastEditTime : 2022-03-07 10:10:17
 Description  : 对话框相关
 """
 from threading import Lock
@@ -10,11 +10,11 @@ from typing import TYPE_CHECKING
 
 from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
                 FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, HELP, ICON_ERROR,
-                ICON_INFORMATION, ICON_QUESTION, ICON_WARNING, ID_OK,
-                STAY_ON_TOP, YES_NO, ID_CANCEL, DirDialog, FileDialog, MessageDialog)
+                ICON_INFORMATION, ICON_QUESTION, ICON_WARNING, ID_CANCEL,
+                ID_OK, STAY_ON_TOP, YES_NO, DirDialog, FileDialog,
+                MessageDialog)
 
 from image_encryptor.frame.design_frame import PasswordDialog as PD
-
 # from image_encryptor.utils.misc_util import gen_slots_str
 
 if TYPE_CHECKING:

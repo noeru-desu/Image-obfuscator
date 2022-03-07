@@ -2,27 +2,28 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 09:56:50
+LastEditTime : 2022-03-07 10:10:49
 Description  : 图像项目
 """
 from abc import ABC
+from gc import collect
 from os.path import isfile, join
 from traceback import print_exc
 from typing import TYPE_CHECKING, NamedTuple, Optional
-from gc import collect
 
 from wx import CallAfter
 
-from image_encryptor.constants import BLACK_IMAGE, DECRYPTION_MODE, ENCRYPTION_MODE
-from image_encryptor.utils.misc_util import open_image
-from image_encryptor.modules.version_adapter import load_encryption_attributes
+from image_encryptor.constants import (BLACK_IMAGE, DECRYPTION_MODE,
+                                       ENCRYPTION_MODE)
 from image_encryptor.frame.controls import EncryptionParameters
+from image_encryptor.modules.version_adapter import load_encryption_attributes
+from image_encryptor.utils.misc_util import open_image
 
 if TYPE_CHECKING:
     from PIL.Image import Image
     from wx import Bitmap, TreeItemId
-    from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.controls import Settings
+    from image_encryptor.frame.events import MainFrame
 
 
 class Item(ABC):

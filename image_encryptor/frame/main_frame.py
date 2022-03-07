@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-05 10:28:52
+LastEditTime : 2022-03-07 10:11:24
 Description  : 覆写窗口
 """
 from concurrent.futures import ThreadPoolExecutor
@@ -13,25 +13,26 @@ from os import getcwd
 from sys import version
 from typing import TYPE_CHECKING
 
+from wx import App
+from wx.core import EmptyString
+
 from image_encryptor.constants import (BRANCH, EXTENSION_KEYS_STRING,
                                        OPEN_SOURCE_URL, SUB_VERSION_NUMBER,
                                        VERSION_BATCH, VERSION_NUMBER,
                                        VERSION_TYPE)
-from image_encryptor.frame.controls import Controls, SegmentTrigger, SettingsManager, Settings
+from image_encryptor.frame.controls import (Controls, SegmentTrigger, Settings,
+                                            SettingsManager)
 from image_encryptor.frame.design_frame import MainFrame as MF
 from image_encryptor.frame.dialog import Dialog
 from image_encryptor.frame.drag_importer import DragLoader, DragSavingPath
-from image_encryptor.frame.preview_generator import PreviewGenerator
 from image_encryptor.frame.image_loader import ImageLoader
 from image_encryptor.frame.image_saver import ImageSaver
+from image_encryptor.frame.preview_generator import PreviewGenerator
 from image_encryptor.frame.tree_manager import TreeManager
 from image_encryptor.modules.password_verifier import PasswordDict
 from image_encryptor.utils.exit_processor import ExitProcessor
 from image_encryptor.utils.logger import Logger
 from image_encryptor.utils.thread import ProcessTaskManager
-from wx import App
-from wx.core import EmptyString
-
 # from image_encryptor.utils.misc_util import gen_slots_str
 
 if TYPE_CHECKING:

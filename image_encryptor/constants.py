@@ -2,11 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-06 16:47:03
+LastEditTime : 2022-03-07 10:13:46
 Description  : 常量
 """
+from PIL.Image import (BICUBIC, BILINEAR, BOX, EXTENSION, HAMMING, LANCZOS,
+                       NEAREST)
 from PIL.Image import init as PIL_init
-from PIL.Image import EXTENSION, NEAREST, BOX, BILINEAR, HAMMING, BICUBIC, LANCZOS, new
+from PIL.Image import new
 
 PIL_init()
 

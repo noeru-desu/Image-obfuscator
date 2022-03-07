@@ -2,12 +2,13 @@
 Author       : noeru_desu
 Date         : 2022-02-09 18:44:07
 LastEditors  : noeru_desu
-LastEditTime : 2022-02-26 21:20:10
+LastEditTime : 2022-03-07 10:11:57
 Description  : 参数解析
 """
 from argparse import ArgumentParser
 
-from image_encryptor.constants import VERSION_NUMBER, SUB_VERSION_NUMBER, BRANCH
+from image_encryptor.constants import (BRANCH, SUB_VERSION_NUMBER,
+                                       VERSION_NUMBER)
 
 
 class Parameters(object):

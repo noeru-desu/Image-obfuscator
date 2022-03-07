@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-06 09:37:23
+LastEditTime : 2022-03-07 10:12:29
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -12,8 +12,9 @@ from typing import TYPE_CHECKING
 
 from PIL import Image
 
+from image_encryptor.frame.controls import (EncryptionParametersData,
+                                            ProgressBar, SavingSettings)
 from image_encryptor.modules.image_encrypt import ImageDecrypt
-from image_encryptor.frame.controls import ProgressBar, EncryptionParametersData, SavingSettings
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame

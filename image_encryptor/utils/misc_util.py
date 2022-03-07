@@ -2,21 +2,22 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 09:54:39
+LastEditTime : 2022-03-07 10:13:26
 Description  : 一些小东西
 """
-from os import walk
-from os.path import normpath, split
-from time import perf_counter_ns, perf_counter
-from typing import Union, Callable
-from threading import RLock
 from functools import wraps as functools_wraps
 from inspect import signature
+from os import walk
+from os.path import normpath, split
+from threading import RLock
+from time import perf_counter, perf_counter_ns
 from traceback import print_exc
+from typing import Callable, Union
 
 from PIL import Image, UnidentifiedImageError
 
-from image_encryptor.constants import OIERR_NOT_EXIST, OIERR_UNSUPPORTED_FORMAT, OIERR_EXCEED_LIMIT
+from image_encryptor.constants import (OIERR_EXCEED_LIMIT, OIERR_NOT_EXIST,
+                                       OIERR_UNSUPPORTED_FORMAT)
 
 
 def scale(image: 'Image', width: int, height: int):

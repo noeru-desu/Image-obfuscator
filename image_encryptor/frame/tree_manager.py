@@ -2,12 +2,11 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-06 16:35:01
+LastEditTime : 2022-03-07 10:11:52
 Description  : 节点树控制
 """
-from typing import Union
 from os.path import isdir, join, sep, split
-from typing import TYPE_CHECKING, Generator, Optional
+from typing import TYPE_CHECKING, Generator, Optional, Union
 
 from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
 
