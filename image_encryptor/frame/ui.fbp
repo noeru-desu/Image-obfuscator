@@ -6331,7 +6331,7 @@
                                                                         <property name="style"></property>
                                                                         <property name="subclass">; ; forward_declare</property>
                                                                         <property name="toolbar_pane">0</property>
-                                                                        <property name="tooltip"></property>
+                                                                        <property name="tooltip">热更改启动参数注意事项：&#x0A;热更改时不会立即将更改应用到所有已加载项目&#x0A; - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行</property>
                                                                         <property name="window_extra_style"></property>
                                                                         <property name="window_name"></property>
                                                                         <property name="window_style"></property>
@@ -6393,7 +6393,7 @@
                                                                         <property name="style">wxSP_ARROW_KEYS|wxTE_PROCESS_ENTER</property>
                                                                         <property name="subclass">; ; forward_declare</property>
                                                                         <property name="toolbar_pane">0</property>
-                                                                        <property name="tooltip"></property>
+                                                                        <property name="tooltip">热更改启动参数注意事项：&#x0A;热更改时不会立即将更改应用到所有已加载项目&#x0A; - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行</property>
                                                                         <property name="value"></property>
                                                                         <property name="window_extra_style"></property>
                                                                         <property name="window_name"></property>
@@ -6457,7 +6457,7 @@
                                                                 <property name="style"></property>
                                                                 <property name="subclass">; ; forward_declare</property>
                                                                 <property name="toolbar_pane">0</property>
-                                                                <property name="tooltip"></property>
+                                                                <property name="tooltip">热更改启动参数注意事项：&#x0A;热更改时不会立即将更改应用到所有已加载项目&#x0A; - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行</property>
                                                                 <property name="validator_data_type"></property>
                                                                 <property name="validator_style">wxFILTER_NONE</property>
                                                                 <property name="validator_type">wxDefaultValidator</property>
