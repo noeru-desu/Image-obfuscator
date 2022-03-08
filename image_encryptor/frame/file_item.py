@@ -60,6 +60,7 @@ class ImageItemCache(object):
     @property
     def loaded_image(self) -> 'Image':
         if self._item.selected and self._loaded_image is None:
+            reload_encryption_data = self._item.loading_image_data_error is not None
             self._loaded_image, self._item.loading_image_data_error = open_image(self._item.loaded_image_path)
             if self._item.loading_image_data_error is not None:
                 self._item.frame.dialog.async_error(self._item.loading_image_data_error, '重新载入图片时出现错误')
@@ -67,6 +68,8 @@ class ImageItemCache(object):
                 self._item.encrypted_image = False
                 self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, LIGHT_RED)
             else:
+                if reload_encryption_data:
+                    self._item.load_encryption_parameters()
                 self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, BLACK)
         if not self._item.frame.startup_parameters.low_memory or self._item.selected:
             return self._loaded_image
@@ -144,8 +147,8 @@ class ImageItem(Item):
         self.loaded_image_path = path_data.file_name if no_file else join(*path_data)
         self.settings = settings
 
-        self.parent = None
         self.item_id: 'TreeItemId' = ...
+        self.parent: 'Optional[FolderItem]' = None
         self.selected = False
         self.no_file = no_file
         self.keep_cache_loaded_image = keep_cache_loaded_image
