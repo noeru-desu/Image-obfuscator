@@ -11,10 +11,10 @@ from os.path import isfile, join
 from traceback import print_exc
 from typing import TYPE_CHECKING, NamedTuple, Optional
 
-from wx import CallAfter
+from wx import CallAfter, BLACK
 
 from image_encryptor.constants import (BLACK_IMAGE, DECRYPTION_MODE,
-                                       ENCRYPTION_MODE)
+                                       ENCRYPTION_MODE, LIGHT_RED)
 from image_encryptor.frame.controls import EncryptionParameters
 from image_encryptor.modules.version_adapter import load_encryption_attributes
 from image_encryptor.utils.misc_util import open_image
@@ -65,6 +65,9 @@ class ImageItemCache(object):
                 self._item.frame.dialog.async_error(self._item.loading_image_data_error, '重新载入图片时出现错误')
                 self._loaded_image = BLACK_IMAGE
                 self._item.encrypted_image = False
+                self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, LIGHT_RED)
+            else:
+                self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, BLACK)
         if not self._item.frame.startup_parameters.low_memory or self._item.selected:
             return self._loaded_image
 
@@ -142,6 +145,7 @@ class ImageItem(Item):
         self.settings = settings
 
         self.parent = None
+        self.item_id: 'TreeItemId' = ...
         self.selected = False
         self.no_file = no_file
         self.keep_cache_loaded_image = keep_cache_loaded_image
@@ -150,6 +154,8 @@ class ImageItem(Item):
         if self.no_file:
             self.encrypted_image = False
             self.loading_image_data_error = '来自剪贴板的文件不支持解密操作'
+        else:
+            self.loading_image_data_error = None
 
     def unselect(self):
         self.selected = False
@@ -202,7 +208,10 @@ class ImageItem(Item):
             if dialog:
                 self.frame.dialog.async_warning(f'图像重载失败: {error}')
                 self.reload_done()
+            self.frame.imageTreeCtrl.SetItemTextColour(self.item_id, LIGHT_RED)
             return 0, 1
+        else:
+            self.frame.imageTreeCtrl.SetItemTextColour(self.item_id, BLACK)
         self.cache.loaded_image = loaded_image
         self.cache.clear_cache()
         self.load_encryption_parameters()

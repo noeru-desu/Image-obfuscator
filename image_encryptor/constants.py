@@ -2,9 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:15:50
+LastEditTime : 2022-03-08 13:58:53
 Description  : 常量
 """
+from wx import Colour
 from PIL.Image import (BICUBIC, BILINEAR, BOX, EXTENSION, HAMMING, LANCZOS,
                        NEAREST)
 from PIL.Image import init as PIL_init
@@ -50,3 +51,5 @@ EAERR_NO_ATTRIBUTES = '选择的图片不包含加密参数, 请确保尝试解�
 EAERR_DECODE_FAILED = '加载图片加密参数时出现问题, 请确保尝试解密的图片为加密后的原图'
 EAERR_INCOMPATIBLE = '该版本不支持0.1.0-BETA版加密器加密的图片'
 EAERR_NOT_SUPPORT = '选择的图片文件由更高版本的加密器加密, 请使用最新版的加密器进行解密'
+
+LIGHT_RED = Colour(255, 30, 30)
