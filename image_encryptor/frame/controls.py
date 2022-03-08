@@ -828,11 +828,11 @@ class ProgressBar(object):
 class SegmentTrigger(object):
     __slots__ = ('_callbacks', '_initcall', '_args', '_kwargs', '_max_num', '_num')
 
-    def __init__(self, callbacks: Iterable[Callable], initcall: Optional[Callable] = None, *args, **kwargs):
+    def __init__(self, callbacks: Iterable[Callable], initcall: Optional[Callable] = None, *init_args, **init_kwargs):
         self._callbacks = callbacks
         self._initcall = initcall
-        self._args = args
-        self._kwargs = kwargs
+        self._args = init_args
+        self._kwargs = init_kwargs
         self._max_num = len(callbacks)
         self._num = -1
 

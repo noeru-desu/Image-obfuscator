@@ -601,7 +601,7 @@ class MainFrame (wx.Frame):
         self.stopSavingBtn = wx.Button(self.savingPrograssPanel, wx.ID_ANY, u"取消尚未进行的任务", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer231.Add(self.stopSavingBtn, 0, wx.ALL, 5)
 
-        self.savingProgress = wx.Gauge(self.savingPrograssPanel, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL | wx.GA_SMOOTH)
+        self.savingProgress = wx.Gauge(self.savingPrograssPanel, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL)
         self.savingProgress.SetValue(0)
         bSizer231.Add(self.savingProgress, 2, wx.ALIGN_CENTER | wx.ALL, 5)
 

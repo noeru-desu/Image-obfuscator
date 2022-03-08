@@ -89,7 +89,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
         image.save(output_path, quality=settings.saving_quality, subsampling=settings.saving_subsampling_level)
 
         with open(output_path, "a") as f:
-            f.write('\n' + dumps(settings.encryption_parameters_data(*original_size).encryption_parameters_dict, separators=(',', ':')))
+            f.write('\n{}'.format(dumps(settings.encryption_parameters_data(*original_size).encryption_parameters_dict, separators=(',', ':'))))
         bar.finish()
     bar.over()
     logger('完成')

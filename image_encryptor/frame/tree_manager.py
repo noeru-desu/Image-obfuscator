@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:11:52
+LastEditTime : 2022-03-08 14:16:34
 Description  : 节点树控制
 """
 from os.path import isdir, join, sep, split
@@ -57,7 +57,7 @@ class TreeManager(object):
             path = join(root_path, r_path)
             if path not in self.dir_dict:
                 self.frame.logger.info(f'文件夹添加至文件树: {r_path}')
-                parent_data = self.tree_ctrl.GetItemData(root)
+                parent_data: 'FolderItem' = self.tree_ctrl.GetItemData(root)
                 data = FolderItem(self.frame, path)
                 self.dir_dict[path] = root = self.tree_ctrl.AppendItem(root, name, 0, data=data)
                 parent_data.children[root] = data
@@ -79,8 +79,9 @@ class TreeManager(object):
             absolute_dir_path = parent_folder_path.strip(sep)
             root = self.root_dir_dict[absolute_dir_path] if absolute_dir_path in self.root_dir_dict else self.dir_dict[absolute_dir_path]
         self.file_dict[absolute_path] = item_id = self.tree_ctrl.AppendItem(root, file, 1, data=data)
+        data.item_id = item_id
         if not add_to_root:
-            parent_data = self.tree_ctrl.GetItemData(root)
+            parent_data: 'FolderItem' = self.tree_ctrl.GetItemData(root)
             parent_data.children[item_id] = data
             data.parent = parent_data
         # self.frame.logger.info(f'文件添加至文件树: {file}')

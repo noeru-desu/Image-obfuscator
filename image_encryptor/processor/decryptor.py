@@ -49,7 +49,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
             password = encryption_data.password
     else:
         password = 100
-    image_encrypt = ImageDecrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, password, encryption_data.version)
+    image_decrypt = ImageDecrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, password, encryption_data.version)
     logger('正在处理')
 
     step_count = 0
@@ -65,17 +65,17 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
     if encryption_data.XOR_channels:
         logger('正在异或解密')
         bar.next_step(1)
-        image = image_encrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
+        image = image_decrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
 
     if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
         bar.next_step(encryption_data.cutting_col * encryption_data.cutting_row)
         logger('正在分割加密图像')
-        image_encrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels, bar)
+        image_decrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels, bar)
 
         logger('正在重组')
 
         bar.next_step(encryption_data.cutting_col * encryption_data.cutting_row)
-        image = image_encrypt.generate_image(bar)
+        image = image_decrypt.generate_image(bar)
 
     image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))
 
@@ -97,14 +97,14 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
 
 def _batch(image_data, path_data: 'PathData', encryption_data: 'EncryptionParametersData', saving_settings: 'SavingSettings', auto_folder):
     image = Image.frombytes(*image_data)
-    image_encrypt = ImageDecrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, encryption_data.password if encryption_data.has_password else 100, encryption_data.version)
+    image_decrypt = ImageDecrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, encryption_data.password if encryption_data.has_password else 100, encryption_data.version)
 
     if encryption_data.XOR_channels:
-        image = image_encrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
+        image = image_decrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
 
     if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
-        image_encrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels)
-        image = image_encrypt.generate_image()
+        image_decrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels)
+        image = image_decrypt.generate_image()
 
     image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))
 

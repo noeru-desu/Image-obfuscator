@@ -2,14 +2,14 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:10:49
+LastEditTime : 2022-03-08 15:06:20
 Description  : 图像项目
 """
 from abc import ABC
 from gc import collect
 from os.path import isfile, join
 from traceback import print_exc
-from typing import TYPE_CHECKING, NamedTuple, Optional
+from typing import TYPE_CHECKING, NamedTuple, Optional, Union
 
 from wx import CallAfter, BLACK
 
@@ -131,12 +131,16 @@ class PathData(NamedTuple):
     relative_path: str
     file_name: str
 
+    @property
+    def full_path(self) -> str:
+        return join(*self)
+
 
 class ImageItem(Item):
     """每个载入的图片的存储实例"""
     __slots__ = (
-        'frame', 'cache', 'path_data', 'loaded_image_path', 'settings', 'parent', 'selected',
-        'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error'
+        'frame', 'cache', 'path_data', 'loaded_image_path', 'settings', 'parent', 'item_id',
+        'selected', 'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error'
     )
 
     def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: 'PathData', settings: 'Settings', no_file=False, keep_cache_loaded_image=False):
@@ -144,7 +148,7 @@ class ImageItem(Item):
         self.cache = ImageItemCache(self, loaded_image)
 
         self.path_data = path_data
-        self.loaded_image_path = path_data.file_name if no_file else join(*path_data)
+        self.loaded_image_path = path_data.file_name if no_file else path_data.full_path
         self.settings = settings
 
         self.item_id: 'TreeItemId' = ...
@@ -199,7 +203,7 @@ class ImageItem(Item):
         if del_item:
             collect()
 
-    def reload_item(self, dialog=True) -> Optional[tuple[int, int]]:
+    def reload_item(self, dialog=True) -> 'Optional[tuple[int, int]]':
         if self.no_file:
             self.frame.dialog.async_warning('来自剪贴板的文件不支持重载操作')
             self.reload_done()
@@ -237,8 +241,8 @@ class FolderItem(Item):
         self.frame = frame
         self.path = path
         self.root = root
-        self.children = {}
-        self.parent = None
+        self.children: 'dict[TreeItemId, Union[FolderItem, ImageItem]]' = {}
+        self.parent: 'Optional[FolderItem]' = None
 
     def del_item(self, item_id: 'TreeItemId', del_item=True):
         for id, data in tuple(self.children.items()):
