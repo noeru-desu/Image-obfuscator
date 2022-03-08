@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:12:29
+LastEditTime : 2022-03-08 12:06:25
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -68,13 +68,13 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
         image = image_decrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
 
     if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
-        bar.next_step(encryption_data.cutting_col * encryption_data.cutting_row)
+        bar.next_step(image_decrypt.base.block_num)
         logger('正在分割加密图像')
         image_decrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels, bar)
 
         logger('正在重组')
 
-        bar.next_step(encryption_data.cutting_col * encryption_data.cutting_row)
+        bar.next_step(image_decrypt.base.block_num)
         image = image_decrypt.generate_image(bar)
 
     image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))

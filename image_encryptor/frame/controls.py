@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:09:58
+LastEditTime : 2022-03-08 12:45:15
 Description  : 整理
 """
 from abc import ABC
@@ -782,18 +782,23 @@ class EncryptionParameters(EncryptionParametersData):
 
 
 class ProgressBar(object):
-    __slots__ = ('target', 'step_count', 'step', 'value', 'finished_step', 'max_value', 'step_progress', 'next_step_progress', 'max')
+    __slots__ = (
+        'gauge', 'gauge_range', 'total_steps', 'step_size', 'finished_step',
+        'step', 'basic_progress', 'value', 'max_value', '_coefficient'
+    )
 
-    def __init__(self, target: 'Gauge', step_count: int = 1):
-        self.target = target
-        self.step_count = step_count
-        self.step = -1
-        self.value = 0
+    def __init__(self, gauge: 'Gauge', total_steps: int = 1):
+        gauge.Value = 0
+        self.gauge = gauge
+        self.gauge_range = gauge.Range
+        self.total_steps = total_steps
+        self.step_size = self.gauge_range // total_steps
         self.finished_step = True
+        self.step = 0
+        self.basic_progress = 0
+        self.value = 0
         self.max_value = 0
-        self.step_progress = 0
-        self.next_step_progress = 0
-        self.target.SetValue(0)
+        self._coefficient = 0
 
     def next_step(self, max_value: int):
         if not self.finished_step:
@@ -801,28 +806,25 @@ class ProgressBar(object):
         self.finished_step = False
         self.step += 1
         self.max_value = max_value
-        self.max = self.max_value * self.step_count
         self.value = 0
-        self.step_progress = 0 if self.next_step_progress == 0 else self.next_step_progress
-        self.next_step_progress = (self.step + 1) / self.step_count * 100 if self.step < self.step_count else 100
+        self._coefficient = self.step_size / max_value
 
     def update(self, value):
+        assert not self.finished_step, 'Step information is not initialized, please call next_step first.'
         if value > self.max_value:
             return
         self.value = value
-        self.target.SetValue(int(self.step_progress + value / self.max * 100))
+        self.gauge.Value = int(value * self._coefficient) + self.basic_progress
 
     def add(self):
         self.update(self.value + 1)
 
     def finish(self):
-        self.target.SetValue(int(self.next_step_progress))
+        self.gauge.Value = self.basic_progress = self.step_size * self.step
         self.finished_step = True
 
     def over(self):
-        if not self.finished_step:
-            self.finish()
-        self.target.SetValue(100)
+        self.gauge.Value = self.gauge_range
 
 
 class SegmentTrigger(object):

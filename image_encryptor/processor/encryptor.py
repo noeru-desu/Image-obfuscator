@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:12:36
+LastEditTime : 2022-03-08 12:11:06
 Description  : 单文件加密功能
 """
 from json import dumps
@@ -64,13 +64,12 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
     bar = ProgressBar(gauge, step_count)
 
     if settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels:
-        block_num = settings.cutting_row * settings.cutting_col
         logger('正在分割原图')
-        bar.next_step(block_num)
+        bar.next_step(image_encrypt.base.block_num)
         image_encrypt.init_block_data(settings.shuffle_chunks, settings.flip_chunks, settings.mapping_channels, bar)
 
         logger('正在重组')
-        bar.next_step(block_num)
+        bar.next_step(image_encrypt.base.block_num)
         image = image_encrypt.generate_image(bar)
 
     if settings.XOR_encryption:
