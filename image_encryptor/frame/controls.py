@@ -838,9 +838,9 @@ class SegmentTrigger(object):
 
     @property
     def call(self) -> Callable:
+        self._num += 1
         if self._num >= self._max_num:
             self.init()
-        self._num += 1
         return self._callbacks[self._num]
 
     def init(self):
