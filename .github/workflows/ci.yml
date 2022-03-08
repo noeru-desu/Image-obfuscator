@@ -109,4 +109,6 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ env.BUILD_ENV }}-${{ env.VCToolsVersion }}-build.${{ github.run_number }}
-          path: nuitka/*.exe
+          path: |
+            nuitka/ImageEncryptor.exe
+            ImageEncryptor_with_console.exe
