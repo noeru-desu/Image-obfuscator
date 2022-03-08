@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:10:34
+LastEditTime : 2022-03-08 20:05:30
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -218,6 +218,8 @@ class MainFrame(BasicMainFrame):
         self.apply_settings_to_all()
 
     def revert_to_default(self, event):
+        if self.image_item is None:
+            return
         self.image_item.settings = self.settings.default.copy()
         self.image_item.settings.backtrack_interface()
         self.refresh_preview()
