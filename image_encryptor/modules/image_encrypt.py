@@ -2,12 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:12:06
+LastEditTime : 2022-03-08 20:29:41
 Description  : 图片加密模块
 """
 from math import ceil
 from random import Random
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 from numpy import ascontiguousarray, hsplit, uint8, vsplit, zeros
 from numpy.random import randint
@@ -20,6 +20,7 @@ from image_encryptor.utils.misc_util import FakeBar
 
 if TYPE_CHECKING:
     from typing import Iterable
+    from numpy import ndarray
 
 flip_func = (
     lambda arr: arr,
@@ -314,7 +315,7 @@ class ImageEncryptBaseV3(object):
                 bar.add()
         bar.finish()
         self.image_array = new_image_array
-        return array_to_image(new_image_array, self.ceil_size)
+        return new_image_array, self.ceil_size
 
     def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
         """
@@ -331,7 +332,7 @@ class ImageEncryptBaseV3(object):
             xor_num = random.randrange(256)
             for channel in channels:
                 self.image_array[:, :, channel_num[channel]] ^= xor_num
-        return array_to_image(self.image_array, size[::-1])
+        return self.image_array, size[::-1]
 
 
 class ImageEncrypt(object):
@@ -348,10 +349,10 @@ class ImageEncrypt(object):
     def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: str, bar):
         return self.base.init_block_data(False, shuffle, flip, mapped_channels, bar)
 
-    def generate_image(self, bar=FakeBar):
+    def generate_image(self, bar=FakeBar) -> Union[tuple['ndarray', tuple[int, int]], 'Image.Image']:
         return self.base.generate_image(bar)
 
-    def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
+    def xor_pixels(self, channels='rgb', noise=False, noise_factor=255) -> Union[tuple['ndarray', tuple[int, int]], 'Image.Image']:
         return self.base.xor_pixels(channels, noise, noise_factor)
 
 
@@ -369,10 +370,10 @@ class ImageDecrypt(object):
     def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: str, bar):
         return self.base.init_block_data(True, shuffle, flip, mapped_channels, bar)
 
-    def generate_image(self, bar=FakeBar):
+    def generate_image(self, bar=FakeBar) -> Union[tuple['ndarray', tuple[int, int]], 'Image.Image']:
         return self.base.generate_image(bar)
 
-    def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
+    def xor_pixels(self, channels='rgb', noise=False, noise_factor=255) -> Union[tuple['ndarray', tuple[int, int]], 'Image.Image']:
         return self.base.xor_pixels(channels, noise, noise_factor)
 
 

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-08 12:11:06
+LastEditTime : 2022-03-08 21:06:26
 Description  : 单文件加密功能
 """
 from json import dumps
@@ -13,9 +13,11 @@ from typing import TYPE_CHECKING
 
 from PIL import Image
 
+from image_encryptor.constants import ORIG_IMAGE
 from image_encryptor.frame.controls import (ProgressBar, SavingSettings,
                                             SettingsData)
 from image_encryptor.modules.image_encrypt import ImageEncrypt
+from image_encryptor.utils.image import ImageData, array_to_image
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
@@ -78,6 +80,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
         image = image_encrypt.xor_pixels(settings.XOR_channels, settings.noise_XOR, settings.noise_factor)
 
     if save:
+        image = array_to_image(*image)
         bar.next_step(1)
         logger('完成，正在保存文件')
         name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
@@ -90,6 +93,10 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
         with open(output_path, "a") as f:
             f.write('\n{}'.format(dumps(settings.encryption_parameters_data(*original_size).encryption_parameters_dict, separators=(',', ':'))))
         bar.finish()
+    elif frame.controls.preview_source == ORIG_IMAGE:
+        image = array_to_image(*image)
+    else:
+        image = ImageData(image[0].tobytes(), image[1])
     bar.over()
     logger('完成')
     return image
@@ -119,6 +126,7 @@ def _batch(image_data, path_data: 'PathData', settings: 'SettingsData', saving_s
     else:
         save_dir = saving_settings.path
     output_path = join(save_dir, name)
+    image = array_to_image(*image)
     if suffix.lower() in ('jpg', 'jpeg'):
         image.convert('RGB')
 

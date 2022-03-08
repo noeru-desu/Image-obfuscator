@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-08 12:06:25
+LastEditTime : 2022-03-08 21:19:28
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -15,6 +15,7 @@ from PIL import Image
 from image_encryptor.frame.controls import (EncryptionParametersData,
                                             ProgressBar, SavingSettings)
 from image_encryptor.modules.image_encrypt import ImageDecrypt
+from image_encryptor.utils.image import array_to_image
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
@@ -77,6 +78,8 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
         bar.next_step(image_decrypt.base.block_num)
         image = image_decrypt.generate_image(bar)
 
+    if encryption_data.version >= 7:
+        image = array_to_image(*image)
     image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))
 
     if save:
@@ -106,6 +109,8 @@ def _batch(image_data, path_data: 'PathData', encryption_data: 'EncryptionParame
         image_decrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels)
         image = image_decrypt.generate_image()
 
+    if encryption_data.version >= 7:
+        image = array_to_image(*image)
     image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))
 
     name, suffix = splitext(path_data.file_name)

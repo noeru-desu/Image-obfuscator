@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 09:49:07
+LastEditTime : 2022-03-08 21:24:15
 Description  : 图像相关工具
 """
 from functools import cache
@@ -10,7 +10,7 @@ from itertools import permutations
 from random import randrange
 from random import seed as random_seed
 from re import sub
-from typing import Iterable, Optional
+from typing import Iterable, NamedTuple, Optional
 
 from numpy import squeeze, uint8, zeros
 from numpy.random import randint
@@ -79,3 +79,14 @@ def array_to_image(array, size: tuple = ...) -> 'Image.Image':
     if size is Ellipsis:
         size = array.shape[:-1:-1]
     return Image.frombuffer('RGBA', size, array.data, "raw", 'RGBA', 0, 1)
+
+
+class ImageData(NamedTuple):
+    data: bytes
+    size: tuple[int, int]
+
+    def tobytes(self):
+        return self.data
+
+    def resize(self, *_):
+        return self
