@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2022-02-09 18:44:07
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:11:57
+LastEditTime : 2022-03-08 20:16:51
 Description  : 参数解析
 """
 from argparse import ArgumentParser
 
 from image_encryptor.constants import (BRANCH, SUB_VERSION_NUMBER,
-                                       VERSION_NUMBER)
+                                       VERSION_BATCH, VERSION_NUMBER)
 
 
 class Parameters(object):
@@ -38,7 +38,7 @@ class Arguments(object):
     def __init__(self):
         self.argparser = ArgumentParser(add_help=False)
         self.argparser.add_argument('-h', '--help', action='help', help='输出参数帮助信息并退出')
-        self.argparser.add_argument('-v', '--version', action='version', help='输出程序版本信息并退出', version=f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
+        self.argparser.add_argument('-v', '--version', action='version', help='输出程序版本信息并退出', version=f'Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})')
         self.argparser.add_argument('--low-memory', dest='low_memory', action='store_true', help='低内存占用模式(磁盘读取频率与CPU占用将会有所升高)。默认关闭')
         self.argparser.add_argument('--MRCL', '--maximum-redundant-cache-length', dest='maximum_redundant_cache_length', default=5, type=int, help='处理后预览图冗余缓存量, 切换图像项目时自动清理冗余缓存。默认为5')
         self.argparser.add_argument('-t', '--test', dest='test', action='store_true', help='用于CI中测试程序能否正常初始化')
