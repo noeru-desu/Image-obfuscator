@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:11:24
+LastEditTime : 2022-03-08 20:06:36
 Description  : 覆写窗口
 """
 from concurrent.futures import ThreadPoolExecutor
@@ -47,7 +47,7 @@ class MainFrame(MF):
     __slots__ = (
         'startup_parameters', 'logger', 'controls', 'settings', 'dialog', 'universal_thread_pool',
         'password_dict', 'exit_processor', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator',
-        'image_saver', 'stop_loading_func', 'stop_reloading_func', 'exit_processor'
+        'image_saver', 'stop_loading_func', 'stop_reloading_func'
     )
 
     def __init__(self, parent, startup_parameters: 'Parameters', run_path=getcwd()):
