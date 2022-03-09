@@ -69,7 +69,7 @@ def split_channels(arr):
 
 
 def merge_channels(arrays, shape):
-    arr = zeros(shape, uint8)
+    arr = zeros(shape, uint8, 'C')
     for i, v in enumerate(arrays):
         arr[..., i] = v
     return arr

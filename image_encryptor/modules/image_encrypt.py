@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-08 20:29:41
+LastEditTime : 2022-03-09 09:34:34
 Description  : 图片加密模块
 """
 from math import ceil
@@ -242,7 +242,7 @@ class ImageEncryptBaseV3(object):
         self.block_mapping_list = []
         self.block_pos_list = []
         self.init = False
-        self.image_array = zeros((self.ceil_size[1], self.ceil_size[0], 4), uint8)
+        self.image_array = zeros((self.ceil_size[1], self.ceil_size[0], 4), uint8, 'C')
         self.image_array[0:image.size[1], 0:image.size[0]] = ascontiguousarray(image, uint8)
         self._shuffle = Shuffle(random_seed)
 
@@ -290,7 +290,7 @@ class ImageEncryptBaseV3(object):
         assert self.init, 'ImageEncrypt instance is not initialized.'
         random.seed(self._shuffle.seed)
         randbelow = random._randbelow
-        new_image_array = zeros((self.ceil_size[1], self.ceil_size[0], 4), uint8)
+        new_image_array = zeros((self.ceil_size[1], self.ceil_size[0], 4), uint8, 'C')
         if self.flip and self.mapped_channels:
             shape = (self.block_height, self.block_width, 4)
             for block, pos, mapping in zip(self.block_list, self.block_pos_list, self.block_mapping_list):
