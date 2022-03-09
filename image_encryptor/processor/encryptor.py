@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-08 21:06:26
+LastEditTime : 2022-03-09 09:31:36
 Description  : 单文件加密功能
 """
 from json import dumps
@@ -96,7 +96,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
     elif frame.controls.preview_source == ORIG_IMAGE:
         image = array_to_image(*image)
     else:
-        image = ImageData(image[0].tobytes(), image[1])
+        image = ImageData(image[0].data, image[1])
     bar.over()
     logger('完成')
     return image

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-08 21:24:15
+LastEditTime : 2022-03-09 09:34:27
 Description  : 图像相关工具
 """
 from functools import cache
@@ -82,7 +82,7 @@ def array_to_image(array, size: tuple = ...) -> 'Image.Image':
 
 
 class ImageData(NamedTuple):
-    data: bytes
+    data: memoryview
     size: tuple[int, int]
 
     def tobytes(self):
