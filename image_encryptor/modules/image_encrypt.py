@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-09 09:34:34
+LastEditTime : 2022-03-10 12:08:13
 Description  : 图片加密模块
 """
 from math import ceil
@@ -346,7 +346,7 @@ class ImageEncrypt(object):
         else:
             self.base = ImageEncryptBaseV1(image, row, col, random_seed)
 
-    def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: str, bar):
+    def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: str, bar=FakeBar):
         return self.base.init_block_data(False, shuffle, flip, mapped_channels, bar)
 
     def generate_image(self, bar=FakeBar) -> Union[tuple['ndarray', tuple[int, int]], 'Image.Image']:
@@ -367,7 +367,7 @@ class ImageDecrypt(object):
         else:
             self.base = ImageEncryptBaseV1(image, row, col, random_seed)
 
-    def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: str, bar):
+    def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: str, bar=FakeBar):
         return self.base.init_block_data(True, shuffle, flip, mapped_channels, bar)
 
     def generate_image(self, bar=FakeBar) -> Union[tuple['ndarray', tuple[int, int]], 'Image.Image']:

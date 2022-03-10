@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:13:26
+LastEditTime : 2022-03-10 12:09:52
 Description  : 一些小东西
 """
 from functools import wraps as functools_wraps
@@ -174,7 +174,7 @@ class FakeBar:
     value = 0
 
     @staticmethod
-    def add(n):
+    def add():
         pass
 
     @staticmethod

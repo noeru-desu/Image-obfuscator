@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-08 21:27:41
+LastEditTime : 2022-03-10 12:12:36
 Description  : 常量
 """
 from wx import Colour
@@ -18,10 +18,10 @@ RELEASE_CANDIDATE = 1
 DEV = 2
 BETA = 3
 ALPHA = 4
-VERSION_TYPE = RELEASE_CANDIDATE
+VERSION_TYPE = RELEASE
 VERSION_NUMBER = '1.3.0'
-SUB_VERSION_NUMBER = 'rc.4'
-VERSION_BATCH = '20220308-3'
+SUB_VERSION_NUMBER = 'release'
+VERSION_BATCH = '20220310-1'
 BRANCH = 'dev/1.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
