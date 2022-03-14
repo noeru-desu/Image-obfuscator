@@ -19,6 +19,7 @@ jobs:
   build:
     name: Build
     runs-on: windows-latest
+    if: ${{ !startsWith(github.event.head_commit.message, '[skip ci]') }}
     steps:
       - name: Cancel previous runs
         uses: styfle/cancel-workflow-action@0.5.0
