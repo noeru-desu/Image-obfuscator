@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-08 15:06:20
+LastEditTime : 2022-03-20 10:29:32
 Description  : 图像项目
 """
 from abc import ABC
@@ -50,8 +50,8 @@ class ImageItemCache(object):
 
     def __init__(self, item: 'ImageItem', loaded_image=None):
         self._item = item
-        self.initial_preview: 'Image' = None
-        self.processed_previews: dict[bytes, 'Bitmap'] = {}
+        self.initial_preview: Image = None
+        self.processed_previews: dict[bytes, Bitmap] = {}
         self.preview_size: tuple[int, int] = None
         self.loading_encryption_attributes_error = None
         self._encryption_data = None
@@ -74,8 +74,8 @@ class ImageItemCache(object):
         if not self._item.frame.startup_parameters.low_memory or self._item.selected:
             return self._loaded_image
 
-    def get_processed_preview_cache(self, hash) -> Optional['Bitmap']:
-        return self.processed_previews.get(hash)
+    def get_processed_preview_cache(self, cache_hash) -> Optional['Bitmap']:
+        return self.processed_previews.get(cache_hash)
 
     @loaded_image.setter
     def loaded_image(self, v):
@@ -151,8 +151,8 @@ class ImageItem(Item):
         self.loaded_image_path = path_data.file_name if no_file else path_data.full_path
         self.settings = settings
 
-        self.item_id: 'TreeItemId' = ...
-        self.parent: 'Optional[FolderItem]' = None
+        self.item_id: TreeItemId = ...
+        self.parent: Optional[FolderItem] = None
         self.selected = False
         self.no_file = no_file
         self.keep_cache_loaded_image = keep_cache_loaded_image
@@ -241,8 +241,8 @@ class FolderItem(Item):
         self.frame = frame
         self.path = path
         self.root = root
-        self.children: 'dict[TreeItemId, Union[FolderItem, ImageItem]]' = {}
-        self.parent: 'Optional[FolderItem]' = None
+        self.children: dict[TreeItemId, Union[FolderItem, ImageItem]] = {}
+        self.parent: Optional[FolderItem] = None
 
     def del_item(self, item_id: 'TreeItemId', del_item=True):
         for id, data in tuple(self.children.items()):

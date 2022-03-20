@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-08 20:05:30
+LastEditTime : 2022-03-20 10:35:08
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -52,11 +52,11 @@ class MainFrame(BasicMainFrame):
         if event is not None and self.controls.preview_mode != AUTO_REFRESH:
             return
         size_changed = self.controls.regen_initial_preview()
-        hash = self.settings.encryption_settings_hash
-        if size_changed or hash not in self.image_item.cache.processed_previews:
+        cache_hash = self.settings.encryption_settings_hash
+        if size_changed or cache_hash not in self.image_item.cache.processed_previews:
             self.preview_generator.generate_preview()
         else:
-            self.controls.previewed_bitmap = self.image_item.cache.get_processed_preview_cache(hash)
+            self.controls.previewed_bitmap = self.image_item.cache.get_processed_preview_cache(cache_hash)
 
     def force_refresh_preview(self, event=None):
         if self.image_item is None:
@@ -90,9 +90,8 @@ class MainFrame(BasicMainFrame):
         if self.controls.password != 'none' and self.controls.password not in self.password_dict.values():
             if self.add_password_dict(self.controls.password):
                 return True
-            else:
-                self.controls.password = ''
-                return False
+            self.controls.password = ''
+            return False
         return True
 
     def save_selected_image(self, event):
@@ -112,7 +111,7 @@ class MainFrame(BasicMainFrame):
             else:
                 self.controls.frame.processingSettingsPanel1.Enable()
                 self.controls.frame.passwordCtrl.Enable()
-        elif self.image_item is not None:
+        else:
             self.image_item.check_encryption_parameters()
             if self.image_item.cache.loading_encryption_attributes_error is not None:
                 self.controls.proc_mode = self.controls.previous_proc_mode

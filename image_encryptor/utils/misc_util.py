@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-10 12:09:52
+LastEditTime : 2022-03-19 20:52:55
 Description  : 一些小东西
 """
 from functools import wraps as functools_wraps
@@ -11,7 +11,7 @@ from os import walk
 from os.path import normpath, split
 from threading import RLock
 from time import perf_counter, perf_counter_ns
-from traceback import print_exc
+from traceback import print_exc, format_exc
 from typing import Callable, Union
 
 from PIL import Image, UnidentifiedImageError
@@ -20,7 +20,7 @@ from image_encryptor.constants import (OIERR_EXCEED_LIMIT, OIERR_NOT_EXIST,
                                        OIERR_UNSUPPORTED_FORMAT)
 
 
-def scale(image: 'Image', width: int, height: int):
+def scale(orig_width: int, orig_height: int, width: int, height: int):
     """
     :description: 指定宽或高，得到按比例缩放后的宽高
     :param image: PIL.Image.Image实例
@@ -28,9 +28,8 @@ def scale(image: 'Image', width: int, height: int):
     :param height: 可以使用的最大高度
     :return: 按比例缩放后的宽和高(取最小)
     """
-    _width, _height = image.size
-    scale = min(width / _width, height / _height)
-    return int(_width * scale), int(_height * scale)
+    scale = min(width / orig_width, height / orig_height)
+    return int(orig_width * scale), int(orig_height * scale)
 
 
 def walk_file(path, topdown=False, filter=None) -> tuple[int, list[tuple[list, list]]]:
@@ -106,13 +105,23 @@ lock = RLock()
 def in_try(func):
     @functools_wraps(func)
     def wrap(*args, **kwargs):
+        copy_signature(wrap, func)
         try:
             return func(*args, **kwargs)
         except Exception:
             with lock:
                 print_exc()
+    return wrap
+
+
+def catch_exception_and_return(func):
+    @functools_wraps(func)
+    def wrap(*args, **kwargs):
         copy_signature(wrap, func)
-        wrap.original = func
+        try:
+            return func(*args, **kwargs), None
+        except Exception:
+            return None, format_exc()
     return wrap
 
 
@@ -152,10 +161,10 @@ def timeit(fn):
             timeit_targets[fn.__name__]['average_time'] = running_time
         else:
             timeit_targets[fn.__name__]['average_time'] = (running_time + timeit_targets[fn.__name__]['average_time']) / 2
-        print(f'{fn.__name__}运行时间：{running_time}')
+        print(f'{fn.__name__}运行时间：{running_time} ns')
         timeit_targets[fn.__name__]['running_time'] += running_time
-        print(f'{fn.__name__}总运行时间：{timeit_targets[fn.__name__]["running_time"]}')
-        print(f'{fn.__name__}平均运行时间：{timeit_targets[fn.__name__]["average_time"]}')
+        print(f'{fn.__name__}总运行时间：{timeit_targets[fn.__name__]["running_time"]} ns')
+        print(f'{fn.__name__}平均运行时间：{timeit_targets[fn.__name__]["average_time"]} ns')
         return result
     return wrap
 

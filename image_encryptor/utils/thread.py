@@ -2,11 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:13:34
+LastEditTime : 2022-03-20 09:28:04
 Description  : 线程相关类
 """
 from concurrent.futures import (CancelledError, ProcessPoolExecutor,
                                 ThreadPoolExecutor)
+from contextlib import suppress
 from ctypes import c_long, py_object, pythonapi
 from threading import Thread as threading_Thread
 from traceback import print_exc
@@ -91,7 +92,7 @@ class ThreadManager(object):
     def kill(self):
         if self._thread.is_alive():
             res = pythonapi.PyThreadState_SetAsyncExc(c_long(self._thread.ident), py_object(self._raise_error))
-            if res != 1 and res != 0:
+            if res not in (1, 0):
                 pythonapi.PyThreadState_SetAsyncExc(self._thread.ident, None)
                 return False
         return True
@@ -177,10 +178,7 @@ class ThreadTaskManager(ThreadPoolExecutor):
             return '已有一个任务正在进行'
         if self.cancel_task(tag_name):
             return None
-        if self.task_dict[tag_name].single:
-            return '已有一个无法打断的任务正在进行'
-        else:
-            return '任务列表没有被完全取消'
+        return '已有一个无法打断的任务正在进行' if self.task_dict[tag_name].single else '任务列表没有被完全取消'
 
     def del_future(self, tag_name, futures=None):
         if not (futures is None or self.task_dict[tag_name].single):
@@ -209,10 +207,8 @@ class ProcessTaskManager(ProcessPoolExecutor):
         self.watchdog.add_task(tag_name, self.watchdog.submit(self.wait, future), self.callback, future, callback, *callback_args, **callback_kwargs)
 
     def wait(self, future: 'Future'):
-        try:
+        with suppress(CancelledError):
             error = future.exception()
-        except CancelledError:
-            pass
         if error is not None:
             print(error)
 
@@ -269,10 +265,7 @@ class ProcessTaskManager(ProcessPoolExecutor):
             return '已有一个任务正在进行'
         if self.cancel_task(tag_name):
             return None
-        if self.task_dict[tag_name].single:
-            return '已有一个无法打断的任务正在进行'
-        else:
-            return '任务列表没有被完全取消'
+        return '已有一个无法打断的任务正在进行' if self.task_dict[tag_name].single else '任务列表没有被完全取消'
 
     def del_future(self, tag_name, futures=None):
         if not (futures is None or self.task_dict[tag_name].single):

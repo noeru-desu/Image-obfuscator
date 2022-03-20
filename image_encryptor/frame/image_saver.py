@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:11:07
+LastEditTime : 2022-03-20 09:47:26
 Description  : 文件保存功能
 """
 from os import listdir
@@ -14,9 +14,9 @@ from wx import (CHK_CHECKED, CHK_UNCHECKED, CHK_UNDETERMINED, DIRP_CHANGE_DIR,
                 DIRP_DIR_MUST_EXIST, ID_CANCEL, ID_NO, ID_OK, ID_YES,
                 DirDialog)
 
-import image_encryptor.processor.decryptor as decryptor
-import image_encryptor.processor.encryptor as encryptor
-import image_encryptor.processor.qq_anti_harmony as qq_anti_harmony
+import image_encryptor.modes.decryptor as decryptor
+import image_encryptor.modes.encryptor as encryptor
+import image_encryptor.modes.qq_anti_harmony as qq_anti_harmony
 from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE
 from image_encryptor.frame.controls import ProgressBar
 from image_encryptor.utils.thread import ThreadManager
@@ -157,7 +157,7 @@ class ImageSaver(object):
         """文件夹相关检查"""
         if not listdir(self.frame.controls.saving_path):     # 是否为空文件夹
             return DO_NOT_USE_FOLDER
-        if image_item.path_data.relative_path:                             # 是否有多级文件夹可使用
+        if image_item.path_data.relative_path:               # 是否有多级文件夹可使用
             frame_id = self.frame.dialog.confirmation_frame(f'{image_item.path_data.file_name}所选的保存文件夹{self.frame.controls.saving_path}内有其他文件' + '\n' + '请选择处理方式', yes='仍然保存', no='选择新的文件夹进行保存', cancel='创建文件树同级文件夹保存', help='跳过保存该文件')
             if frame_id == ID_YES:
                 return DO_NOT_USE_FOLDER
