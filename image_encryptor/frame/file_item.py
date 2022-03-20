@@ -50,7 +50,7 @@ class ImageItemCache(object):
     def __init__(self, item: 'ImageItem', loaded_image=None):
         self._item = item
         self.initial_preview: Image = None
-        self.processed_previews: dict[bytes, Bitmap] = {}
+        self.processed_previews: dict[int, Bitmap] = {}
         self.preview_size: tuple[int, int] = None
         self.loading_encryption_attributes_error = None
         self._encryption_data = None
@@ -58,20 +58,20 @@ class ImageItemCache(object):
 
     @property
     def loaded_image(self) -> 'Image':
-        if self._item.selected and self._loaded_image is None:
+        assert self._item.selected, 'Image is not selected.'    # 低内存占用模式下可能出现内存泄露
+        if self._loaded_image is None:
             reload_encryption_data = self._item.loading_image_data_error is not None
             self._loaded_image, self._item.loading_image_data_error = open_image(self._item.loaded_image_path)
             if self._item.loading_image_data_error is not None:
-                self._item.frame.dialog.async_error(self._item.loading_image_data_error, '重新载入图片时出现错误')
-                self._loaded_image = BLACK_IMAGE
+                self._item.frame.dialog.async_error(self._item.loading_image_data_error, '重新载入图像时出现错误')
                 self._item.encrypted_image = False
                 self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, LIGHT_RED)
             else:
                 if reload_encryption_data:
                     self._item.load_encryption_parameters()
                 self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, BLACK)
-        if not self._item.frame.startup_parameters.low_memory or self._item.selected:
-            return self._loaded_image
+        # if not self._item.frame.startup_parameters.low_memory or self._item.selected:
+        return self._loaded_image
 
     def get_processed_preview_cache(self, cache_hash) -> Optional['Bitmap']:
         return self.processed_previews.get(cache_hash)
@@ -92,11 +92,7 @@ class ImageItemCache(object):
 
     @property
     def processed_preview(self) -> 'Bitmap':
-        # 使用get_processed_preview_cache代替
-        try:
-            raise
-        except Exception:
-            print_exc()
+        """请使用get_processed_preview_cache代替"""
         return list(self.processed_previews.values())[-1]
 
     def add_processed_preview(self, hash, bitmap):
