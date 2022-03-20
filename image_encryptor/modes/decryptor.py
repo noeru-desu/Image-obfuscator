@@ -2,41 +2,30 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-08 21:19:28
+LastEditTime : 2022-03-20 10:25:24
 Description  : 单文件解密功能
 """
 from os import makedirs
-from os.path import isdir, join, split, splitext
-from traceback import format_exc
-from typing import TYPE_CHECKING
+from os.path import isdir, join, splitext
+from typing import TYPE_CHECKING, Callable
 
 from PIL import Image
 
 from image_encryptor.frame.controls import (EncryptionParametersData,
                                             ProgressBar, SavingSettings)
 from image_encryptor.modules.image_encrypt import ImageDecrypt
-from image_encryptor.utils.image import array_to_image
+from image_encryptor.utils.misc_util import catch_exception_and_return
+from image_encryptor.utils.image import PillowImage, WrappedPillowImage, array_to_image, crop_array
 
 if TYPE_CHECKING:
+    from wx import Gauge
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.file_item import PathData
+    from image_encryptor.utils.image import WrappedImage
 
 
-def normal(frame: 'MainFrame', logger, gauge, image: 'Image', save: bool):
-    try:
-        return False, _normal(frame, logger, gauge, image, save)
-    except Exception:
-        return True, format_exc()
-
-
-def batch(image_data, path_data, encryption_data, saving_settings, auto_folder):
-    try:
-        return False, _batch(image_data, path_data, EncryptionParametersData(encryption_data), SavingSettings(*saving_settings), auto_folder)
-    except Exception:
-        return True, format_exc()
-
-
-def _normal(frame: 'MainFrame', logger, gauge, image, save):
+@catch_exception_and_return
+def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.Image', save: bool, type_conversion: Callable = ...) -> 'WrappedImage':
     encryption_data = frame.image_item.cache.encryption_data
     if encryption_data.has_password:
         if encryption_data.password is None:
@@ -79,16 +68,21 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
         image = image_decrypt.generate_image(bar)
 
     if encryption_data.version >= 7:
-        image = array_to_image(*image)
-    image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))
+        arr = crop_array(image[0], encryption_data.orig_height, encryption_data.orig_width)
+        if save or type_conversion is Ellipsis:
+            image = PillowImage(arr, (encryption_data.orig_width, encryption_data.orig_height))
+        else:
+            image = type_conversion(arr, (encryption_data.orig_width, encryption_data.orig_height))
+    else:
+        image = WrappedPillowImage(image.crop((0, 0, encryption_data.orig_width, encryption_data.orig_height)))
 
     if save:
         bar.next_step(1)
         logger('正在保存文件')
-        name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
+        name, suffix = splitext(frame.image_item.path_data.file_name)
         suffix = frame.controls.saving_format
         if suffix.lower() in ('jpg', 'jpeg'):
-            image = image.convert('RGB')
+            image.convert('RGB')
         name = f"{name.replace('-encrypted', '')}-decrypted.{suffix}"
 
         image.save(join(frame.controls.saving_path, name), quality=frame.controls.saving_quality, subsampling=frame.controls.saving_subsampling_level)
@@ -98,8 +92,11 @@ def _normal(frame: 'MainFrame', logger, gauge, image, save):
     return image
 
 
-def _batch(image_data, path_data: 'PathData', encryption_data: 'EncryptionParametersData', saving_settings: 'SavingSettings', auto_folder):
+@catch_exception_and_return
+def batch(image_data, path_data: 'PathData', encryption_data, saving_settings, auto_folder: bool):
     image = Image.frombytes(*image_data)
+    encryption_data = EncryptionParametersData(encryption_data)
+    saving_settings = SavingSettings(*saving_settings)
     image_decrypt = ImageDecrypt(image, encryption_data.cutting_row, encryption_data.cutting_col, encryption_data.password if encryption_data.has_password else 100, encryption_data.version)
 
     if encryption_data.XOR_channels:
@@ -111,7 +108,7 @@ def _batch(image_data, path_data: 'PathData', encryption_data: 'EncryptionParame
 
     if encryption_data.version >= 7:
         image = array_to_image(*image)
-    image = image.crop((0, 0, int(encryption_data.orig_width), int(encryption_data.orig_height)))
+    image = image.crop((0, 0, encryption_data.orig_width, encryption_data.orig_height))
 
     name, suffix = splitext(path_data.file_name)
     suffix = saving_settings.format

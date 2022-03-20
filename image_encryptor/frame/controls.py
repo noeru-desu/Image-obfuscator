@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-08 12:45:15
+LastEditTime : 2022-03-20 10:19:09
 Description  : 整理
 """
 from abc import ABC
@@ -13,12 +13,13 @@ from wx import Bitmap
 
 from image_encryptor.constants import (ANTY_HARMONY_MODE, DECRYPTION_MODE,
                                        EA_VERSION, ENCRYPTION_MODE,
-                                       EXTENSION_KEYS, RESAMPLING_FILTERS)
+                                       EXTENSION_KEYS, PIL_RESAMPLING_FILTERS)
 from image_encryptor.modules.password_verifier import PasswordDict
 from image_encryptor.utils.misc_util import scale
 
 if TYPE_CHECKING:
     from PIL.Image import Image
+    from image_encryptor.utils.image import WrappedImage
     from wx import Gauge
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.tree_manager import ImageItem
@@ -103,12 +104,12 @@ class Controls(object):
         self.frame.previewedBitmapPlanel.Layout()
 
     @property
-    def previewed_image(self) -> 'Image':
+    def previewed_image(self):
         raise NotImplementedError
 
     @previewed_image.setter
-    def previewed_image(self, v: 'Image'):
-        self.frame.previewedBitmap.Bitmap = Bitmap.FromBufferRGBA(*v.size, v.tobytes())
+    def previewed_image(self, v: 'WrappedImage'):
+        self.frame.previewedBitmap.Bitmap = v.wxBitmap
         self.frame.previewedBitmapPlanel.Layout()
 
     @property
@@ -296,12 +297,12 @@ class Controls(object):
         self.frame.previewProgress.Value = v
 
     @property
-    def resampling_filter(self):
-        return RESAMPLING_FILTERS[self.frame.resamplingFilter.Selection]
+    def resampling_filter_id(self):
+        return self.frame.resamplingFilter.Selection
 
-    @resampling_filter.setter
-    def resampling_filter(self, v):
-        self.frame.resamplingFilter.Selection = RESAMPLING_FILTERS.index(v)
+    @resampling_filter_id.setter
+    def resampling_filter_id(self, v):
+        self.frame.resamplingFilter.Selection = v
 
     @property
     def resampling_filter_name(self) -> str:
@@ -479,20 +480,18 @@ class Controls(object):
         if not force and self.frame.image_item.cache.initial_preview is not None and size == self.frame.image_item.cache.preview_size:
             self.imported_image = self.frame.image_item.cache.initial_preview
             return False
-        image = self.frame.image_item.cache.loaded_image.resize(scale(self.frame.image_item.cache.loaded_image, *size), self.resampling_filter)
+        image = self.frame.image_item.cache.loaded_image.resize(scale(*self.frame.image_item.cache.loaded_image.size, *size), PIL_RESAMPLING_FILTERS[self.resampling_filter_id])
         self.imported_image = image
         self.frame.image_item.cache.preview_size = size
         self.frame.image_item.cache.initial_preview = image
         return True
 
-    def regen_processed_preview(self, image: 'Image', try_not_to_zoom=False):
-        size = self.preview_size
-        hash = self.frame.settings.encryption_settings_hash
-        if (try_not_to_zoom and hash in self.frame.image_item.cache.processed_previews and size == self.frame.image_item.cache.preview_size):
-            self.previewed_image = image
-        else:
-            self.previewed_image = image.resize(scale(image, *size), self.resampling_filter)
-            self.frame.image_item.cache.add_processed_preview(hash, self.previewed_bitmap)
+    def regen_processed_preview(self, image: 'WrappedImage', resize=True):
+        if resize:
+            image.resize(scale(*image.size, *self.preview_size), self.resampling_filter_id)
+        bitmap = image.wxBitmap
+        self.frame.image_item.cache.add_processed_preview(self.frame.settings.encryption_settings_hash, bitmap)
+        self.previewed_bitmap = bitmap
 
 
 class SettingsManager(object):
@@ -528,7 +527,7 @@ class SettingsManager(object):
             self.controls.XOR_encryption, self.controls.noise_XOR, self.controls.XOR_R,
             self.controls.XOR_G, self.controls.XOR_B, self.controls.XOR_A,
             self.controls.noise_XOR, self.controls.noise_factor, self.controls.password,    # 后面是预览设置
-            self.controls.resampling_filter, self.controls.preview_source
+            self.controls.resampling_filter_id, self.controls.preview_source
         )
 
     @property
@@ -788,6 +787,7 @@ class ProgressBar(object):
     )
 
     def __init__(self, gauge: 'Gauge', total_steps: int = 1):
+        assert total_steps > 0, f'total_steps must be greater than 0 (currently {total_steps})'
         gauge.Value = 0
         self.gauge = gauge
         self.gauge_range = gauge.Range

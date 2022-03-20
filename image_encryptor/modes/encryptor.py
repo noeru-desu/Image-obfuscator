@@ -2,47 +2,46 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-09 09:31:36
+LastEditTime : 2022-03-20 10:24:31
 Description  : 单文件加密功能
 """
 from json import dumps
 from os import makedirs
-from os.path import isdir, join, split, splitext
-from traceback import format_exc
-from typing import TYPE_CHECKING
+from os.path import isdir, join, splitext
+from typing import TYPE_CHECKING, Callable
 
 from PIL import Image
 
-from image_encryptor.constants import ORIG_IMAGE
 from image_encryptor.frame.controls import (ProgressBar, SavingSettings,
                                             SettingsData)
 from image_encryptor.modules.image_encrypt import ImageEncrypt
-from image_encryptor.utils.image import ImageData, array_to_image
+from image_encryptor.utils.image import WrappedPillowImage, PillowImage, array_to_image
+from image_encryptor.utils.misc_util import catch_exception_and_return
 
 if TYPE_CHECKING:
+    from wx import Gauge
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.file_item import PathData
+    from image_encryptor.utils.image import WrappedImage
 
 
-def normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save: bool):
-    try:
-        return False, _normal(frame, logger, gauge, image, save)
-    except Exception:
-        return True, format_exc()
-
-
-def batch(image_data, path_data, settings, saving_format, auto_folder):
-    try:
-        return False, _batch(image_data, path_data, SettingsData(settings), SavingSettings(*saving_format), auto_folder)
-    except Exception:
-        return True, format_exc()
-
-
-def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
+@catch_exception_and_return
+def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.Image', save: bool, type_conversion: Callable = ...) -> 'WrappedImage':
     settings = frame.settings.all
+
+    step_count = 0
+    if settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels:
+        step_count += 2
+    if settings.XOR_encryption:
+        step_count += 1
+    if step_count < 1:
+        return WrappedPillowImage(image)
+    if save:
+        step_count += 1
+
     password = 100 if settings.password == 'none' else settings.password
     if save:
-        name, suffix = splitext(split(frame.image_item.loaded_image_path)[1])
+        name, suffix = splitext(frame.image_item.path_data.file_name)
         suffix = settings.saving_format
         original_size = image.size
 
@@ -51,14 +50,6 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
                 frame.dialog.warning('注意: 当前保存格式为有损压缩格式，在此情况下，使用颜色通道随机映射会导致图片在解密后出现轻微的分界线', '不可逆处理警告')
             if settings.XOR_channels:
                 frame.dialog.warning('注意: 当前保存格式为有损压缩格式，在此情况下，使用异或加密会导致图片解密后出现严重失真', '不可逆处理警告')
-
-    step_count = 0
-    if settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels:
-        step_count += 2
-    if settings.XOR_channels:
-        step_count += 1
-    if save:
-        step_count += 1
 
     image_encrypt = ImageEncrypt(image, settings.cutting_row, settings.cutting_col, password)
     logger('开始处理')
@@ -80,7 +71,7 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
         image = image_encrypt.xor_pixels(settings.XOR_channels, settings.noise_XOR, settings.noise_factor)
 
     if save:
-        image = array_to_image(*image)
+        image = PillowImage(*image)
         bar.next_step(1)
         logger('完成，正在保存文件')
         name = f"{name.replace('-decrypted', '')}-encrypted.{suffix}"
@@ -93,17 +84,22 @@ def _normal(frame: 'MainFrame', logger, gauge, image: 'Image.Image', save):
         with open(output_path, "a") as f:
             f.write('\n{}'.format(dumps(settings.encryption_parameters_data(*original_size).encryption_parameters_dict, separators=(',', ':'))))
         bar.finish()
-    elif frame.controls.preview_source == ORIG_IMAGE:
-        image = array_to_image(*image)
+    elif type_conversion is Ellipsis:
+        image = PillowImage(*image)
     else:
-        image = ImageData(image[0].data, image[1])
+        image = type_conversion(*image)
     bar.over()
     logger('完成')
     return image
 
 
-def _batch(image_data, path_data: 'PathData', settings: 'SettingsData', saving_settings: 'SavingSettings', auto_folder):
+@catch_exception_and_return
+def batch(image_data, path_data: 'PathData', settings, saving_format, auto_folder: bool):
+    settings = SettingsData(settings)
+    if not (settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels or settings.XOR_encryption):
+        return
     image = Image.frombytes(*image_data)
+    saving_settings = SavingSettings(*saving_format)
     password = 100 if settings.password == 'none' else settings.password
     name, suffix = splitext(path_data.file_name)
     suffix = saving_settings.format
@@ -128,7 +124,7 @@ def _batch(image_data, path_data: 'PathData', settings: 'SettingsData', saving_s
     output_path = join(save_dir, name)
     image = array_to_image(*image)
     if suffix.lower() in ('jpg', 'jpeg'):
-        image.convert('RGB')
+        image = image.convert('RGB')
 
     image.save(output_path, quality=saving_settings.quality, subsampling=saving_settings.subsampling_level)
 
