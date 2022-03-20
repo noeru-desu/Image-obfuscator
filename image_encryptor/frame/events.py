@@ -151,6 +151,7 @@ class MainFrame(BasicMainFrame):
             self.image_item = image_data
             image_data.selected = True
             self.controls.imported_image_id = 0
+            self.controls.previous_proc_mode = image_data.settings.proc_mode
             self.controls.gen_image_info(image_data)
             if image_data.settings.proc_mode == DECRYPTION_MODE and image_data.encrypted_image:
                 image_data.cache.encryption_data.backtrack_interface()
