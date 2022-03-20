@@ -75,7 +75,7 @@ class MainFrame (wx.Frame):
         self.m_button32 = wx.Button(self.loadingPanel, wx.ID_ANY, u"从剪贴板载入", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer91.Add(self.m_button32, 0, wx.ALL, 5)
 
-        self.imageInfo = wx.StaticText(self.loadingPanel, wx.ID_ANY, u"未选择图片", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.imageInfo = wx.StaticText(self.loadingPanel, wx.ID_ANY, u"未选择图像", wx.DefaultPosition, wx.DefaultSize, 0)
         self.imageInfo.Wrap(-1)
 
         bSizer91.Add(self.imageInfo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
@@ -124,7 +124,7 @@ class MainFrame (wx.Frame):
         self.imagePanel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         gSizer1 = wx.GridSizer(0, 1, 0, 0)
 
-        sbSizer2 = wx.StaticBoxSizer(wx.StaticBox(self.imagePanel, wx.ID_ANY, u"导入图片-预览图"), wx.VERTICAL)
+        sbSizer2 = wx.StaticBoxSizer(wx.StaticBox(self.imagePanel, wx.ID_ANY, u"导入图像-预览图"), wx.VERTICAL)
 
         self.importedBitmapPlanel = wx.Panel(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer261 = wx.BoxSizer(wx.VERTICAL)
@@ -491,7 +491,7 @@ class MainFrame (wx.Frame):
         self.m_staticText82111 = wx.StaticText(sbSizer61.GetStaticBox(), wx.ID_ANY, u"色度抽样等级:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText82111.Wrap(-1)
 
-        self.m_staticText82111.SetToolTip(u"(0-2) 0表示不使用，等级越高，保存有损格式时获得的文件大小越小，但会导致图片出现噪点，使图片解密后失真")
+        self.m_staticText82111.SetToolTip(u"(0-2) 0表示不使用，等级越高，保存有损格式时获得的文件大小越小，但会导致图像出现噪点，使图像解密后失真")
 
         bSizer461.Add(self.m_staticText82111, 0, wx.ALL, 2)
 
@@ -582,10 +582,10 @@ class MainFrame (wx.Frame):
         self.savingBtnPanel = wx.Panel(self.savingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer20 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_button7 = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存当前选中的图片", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button7 = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存当前选中的图像", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer20.Add(self.m_button7, 0, wx.ALL, 5)
 
-        self.m_button8 = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存所有符合过滤条件的图片", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button8 = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存所有符合过滤条件的图像", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer20.Add(self.m_button8, 0, wx.ALL, 5)
 
         self.savingBtnPanel.SetSizer(bSizer20)
@@ -618,7 +618,7 @@ class MainFrame (wx.Frame):
         self.savingOptions.SetSizer(bSizer264)
         self.savingOptions.Layout()
         bSizer264.Fit(self.savingOptions)
-        self.settingsPanel.AddPage(self.savingOptions, u"保存图片", False)
+        self.settingsPanel.AddPage(self.savingOptions, u"保存图像", False)
         self.otherOptions = wx.Panel(self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer74 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -627,12 +627,12 @@ class MainFrame (wx.Frame):
         self.m_staticText82 = wx.StaticText(sbSizer6.GetStaticBox(), wx.ID_ANY, u"允许最大像素量", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText82.Wrap(-1)
 
-        self.m_staticText82.SetToolTip(u"允许载入的最大图片像素量，0为禁用(谨防DOS压缩炸弹图片)")
+        self.m_staticText82.SetToolTip(u"允许载入的最大图像像素量，0为禁用(谨防DOS压缩炸弹图像)")
 
         sbSizer6.Add(self.m_staticText82, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
         self.maxImagePixels = wx.SpinCtrl(sbSizer6.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 0, 1000000000, 89478485)
-        self.maxImagePixels.SetToolTip(u"允许载入的最大图片像素量，0为禁用(谨防DOS压缩炸弹图片)")
+        self.maxImagePixels.SetToolTip(u"允许载入的最大图像像素量，0为禁用(谨防DOS压缩炸弹图像)")
 
         sbSizer6.Add(self.maxImagePixels, 1, wx.ALL, 0)
 

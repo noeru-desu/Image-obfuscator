@@ -2,14 +2,16 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 10:44:07
+LastEditTime : 2022-03-20 12:51:11
 Description  : 常量
 """
-from wx import Colour, IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_BICUBIC, IMAGE_QUALITY_BILINEAR, IMAGE_QUALITY_BOX_AVERAGE, IMAGE_QUALITY_HIGH, IMAGE_QUALITY_NORMAL
 from PIL.Image import (BICUBIC, BILINEAR, BOX, EXTENSION, HAMMING, LANCZOS,
                        NEAREST)
 from PIL.Image import init as PIL_init
 from PIL.Image import new
+from wx import (IMAGE_QUALITY_BICUBIC, IMAGE_QUALITY_BILINEAR,
+                IMAGE_QUALITY_BOX_AVERAGE, IMAGE_QUALITY_HIGH,
+                IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_NORMAL, Colour)
 
 PIL_init()
 
@@ -44,13 +46,13 @@ BLACK_IMAGE = new('RGBA', (1, 1))
 
 OIERR_NOT_EXIST = '文件不存在'
 OIERR_UNSUPPORTED_FORMAT = '无法打开或识别图像格式, 或输入了不受支持的格式'
-OIERR_EXCEED_LIMIT = '图片像素量超过允许最大像素量'
+OIERR_EXCEED_LIMIT = '图像像素量超过允许最大像素量'
 
 EA_VERSION = 7
-EAERR_NO_DATA = '选择的图片中没有数据'
-EAERR_NO_ATTRIBUTES = '选择的图片不包含加密参数, 请确保尝试解密的图片为加密后的原图'
-EAERR_DECODE_FAILED = '加载图片加密参数时出现问题, 请确保尝试解密的图片为加密后的原图'
-EAERR_INCOMPATIBLE = '该版本不支持0.1.0-BETA版加密器加密的图片'
-EAERR_NOT_SUPPORT = '选择的图片文件由更高版本的加密器加密, 请使用最新版的加密器进行解密'
+EAERR_NO_DATA = '选择的图像中没有数据'
+EAERR_NO_ATTRIBUTES = '选择的图像不包含加密参数, 请确保尝试解密的图像为加密后的原图'
+EAERR_DECODE_FAILED = '加载图像加密参数时出现问题, 请确保尝试解密的图像为加密后的原图'
+EAERR_INCOMPATIBLE = '该版本不支持0.1.0-BETA版加密器加密的图像'
+EAERR_NOT_SUPPORT = '选择的图像文件由更高版本的加密器加密, 请使用最新版的加密器进行解密'
 
 LIGHT_RED = Colour(255, 30, 30)

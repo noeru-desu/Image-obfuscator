@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 10:25:24
+LastEditTime : 2022-03-20 12:27:10
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -14,8 +14,9 @@ from PIL import Image
 from image_encryptor.frame.controls import (EncryptionParametersData,
                                             ProgressBar, SavingSettings)
 from image_encryptor.modules.image_encrypt import ImageDecrypt
+from image_encryptor.utils.image import (PillowImage, WrappedPillowImage,
+                                         array_to_image, crop_array)
 from image_encryptor.utils.misc_util import catch_exception_and_return
-from image_encryptor.utils.image import PillowImage, WrappedPillowImage, array_to_image, crop_array
 
 if TYPE_CHECKING:
     from wx import Gauge
@@ -31,7 +32,7 @@ def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.I
         if encryption_data.password is None:
             encryption_data.password = frame.password_dict.get_password(encryption_data.password_base64)
             if encryption_data.password is None:
-                frame.dialog.async_warning('密码字典中不存在此图片的密码，请输入密码')
+                frame.dialog.async_warning('密码字典中不存在此图像的密码，请输入密码')
                 return image
             else:
                 password = encryption_data.password

@@ -2,8 +2,8 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 10:25:54
-Description  : 主要针对QQ群的图片反阻止发送功能(测试中)
+LastEditTime : 2022-03-20 12:54:21
+Description  : 主要针对QQ群的图像反阻止发送功能
 """
 from os import makedirs
 from os.path import isdir, join, splitext

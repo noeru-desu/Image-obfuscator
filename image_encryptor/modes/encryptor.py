@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 10:24:31
+LastEditTime : 2022-03-20 12:27:14
 Description  : 单文件加密功能
 """
 from json import dumps
@@ -15,7 +15,8 @@ from PIL import Image
 from image_encryptor.frame.controls import (ProgressBar, SavingSettings,
                                             SettingsData)
 from image_encryptor.modules.image_encrypt import ImageEncrypt
-from image_encryptor.utils.image import WrappedPillowImage, PillowImage, array_to_image
+from image_encryptor.utils.image import (PillowImage, WrappedPillowImage,
+                                         array_to_image)
 from image_encryptor.utils.misc_util import catch_exception_and_return
 
 if TYPE_CHECKING:
@@ -47,9 +48,9 @@ def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.I
 
         if suffix in ('jpg', 'jpeg', 'wmf', 'webp'):
             if settings.mapping_channels:
-                frame.dialog.warning('注意: 当前保存格式为有损压缩格式，在此情况下，使用颜色通道随机映射会导致图片在解密后出现轻微的分界线', '不可逆处理警告')
+                frame.dialog.warning('注意: 当前保存格式为有损压缩格式，在此情况下，使用颜色通道随机映射会导致图像在解密后出现轻微的分界线', '不可逆处理警告')
             if settings.XOR_channels:
-                frame.dialog.warning('注意: 当前保存格式为有损压缩格式，在此情况下，使用异或加密会导致图片解密后出现严重失真', '不可逆处理警告')
+                frame.dialog.warning('注意: 当前保存格式为有损压缩格式，在此情况下，使用异或加密会导致图像解密后出现严重失真', '不可逆处理警告')
 
     image_encrypt = ImageEncrypt(image, settings.cutting_row, settings.cutting_col, password)
     logger('开始处理')

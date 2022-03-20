@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 09:47:26
+LastEditTime : 2022-03-20 12:52:27
 Description  : 文件保存功能
 """
 from os import listdir
@@ -56,9 +56,9 @@ class ImageSaver(object):
         self.filter = None
 
     def save_selected_image(self):
-        """保存选中的图片"""
+        """保存选中的图像"""
         if self.frame.image_item is None:
-            self.frame.dialog.async_error('没有选择图片')
+            self.frame.dialog.async_error('没有选择图像')
             return
         if self._check():                       # 相关合法性检查
             return
@@ -73,18 +73,18 @@ class ImageSaver(object):
             self.saving_thread.start_new(qq_anti_harmony.normal, self._save_selected_image_call_back, (self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress, self.frame.image_item.cache.loaded_image, True))
 
     def _save_selected_image_call_back(self, error, result):
-        """保存选中的图片完成后的回调函数"""
+        """保存选中的图像完成后的回调函数"""
         self.hide_saving_progress_plane()
         error, data = result
         if error:
-            self.frame.dialog.async_error(data, '生成加密图片时出现意外错误')
+            self.frame.dialog.async_error(data, '生成加密图像时出现意外错误')
         else:
             self.frame.controls.regen_processed_preview(data)     # 顺便刷新一下预览图
 
     def bulk_save(self):
         """批量保存"""
         if not self.frame.tree_manager.file_dict:
-            self.frame.dialog.async_error('没有载入图片')
+            self.frame.dialog.async_error('没有载入图像')
             return
         if self._check():                               # 相关合法性检查
             return
@@ -196,7 +196,7 @@ class ImageSaver(object):
         with self.lock:     # 线程锁，防止进度累加错误
             error, data = result
             if error:
-                self.frame.dialog.async_error(data, '生成加密图片时出现意外错误')
+                self.frame.dialog.async_error(data, '生成加密图像时出现意外错误')
             self.bar.add()
             self.frame.controls.saving_progress_info = f"{self.bar.value}/{self.task_num} - {format(self.bar.value / self.task_num * 100, '.2f')}%"
             if self.bar.value == self.task_num:

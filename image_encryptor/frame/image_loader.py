@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:10:58
+LastEditTime : 2022-03-20 12:52:17
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
@@ -38,11 +38,11 @@ class ImageLoader(object):
 
     def load(self, path_chosen: Iterable | str | Image.Image):
         if not self.loading_thread.is_ended:
-            self.frame.dialog.async_warning('请等待当前图片载入完成后再载入新的图片')
+            self.frame.dialog.async_warning('请等待当前图像载入完成后再载入新的图像')
             return
         Image.MAX_IMAGE_PIXELS = self.frame.controls.max_image_pixels if self.frame.controls.max_image_pixels != 0 else None
         if not self.frame.tree_manager.file_dict:
-            self.frame.set_settings_as_default()  # 当没有加载任何图片时，将当前的设置设为默认设置
+            self.frame.set_settings_as_default()  # 当没有加载任何图像时，将当前的设置设为默认设置
         if isinstance(path_chosen, Image.Image):
             self.loading_thread.start_new(self._load_image_object, self._loading_callback, (path_chosen,))
         else:
@@ -57,7 +57,7 @@ class ImageLoader(object):
     def _load_image_object(self, image: 'Image.Image'):
         self.frame.loadingPanel.Disable()
         if self.frame.startup_parameters.low_memory:
-            result = self.frame.dialog.confirmation_frame('是否将该剪切板中的图片缓存在内存中?', cancel='取消载入')
+            result = self.frame.dialog.confirmation_frame('是否将该剪切板中的图像缓存在内存中?', cancel='取消载入')
             if result == ID_CANCEL:
                 self.frame.stop_loading_func.init()
                 return
@@ -88,7 +88,7 @@ class ImageLoader(object):
 
     def _load_file(self, path_chosen):
         loaded_image, error = open_image(path_chosen)
-        if self._hint_image(error):
+        if error is None:
             path, name = split(path_chosen)
             image_item = ImageItem(
                 self.frame, None if self.frame.startup_parameters.low_memory else loaded_image, PathData(path, '', name),
@@ -97,6 +97,8 @@ class ImageLoader(object):
             item_id = self.frame.tree_manager.add_file(image_item, path_chosen)
             image_item.load_encryption_parameters()
             CallAfter(self.frame.imageTreeCtrl.SelectItem, item_id)     # 此方法在加密模式下会调用密码输入框，需回到主线程执行
+        else:
+            self._output_image_loading_failure_info(error)
         self.frame.stop_loading_func.init()
 
     def _load_dir(self, path_chosen):
@@ -120,7 +122,7 @@ class ImageLoader(object):
         for r, fl in files:
             for n in fl:
                 loaded_image, error = open_image(join(path_chosen, r, n))
-                if self._hint_image(error, False, n):
+                if error is None:
                     image_item = ImageItem(
                         self.frame, None if self.frame.startup_parameters.low_memory else loaded_image,
                         PathData(path_chosen, r, n), Settings(self.frame.controls, settings_tuple)
@@ -128,6 +130,8 @@ class ImageLoader(object):
                     self.frame.tree_manager.add_file(image_item, path_chosen, r, n, False)
                     image_item.load_encryption_parameters()
                     self.add_loading_progress()
+                else:
+                    self._output_image_loading_failure_info(error, False, n)
                 if self.loading_thread.exit_signal:
                     self.frame.stop_loading(False)
                     return
@@ -136,15 +140,11 @@ class ImageLoader(object):
         self.frame.dialog.async_info(f'成功从文件夹{folder_name}载入了{self.loading_progress}个文件')
         self.loading_progress = 0
 
-    def _hint_image(self, error, prompt=True, file_name='图片'):
-        if error is not None:
-            if prompt:
-                self.frame.dialog.async_error(error, f'加载{file_name}时出现错误')
-            else:
-                self.frame.logger.warning(f'加载{file_name}时出现错误: {error}')
-            return False
+    def _output_image_loading_failure_info(self, massage: str, pop_up=True, file_name='图像'):
+        if pop_up:
+            self.frame.dialog.async_error(massage, f'加载{file_name}时出现错误')
         else:
-            return True
+            self.frame.logger.warning(f'加载{file_name}时出现错误: {massage}')
 
     def _exist(self, path_chosen):
         if path_chosen in self.frame.tree_manager.file_dict:

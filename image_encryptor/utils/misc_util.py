@@ -2,21 +2,21 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-19 20:52:55
+LastEditTime : 2022-03-20 12:41:56
 Description  : 一些小东西
 """
 from functools import wraps as functools_wraps
 from inspect import signature
 from os import walk
-from os.path import normpath, split
+from os.path import normpath
 from threading import RLock
 from time import perf_counter, perf_counter_ns
 from traceback import print_exc, format_exc
-from typing import Callable, Union
+from typing import Callable, Optional
 
 from PIL import Image, UnidentifiedImageError
 
-from image_encryptor.constants import (OIERR_EXCEED_LIMIT, OIERR_NOT_EXIST,
+from image_encryptor.constants import (BLACK_IMAGE, OIERR_EXCEED_LIMIT, OIERR_NOT_EXIST,
                                        OIERR_UNSUPPORTED_FORMAT)
 
 
@@ -53,9 +53,9 @@ def walk_file(path, topdown=False, filter=None) -> tuple[int, list[tuple[list, l
     return file_num, result
 
 
-def open_image(file) -> Union[tuple[str, str], tuple['Image.Image', None]]:
+def open_image(file) -> tuple['Image.Image', Optional[str]]:
     """
-    :description: 打开图片
+    :description: 打开图像
     :param file: 要打开的文件
     :return: 成功时，返回(Image实例, None)元组
                 失败时， 返回(文件名, 错误提示)元组
@@ -63,13 +63,13 @@ def open_image(file) -> Union[tuple[str, str], tuple['Image.Image', None]]:
     try:
         image = Image.open(file).convert('RGBA')
     except FileNotFoundError:
-        return split(file)[1], OIERR_NOT_EXIST
+        return BLACK_IMAGE, OIERR_NOT_EXIST
     except UnidentifiedImageError:
-        return split(file)[1], OIERR_UNSUPPORTED_FORMAT
+        return BLACK_IMAGE, OIERR_UNSUPPORTED_FORMAT
     except Image.DecompressionBombWarning:
-        return split(file)[1], OIERR_EXCEED_LIMIT
+        return BLACK_IMAGE, OIERR_EXCEED_LIMIT
     except Exception as e:
-        return split(file)[1], repr(e)
+        return BLACK_IMAGE, repr(e)
     return image, None
 
 

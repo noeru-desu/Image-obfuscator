@@ -3,7 +3,7 @@ Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
 LastEditTime : 2022-03-10 12:08:13
-Description  : 图片加密模块
+Description  : 图像加密模块
 """
 from math import ceil
 from random import Random
@@ -66,7 +66,7 @@ class ImageEncryptBaseV2(object):
 
     def __init__(self, image: Image.Image, row: int, col: int, random_seed):
         """
-        :param image: 需要加密的图片
+        :param image: 需要加密的图像
         :param row: 切割行数
         :param col: 切割列数
         :param random_seed: 加密密码
@@ -86,7 +86,7 @@ class ImageEncryptBaseV2(object):
 
     def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: str, bar=FakeBar):
         """
-        :description: 生成打乱后的图片分块、翻转分块, 与每个分块所在的坐标列表
+        :description: 生成打乱后的图像分块、翻转分块, 与每个分块所在的坐标列表
         """
         assert not self.init, 'ImageEncrypt instance has been initialized.'
         self.init = True
@@ -100,7 +100,7 @@ class ImageEncryptBaseV2(object):
         else:
             self.mapped_channels = False
             self.mapping_table = None
-        # 切割图片并记录坐标
+        # 切割图像并记录坐标
         for y in range(self.row):
             for x in range(self.col):
                 block_pos = (x * self.block_width, y * self.block_height)
@@ -127,8 +127,8 @@ class ImageEncryptBaseV2(object):
 
     def generate_image(self, bar=FakeBar):
         """
-        :description: 生成处理后的图片
-        :return: 处理后的图片
+        :description: 生成处理后的图像
+        :return: 处理后的图像
         """
         assert self.init, 'ImageEncrypt instance is not initialized.'
         self.image = Image.new('RGBA', self.ceil_size)
@@ -155,8 +155,8 @@ class ImageEncryptBaseV2(object):
 
     def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
         """
-        :description: 异或图片中每个像素点的RGB(A)通道
-        :return: 异或后的图片
+        :description: 异或图像中每个像素点的RGB(A)通道
+        :return: 异或后的图像
         """
         # ! Image转array时默认shape为(高, 宽, 通道数)，使用与保存时需要将高与宽数值对调
         pixel_array = ascontiguousarray(self.image, uint8)
@@ -182,7 +182,7 @@ class ImageEncryptBaseV1(ImageEncryptBaseV2):
 
     def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: str, bar=FakeBar):
         """
-        :description: 生成打乱后的图片分块、翻转分块, 与每个分块所在的坐标列表
+        :description: 生成打乱后的图像分块、翻转分块, 与每个分块所在的坐标列表
         """
         assert not self.init, 'ImageEncrypt instance has been initialized.'
         self.init = True
@@ -192,7 +192,7 @@ class ImageEncryptBaseV1(ImageEncryptBaseV2):
         # 使用对应的映射表
         self.mapped_channels = mapped_channels
         self.mapping_table = old_decrypt_mapping_func if decryption_mode else old_encrypt_mapping_func
-        # 切割图片并记录坐标
+        # 切割图像并记录坐标
         for y in range(self.row):
             for x in range(self.col):
                 block_pos = (x * self.block_width, y * self.block_height)
@@ -227,7 +227,7 @@ class ImageEncryptBaseV3(object):
 
     def __init__(self, image: Image.Image, row: int, col: int, random_seed):
         """
-        :param image: 需要加密的图片
+        :param image: 需要加密的图像
         :param row: 切割行数
         :param col: 切割列数
         :param random_seed: 加密密码
@@ -248,7 +248,7 @@ class ImageEncryptBaseV3(object):
 
     def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: str, bar=FakeBar):
         """
-        :description: 生成打乱后的图片分块、翻转分块, 与每个分块所在的坐标列表
+        :description: 生成打乱后的图像分块、翻转分块, 与每个分块所在的坐标列表
         """
         assert not self.init, 'ImageEncrypt instance has been initialized.'
         self.init = True
@@ -261,7 +261,7 @@ class ImageEncryptBaseV3(object):
         else:
             self.mapped_channels = False
             self.mapping_table = None
-        # 切割图片并记录坐标
+        # 切割图像并记录坐标
         for i, arr in enumerate(vsplit(self.image_array, self.row)):
             self.block_list.extend(hsplit(arr, self.col))
             h_pos = i * self.block_height
@@ -284,8 +284,8 @@ class ImageEncryptBaseV3(object):
 
     def generate_image(self, bar=FakeBar):
         """
-        :description: 生成处理后的图片
-        :return: 处理后的图片
+        :description: 生成处理后的图像
+        :return: 处理后的图像
         """
         assert self.init, 'ImageEncrypt instance is not initialized.'
         random.seed(self._shuffle.seed)
@@ -319,8 +319,8 @@ class ImageEncryptBaseV3(object):
 
     def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
         """
-        :description: 异或图片中每个像素点的RGB(A)通道
-        :return: 异或后的图片
+        :description: 异或图像中每个像素点的RGB(A)通道
+        :return: 异或后的图像
         """
         size = self.image_array.shape[:-1]
         if noise:

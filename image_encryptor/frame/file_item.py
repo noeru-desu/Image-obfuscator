@@ -2,28 +2,27 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 10:29:32
+LastEditTime : 2022-03-20 12:51:56
 Description  : 图像项目
 """
 from abc import ABC
 from gc import collect
 from os.path import isfile, join
-from traceback import print_exc
 from typing import TYPE_CHECKING, NamedTuple, Optional, Union
 
-from wx import CallAfter, BLACK
+from wx import BLACK, CallAfter
 
-from image_encryptor.constants import (BLACK_IMAGE, DECRYPTION_MODE,
-                                       ENCRYPTION_MODE, LIGHT_RED)
+from image_encryptor.constants import (DECRYPTION_MODE, ENCRYPTION_MODE,
+                                       LIGHT_RED)
 from image_encryptor.frame.controls import EncryptionParameters
 from image_encryptor.modules.version_adapter import load_encryption_attributes
 from image_encryptor.utils.misc_util import open_image
 
 if TYPE_CHECKING:
-    from PIL.Image import Image
-    from wx import Bitmap, TreeItemId
     from image_encryptor.frame.controls import Settings
     from image_encryptor.frame.events import MainFrame
+    from PIL.Image import Image
+    from wx import Bitmap, TreeItemId
 
 
 class Item(ABC):
@@ -137,7 +136,7 @@ class PathData(NamedTuple):
 
 
 class ImageItem(Item):
-    """每个载入的图片的存储实例"""
+    """每个载入的图像的存储实例"""
     __slots__ = (
         'frame', 'cache', 'path_data', 'loaded_image_path', 'settings', 'parent', 'item_id',
         'selected', 'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error'

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 10:19:09
+LastEditTime : 2022-03-20 12:51:17
 Description  : 整理
 """
 from abc import ABC
@@ -466,7 +466,7 @@ class Controls(object):
 
     def gen_image_info(self, item: 'ImageItem' = None):
         if item is None:
-            self.image_info = '未选择图片'
+            self.image_info = '未选择图像'
         else:
             self.image_info = '大小: {}x{} 格式: {}'.format(*item.cache.loaded_image.size,
                                                         '未知' if item.no_file else splitext(item.loaded_image_path)[1].lstrip('.')

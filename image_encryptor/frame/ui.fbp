@@ -641,7 +641,7 @@
                                     <property name="gripper">0</property>
                                     <property name="hidden">0</property>
                                     <property name="id">wxID_ANY</property>
-                                    <property name="label">未选择图片</property>
+                                    <property name="label">未选择图像</property>
                                     <property name="markup">0</property>
                                     <property name="max_size"></property>
                                     <property name="maximize_button">0</property>
@@ -1098,7 +1098,7 @@
                                         <property name="proportion">1</property>
                                         <object class="wxStaticBoxSizer" expanded="0">
                                             <property name="id">wxID_ANY</property>
-                                            <property name="label">导入图片-预览图</property>
+                                            <property name="label">导入图像-预览图</property>
                                             <property name="minimum_size"></property>
                                             <property name="name">sbSizer2</property>
                                             <property name="orient">wxVERTICAL</property>
@@ -4140,7 +4140,7 @@
                                 </object>
                                 <object class="notebookpage" expanded="1">
                                     <property name="bitmap"></property>
-                                    <property name="label">保存图片</property>
+                                    <property name="label">保存图像</property>
                                     <property name="select">0</property>
                                     <object class="wxPanel" expanded="1">
                                         <property name="BottomDockable">1</property>
@@ -4713,7 +4713,7 @@
                                                                                             <property name="style"></property>
                                                                                             <property name="subclass">; ; forward_declare</property>
                                                                                             <property name="toolbar_pane">0</property>
-                                                                                            <property name="tooltip">(0-2) 0表示不使用，等级越高，保存有损格式时获得的文件大小越小，但会导致图片出现噪点，使图片解密后失真</property>
+                                                                                            <property name="tooltip">(0-2) 0表示不使用，等级越高，保存有损格式时获得的文件大小越小，但会导致图像出现噪点，使图像解密后失真</property>
                                                                                             <property name="window_extra_style"></property>
                                                                                             <property name="window_name"></property>
                                                                                             <property name="window_style"></property>
@@ -5630,7 +5630,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">保存当前选中的图片</property>
+                                                                <property name="label">保存当前选中的图像</property>
                                                                 <property name="margins"></property>
                                                                 <property name="markup">0</property>
                                                                 <property name="max_size"></property>
@@ -5704,7 +5704,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">保存所有符合过滤条件的图片</property>
+                                                                <property name="label">保存所有符合过滤条件的图像</property>
                                                                 <property name="margins"></property>
                                                                 <property name="markup">0</property>
                                                                 <property name="max_size"></property>
@@ -6134,7 +6134,7 @@
                                                             <property name="style"></property>
                                                             <property name="subclass">; ; forward_declare</property>
                                                             <property name="toolbar_pane">0</property>
-                                                            <property name="tooltip">允许载入的最大图片像素量，0为禁用(谨防DOS压缩炸弹图片)</property>
+                                                            <property name="tooltip">允许载入的最大图像像素量，0为禁用(谨防DOS压缩炸弹图像)</property>
                                                             <property name="window_extra_style"></property>
                                                             <property name="window_name"></property>
                                                             <property name="window_style"></property>
@@ -6196,7 +6196,7 @@
                                                             <property name="style">wxALIGN_CENTER_HORIZONTAL|wxSP_ARROW_KEYS|wxTE_PROCESS_ENTER</property>
                                                             <property name="subclass">; ; forward_declare</property>
                                                             <property name="toolbar_pane">0</property>
-                                                            <property name="tooltip">允许载入的最大图片像素量，0为禁用(谨防DOS压缩炸弹图片)</property>
+                                                            <property name="tooltip">允许载入的最大图像像素量，0为禁用(谨防DOS压缩炸弹图像)</property>
                                                             <property name="value"></property>
                                                             <property name="window_extra_style"></property>
                                                             <property name="window_name"></property>
