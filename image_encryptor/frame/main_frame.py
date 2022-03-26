@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-08 20:06:36
+LastEditTime : 2022-03-23 21:42:27
 Description  : 覆写窗口
 """
 from concurrent.futures import ThreadPoolExecutor
@@ -10,16 +10,14 @@ from functools import cached_property
 from inspect import isroutine
 from multiprocessing import cpu_count
 from os import getcwd
-from sys import version
 from typing import TYPE_CHECKING
 
 from wx import App
 from wx.core import EmptyString
 
 from image_encryptor.constants import (BRANCH, EXTENSION_KEYS_STRING,
-                                       OPEN_SOURCE_URL, SUB_VERSION_NUMBER,
-                                       VERSION_BATCH, VERSION_NUMBER,
-                                       VERSION_TYPE)
+                                       SUB_VERSION_NUMBER, VERSION_INFO,
+                                       VERSION_NUMBER, VERSION_TYPE)
 from image_encryptor.frame.controls import (Controls, SegmentTrigger, Settings,
                                             SettingsManager)
 from image_encryptor.frame.design_frame import MainFrame as MF
@@ -33,6 +31,7 @@ from image_encryptor.modules.password_verifier import PasswordDict
 from image_encryptor.utils.exit_processor import ExitProcessor
 from image_encryptor.utils.logger import Logger
 from image_encryptor.utils.thread import ProcessTaskManager
+
 # from image_encryptor.utils.misc_util import gen_slots_str
 
 if TYPE_CHECKING:
@@ -65,9 +64,8 @@ class MainFrame(MF):
             self.dark_mode()
         self.startup_parameters = startup_parameters
         self.logger = Logger('image-encryptor')
-        self.logger.info(f'Python {version}')
-        self.logger.info(f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})')
-        self.logger.info(f'Open source at {OPEN_SOURCE_URL}')
+        for i in VERSION_INFO.splitlines():
+            self.logger.info(i)
         self.controls = Controls(self)
         self.settings = SettingsManager(self.controls)
         self.dialog = Dialog(self)

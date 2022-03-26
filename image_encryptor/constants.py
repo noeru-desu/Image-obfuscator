@@ -5,15 +5,21 @@ LastEditors  : noeru_desu
 LastEditTime : 2022-03-20 12:51:11
 Description  : 常量
 """
+from sys import version as py_ver
+
+from nuitka.Version import getNuitkaVersion as nuitka_ver
+from numpy import __version__ as numpy_ver
+from PIL import __version__ as pillow_ver
 from PIL.Image import (BICUBIC, BILINEAR, BOX, EXTENSION, HAMMING, LANCZOS,
                        NEAREST)
-from PIL.Image import init as PIL_init
+from PIL.Image import init as Pillow_init
 from PIL.Image import new
 from wx import (IMAGE_QUALITY_BICUBIC, IMAGE_QUALITY_BILINEAR,
                 IMAGE_QUALITY_BOX_AVERAGE, IMAGE_QUALITY_HIGH,
                 IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_NORMAL, Colour)
+from wx import version as wx_ver
 
-PIL_init()
+Pillow_init()
 
 RELEASE = 0
 RELEASE_CANDIDATE = 1
@@ -56,3 +62,11 @@ EAERR_INCOMPATIBLE = '该版本不支持0.1.0-BETA版加密器加密的图像'
 EAERR_NOT_SUPPORT = '选择的图像文件由更高版本的加密器加密, 请使用最新版的加密器进行解密'
 
 LIGHT_RED = Colour(255, 30, 30)
+
+VERSION_INFO = f'''Python {py_ver}
+ - wxPython {wx_ver()}
+ - Pillow {pillow_ver}
+ - Numpy {numpy_ver}
+ - Nutika {nuitka_ver()}
+You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})
+Open source at {OPEN_SOURCE_URL}'''
