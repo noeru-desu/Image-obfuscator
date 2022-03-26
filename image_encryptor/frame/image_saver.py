@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 12:52:27
+LastEditTime : 2022-03-22 21:31:59
 Description  : 文件保存功能
 """
 from os import listdir
@@ -79,7 +79,7 @@ class ImageSaver(object):
         if error:
             self.frame.dialog.async_error(data, '生成加密图像时出现意外错误')
         else:
-            self.frame.controls.regen_processed_preview(data)     # 顺便刷新一下预览图
+            self.frame.controls.display_and_cache_processed_preview(data)     # 顺便刷新一下预览图
 
     def bulk_save(self):
         """批量保存"""

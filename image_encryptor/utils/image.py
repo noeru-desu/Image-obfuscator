@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 09:17:28
+LastEditTime : 2022-03-25 21:12:12
 Description  : 图像相关工具
 """
 from abc import ABC
@@ -20,6 +20,7 @@ from PIL import Image as PIL_Image
 from wx import Bitmap, Image as wx_Image
 
 from image_encryptor.constants import PIL_RESAMPLING_FILTERS, WX_RESAMPLING_FILTERS
+from image_encryptor.utils.misc_util import scale
 
 if TYPE_CHECKING:
     from numpy import ndarray
@@ -100,6 +101,10 @@ def array_to_bitmap(array: 'ndarray', size: tuple = ...) -> 'Bitmap':
 
 class WrappedImage(ABC):
     __slots__ = ()
+    scalable: bool
+
+    def __init__(self, array: 'ndarray', size: tuple = ...) -> None:
+        raise NotImplementedError()
 
     @property
     def wxBitmap(self) -> 'Bitmap':
@@ -109,10 +114,10 @@ class WrappedImage(ABC):
     def size(self) -> tuple[int, int]:
         raise NotImplementedError()
 
-    def __init__(self, array: 'ndarray', size: tuple = ...) -> None:
+    def gen_wxBitmap(self, visible_size: tuple[int, int], resampling_filter_id: int) -> 'Bitmap':
         raise NotImplementedError()
 
-    def resize(self, size: tuple[int, int], resampling_filter_id: int) -> None:
+    def resize(self, visible_size: tuple[int, int], resampling_filter_id: int) -> None:
         raise NotImplementedError()
 
     def save(self, path: str, *args, **kwargs):
@@ -121,6 +126,7 @@ class WrappedImage(ABC):
 
 class PillowImage(WrappedImage):
     __slots__ = ('image',)
+    scalable = True
 
     def __init__(self, array: 'ndarray', size: tuple = ...) -> None:
         self.image = array_to_image(array, size)
@@ -137,11 +143,19 @@ class PillowImage(WrappedImage):
     def size(self) -> tuple[int, int]:
         return self.image.size
 
+    def gen_wxBitmap(self, visible_size: tuple[int, int], resampling_filter_id: int) -> 'Bitmap':
+        size = scale(*self.size, *visible_size)
+        match self.image.mode:
+            case 'RGBA':
+                return Bitmap.FromBufferRGBA(*size, self.image.resize(size, PIL_RESAMPLING_FILTERS[resampling_filter_id]).tobytes())
+            case 'RGB':
+                return Bitmap.FromBuffer(*size, self.image.resize(size, PIL_RESAMPLING_FILTERS[resampling_filter_id]).tobytes())
+
     def convert(self, mode: Optional[str] = ..., *args, **kwargs):
         self.image = self.image.convert(mode, *args, **kwargs)
 
-    def resize(self, size: tuple[int, int], resampling_filter_id: int):
-        self.image = self.image.resize(size, PIL_RESAMPLING_FILTERS[resampling_filter_id])
+    def resize(self, visible_size: tuple[int, int], resampling_filter_id: int):
+        self.image = self.image.resize(scale(*self.size, *visible_size), PIL_RESAMPLING_FILTERS[resampling_filter_id])
 
     def save(self, path: str, *args, **kwargs):
         self.image.save(path, *args, **kwargs)
@@ -156,6 +170,7 @@ class WrappedPillowImage(PillowImage):
 
 class wxImage(WrappedImage):
     __slots__ = ('image',)
+    scalable = True
 
     def __init__(self, array: 'ndarray', size: tuple = ...):
         if size is Ellipsis:
@@ -170,13 +185,14 @@ class wxImage(WrappedImage):
     def size(self) -> tuple[int, int]:
         return self.image.GetSize()
 
-    def resize(self, size: tuple[int, int], resampling_filter_id: int):
-        self.image.Rescale(*size, WX_RESAMPLING_FILTERS[resampling_filter_id])
+    def resize(self, visible_size: tuple[int, int], resampling_filter_id: int):
+        self.image.Rescale(*scale(*self.size, *visible_size), WX_RESAMPLING_FILTERS[resampling_filter_id])
         return self
 
 
 class ImageData(WrappedImage):
     __slots__ = ('wxBitmap',)
+    scalable = False
 
     def __init__(self, array: 'ndarray', size: tuple = ...) -> None:
         self.wxBitmap = array_to_bitmap(array, size)

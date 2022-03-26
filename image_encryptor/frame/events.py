@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 10:35:08
+LastEditTime : 2022-03-22 21:22:50
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -51,18 +51,14 @@ class MainFrame(BasicMainFrame):
             return
         if event is not None and self.controls.preview_mode != AUTO_REFRESH:
             return
-        size_changed = self.controls.regen_initial_preview()
-        cache_hash = self.settings.encryption_settings_hash
-        if size_changed or cache_hash not in self.image_item.cache.processed_previews:
-            self.preview_generator.generate_preview()
-        else:
-            self.controls.previewed_bitmap = self.image_item.cache.get_processed_preview_cache(cache_hash)
+        self.image_item.display_initial_preview()
+        self.image_item.display_processed_preview()
 
     def force_refresh_preview(self, event=None):
         if self.image_item is None:
             return
-        self.controls.regen_initial_preview(True)
-        self.preview_generator.generate_preview()
+        self.image_item.display_initial_preview(False)
+        self.image_item.display_processed_preview(False)
 
     def load_file(self, event):
         with FileDialog(self, "选择图像", style=FD_OPEN | FD_CHANGE_DIR | FD_PREVIEW | FD_FILE_MUST_EXIST) as dialog:
@@ -159,13 +155,8 @@ class MainFrame(BasicMainFrame):
                 image_data.settings.backtrack_interface()
             self.processingOptions.Enable()
 
-            processed_preview = self.image_item.cache.get_processed_preview_cache(self.settings.encryption_settings_hash)
             if self.previewMode.Selection == AUTO_REFRESH:
                 self.refresh_preview(event)
-            elif processed_preview is not None:
-                self.controls.previewed_bitmap = processed_preview
-            if self.previewMode.Selection != AUTO_REFRESH:
-                self.controls.regen_initial_preview()
         elif isinstance(image_data, FolderItem):
             self.image_item = None
             self.controls.gen_image_info()

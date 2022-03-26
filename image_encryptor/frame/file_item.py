@@ -2,37 +2,40 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 12:51:56
+LastEditTime : 2022-03-26 19:46:28
 Description  : 图像项目
 """
 from abc import ABC
+from collections import OrderedDict
 from gc import collect
 from os.path import isfile, join
-from typing import TYPE_CHECKING, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, Hashable, NamedTuple, Optional, Union
 
 from wx import BLACK, CallAfter
 
 from image_encryptor.constants import (DECRYPTION_MODE, ENCRYPTION_MODE,
-                                       LIGHT_RED)
+                                       LIGHT_RED, PIL_RESAMPLING_FILTERS)
 from image_encryptor.frame.controls import EncryptionParameters
+from image_encryptor.modules.argparse import Parameters
 from image_encryptor.modules.version_adapter import load_encryption_attributes
-from image_encryptor.utils.misc_util import open_image
+from image_encryptor.utils.misc_util import open_image, scale
 
 if TYPE_CHECKING:
-    from image_encryptor.frame.controls import Settings
-    from image_encryptor.frame.events import MainFrame
     from PIL.Image import Image
     from wx import Bitmap, TreeItemId
+    from image_encryptor.frame.controls import Settings
+    from image_encryptor.frame.events import MainFrame
+    from image_encryptor.utils.image import WrappedImage
 
 
 class Item(ABC):
     __slots__ = ()
 
     def del_item(self, item_id: 'TreeItemId', del_item=True):
-        ...
+        raise NotImplementedError()
 
     def reload_item(self, dialog=True):
-        ...
+        raise NotImplementedError()
 
     def reload_done(self):
         if self.frame.tree_manager.reloading_thread.exit_signal:
@@ -40,18 +43,83 @@ class Item(ABC):
         self.frame.stop_reloading_func.init()
 
 
+class PreviewCache(object):
+    __slots__ = ('scalable_cache', 'normal_cache', 'startup_parameters')
+
+    def __init__(self, startup_parameters: Parameters) -> None:
+        self.startup_parameters = startup_parameters
+        self.normal_cache: OrderedDict[int, Bitmap] = OrderedDict()
+        self.scalable_cache: OrderedDict[int, WrappedImage] = OrderedDict()
+
+    def clear_redundant_cache(self):
+        for i in list(self.normal_cache)[:-1]:
+            del self.normal_cache[i]
+        for i in list(self.scalable_cache)[:-1]:
+            del self.scalable_cache[i]
+
+    def add_cache(self, cache_hash: Hashable, image: Union['WrappedImage', 'Bitmap'] = None):
+        if image.scalable:
+            self.add_scalable_cache(cache_hash, image)
+        else:
+            self.add_normal_cache(cache_hash, image)
+
+    def add_normal_cache(self, cache_hash: Hashable, bitmap: 'Bitmap' = None):
+        if cache_hash in self.normal_cache:
+            self.normal_cache.move_to_end(cache_hash)
+            if bitmap is None:
+                return
+        assert bitmap is not None, 'Bitmap cannot be NoneType when the cache_hash does not exist in the cache.'
+        if len(self.normal_cache) >= self.startup_parameters.maximum_redundant_cache_length:
+            self.normal_cache.popitem(False)
+        self.normal_cache[cache_hash] = bitmap
+
+    def add_scalable_cache(self, cache_hash: Hashable, image: 'WrappedImage' = None):
+        if cache_hash in self.scalable_cache:
+            self.scalable_cache.move_to_end(cache_hash)
+            if image is None:
+                return
+        assert image is not None, 'Image cannot be NoneType when the cache_hash does not exist in the cache.'
+        if len(self.scalable_cache) >= self.startup_parameters.maximum_redundant_cache_length:
+            self.scalable_cache.popitem(False)
+        self.scalable_cache[cache_hash] = image
+
+    def get_cache(self, cache_hash) -> Optional[Union['WrappedImage', 'Bitmap']]:
+        if cache_hash in self.normal_cache:
+            self.add_normal_cache(cache_hash)
+            return self.normal_cache[cache_hash]
+        if cache_hash in self.scalable_cache:
+            self.add_scalable_cache(cache_hash)
+            return self.scalable_cache[cache_hash]
+
+    def get_normal_cache(self, cache_hash) -> Optional['Bitmap']:
+        if cache_hash in self.normal_cache:
+            self.add_normal_cache(cache_hash)
+            return self.normal_cache[cache_hash]
+
+    def get_scalable_cache(self, cache_hash) -> Optional['WrappedImage']:
+        if cache_hash in self.scalable_cache:
+            self.add_scalable_cache(cache_hash)
+            return self.scalable_cache[cache_hash]
+
+    def clear(self):
+        self.scalable_cache.clear()
+        self.normal_cache.clear()
+
+    def delete(self):
+        del self.scalable_cache
+        del self.normal_cache
+        del self
+
+
 class ImageItemCache(object):
     """图像项目缓存控制器"""
-    __slots__ = (
-        '_item', 'initial_preview', 'processed_previews', 'preview_size', '_encryption_data', '_loaded_image',
-        'loading_encryption_attributes_error'
-    )
+    __slots__ = ('_item', 'initial_preview', 'previews', 'preview_size', '_encryption_data', '_loaded_image', 'loading_encryption_attributes_error')
 
     def __init__(self, item: 'ImageItem', loaded_image=None):
         self._item = item
         self.initial_preview: Image = None
-        self.processed_previews: dict[int, Bitmap] = {}
         self.preview_size: tuple[int, int] = None
+        self.previews = PreviewCache(item.frame.startup_parameters)
         self.loading_encryption_attributes_error = None
         self._encryption_data = None
         self._loaded_image = loaded_image
@@ -73,9 +141,6 @@ class ImageItemCache(object):
         # if not self._item.frame.startup_parameters.low_memory or self._item.selected:
         return self._loaded_image
 
-    def get_processed_preview_cache(self, cache_hash) -> Optional['Bitmap']:
-        return self.processed_previews.get(cache_hash)
-
     @loaded_image.setter
     def loaded_image(self, v):
         self._loaded_image = v
@@ -90,32 +155,15 @@ class ImageItemCache(object):
     def encryption_data(self, v):
         self._encryption_data = v
 
-    @property
-    def processed_preview(self) -> 'Bitmap':
-        """请使用get_processed_preview_cache代替"""
-        return list(self.processed_previews.values())[-1]
-
-    def add_processed_preview(self, hash, bitmap):
-        if hash in self.processed_previews:
-            return
-        keys = self.processed_previews.keys()
-        if len(keys) >= self._item.frame.startup_parameters.maximum_redundant_cache_length:
-            del self.processed_previews[list(keys)[0]]
-        self.processed_previews[hash] = bitmap
-
-    def clear_redundant_cache(self):
-        for i in list(self.processed_previews.keys())[:-1]:
-            del self.processed_previews[i]
-
     def clear_cache(self):
         self.initial_preview = None
-        self.processed_previews.clear()
+        self.previews.clear()
         self.preview_size = None
         self._encryption_data = None
 
     def del_cache(self):
-        del self.processed_previews
         del self.initial_preview
+        self.previews.delete()
         del self.preview_size
         del self._encryption_data
         del self._loaded_image
@@ -166,7 +214,40 @@ class ImageItem(Item):
                 self.cache._loaded_image = None
             self.cache.clear_cache()
         else:
-            self.cache.clear_redundant_cache()
+            self.cache.previews.clear_redundant_cache()
+
+    def display_initial_preview(self, cache=True) -> bool:
+        """命中缓存返回False, 未命中则生成并返回True"""
+        size = self.frame.controls.preview_size
+        if cache and self.cache.initial_preview is not None and size == self.cache.preview_size:
+            self.frame.controls.imported_image = self.cache.initial_preview
+            return False
+        image = self.cache.loaded_image.resize(scale(*self.cache.loaded_image.size, *size), PIL_RESAMPLING_FILTERS[self.frame.controls.resampling_filter_id])
+        self.frame.controls.imported_image = image
+        self.cache.preview_size = size
+        self.cache.initial_preview = image
+        return True
+
+    def display_processed_preview(self, cache=True, resize=True):
+        """命中缓存返回False, 未命中则生成并返回True"""
+        if cache:
+            cache_hash = self.frame.settings.encryption_settings_hash
+            if cache_hash in self.cache.previews.scalable_cache:
+                self.frame.controls.previewed_bitmap = (
+                    self.cache.previews.scalable_cache[cache_hash].gen_wxBitmap(
+                        self.frame.controls.preview_size,
+                        self.frame.controls.resampling_filter_id,
+                    )
+                    if resize
+                    else self.cache.previews.scalable_cache[cache_hash].wxBitmap
+                )
+                return False
+            cache_hash = self.frame.settings.encryption_settings_hash_with_size
+            if cache_hash in self.cache.previews.normal_cache:
+                self.frame.controls.previewed_bitmap = self.cache.previews.get_normal_cache(cache_hash)
+                return False
+        self.frame.preview_generator.generate_preview()
+        return True
 
     def check_encryption_parameters(self):
         if self.encrypted_image is None:

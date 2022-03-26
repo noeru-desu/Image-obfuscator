@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 12:51:17
+LastEditTime : 2022-03-26 19:46:06
 Description  : 整理
 """
 from abc import ABC
@@ -13,9 +13,8 @@ from wx import Bitmap
 
 from image_encryptor.constants import (ANTY_HARMONY_MODE, DECRYPTION_MODE,
                                        EA_VERSION, ENCRYPTION_MODE,
-                                       EXTENSION_KEYS, PIL_RESAMPLING_FILTERS)
+                                       EXTENSION_KEYS)
 from image_encryptor.modules.password_verifier import PasswordDict
-from image_encryptor.utils.misc_util import scale
 
 if TYPE_CHECKING:
     from PIL.Image import Image
@@ -475,23 +474,14 @@ class Controls(object):
     def clear_preview(self):
         self.frame.importedBitmap.Bitmap = self.frame.previewedBitmap.Bitmap = Bitmap()
 
-    def regen_initial_preview(self, force=False):
-        size = self.preview_size
-        if not force and self.frame.image_item.cache.initial_preview is not None and size == self.frame.image_item.cache.preview_size:
-            self.imported_image = self.frame.image_item.cache.initial_preview
-            return False
-        image = self.frame.image_item.cache.loaded_image.resize(scale(*self.frame.image_item.cache.loaded_image.size, *size), PIL_RESAMPLING_FILTERS[self.resampling_filter_id])
-        self.imported_image = image
-        self.frame.image_item.cache.preview_size = size
-        self.frame.image_item.cache.initial_preview = image
-        return True
-
-    def regen_processed_preview(self, image: 'WrappedImage', resize=True):
-        if resize:
-            image.resize(scale(*image.size, *self.preview_size), self.resampling_filter_id)
-        bitmap = image.wxBitmap
-        self.frame.image_item.cache.add_processed_preview(self.frame.settings.encryption_settings_hash, bitmap)
-        self.previewed_bitmap = bitmap
+    def display_and_cache_processed_preview(self, image: 'WrappedImage'):
+        if image.scalable:
+            self.frame.image_item.cache.previews.add_scalable_cache(self.frame.settings.encryption_settings_hash, image)
+            self.previewed_bitmap = image.gen_wxBitmap(self.preview_size, self.resampling_filter_id)
+        else:
+            bitmap = image.wxBitmap
+            self.frame.image_item.cache.previews.add_normal_cache(self.frame.settings.encryption_settings_hash_with_size, bitmap)
+            self.previewed_bitmap = bitmap
 
 
 class SettingsManager(object):
@@ -499,23 +489,6 @@ class SettingsManager(object):
 
     def __init__(self, controls: 'Controls'):
         self.controls = controls
-        '''{
-            'proc_mode': 0,
-            'cutting_row': 25,
-            'cutting_col': 25,
-            'shuffle': True,
-            'flip': True,
-            'mapping_channels': '',
-            'xor_encryption': False,
-            'xor_channels': 'rgb',
-            'noise_xor': False,
-            'noise_factor': 128,
-            'password': None,
-            'saving_path': '',
-            'saving_format': 2,
-            'quality': 98,
-            'subsampling': 0
-        }'''
         self.default = Settings(self.controls, (0, 25, 25, True, True, '', False, 'rgb', False, 128, None, '', 'png', 2, 98, 0))
 
     @property
@@ -534,6 +507,10 @@ class SettingsManager(object):
     def encryption_settings_hash(self):
         # hash(self.encryption_settings) 耗时约为 hashlib.md5(repr(self.encryption_settings).encode()).digest() 的 55%
         return hash(self.encryption_settings)
+
+    @property
+    def encryption_settings_hash_with_size(self):
+        return hash((self.encryption_settings, *self.controls.preview_size))
 
     @property
     def all_dict(self):
@@ -588,6 +565,10 @@ class SettingsBase(ABC):
     @property
     def properties_tuple(self):
         return tuple(self.properties)
+
+    @property
+    def properties_hash(self):
+        return hash(self.properties)
 
 
 class SettingsData(SettingsBase):

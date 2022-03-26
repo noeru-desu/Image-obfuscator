@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 10:28:04
+LastEditTime : 2022-03-26 19:18:19
 Description  : 图像生成功能
 """
 from typing import TYPE_CHECKING
@@ -39,21 +39,21 @@ class PreviewGenerator(object):
                 self.preview_thread.start_new(encryptor.normal, self._generate_preview_call_back, (
                     self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress,
                     source, False, type_conversion
-                ), callback_args=(self.frame.controls.preview_source == ORIG_IMAGE,))
+                ))
             case 1:
                 self.preview_thread.start_new(decryptor.normal, self._generate_preview_call_back, (
                     self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress,
                     self.frame.image_item.cache.loaded_image, False, PillowImage
-                ), callback_args=(True,))
+                ))
             case 2:
                 self.preview_thread.start_new(qq_anti_harmony.normal, self._generate_preview_call_back, (
                     self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress,
                     source, False
-                ), callback_args=(self.frame.controls.preview_source == ORIG_IMAGE,))
+                ))
 
-    def _generate_preview_call_back(self, err, result, resize):
+    def _generate_preview_call_back(self, err, result):
         data, error = result
         if error is not None:
             self.frame.dialog.error(error, '生成加密图像时出现意外错误')
             return
-        self.frame.controls.regen_processed_preview(data, resize)
+        self.frame.controls.display_and_cache_processed_preview(data)
