@@ -2,7 +2,7 @@
  * @Author       : noeru_desu
  * @Date         : 2021-11-21 19:21:41
  * @LastEditors  : noeru_desu
- * @LastEditTime : 2022-02-05 15:06:09
+ * @LastEditTime : 2022-03-20 12:57:55
  * @Description  : README
 -->
 # Image-encryptor
@@ -31,9 +31,9 @@ GUI版本为`ImageEncryptor.py`
 
 ## 从源代码构建可执行文件
 
-使用Pyinstaller构建时没有注意事项。可参考的命令行：`pyinstaller -F ImageEncryptor.py`
+使用Pyinstaller构建时没有注意事项。
 
-使用Nuitka构建时请添加`--include-package=PIL`参数，否则Pillow库只能进行常见图片格式的编解码(当然如果不介意的话也不要紧)。可参考的命令行：`nuitka --python-flag=-OO --onefile --plugin-enable=anti-bloat,pkg-resources,numpy,multiprocessing --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --include-module=wx._xml --include-package=PIL ImageEncryptor.py`
+使用Nuitka构建时请添加`--include-package=PIL`参数，否则Pillow库只能进行常见图像格式的编解码(当然如果不介意的话也不要紧)。
 
 ## 自动构建
 
