@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-03-27 08:07:12
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-27 08:34:57
+LastEditTime : 2022-03-27 16:18:32
 Description  : 调试函数
 """
 from functools import wraps as functools_wraps
@@ -15,6 +15,11 @@ from image_encryptor.utils.misc_utils import copy_signature
 lock = RLock()
 
 
+def gen_parameter_str(args: tuple = None, kwargs: dict = None) -> str:
+    delimiter = '' if args is None or kwargs is None else ', '
+    return f'{"" if args is None else ", ".join(args)}{delimiter}{"" if kwargs is None else ", ".join(f"{k}={v}" for k, v in kwargs.items())}'
+
+
 def in_try(func):
     @functools_wraps(func)
     def wrap(*args, **kwargs):
@@ -24,6 +29,7 @@ def in_try(func):
         except Exception:
             with lock:
                 print_exc()
+                print(f'Function arguments when caught: {func.__name__}({gen_parameter_str(args, kwargs)})')
     return wrap
 
 
@@ -56,29 +62,30 @@ def gen_slots_str(a_set):
     print(a_args_str)
 
 
-timeit_targets = {}
+class Timeit(object):
+    __slots__ = ('func', 'total_running_time', 'average_time')
 
+    def __init__(self, func) -> None:
+        self.func = func
+        self.func_name = f'[ID: {id(func)}]{func.__qualname__}'
+        self.total_running_time = 0
+        self.running_times = 0
+        self.average_time = ...
 
-def timeit(fn):
-    def wrap(*args, **kwargs):
-        if fn.__name__ not in timeit_targets:
-            timeit_targets[fn.__name__] = {'running_time': 0}
-            first = True
-        else:
-            first = False
+    def __call__(self, *args, **kwargs):
         start = perf_counter_ns()
-        result = fn(*args, **kwargs)
+        result = self.func(*args, **kwargs)
         running_time = perf_counter_ns() - start
-        if first:
-            timeit_targets[fn.__name__]['average_time'] = running_time
+        self.total_running_time += running_time
+        self.running_times += 1
+        if self.average_time is Ellipsis:
+            self.average_time = running_time
         else:
-            timeit_targets[fn.__name__]['average_time'] = (running_time + timeit_targets[fn.__name__]['average_time']) / 2
-        print(f'{fn.__name__}运行时间：{running_time} ns')
-        timeit_targets[fn.__name__]['running_time'] += running_time
-        print(f'{fn.__name__}总运行时间：{timeit_targets[fn.__name__]["running_time"]} ns')
-        print(f'{fn.__name__}平均运行时间：{timeit_targets[fn.__name__]["average_time"]} ns')
+            self.average_time = self.total_running_time / self.running_times
+        print(f'{self.func_name}运行时间：{running_time} ns')
+        print(f'{self.func_name}总运行时间：{self.total_running_time} ns')
+        print(f'{self.func_name}平均运行时间：{self.average_time} ns')
         return result
-    return wrap
 
 
 def return_execution_time(fn):

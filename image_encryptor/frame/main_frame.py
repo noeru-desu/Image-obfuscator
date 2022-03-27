@@ -2,9 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-27 08:36:31
+LastEditTime : 2022-03-27 13:17:26
 Description  : 覆写窗口
 """
+from atexit import register as at_exit
 from concurrent.futures import ThreadPoolExecutor
 from functools import cached_property
 from inspect import isroutine
@@ -28,10 +29,8 @@ from image_encryptor.frame.image_saver import ImageSaver
 from image_encryptor.frame.preview_generator import PreviewGenerator
 from image_encryptor.frame.tree_manager import TreeManager
 from image_encryptor.modules.password_verifier import PasswordDict
-from image_encryptor.utils.exit_processor import ExitProcessor
 from image_encryptor.utils.logger import Logger
 from image_encryptor.utils.thread import ProcessTaskManager
-
 # from image_encryptor.utils.debugging_utils import gen_slots_str
 
 if TYPE_CHECKING:
@@ -45,7 +44,7 @@ class MainFrame(MF):
     """
     __slots__ = (
         'startup_parameters', 'logger', 'controls', 'settings', 'dialog', 'universal_thread_pool',
-        'password_dict', 'exit_processor', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator',
+        'password_dict', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator',
         'image_saver', 'stop_loading_func', 'stop_reloading_func'
     )
 
@@ -71,7 +70,6 @@ class MainFrame(MF):
         self.dialog = Dialog(self)
         self.universal_thread_pool = ThreadPoolExecutor(8, 'universal_thread_pool')
         self.password_dict = PasswordDict()
-        self.exit_processor = ExitProcessor()
         self.process_pool = ProcessTaskManager(1 if cpu_count() < 4 else cpu_count() - 2)
         self.tree_manager = TreeManager(self, self.imageTreeCtrl, '已加载文件列表')
         self.image_loader = ImageLoader(self)
@@ -81,8 +79,8 @@ class MainFrame(MF):
         self.savingOptions.SetDropTarget(DragSavingPath(self))
         self.stop_loading_func = SegmentTrigger((self.set_stop_loading_signal, self.stop_loading), self.init_loading_btn)
         self.stop_reloading_func = SegmentTrigger((self.set_reloading_btn_text, self.set_stop_reloading_signal, self.stop_reloading), self.init_reloading_btn)
-        self.exit_processor.register(self.process_pool.shutdown, wait=False, cancel_futures=True)
-        self.exit_processor.register(self.universal_thread_pool.shutdown, wait=False, cancel_futures=True)
+        at_exit(self.process_pool.shutdown, wait=False, cancel_futures=True)
+        at_exit(self.universal_thread_pool.shutdown, wait=False, cancel_futures=True)
 
         # 准备工作
         self.run_path = run_path
