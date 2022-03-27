@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-27 08:32:27
+LastEditTime : 2022-03-27 16:20:35
 Description  : 图像生成功能
 """
 from typing import TYPE_CHECKING
@@ -54,6 +54,6 @@ class PreviewGenerator(object):
     def _generate_preview_call_back(self, err, result):
         data, error = result
         if error is not None:
-            self.frame.dialog.error(error, '生成加密图像时出现意外错误')
+            self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
             return
         self.frame.controls.display_and_cache_processed_preview(data)
