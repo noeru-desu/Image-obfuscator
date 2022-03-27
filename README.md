@@ -2,10 +2,10 @@
  * @Author       : noeru_desu
  * @Date         : 2021-11-21 19:21:41
  * @LastEditors  : noeru_desu
- * @LastEditTime : 2022-03-20 12:57:55
+ * @LastEditTime : 2022-03-27 08:35:00
  * @Description  : README
 -->
-# Image-encryptor
+# Image Encryptor
 
 ## 下载
 
@@ -15,9 +15,9 @@
 
 ## 启动参数
 
-低内存占用模式：`--low-memory`。开启后将不缓存未选中图像的缓存信息(如原图、预览图、已处理预览图等)，代价为更高的磁盘读取频率与CPU占用
+请使用`-h`参数查看帮助
 
-目前没有对启动参数进行解析，不会对错误的启动参数进行提示
+大部分启动参数都可以在程序内修改
 
 ## 运行源代码
 
