@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-10 12:08:13
+LastEditTime : 2022-03-27 08:35:03
 Description  : 图像加密模块
 """
 from math import ceil
@@ -13,10 +13,10 @@ from numpy import ascontiguousarray, hsplit, uint8, vsplit, zeros
 from numpy.random import randint
 from PIL import Image
 
-from image_encryptor.utils.image import (array_to_image, gen_mapping_table,
-                                         merge_channels, random_noise,
-                                         split_channels)
-from image_encryptor.utils.misc_util import FakeBar
+from image_encryptor.modules.image import (array_to_image, gen_mapping_table,
+                                           merge_channels, random_noise,
+                                           split_channels)
+from image_encryptor.utils.misc_utils import FakeBar
 
 if TYPE_CHECKING:
     from typing import Iterable

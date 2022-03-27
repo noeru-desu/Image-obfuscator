@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 12:27:14
+LastEditTime : 2022-03-27 08:34:55
 Description  : 单文件加密功能
 """
 from json import dumps
@@ -15,15 +15,15 @@ from PIL import Image
 from image_encryptor.frame.controls import (ProgressBar, SavingSettings,
                                             SettingsData)
 from image_encryptor.modules.image_encrypt import ImageEncrypt
-from image_encryptor.utils.image import (PillowImage, WrappedPillowImage,
-                                         array_to_image)
-from image_encryptor.utils.misc_util import catch_exception_and_return
+from image_encryptor.modules.image import (PillowImage, WrappedPillowImage,
+                                           array_to_image)
+from image_encryptor.utils.misc_utils import catch_exception_and_return
 
 if TYPE_CHECKING:
     from wx import Gauge
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.file_item import PathData
-    from image_encryptor.utils.image import WrappedImage
+    from image_encryptor.modules.image import WrappedImage
 
 
 @catch_exception_and_return

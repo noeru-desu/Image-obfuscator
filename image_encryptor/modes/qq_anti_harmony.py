@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 12:54:21
+LastEditTime : 2022-03-27 08:35:12
 Description  : 主要针对QQ群的图像反阻止发送功能
 """
 from os import makedirs
@@ -13,8 +13,8 @@ from PIL import Image
 
 from image_encryptor.frame.controls import SavingSettings
 from image_encryptor.modules.image_encrypt import AntiHarmony
-from image_encryptor.utils.image import WrappedPillowImage
-from image_encryptor.utils.misc_util import catch_exception_and_return
+from image_encryptor.modules.image import WrappedPillowImage
+from image_encryptor.utils.misc_utils import catch_exception_and_return
 
 if TYPE_CHECKING:
     from wx import Gauge

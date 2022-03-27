@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-26 19:39:03
+LastEditTime : 2022-03-27 08:48:31
 Description  : 常量
 """
 from sys import version as py_ver
@@ -28,8 +28,8 @@ BETA = 3
 ALPHA = 4
 VERSION_TYPE = DEV
 VERSION_NUMBER = '1.3.1'
-SUB_VERSION_NUMBER = 'dev.2'
-VERSION_BATCH = '20220328-1'
+SUB_VERSION_NUMBER = 'dev.3'
+VERSION_BATCH = '20220329-1'
 BRANCH = 'dev/1.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-26 19:18:19
+LastEditTime : 2022-03-27 08:32:27
 Description  : 图像生成功能
 """
 from typing import TYPE_CHECKING
@@ -11,7 +11,7 @@ import image_encryptor.modes.decryptor as decryptor
 import image_encryptor.modes.encryptor as encryptor
 import image_encryptor.modes.qq_anti_harmony as qq_anti_harmony
 from image_encryptor.constants import ORIG_IMAGE
-from image_encryptor.utils.image import ImageData, PillowImage
+from image_encryptor.modules.image import ImageData, PillowImage
 from image_encryptor.utils.thread import ThreadManager
 
 if TYPE_CHECKING:

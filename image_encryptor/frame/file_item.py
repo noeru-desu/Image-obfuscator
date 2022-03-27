@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-26 19:46:28
+LastEditTime : 2022-03-27 08:44:21
 Description  : 图像项目
 """
 from abc import ABC
@@ -18,18 +18,19 @@ from image_encryptor.constants import (DECRYPTION_MODE, ENCRYPTION_MODE,
 from image_encryptor.frame.controls import EncryptionParameters
 from image_encryptor.modules.argparse import Parameters
 from image_encryptor.modules.version_adapter import load_encryption_attributes
-from image_encryptor.utils.misc_util import open_image, scale
+from image_encryptor.modules.image import cal_best_size, open_image
 
 if TYPE_CHECKING:
     from PIL.Image import Image
     from wx import Bitmap, TreeItemId
     from image_encryptor.frame.controls import Settings
     from image_encryptor.frame.events import MainFrame
-    from image_encryptor.utils.image import WrappedImage
+    from image_encryptor.modules.image import WrappedImage
 
 
 class Item(ABC):
     __slots__ = ()
+    frame: 'MainFrame'
 
     def del_item(self, item_id: 'TreeItemId', del_item=True):
         raise NotImplementedError()
@@ -182,8 +183,8 @@ class PathData(NamedTuple):
 class ImageItem(Item):
     """每个载入的图像的存储实例"""
     __slots__ = (
-        'frame', 'cache', 'path_data', 'loaded_image_path', 'settings', 'parent', 'item_id',
-        'selected', 'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error'
+        'frame', 'cache', 'path_data', 'loaded_image_path', 'settings', 'parent', 'item_id', 'selected',
+        'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error'
     )
 
     def __init__(self, frame: 'MainFrame', loaded_image: 'Image', path_data: 'PathData', settings: 'Settings', no_file=False, keep_cache_loaded_image=False):
@@ -222,13 +223,13 @@ class ImageItem(Item):
         if cache and self.cache.initial_preview is not None and size == self.cache.preview_size:
             self.frame.controls.imported_image = self.cache.initial_preview
             return False
-        image = self.cache.loaded_image.resize(scale(*self.cache.loaded_image.size, *size), PIL_RESAMPLING_FILTERS[self.frame.controls.resampling_filter_id])
+        image = self.cache.loaded_image.resize(cal_best_size(*self.cache.loaded_image.size, *size), PIL_RESAMPLING_FILTERS[self.frame.controls.resampling_filter_id])
         self.frame.controls.imported_image = image
         self.cache.preview_size = size
         self.cache.initial_preview = image
         return True
 
-    def display_processed_preview(self, cache=True, resize=True):
+    def display_processed_preview(self, cache=True, resize=True) -> bool:
         """命中缓存返回False, 未命中则生成并返回True"""
         if cache:
             cache_hash = self.frame.settings.encryption_settings_hash
@@ -279,7 +280,7 @@ class ImageItem(Item):
         if del_item:
             collect()
 
-    def reload_item(self, dialog=True) -> 'Optional[tuple[int, int]]':
+    def reload_item(self, dialog=True) -> Optional[tuple[int, int]]:
         if self.no_file:
             self.frame.dialog.async_warning('来自剪贴板的文件不支持重载操作')
             self.reload_done()

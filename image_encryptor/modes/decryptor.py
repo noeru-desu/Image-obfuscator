@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 12:27:10
+LastEditTime : 2022-03-27 08:34:52
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -13,16 +13,16 @@ from PIL import Image
 
 from image_encryptor.frame.controls import (EncryptionParametersData,
                                             ProgressBar, SavingSettings)
+from image_encryptor.modules.image import (PillowImage, WrappedPillowImage,
+                                           array_to_image, crop_array)
 from image_encryptor.modules.image_encrypt import ImageDecrypt
-from image_encryptor.utils.image import (PillowImage, WrappedPillowImage,
-                                         array_to_image, crop_array)
-from image_encryptor.utils.misc_util import catch_exception_and_return
+from image_encryptor.utils.misc_utils import catch_exception_and_return
 
 if TYPE_CHECKING:
-    from wx import Gauge
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.file_item import PathData
-    from image_encryptor.utils.image import WrappedImage
+    from image_encryptor.modules.image import WrappedImage
+    from wx import Gauge
 
 
 @catch_exception_and_return

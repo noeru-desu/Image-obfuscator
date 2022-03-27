@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-26 19:46:06
+LastEditTime : 2022-03-27 08:33:40
 Description  : 整理
 """
 from abc import ABC
@@ -18,10 +18,10 @@ from image_encryptor.modules.password_verifier import PasswordDict
 
 if TYPE_CHECKING:
     from PIL.Image import Image
-    from image_encryptor.utils.image import WrappedImage
     from wx import Gauge
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.tree_manager import ImageItem
+    from image_encryptor.modules.image import WrappedImage
 
 
 class ItemNotFoundError(Exception):

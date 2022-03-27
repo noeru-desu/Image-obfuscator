@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:10:17
+LastEditTime : 2022-03-27 08:36:10
 Description  : 对话框相关
 """
 from threading import Lock
@@ -15,7 +15,7 @@ from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
                 MessageDialog)
 
 from image_encryptor.frame.design_frame import PasswordDialog as PD
-# from image_encryptor.utils.misc_util import gen_slots_str
+# from image_encryptor.utils.debugging_utils import gen_slots_str
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame

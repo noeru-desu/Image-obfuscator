@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-23 21:42:27
+LastEditTime : 2022-03-27 08:36:31
 Description  : 覆写窗口
 """
 from concurrent.futures import ThreadPoolExecutor
@@ -32,7 +32,7 @@ from image_encryptor.utils.exit_processor import ExitProcessor
 from image_encryptor.utils.logger import Logger
 from image_encryptor.utils.thread import ProcessTaskManager
 
-# from image_encryptor.utils.misc_util import gen_slots_str
+# from image_encryptor.utils.debugging_utils import gen_slots_str
 
 if TYPE_CHECKING:
     from image_encryptor.frame.tree_manager import ImageItem

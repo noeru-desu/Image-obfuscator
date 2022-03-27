@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-25 21:12:12
+LastEditTime : 2022-03-27 08:31:44
 Description  : 图像相关工具
 """
 from abc import ABC
@@ -13,14 +13,19 @@ from random import seed as random_seed
 from re import sub
 from typing import TYPE_CHECKING, Iterable, Optional
 
-from numpy import squeeze, uint8, zeros, ascontiguousarray
+from numpy import ascontiguousarray, squeeze, uint8, zeros
 from numpy.random import randint
 from numpy.random import seed as np_random_seed
 from PIL import Image as PIL_Image
-from wx import Bitmap, Image as wx_Image
+from PIL import UnidentifiedImageError
+from wx import Bitmap
+from wx import Image as wx_Image
 
-from image_encryptor.constants import PIL_RESAMPLING_FILTERS, WX_RESAMPLING_FILTERS
-from image_encryptor.utils.misc_util import scale
+from image_encryptor.constants import (BLACK_IMAGE, OIERR_EXCEED_LIMIT,
+                                       OIERR_NOT_EXIST,
+                                       OIERR_UNSUPPORTED_FORMAT,
+                                       PIL_RESAMPLING_FILTERS,
+                                       WX_RESAMPLING_FILTERS)
 
 if TYPE_CHECKING:
     from numpy import ndarray
@@ -70,6 +75,39 @@ def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=Tr
         return PIL_Image.fromarray(image, mode='RGBA')
     else:
         raise ValueError(f'Input nc should be 1/3/4. Got {nc}.')
+
+
+def open_image(file) -> tuple['PIL_Image.Image', Optional[str]]:
+    """
+    :description: 打开图像
+    :param file: 要打开的文件
+    :return: 成功时，返回(Image实例, None)
+                失败时， 返回(黑色Image实例, 错误提示)
+    """
+    try:
+        image = PIL_Image.open(file).convert('RGBA')
+    except FileNotFoundError:
+        return BLACK_IMAGE, OIERR_NOT_EXIST
+    except UnidentifiedImageError:
+        return BLACK_IMAGE, OIERR_UNSUPPORTED_FORMAT
+    except PIL_Image.DecompressionBombWarning:
+        return BLACK_IMAGE, OIERR_EXCEED_LIMIT
+    except Exception as e:
+        return BLACK_IMAGE, repr(e)
+    return image, None
+
+
+def cal_best_size(orig_width: int, orig_height: int, visible_width: int, visible_height: int) -> tuple[int, int]:
+    """
+    :description: 根据两组宽高计算最佳大小
+    :param orig_width: 原始图像宽度
+    :param orig_height: 原始图像高度
+    :param width: 可以使用的最大宽度
+    :param height: 可以使用的最大高度
+    :return: 按比例缩放后的宽最佳大小
+    """
+    scale = min(visible_width / orig_width, visible_height / orig_height)
+    return int(orig_width * scale), int(orig_height * scale)
 
 
 def split_channels(arr):
@@ -144,7 +182,7 @@ class PillowImage(WrappedImage):
         return self.image.size
 
     def gen_wxBitmap(self, visible_size: tuple[int, int], resampling_filter_id: int) -> 'Bitmap':
-        size = scale(*self.size, *visible_size)
+        size = cal_best_size(*self.size, *visible_size)
         match self.image.mode:
             case 'RGBA':
                 return Bitmap.FromBufferRGBA(*size, self.image.resize(size, PIL_RESAMPLING_FILTERS[resampling_filter_id]).tobytes())
@@ -155,7 +193,7 @@ class PillowImage(WrappedImage):
         self.image = self.image.convert(mode, *args, **kwargs)
 
     def resize(self, visible_size: tuple[int, int], resampling_filter_id: int):
-        self.image = self.image.resize(scale(*self.size, *visible_size), PIL_RESAMPLING_FILTERS[resampling_filter_id])
+        self.image = self.image.resize(cal_best_size(*self.size, *visible_size), PIL_RESAMPLING_FILTERS[resampling_filter_id])
 
     def save(self, path: str, *args, **kwargs):
         self.image.save(path, *args, **kwargs)
@@ -186,7 +224,7 @@ class wxImage(WrappedImage):
         return self.image.GetSize()
 
     def resize(self, visible_size: tuple[int, int], resampling_filter_id: int):
-        self.image.Rescale(*scale(*self.size, *visible_size), WX_RESAMPLING_FILTERS[resampling_filter_id])
+        self.image.Rescale(*cal_best_size(*self.size, *visible_size), WX_RESAMPLING_FILTERS[resampling_filter_id])
         return self
 
 

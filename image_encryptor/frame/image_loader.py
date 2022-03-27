@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 12:52:17
+LastEditTime : 2022-03-27 08:35:20
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
@@ -14,7 +14,8 @@ from wx import ID_CANCEL, ID_NO, ID_YES, CallAfter
 from image_encryptor.constants import EXTENSION_KEYS
 from image_encryptor.frame.controls import ProgressBar, Settings
 from image_encryptor.frame.file_item import ImageItem, PathData
-from image_encryptor.utils.misc_util import open_image, walk_file
+from image_encryptor.modules.image import open_image
+from image_encryptor.utils.misc_utils import walk_file
 from image_encryptor.utils.thread import ThreadManager
 
 if TYPE_CHECKING:
