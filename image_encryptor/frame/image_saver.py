@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-22 21:31:59
+LastEditTime : 2022-03-30 05:35:05
 Description  : 文件保存功能
 """
 from os import listdir
@@ -14,9 +14,9 @@ from wx import (CHK_CHECKED, CHK_UNCHECKED, CHK_UNDETERMINED, DIRP_CHANGE_DIR,
                 DIRP_DIR_MUST_EXIST, ID_CANCEL, ID_NO, ID_OK, ID_YES,
                 DirDialog)
 
-import image_encryptor.modes.decryptor as decryptor
-import image_encryptor.modes.encryptor as encryptor
-import image_encryptor.modes.qq_anti_harmony as qq_anti_harmony
+import image_encryptor.modes.decrypt as decrypt
+import image_encryptor.modes.encrypt as encrypt
+import image_encryptor.modes.anti_harmony as anti_harmony
 from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE
 from image_encryptor.frame.controls import ProgressBar
 from image_encryptor.utils.thread import ThreadManager
@@ -66,11 +66,11 @@ class ImageSaver(object):
         if not self.frame.update_password_dict():   # 检查密码栏内容是否合法
             self.frame.controls.password = 'none'
         if self.frame.controls.proc_mode == ENCRYPTION_MODE:
-            self.saving_thread.start_new(encryptor.normal, self._save_selected_image_call_back, (self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress, self.frame.image_item.cache.loaded_image, True))
+            self.saving_thread.start_new(encrypt.normal, self._save_selected_image_call_back, (self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress, self.frame.image_item.cache.loaded_image, True))
         elif self.frame.controls.proc_mode == DECRYPTION_MODE:
-            self.saving_thread.start_new(decryptor.normal, self._save_selected_image_call_back, (self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress, self.frame.image_item.cache.loaded_image, True))
+            self.saving_thread.start_new(decrypt.normal, self._save_selected_image_call_back, (self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress, self.frame.image_item.cache.loaded_image, True))
         else:
-            self.saving_thread.start_new(qq_anti_harmony.normal, self._save_selected_image_call_back, (self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress, self.frame.image_item.cache.loaded_image, True))
+            self.saving_thread.start_new(anti_harmony.normal, self._save_selected_image_call_back, (self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress, self.frame.image_item.cache.loaded_image, True))
 
     def _save_selected_image_call_back(self, error, result):
         """保存选中的图像完成后的回调函数"""
@@ -128,15 +128,15 @@ class ImageSaver(object):
             image_data = ('RGBA', image_item.cache.loaded_image.size, image_item.cache.loaded_image.tobytes())  # 打包所需的可封存的对象
 
             if image_item.settings.proc_mode == ENCRYPTION_MODE:
-                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(encryptor.batch, image_data, image_item.path_data, image_item.settings.properties_tuple, self.frame.settings.saving_settings.properties_tuple, uf), self._bulk_save_callback)
+                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(encrypt.batch, image_data, image_item.path_data, image_item.settings.properties_tuple, self.frame.settings.saving_settings.properties_tuple, uf), self._bulk_save_callback)
             elif image_item.settings.proc_mode == DECRYPTION_MODE:
                 image_item.cache.encryption_data.password = self.frame.password_dict.get_password(image_item.cache.encryption_data.password_base64)
                 if image_item.cache.encryption_data.password is None:
                     self.frame.logger.warning(f'[{image_item.path_data.file_name}]未找到密码，跳过保存')
                     continue
-                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(decryptor.batch, image_data, image_item.path_data, image_item.cache.encryption_data.properties_tuple, self.frame.settings.saving_settings.properties_tuple, uf), self._bulk_save_callback)
+                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(decrypt.batch, image_data, image_item.path_data, image_item.cache.encryption_data.properties_tuple, self.frame.settings.saving_settings.properties_tuple, uf), self._bulk_save_callback)
             else:
-                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(qq_anti_harmony.batch, image_data, self.frame.settings.saving_settings.properties_tuple, uf), self._bulk_save_callback)
+                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(anti_harmony.batch, image_data, self.frame.settings.saving_settings.properties_tuple, uf), self._bulk_save_callback)
 
             self.task_num += 1
 

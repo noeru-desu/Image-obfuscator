@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-27 08:27:31
+LastEditTime : 2022-04-03 14:20:35
 Description  : 一些小东西
 """
 from functools import wraps as functools_wraps
@@ -10,7 +10,7 @@ from inspect import signature
 from os import walk
 from os.path import normpath
 from traceback import format_exc
-from typing import Callable
+from typing import Callable, Iterable, Any
 
 
 def walk_file(path, topdown=False, filter=None) -> tuple[int, list[tuple[list, list]]]:
@@ -69,6 +69,21 @@ def catch_exception_and_return(func):
         except Exception:
             return None, format_exc()
     return wrap
+
+
+def anadiplosis(iterable: Iterable, start: Any = ..., end: Any = ...):
+    if start is Ellipsis:
+        previous = iterable[0]
+        for i in iterable[1:]:
+            yield previous, i
+            previous = i
+    else:
+        previous = start
+        for i in iterable:
+            yield previous, i
+            previous = i
+    if end is not Ellipsis:
+        yield previous, end
 
 
 class FakeBar:

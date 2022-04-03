@@ -2,14 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-27 16:20:35
+LastEditTime : 2022-03-30 05:35:09
 Description  : 图像生成功能
 """
 from typing import TYPE_CHECKING
 
-import image_encryptor.modes.decryptor as decryptor
-import image_encryptor.modes.encryptor as encryptor
-import image_encryptor.modes.qq_anti_harmony as qq_anti_harmony
+import image_encryptor.modes.decrypt as decrypt
+import image_encryptor.modes.encrypt as encrypt
+import image_encryptor.modes.anti_harmony as anti_harmony
 from image_encryptor.constants import ORIG_IMAGE
 from image_encryptor.modules.image import ImageData, PillowImage
 from image_encryptor.utils.thread import ThreadManager
@@ -36,17 +36,17 @@ class PreviewGenerator(object):
             type_conversion = ImageData
         match self.frame.controls.proc_mode:
             case 0:
-                self.preview_thread.start_new(encryptor.normal, self._generate_preview_call_back, (
+                self.preview_thread.start_new(encrypt.normal, self._generate_preview_call_back, (
                     self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress,
                     source, False, type_conversion
                 ))
             case 1:
-                self.preview_thread.start_new(decryptor.normal, self._generate_preview_call_back, (
+                self.preview_thread.start_new(decrypt.normal, self._generate_preview_call_back, (
                     self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress,
                     self.frame.image_item.cache.loaded_image, False, PillowImage
                 ))
             case 2:
-                self.preview_thread.start_new(qq_anti_harmony.normal, self._generate_preview_call_back, (
+                self.preview_thread.start_new(anti_harmony.normal, self._generate_preview_call_back, (
                     self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress,
                     source, False
                 ))
