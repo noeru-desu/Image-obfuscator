@@ -2,14 +2,16 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-27 08:35:03
+LastEditTime : 2022-04-03 09:39:25
 Description  : 图像加密模块
 """
+from copy import copy
+from itertools import product
 from math import ceil
 from random import Random
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, MutableSequence
 
-from numpy import ascontiguousarray, hsplit, uint8, vsplit, zeros
+from numpy import ascontiguousarray, uint8, zeros, empty
 from numpy.random import randint
 from PIL import Image
 
@@ -19,7 +21,6 @@ from image_encryptor.modules.image import (array_to_image, gen_mapping_table,
 from image_encryptor.utils.misc_utils import FakeBar
 
 if TYPE_CHECKING:
-    from typing import Iterable
     from numpy import ndarray
 
 flip_func = (
@@ -101,26 +102,25 @@ class ImageEncryptBaseV2(object):
             self.mapped_channels = False
             self.mapping_table = None
         # 切割图像并记录坐标
-        for y in range(self.row):
-            for x in range(self.col):
-                block_pos = (x * self.block_width, y * self.block_height)
-                self.block_pos_list.append(block_pos)
-                self.block_list.append(self.image.crop((*block_pos, block_pos[0] + self.block_width, block_pos[1] + self.block_height)))
-                bar.add()
+        for y, x in product(range(self.row), range(self.col)):
+            block_pos = (x * self.block_width, y * self.block_height)
+            self.block_pos_list.append(block_pos)
+            self.block_list.append(self.image.crop((*block_pos, block_pos[0] + self.block_width, block_pos[1] + self.block_height)))
+            bar.add()
         # 随机打乱
         if shuffle:
             if decryption_mode:
-                self._shuffle.obverse(self.block_pos_list)
+                self._shuffle.obverse_on_self(self.block_pos_list)
             else:
-                self._shuffle.obverse(self.block_list)
+                self._shuffle.obverse_on_self(self.block_list)
         # 随机翻转
         if flip:
             self.block_flip_list = ([1, 2, 3, 0] * ceil(self.block_num / 4))[:self.block_num]
-            self._shuffle.obverse(self.block_flip_list)
+            self._shuffle.obverse_on_self(self.block_flip_list)
         if self.mapping_table is not None:
             if len(self.mapping_table) != 1:
                 self.block_mapping_list = (list(range(len(self.mapping_table))) * ceil(self.block_num / len(self.mapping_table)))[:self.block_num]
-                self._shuffle.obverse(self.block_mapping_list)
+                self._shuffle.obverse_on_self(self.block_mapping_list)
             else:
                 self.block_mapping_list = ([0] * self.block_num)
         bar.finish()
@@ -193,22 +193,21 @@ class ImageEncryptBaseV1(ImageEncryptBaseV2):
         self.mapped_channels = mapped_channels
         self.mapping_table = old_decrypt_mapping_func if decryption_mode else old_encrypt_mapping_func
         # 切割图像并记录坐标
-        for y in range(self.row):
-            for x in range(self.col):
-                block_pos = (x * self.block_width, y * self.block_height)
-                self.block_pos_list.append(block_pos)
-                self.block_list.append(self.image.crop((*block_pos, block_pos[0] + self.block_width, block_pos[1] + self.block_height)))
-                bar.add()
+        for y, x in product(range(self.row), range(self.col)):
+            block_pos = (x * self.block_width, y * self.block_height)
+            self.block_pos_list.append(block_pos)
+            self.block_list.append(self.image.crop((*block_pos, block_pos[0] + self.block_width, block_pos[1] + self.block_height)))
+            bar.add()
         # 随机打乱
         if shuffle:
             if decryption_mode:
-                self._shuffle.obverse(self.block_pos_list)
+                self._shuffle.obverse_on_self(self.block_pos_list)
             else:
-                self._shuffle.obverse(self.block_list)
+                self._shuffle.obverse_on_self(self.block_list)
         # 随机翻转
         if flip or mapped_channels:
             self.block_mapping_list = ([1, 2, 3, 0] * ceil(self.block_num / 4))[:self.block_num]
-            self._shuffle.obverse(self.block_mapping_list)
+            self._shuffle.obverse_on_self(self.block_mapping_list)
         if flip:
             self.block_flip_list = self.block_mapping_list
         bar.finish()
@@ -220,9 +219,9 @@ class ImageEncryptBaseV3(object):
     """
     # ! Image转换为narray后会逆时针旋转90度，因此处理时宽高需对调
     __slots__ = (
-        'row', 'col', 'block_num', 'block_width', 'block_height', 'ceil_size', 'block_list',
-        'block_mapping_list', 'image_array', 'init', 'shuffle', 'flip', 'mapped_channels',
-        'mapping_table', 'mapping_table', 'block_pos_list', '_shuffle'
+        'row', 'col', 'block_num', 'block_width', 'block_height', 'ceil_size', 'block_mapping_list',
+        'image_array', 'init', 'shuffle', 'flip', 'mapped_channels', 'shuffled_block_pos_list',
+        'mapping_table', 'block_pos_list', '_shuffle'
     )
 
     def __init__(self, image: Image.Image, row: int, col: int, random_seed):
@@ -238,11 +237,10 @@ class ImageEncryptBaseV3(object):
         self.block_width = ceil(image.size[0] / col)
         self.block_height = ceil(image.size[1] / row)
         self.ceil_size = (self.block_width * col, self.block_height * row)
-        self.block_list = []
         self.block_mapping_list = []
         self.block_pos_list = []
         self.init = False
-        self.image_array = zeros((self.ceil_size[1], self.ceil_size[0], 4), uint8, 'C')
+        self.image_array = zeros((self.ceil_size[1], self.ceil_size[0], 4), uint8)
         self.image_array[0:image.size[1], 0:image.size[0]] = ascontiguousarray(image, uint8)
         self._shuffle = Shuffle(random_seed)
 
@@ -261,26 +259,29 @@ class ImageEncryptBaseV3(object):
         else:
             self.mapped_channels = False
             self.mapping_table = None
-        # 切割图像并记录坐标
-        for i, arr in enumerate(vsplit(self.image_array, self.row)):
-            self.block_list.extend(hsplit(arr, self.col))
-            h_pos = i * self.block_height
-            self.block_pos_list.extend((h_pos, j) for j in range(0, self.ceil_size[0], self.block_width))
-            bar.add()
+        # 记录坐标
+        self._cut_and_record(bar)
         # 随机映射
         if self.mapping_table is not None:
             if len(self.mapping_table) != 1:
                 self.block_mapping_list = (list(range(len(self.mapping_table))) * ceil(self.block_num / len(self.mapping_table)))[:self.block_num]
-                self._shuffle.obverse(self.block_mapping_list)
+                self._shuffle.obverse_on_self(self.block_mapping_list)
             else:
                 self.block_mapping_list = ([0] * self.block_num)
         # 随机打乱
-        if self.shuffle:
-            if decryption_mode:
-                self._shuffle.obverse(self.block_pos_list)
-            else:
-                self._shuffle.obverse(self.block_list)
+        self._shuffle_image(decryption_mode)
         bar.finish()
+
+    def _cut_and_record(self, bar):
+        """记录坐标"""
+        self.block_pos_list = [(slice(y, y + self.block_height), slice(x, x + self.block_width)) for y, x in product(range(0, self.row * self.block_height, self.block_height), range(0, self.col * self.block_width, self.block_width))]
+
+    def _shuffle_image(self, decryption_mode):
+        """生成映射坐标"""
+        if self.shuffle:
+            self.shuffled_block_pos_list = self._shuffle.obverse(self.block_pos_list)
+            if not decryption_mode:
+                self.block_pos_list, self.shuffled_block_pos_list = self.shuffled_block_pos_list, self.block_pos_list
 
     def generate_image(self, bar=FakeBar):
         """
@@ -290,28 +291,24 @@ class ImageEncryptBaseV3(object):
         assert self.init, 'ImageEncrypt instance is not initialized.'
         random.seed(self._shuffle.seed)
         randbelow = random._randbelow
-        new_image_array = zeros((self.ceil_size[1], self.ceil_size[0], 4), uint8, 'C')
+        new_image_array = empty((self.ceil_size[1], self.ceil_size[0], 4), uint8)
         if self.flip and self.mapped_channels:
             shape = (self.block_height, self.block_width, 4)
-            for block, pos, mapping in zip(self.block_list, self.block_pos_list, self.block_mapping_list):
-                h, w = pos
-                new_image_array[h:h + self.block_height, w:w + self.block_width] = merge_channels(self.mapping_table[mapping](*split_channels(flip_func[randbelow(4)](block))), shape)
+            for orig_slice, slice, mapping in zip(self.block_pos_list, self.shuffled_block_pos_list, self.block_mapping_list):
+                new_image_array[slice[0], slice[1]] = merge_channels(self.mapping_table[mapping](*split_channels(flip_func[randbelow(4)](self.image_array[orig_slice[0], orig_slice[1]]))), shape)
                 bar.add()
         elif self.flip:
-            for block, pos in zip(self.block_list, self.block_pos_list):
-                h, w = pos
-                new_image_array[h:h + self.block_height, w:w + self.block_width] = flip_func[randbelow(4)](block)
+            for orig_slice, slice in zip(self.block_pos_list, self.shuffled_block_pos_list):
+                new_image_array[slice[0], slice[1]] = flip_func[randbelow(4)](self.image_array[orig_slice[0], orig_slice[1]])
                 bar.add()
         elif self.mapped_channels:
             shape = (self.block_height, self.block_width, 4)
-            for block, pos, mapping in zip(self.block_list, self.block_pos_list, self.block_mapping_list):
-                h, w = pos
-                new_image_array[h:h + self.block_height, w:w + self.block_width] = merge_channels(self.mapping_table[mapping](*split_channels(block)), shape)
+            for orig_slice, slice, mapping in zip(self.block_pos_list, self.shuffled_block_pos_list, self.block_mapping_list):
+                new_image_array[slice[0], slice[1]] = merge_channels(self.mapping_table[mapping](*split_channels(self.image_array[orig_slice[0], orig_slice[1]])), shape)
                 bar.add()
         else:
-            for block, pos in zip(self.block_list, self.block_pos_list):
-                h, w = pos
-                new_image_array[h:h + self.block_height, w:w + self.block_width] = block
+            for orig_slice, slice in zip(self.block_pos_list, self.shuffled_block_pos_list):
+                new_image_array[slice[0], slice[1]] = self.image_array[orig_slice[0], orig_slice[1]]
                 bar.add()
         bar.finish()
         self.image_array = new_image_array
@@ -333,6 +330,10 @@ class ImageEncryptBaseV3(object):
             for channel in channels:
                 self.image_array[:, :, channel_num[channel]] ^= xor_num
         return self.image_array, size[::-1]
+
+
+class ImageEncryptBaseV4(ImageEncryptBaseV3):   # TODO 优化mapping_table中的lambda, 尝试不反复进行通道操作
+    pass
 
 
 class ImageEncrypt(object):
@@ -399,16 +400,26 @@ class Shuffle(object):
     def __init__(self, seed) -> None:
         self.seed = seed
 
-    def obverse(self, iterable: 'Iterable'):
-        random.seed(self.seed)
-        random.shuffle(iterable)
+    def obverse(self, x: MutableSequence) -> list:
+        new_x = x.copy() if hasattr(x, 'copy') else copy(x)
+        return self.obverse_on_self(new_x)
 
-    def reverse(self, iterable: 'Iterable'):
+    def reverse(self, x: MutableSequence) -> list:
+        new_x = x.copy() if hasattr(x, 'copy') else copy(x)
+        return self.reverse_on_self(new_x)
+
+    def obverse_on_self(self, x: MutableSequence):
+        random.seed(self.seed)
+        random.shuffle(x)
+        return x
+
+    def reverse_on_self(self, x: MutableSequence):
         random.seed(self.seed)
         randbelow = random._randbelow
-        index_tuple = range(1, len(iterable))
+        index_tuple = range(1, len(x))
         randbelow_list = [randbelow(i + 1) for i in reversed(index_tuple)]
         randbelow_list.reverse()
         for i, j in zip(index_tuple, randbelow_list):
             # pick an element in x[:i+1] with which to exchange x[i]
-            iterable[i], iterable[j] = iterable[j], iterable[i]
+            x[i], x[j] = x[j], x[i]
+        return x
