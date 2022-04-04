@@ -282,6 +282,8 @@ class ImageEncryptBaseV3(object):
             self.shuffled_block_pos_list = self._shuffle.obverse(self.block_pos_list)
             if not decryption_mode:
                 self.block_pos_list, self.shuffled_block_pos_list = self.shuffled_block_pos_list, self.block_pos_list
+        else:
+            self.shuffled_block_pos_list = self.block_pos_list
 
     def generate_image(self, bar=FakeBar):
         """
