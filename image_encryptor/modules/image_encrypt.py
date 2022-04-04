@@ -9,15 +9,15 @@ from copy import copy
 from itertools import product
 from math import ceil
 from random import Random
-from typing import TYPE_CHECKING, Union, MutableSequence
+from typing import TYPE_CHECKING, MutableSequence, Union
 
-from numpy import ascontiguousarray, uint8, zeros, empty
+from numpy import ascontiguousarray, empty, uint8, zeros
 from numpy.random import randint
 from PIL import Image
 
-from image_encryptor.modules.image import (array_to_image, gen_mapping_table,
-                                           merge_channels, random_noise,
-                                           split_channels)
+from image_encryptor.constants import EA_VERSION
+from image_encryptor.modules.image import (array_to_image, random_noise,
+                                           random_noise_v2)
 from image_encryptor.utils.misc_utils import FakeBar
 
 if TYPE_CHECKING:
@@ -334,15 +334,32 @@ class ImageEncryptBaseV3(object):
         return self.image_array, size[::-1]
 
 
-class ImageEncryptBaseV4(ImageEncryptBaseV3):   # TODO 优化mapping_table中的lambda, 尝试不反复进行通道操作
-    pass
+class ImageEncryptBaseV3_1(ImageEncryptBaseV3):
+    def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
+        """
+        :description: 异或图像中每个像素点的RGB(A)通道
+        :return: 异或后的图像
+        """
+        size = self.image_array.shape[:-1]
+        if noise:
+            noise_array = random_noise_v2(*size, len(channels), self._shuffle.seed, noise_factor)
+            for index, channel in enumerate(channels):
+                self.image_array[:, :, channel_num[channel]] ^= noise_array[:, :, index]
+        else:
+            random.seed(self._shuffle.seed)
+            xor_num = random.randrange(256)
+            for channel in channels:
+                self.image_array[:, :, channel_num[channel]] ^= xor_num
+        return self.image_array, size[::-1]
 
 
 class ImageEncrypt(object):
     __slots__ = ('base',)
 
-    def __init__(self, image: Image.Image, row: int, col: int, random_seed, version=7) -> None:
-        if version >= 7:
+    def __init__(self, image: Image.Image, row: int, col: int, random_seed, version=EA_VERSION) -> None:
+        if version >= 8:
+            self.base = ImageEncryptBaseV3_1(image, row, col, random_seed)
+        elif version == 7:
             self.base = ImageEncryptBaseV3(image, row, col, random_seed)
         elif version >= 5:
             self.base = ImageEncryptBaseV2(image, row, col, random_seed)
@@ -362,8 +379,10 @@ class ImageEncrypt(object):
 class ImageDecrypt(object):
     __slots__ = ('base',)
 
-    def __init__(self, image: Image.Image, row: int, col: int, random_seed, version=7) -> None:
-        if version >= 7:
+    def __init__(self, image: Image.Image, row: int, col: int, random_seed, version=EA_VERSION) -> None:
+        if version >= 8:
+            self.base = ImageEncryptBaseV3_1(image, row, col, random_seed)
+        elif version == 7:
             self.base = ImageEncryptBaseV3(image, row, col, random_seed)
         elif version >= 5:
             self.base = ImageEncryptBaseV2(image, row, col, random_seed)

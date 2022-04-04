@@ -77,6 +77,39 @@ def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=Tr
         raise ValueError(f'Input nc should be 1/3/4. Got {nc}.')
 
 
+def random_noise_v2(width: int, height: int, nc: int, seed: Hashable, factor: int, ndarray=True):
+    """Generator a random noise image from numpy.array.
+
+    If nc is 1, the Grayscale image will be created.
+    If nc is 3, the RGB image will be generated.
+    If nc is 4, the RGBA image will be generated.
+
+    Args:
+        nc (int): (1, 3 or 4) number of channels.
+        width (int): width of output image.
+        height (int): height of output image.
+    Returns:
+        ndarray or PIL Image.
+    """
+    if factor > 255:
+        factor = 255
+    elif factor < 1:
+        factor = 1
+    np_random_seed(hash(seed))
+    image = randint(0, factor + 1, (width, height, nc), uint8)   # [rc.4修改方法]
+    # image = (np_random.rand(height, width, nc) * factor).astype(uint8) [rc.3使用方法]
+    if ndarray:
+        return image
+    if nc == 1:
+        return PIL_Image.fromarray(squeeze(image), mode='L')
+    elif nc == 3:
+        return PIL_Image.fromarray(image, mode='RGB')
+    elif nc == 4:
+        return PIL_Image.fromarray(image, mode='RGBA')
+    else:
+        raise ValueError(f'Input nc should be 1/3/4. Got {nc}.')
+
+
 def open_image(file) -> tuple['PIL_Image.Image', Optional[str]]:
     """
     :description: 打开图像
