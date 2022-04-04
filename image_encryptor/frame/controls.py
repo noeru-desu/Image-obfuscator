@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-27 08:33:40
+LastEditTime : 2022-04-04 19:19:20
 Description  : 整理
 """
 from abc import ABC
@@ -426,6 +426,14 @@ class Controls(object):
     @low_memory_mode.setter
     def low_memory_mode(self, v: bool):
         self.frame.lowMemoryMode.Value = v
+
+    @property
+    def disable_cache(self) -> bool:
+        return self.frame.disableCache.Value
+
+    @disable_cache.setter
+    def disable_cache(self, v: bool):
+        self.frame.disableCache.Value = v
 
     @property
     def mapping_channels(self):

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-22 21:22:50
+LastEditTime : 2022-04-04 19:21:10
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -237,6 +237,9 @@ class MainFrame(BasicMainFrame):
 
     def toggle_low_memory_usage_mode(self, event: 'CommandEvent'):
         self.startup_parameters.low_memory = event.IsChecked()
+
+    def toggle_disable_cache(self, event: 'CommandEvent'):
+        self.startup_parameters.disable_cache = event.IsChecked()
 
     def exit(self, event):
         self.logger.info('窗口退出')

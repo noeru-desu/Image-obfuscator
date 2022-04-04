@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-09 18:44:07
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-24 06:19:17
+LastEditTime : 2022-04-04 19:22:51
 Description  : 参数解析
 """
 from argparse import ArgumentParser
@@ -11,10 +11,11 @@ from argparse import ArgumentParser
 
 
 class Parameters(object):
-    __slots__ = PARAMETER_NAMES = ('test', 'low_memory', '_dark_mode', 'maximum_redundant_cache_length')
+    __slots__ = PARAMETER_NAMES = ('disable_cache', 'test', 'low_memory', '_dark_mode', 'maximum_redundant_cache_length')
 
     def __init__(self) -> None:
         self.test: bool = False
+        self.disable_cache = False
         self.low_memory: bool = False
         self.maximum_redundant_cache_length: int = 5
         self._dark_mode: bool = None
@@ -38,6 +39,7 @@ class Arguments(object):
         self.argparser = ArgumentParser(add_help=False)
         self.argparser.add_argument('-h', '--help', action='help', help='输出参数帮助信息并退出')
         # self.argparser.add_argument('-v', '--version', action='version', help='输出程序版本信息并退出', version=VERSION_INFO)   # TODO 不会换行
+        self.argparser.add_argument('--disable-cache', dest='disable_cache', action='store_true', help='禁用处理结果缓存(仍会存储, 但不会使用)。默认关闭')
         self.argparser.add_argument('--low-memory', dest='low_memory', action='store_true', help='低内存占用模式(磁盘读取频率与CPU占用将会有所升高)。默认关闭')
         self.argparser.add_argument('--MRCL', '--maximum-redundant-cache-length', dest='maximum_redundant_cache_length', default=5, type=int, help='处理后预览图冗余缓存量, 切换图像项目时自动清理冗余缓存。默认为5')
         self.argparser.add_argument('-t', '--test', dest='test', action='store_true', help='用于CI中测试程序能否正常初始化')

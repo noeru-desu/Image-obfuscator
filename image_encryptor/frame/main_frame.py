@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-27 13:17:26
+LastEditTime : 2022-04-04 19:27:52
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -87,6 +87,7 @@ class MainFrame(MF):
         self.xorPanel.Disable()
         self.savingFormat.ToolTip = f'{self.savingFormat.GetToolTipText()}{EXTENSION_KEYS_STRING}'
         self.controls.redundant_cache_length = self.startup_parameters.maximum_redundant_cache_length
+        self.controls.disable_cache = self.startup_parameters.disable_cache
         self.controls.low_memory_mode = self.startup_parameters.low_memory
 
         self.image_item: 'ImageItem' = None

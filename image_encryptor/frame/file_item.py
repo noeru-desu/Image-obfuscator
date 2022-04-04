@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-27 08:44:21
+LastEditTime : 2022-04-04 19:28:56
 Description  : 图像项目
 """
 from abc import ABC
@@ -220,7 +220,7 @@ class ImageItem(Item):
     def display_initial_preview(self, cache=True) -> bool:
         """命中缓存返回False, 未命中则生成并返回True"""
         size = self.frame.controls.preview_size
-        if cache and self.cache.initial_preview is not None and size == self.cache.preview_size:
+        if cache and not self.frame.startup_parameters.disable_cache and self.cache.initial_preview is not None and size == self.cache.preview_size:
             self.frame.controls.imported_image = self.cache.initial_preview
             return False
         image = self.cache.loaded_image.resize(cal_best_size(*self.cache.loaded_image.size, *size), PIL_RESAMPLING_FILTERS[self.frame.controls.resampling_filter_id])
@@ -231,7 +231,7 @@ class ImageItem(Item):
 
     def display_processed_preview(self, cache=True, resize=True) -> bool:
         """命中缓存返回False, 未命中则生成并返回True"""
-        if cache:
+        if cache and not self.frame.startup_parameters.disable_cache:
             cache_hash = self.frame.settings.encryption_settings_hash
             if cache_hash in self.cache.previews.scalable_cache:
                 self.frame.controls.previewed_bitmap = (
