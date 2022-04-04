@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-04 13:32:47
+LastEditTime : 2022-04-04 19:44:46
 Description  : 图像加密模块
 """
 from copy import copy
@@ -16,8 +16,7 @@ from numpy.random import randint
 from PIL import Image
 
 from image_encryptor.constants import EA_VERSION
-from image_encryptor.modules.image import (array_to_image, random_noise,
-                                           random_noise_v2)
+from image_encryptor.modules.image import array_to_image, random_noise
 from image_encryptor.pregenerated.image_encrypt import (FlipFuncV1, FlipFuncV2,
                                                         MappingFuncV1,
                                                         MappingFuncV2,
@@ -305,32 +304,11 @@ class ImageEncryptBaseV3(object):
         return self.image_array, size[::-1]
 
 
-class ImageEncryptBaseV3_1(ImageEncryptBaseV3):
-    def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
-        """
-        :description: 异或图像中每个像素点的RGB(A)通道
-        :return: 异或后的图像
-        """
-        size = self.image_array.shape[:-1]
-        if noise:
-            noise_array = random_noise_v2(*size, len(channels), self._shuffle.seed, noise_factor)
-            for index, channel in enumerate(channels):
-                self.image_array[:, :, channel_num[channel]] ^= noise_array[:, :, index]
-        else:
-            random.seed(self._shuffle.seed)
-            xor_num = random.randrange(256)
-            for channel in channels:
-                self.image_array[:, :, channel_num[channel]] ^= xor_num
-        return self.image_array, size[::-1]
-
-
 class ImageEncrypt(object):
     __slots__ = ('base',)
 
     def __init__(self, image: Image.Image, row: int, col: int, random_seed, version=EA_VERSION) -> None:
-        if version >= 8:
-            self.base = ImageEncryptBaseV3_1(image, row, col, random_seed)
-        elif version == 7:
+        if version == 7:
             self.base = ImageEncryptBaseV3(image, row, col, random_seed)
         elif version >= 5:
             self.base = ImageEncryptBaseV2(image, row, col, random_seed)
@@ -351,9 +329,7 @@ class ImageDecrypt(object):
     __slots__ = ('base',)
 
     def __init__(self, image: Image.Image, row: int, col: int, random_seed, version=EA_VERSION) -> None:
-        if version >= 8:
-            self.base = ImageEncryptBaseV3_1(image, row, col, random_seed)
-        elif version == 7:
+        if version == 7:
             self.base = ImageEncryptBaseV3(image, row, col, random_seed)
         elif version >= 5:
             self.base = ImageEncryptBaseV2(image, row, col, random_seed)
