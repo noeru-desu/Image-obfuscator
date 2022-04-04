@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-30 05:35:05
+LastEditTime : 2022-04-04 20:21:48
 Description  : 文件保存功能
 """
 from os import listdir
@@ -75,8 +75,8 @@ class ImageSaver(object):
     def _save_selected_image_call_back(self, error, result):
         """保存选中的图像完成后的回调函数"""
         self.hide_saving_progress_plane()
-        error, data = result
-        if error:
+        data, error = result
+        if error is not None:
             self.frame.dialog.async_error(data, '生成加密图像时出现意外错误')
         else:
             self.frame.controls.display_and_cache_processed_preview(data)     # 顺便刷新一下预览图
@@ -194,8 +194,8 @@ class ImageSaver(object):
         """批量保存回调函数"""
         # TODO result疑似无法获取(疑似ProcessTaskManager.callback出现问题)
         with self.lock:     # 线程锁，防止进度累加错误
-            error, data = result
-            if error:
+            data, error = result
+            if error is not None:
                 self.frame.dialog.async_error(data, '生成加密图像时出现意外错误')
             self.bar.add()
             self.frame.controls.saving_progress_info = f"{self.bar.value}/{self.task_num} - {format(self.bar.value / self.task_num * 100, '.2f')}%"
