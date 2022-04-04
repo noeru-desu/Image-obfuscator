@@ -29,7 +29,7 @@ class MainFrame (wx.Frame):
         'previewProgress''m_staticText9', 'm_button7', 'stopSavingBtn', 'subsamplingInfo', 'savingProgressInfo', 'm_staticline4',
         'subsamplingLevel''processingOptions', 'decryptionFilter', 'imageInfo', 'imageTreeSearchCtrl', 'procMode', 'mappingFilter',
         'XORA''mappingB', 'savingFilters', 'm_panel25', 'loadingPrograssPanel', 'encryptionFilter', 'savingBtnPanel',
-        'selectSavingPath''m_button311', 'previewedBitmapPlanel', 'm_button5', 'XORR'
+        'selectSavingPath''m_button311', 'previewedBitmapPlanel', 'm_button5', 'XORR', 'disableCache'
     )
 
     def __init__(self, parent):
@@ -664,6 +664,11 @@ class MainFrame (wx.Frame):
 
         sbSizer17.Add(self.lowMemoryMode, 0, wx.ALL, 5)
 
+        self.disableCache = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"禁止使用缓存", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.disableCache.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n禁止使用缓存: 与低内存占用模式不同，开启此选项后仍会保存缓存，但会在请求处理结果缓存时忽略缓存")
+
+        sbSizer17.Add(self.disableCache, 0, wx.ALL, 5)
+
         self.m_panel25.SetSizer(sbSizer17)
         self.m_panel25.Layout()
         sbSizer17.Fit(self.m_panel25)
@@ -731,6 +736,7 @@ class MainFrame (wx.Frame):
         self.stopSavingBtn.Bind(wx.EVT_BUTTON, self.stop_saving_event)
         self.redundantCacheLength.Bind(wx.EVT_TEXT_ENTER, self.change_redundant_cache_length)
         self.lowMemoryMode.Bind(wx.EVT_CHECKBOX, self.toggle_low_memory_usage_mode)
+        self.disableCache.Bind(wx.EVT_CHECKBOX, self.toggle_disable_cache)
 
     def __del__(self):
         pass
@@ -830,6 +836,9 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def toggle_low_memory_usage_mode(self, event):
+        event.Skip()
+
+    def toggle_disable_cache(self, event):
         event.Skip()
 
 

@@ -63,7 +63,7 @@ class MainFrame(MF):
             self.dark_mode()
         self.startup_parameters = startup_parameters
         self.logger = Logger('image-encryptor')
-        for i in VERSION_INFO.splitlines():
+        for i in VERSION_INFO:
             self.logger.info(i)
         self.controls = Controls(self)
         self.settings = SettingsManager(self.controls)

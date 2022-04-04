@@ -63,10 +63,12 @@ EAERR_NOT_SUPPORT = '选择的图像文件由更高版本的加密器加密, 请
 
 LIGHT_RED = Colour(255, 30, 30)
 
-VERSION_INFO = f'''Python {py_ver}
- - wxPython {wx_ver()}
- - Pillow {pillow_ver}
- - Numpy {numpy_ver}
- - Nutika {nuitka_ver()}
-You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})
-Open source at {OPEN_SOURCE_URL}'''
+VERSION_INFO = (
+    f'Python {py_ver}',
+    f' - wxPython {wx_ver()}',
+    f' - Pillow {pillow_ver}',
+    f' - Numpy {numpy_ver}',
+    f' - Nutika {nuitka_ver()}',
+    f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})',
+    f'Open source at {OPEN_SOURCE_URL}'
+)

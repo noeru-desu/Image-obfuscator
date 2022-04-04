@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-04 12:51:55
+LastEditTime : 2022-04-04 19:05:41
 Description  : 图像相关工具
 """
 from abc import ABC
@@ -63,16 +63,6 @@ def gen_all_mapping_table(decryption):
 
 print(str(gen_all_mapping_table(False)).replace("'", ''))
 '''
-
-
-def obverse_mapping(arr, indexes):
-    arr[..., indexes[0]], arr[..., indexes[1]], arr[..., indexes[2]], arr[..., indexes[3]] = arr[..., 0], arr[..., 1], arr[..., 2], arr[..., 3]
-    return arr
-
-
-def reverse_mapping(arr, indexes):
-    arr[..., 0], arr[..., 1], arr[..., 2], arr[..., 3] = arr[..., indexes[0]], arr[..., indexes[1]], arr[..., indexes[2]], arr[..., indexes[3]]
-    return arr
 
 
 def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=True):
