@@ -2,16 +2,16 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-27 08:31:44
+LastEditTime : 2022-04-04 12:51:55
 Description  : 图像相关工具
 """
 from abc import ABC
-from functools import cache
-from itertools import permutations
+# from functools import cache
+# from itertools import permutations, combinations
 from random import randrange
 from random import seed as random_seed
-from re import sub
-from typing import TYPE_CHECKING, Iterable, Optional
+# from re import sub
+from typing import TYPE_CHECKING, Hashable, Optional
 
 from numpy import ascontiguousarray, squeeze, uint8, zeros
 from numpy.random import randint
@@ -31,15 +31,48 @@ if TYPE_CHECKING:
     from numpy import ndarray
 
 
-@cache
-def gen_mapping_table(nc, decryption=False) -> Optional[Iterable]:
+'''
+@cache# Optional[Iterable]
+def gen_mapping_table(nc, decryption=False) -> str:
     if len(nc) <= 1:
         return None
     nc_str = sub(f'[{nc}]', '{}', 'r, g, b, a')
-    lambda_str = f'lambda {nc_str}: (r, g, b, a)' if decryption else f'lambda r, g, b, a: ({nc_str})'
+    # lambda_str = f'lambda {nc_str}: (r, g, b, a)' if decryption else f'lambda r, g, b, a: ({nc_str})'
+    if len(nc) == 2:
+        return (nc_str.format(nc[1], nc[0]),)
+    return [nc_str.format(*i) for i in permutations(nc, len(nc))]
     if len(nc) == 2:
         return (eval(lambda_str.format(nc[1], nc[0])),)
     return [eval(lambda_str.format(*i)) for i in permutations(nc, len(nc))]
+
+
+
+def gen_all_mapping_table(decryption):
+    mapping_table = {'r': None, 'g': None, 'b': None, 'a': None}
+    return {k: tuple(f"lambda a: a[..., [{', '.join(str(j) for j in i(0, 1, 2, 3))}]]" for i in v) for k, v in MappingFuncV2.encrypt.items() if v is not None}
+    for i in combinations('rgba', 2):
+        nc = ''.join(i)
+        mapping_table[nc] = tuple(f"lambda a: a[..., [{i.replace('r', '0').replace('g', '1').replace('b', '2').replace('a', '3')}]]" for i in gen_mapping_table(nc, decryption))
+    for i in combinations('rgba', 3):
+        nc = ''.join(i)
+        mapping_table[nc] = tuple(f"lambda a: a[..., [{i.replace('r', '0').replace('g', '1').replace('b', '2').replace('a', '3')}]]" for i in gen_mapping_table(nc, decryption))
+    for i in combinations('rgba', 4):
+        nc = ''.join(i)
+        mapping_table[nc] = tuple(f"lambda a: a[..., [{i.replace('r', '0').replace('g', '1').replace('b', '2').replace('a', '3')}]]" for i in gen_mapping_table(nc, decryption))
+    return mapping_table
+
+print(str(gen_all_mapping_table(False)).replace("'", ''))
+'''
+
+
+def obverse_mapping(arr, indexes):
+    arr[..., indexes[0]], arr[..., indexes[1]], arr[..., indexes[2]], arr[..., indexes[3]] = arr[..., 0], arr[..., 1], arr[..., 2], arr[..., 3]
+    return arr
+
+
+def reverse_mapping(arr, indexes):
+    arr[..., 0], arr[..., 1], arr[..., 2], arr[..., 3] = arr[..., indexes[0]], arr[..., indexes[1]], arr[..., indexes[2]], arr[..., indexes[3]]
+    return arr
 
 
 def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=True):

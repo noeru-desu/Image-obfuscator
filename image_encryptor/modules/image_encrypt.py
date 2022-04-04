@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-03 09:39:25
+LastEditTime : 2022-04-04 13:32:47
 Description  : 图像加密模块
 """
 from copy import copy
@@ -18,38 +18,15 @@ from PIL import Image
 from image_encryptor.constants import EA_VERSION
 from image_encryptor.modules.image import (array_to_image, random_noise,
                                            random_noise_v2)
+from image_encryptor.pregenerated.image_encrypt import (FlipFuncV1, FlipFuncV2,
+                                                        MappingFuncV1,
+                                                        MappingFuncV2,
+                                                        MappingFuncV3)
 from image_encryptor.utils.misc_utils import FakeBar
 
 if TYPE_CHECKING:
     from numpy import ndarray
 
-flip_func = (
-    lambda arr: arr,
-    lambda arr: arr[:, ::-1],    # 左右翻转
-    lambda arr: arr[::-1],       # 上下翻转
-    lambda arr: arr[::-1, ::-1]  # 上下左右翻转
-)
-
-old_flip_func = (
-    lambda img: img,
-    lambda img: img.transpose(Image.FLIP_LEFT_RIGHT),
-    lambda img: img.transpose(Image.FLIP_TOP_BOTTOM),
-    lambda img: img.transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.FLIP_TOP_BOTTOM)
-)
-
-old_encrypt_mapping_func = (
-    lambda r, g, b, a: (b, r, g, a),
-    lambda r, g, b, a: (g, r, b, a),
-    lambda r, g, b, a: (b, g, r, a),
-    lambda r, g, b, a: (g, b, r, a)
-)
-
-old_decrypt_mapping_func = (
-    lambda r, g, b, a: (g, b, r, a),
-    lambda r, g, b, a: (g, r, b, a),
-    lambda r, g, b, a: (b, g, r, a),
-    lambda r, g, b, a: (b, r, g, a)
-)
 
 channel_num = {'r': 0, 'g': 1, 'b': 2, 'a': 3}
 random = Random()
@@ -97,7 +74,7 @@ class ImageEncryptBaseV2(object):
         # 使用对应的映射表
         if len(mapped_channels) > 1:
             self.mapped_channels = mapped_channels
-            self.mapping_table = gen_mapping_table(mapped_channels, decryption_mode)
+            self.mapping_table = MappingFuncV2.decrypt[mapped_channels] if decryption_mode else MappingFuncV2.encrypt[mapped_channels]
         else:
             self.mapped_channels = False
             self.mapping_table = None
@@ -119,7 +96,7 @@ class ImageEncryptBaseV2(object):
             self._shuffle.obverse_on_self(self.block_flip_list)
         if self.mapping_table is not None:
             if len(self.mapping_table) != 1:
-                self.block_mapping_list = (list(range(len(self.mapping_table))) * ceil(self.block_num / len(self.mapping_table)))[:self.block_num]
+                self.block_mapping_list = (MappingFuncV2.index_dict[mapped_channels] * ceil(self.block_num / len(self.mapping_table)))[:self.block_num]
                 self._shuffle.obverse_on_self(self.block_mapping_list)
             else:
                 self.block_mapping_list = ([0] * self.block_num)
@@ -134,12 +111,12 @@ class ImageEncryptBaseV2(object):
         self.image = Image.new('RGBA', self.ceil_size)
         if self.flip and self.mapped_channels:
             for block, pos, flip, mapping in zip(self.block_list, self.block_pos_list, self.block_flip_list, self.block_mapping_list):
-                block = Image.merge('RGBA', self.mapping_table[mapping](*old_flip_func[flip](block).split()))
+                block = Image.merge('RGBA', self.mapping_table[mapping](*FlipFuncV1[flip](block).split()))
                 self.image.paste(block, pos)
                 bar.add()
         elif self.flip:
             for block, pos, flip in zip(self.block_list, self.block_pos_list, self.block_flip_list):
-                self.image.paste(old_flip_func[flip](block), pos)
+                self.image.paste(FlipFuncV1[flip](block), pos)
                 bar.add()
         elif self.mapped_channels:
             for block, pos, mapping in zip(self.block_list, self.block_pos_list, self.block_mapping_list):
@@ -191,7 +168,7 @@ class ImageEncryptBaseV1(ImageEncryptBaseV2):
         self.flip = flip
         # 使用对应的映射表
         self.mapped_channels = mapped_channels
-        self.mapping_table = old_decrypt_mapping_func if decryption_mode else old_encrypt_mapping_func
+        self.mapping_table = MappingFuncV1.decrypt if decryption_mode else MappingFuncV1.encrypt
         # 切割图像并记录坐标
         for y, x in product(range(self.row), range(self.col)):
             block_pos = (x * self.block_width, y * self.block_height)
@@ -255,26 +232,22 @@ class ImageEncryptBaseV3(object):
         # 使用对应的映射表
         if len(mapped_channels) > 1:
             self.mapped_channels = mapped_channels
-            self.mapping_table = gen_mapping_table(mapped_channels, decryption_mode)
+            self.mapping_table = MappingFuncV3.decrypt[mapped_channels] if decryption_mode else MappingFuncV3.encrypt[mapped_channels]
         else:
             self.mapped_channels = False
             self.mapping_table = None
-        # 记录坐标
-        self._cut_and_record(bar)
+        # 生成坐标
+        self.block_pos_list = [(slice(y, y + self.block_height), slice(x, x + self.block_width)) for y, x in product(range(0, self.row * self.block_height, self.block_height), range(0, self.col * self.block_width, self.block_width))]
         # 随机映射
         if self.mapping_table is not None:
             if len(self.mapping_table) != 1:
-                self.block_mapping_list = (list(range(len(self.mapping_table))) * ceil(self.block_num / len(self.mapping_table)))[:self.block_num]
+                self.block_mapping_list = (MappingFuncV3.index_dict[mapped_channels] * ceil(self.block_num / len(self.mapping_table)))[:self.block_num]
                 self._shuffle.obverse_on_self(self.block_mapping_list)
             else:
                 self.block_mapping_list = ([0] * self.block_num)
         # 随机打乱
         self._shuffle_image(decryption_mode)
         bar.finish()
-
-    def _cut_and_record(self, bar):
-        """记录坐标"""
-        self.block_pos_list = [(slice(y, y + self.block_height), slice(x, x + self.block_width)) for y, x in product(range(0, self.row * self.block_height, self.block_height), range(0, self.col * self.block_width, self.block_width))]
 
     def _shuffle_image(self, decryption_mode):
         """生成映射坐标"""
@@ -295,18 +268,16 @@ class ImageEncryptBaseV3(object):
         randbelow = random._randbelow
         new_image_array = empty((self.ceil_size[1], self.ceil_size[0], 4), uint8)
         if self.flip and self.mapped_channels:
-            shape = (self.block_height, self.block_width, 4)
             for orig_slice, slice, mapping in zip(self.block_pos_list, self.shuffled_block_pos_list, self.block_mapping_list):
-                new_image_array[slice[0], slice[1]] = merge_channels(self.mapping_table[mapping](*split_channels(flip_func[randbelow(4)](self.image_array[orig_slice[0], orig_slice[1]]))), shape)
+                new_image_array[slice[0], slice[1]] = self.mapping_table[mapping](FlipFuncV2[randbelow(4)](self.image_array[orig_slice[0], orig_slice[1]]))
                 bar.add()
         elif self.flip:
             for orig_slice, slice in zip(self.block_pos_list, self.shuffled_block_pos_list):
-                new_image_array[slice[0], slice[1]] = flip_func[randbelow(4)](self.image_array[orig_slice[0], orig_slice[1]])
+                new_image_array[slice[0], slice[1]] = FlipFuncV2[randbelow(4)](self.image_array[orig_slice[0], orig_slice[1]])
                 bar.add()
         elif self.mapped_channels:
-            shape = (self.block_height, self.block_width, 4)
             for orig_slice, slice, mapping in zip(self.block_pos_list, self.shuffled_block_pos_list, self.block_mapping_list):
-                new_image_array[slice[0], slice[1]] = merge_channels(self.mapping_table[mapping](*split_channels(self.image_array[orig_slice[0], orig_slice[1]])), shape)
+                new_image_array[slice[0], slice[1]] = self.mapping_table[mapping](self.image_array[orig_slice[0], orig_slice[1]])
                 bar.add()
         else:
             for orig_slice, slice in zip(self.block_pos_list, self.shuffled_block_pos_list):

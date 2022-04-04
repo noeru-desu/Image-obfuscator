@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-07 10:12:21
+LastEditTime : 2022-04-04 07:51:24
 Description  : 对低版本加密的图像的加密信息进行转换, 向下兼容
 """
 from json import JSONDecodeError, loads
@@ -19,7 +19,8 @@ from image_encryptor.constants import (EA_VERSION, EAERR_DECODE_FAILED,
 # 5 可选随机映射
 # 6 动态密码验证字段 (无参数转换)
 # 7 加密核心v3 (无参数转换)
-# 8 ...
+# 8 噪声图生成函数v2 (无参数转换)
+# 9 ...
 
 
 def v_1_to_2(data):
@@ -63,7 +64,7 @@ def v_4_to_5(data):
     return data
 
 
-def v_5_to_8(data):
+def v_5_to_9(data):
     ...
 
 
