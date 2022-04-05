@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-27 08:34:52
+LastEditTime : 2022-04-05 08:40:33
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -32,7 +32,7 @@ def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.I
         if encryption_data.password is None:
             encryption_data.password = frame.password_dict.get_password(encryption_data.password_base64)
             if encryption_data.password is None:
-                frame.dialog.async_warning('密码字典中不存在此图像的密码，请输入密码')
+                frame.dialog.async_warning('密码字典中不存在此图像的密码')
                 return image
             else:
                 password = encryption_data.password
@@ -48,6 +48,8 @@ def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.I
         step_count += 2
     if encryption_data.XOR_channels:
         step_count += 1
+    if step_count < 1:
+        return WrappedPillowImage(image)
     if save:
         step_count += 1
 
