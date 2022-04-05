@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-04 19:28:56
+LastEditTime : 2022-04-05 13:26:58
 Description  : 图像项目
 """
 from abc import ABC
@@ -16,7 +16,6 @@ from wx import BLACK, CallAfter
 from image_encryptor.constants import (DECRYPTION_MODE, ENCRYPTION_MODE,
                                        LIGHT_RED, PIL_RESAMPLING_FILTERS)
 from image_encryptor.frame.controls import EncryptionParameters
-from image_encryptor.modules.argparse import Parameters
 from image_encryptor.modules.version_adapter import load_encryption_attributes
 from image_encryptor.modules.image import cal_best_size, open_image
 
@@ -25,6 +24,7 @@ if TYPE_CHECKING:
     from wx import Bitmap, TreeItemId
     from image_encryptor.frame.controls import Settings
     from image_encryptor.frame.events import MainFrame
+    from image_encryptor.modules.argparse import Parameters
     from image_encryptor.modules.image import WrappedImage
 
 
@@ -47,7 +47,7 @@ class Item(ABC):
 class PreviewCache(object):
     __slots__ = ('scalable_cache', 'normal_cache', 'startup_parameters')
 
-    def __init__(self, startup_parameters: Parameters) -> None:
+    def __init__(self, startup_parameters: 'Parameters') -> None:
         self.startup_parameters = startup_parameters
         self.normal_cache: OrderedDict[int, Bitmap] = OrderedDict()
         self.scalable_cache: OrderedDict[int, WrappedImage] = OrderedDict()
@@ -85,6 +85,8 @@ class PreviewCache(object):
         self.scalable_cache[cache_hash] = image
 
     def get_cache(self, cache_hash) -> Optional[Union['WrappedImage', 'Bitmap']]:
+        if self.startup_parameters.disable_cache:
+            return None
         if cache_hash in self.normal_cache:
             self.add_normal_cache(cache_hash)
             return self.normal_cache[cache_hash]
@@ -93,11 +95,15 @@ class PreviewCache(object):
             return self.scalable_cache[cache_hash]
 
     def get_normal_cache(self, cache_hash) -> Optional['Bitmap']:
+        if self.startup_parameters.disable_cache:
+            return None
         if cache_hash in self.normal_cache:
             self.add_normal_cache(cache_hash)
             return self.normal_cache[cache_hash]
 
     def get_scalable_cache(self, cache_hash) -> Optional['WrappedImage']:
+        if self.startup_parameters.disable_cache:
+            return None
         if cache_hash in self.scalable_cache:
             self.add_scalable_cache(cache_hash)
             return self.scalable_cache[cache_hash]
