@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-04 19:21:10
+LastEditTime : 2022-04-05 09:15:35
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -40,9 +40,8 @@ class MainFrame(BasicMainFrame):
         event.Skip()
 
     def manual_refresh(self, event):
-        match self.controls.preview_mode:
-            case constants.MANUAL_REFRESH:
-                self.refresh_preview()
+        if self.controls.preview_mode != constants.DO_NOT_REFRESH:
+            self.force_refresh_preview()
 
     def refresh_preview(self, event=None):
         if self.image_item is None:
