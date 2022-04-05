@@ -9,12 +9,10 @@ from typing import TYPE_CHECKING
 
 from PIL import ImageGrab
 from wx import (DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
-                FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, ID_OK, WXK_DELETE,
+                FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, ID_OK,
                 DirDialog, FileDialog)
 
-from image_encryptor.constants import (ANTY_HARMONY_MODE, AUTO_REFRESH,
-                                       DECRYPTION_MODE, DO_NOT_REFRESH,
-                                       EXTENSION_KEYS, EXTENSION_KEYS_STRING)
+from image_encryptor import constants
 from image_encryptor.frame.file_item import FolderItem, ImageItem
 from image_encryptor.frame.main_frame import MainFrame as BasicMainFrame
 
@@ -42,14 +40,14 @@ class MainFrame(BasicMainFrame):
         event.Skip()
 
     def manual_refresh(self, event):
-        if self.controls.preview_mode == DO_NOT_REFRESH:
-            return
-        self.refresh_preview()
+        match self.controls.preview_mode:
+            case constants.MANUAL_REFRESH:
+                self.refresh_preview()
 
     def refresh_preview(self, event=None):
         if self.image_item is None:
             return
-        if event is not None and self.controls.preview_mode != AUTO_REFRESH:
+        if event is not None and self.controls.preview_mode != constants.AUTO_REFRESH:
             return
         self.image_item.display_initial_preview()
         self.image_item.display_processed_preview()
@@ -97,11 +95,11 @@ class MainFrame(BasicMainFrame):
         self.image_saver.bulk_save()
 
     def processing_mode_change(self, event):
-        if self.image_item is None and self.controls.proc_mode == DECRYPTION_MODE:
+        if self.image_item is None and self.controls.proc_mode == constants.DECRYPTION_MODE:
             self.controls.proc_mode = self.controls.previous_proc_mode
             return
-        elif self.controls.proc_mode != DECRYPTION_MODE:
-            if self.controls.proc_mode == ANTY_HARMONY_MODE:
+        elif self.controls.proc_mode != constants.DECRYPTION_MODE:
+            if self.controls.proc_mode == constants.ANTY_HARMONY_MODE:
                 self.controls.frame.processingSettingsPanel1.Disable()
                 self.controls.frame.passwordCtrl.Disable()
             else:
@@ -117,7 +115,7 @@ class MainFrame(BasicMainFrame):
         self.refresh_preview(event)
 
     def preview_mode_change(self, event):
-        if self.controls.preview_mode == DO_NOT_REFRESH:
+        if self.controls.preview_mode == constants.DO_NOT_REFRESH:
             self.previewedBitmap.Show(False)
         else:
             self.previewedBitmap.Show(True)
@@ -149,13 +147,13 @@ class MainFrame(BasicMainFrame):
             self.controls.imported_image_id = 0
             self.controls.previous_proc_mode = image_data.settings.proc_mode
             self.controls.gen_image_info(image_data)
-            if image_data.settings.proc_mode == DECRYPTION_MODE and image_data.encrypted_image:
+            if image_data.settings.proc_mode == constants.DECRYPTION_MODE and image_data.encrypted_image:
                 image_data.cache.encryption_data.backtrack_interface()
             else:
                 image_data.settings.backtrack_interface()
             self.processingOptions.Enable()
 
-            if self.previewMode.Selection == AUTO_REFRESH:
+            if self.previewMode.Selection == constants.AUTO_REFRESH:
                 self.refresh_preview(event)
         elif isinstance(image_data, FolderItem):
             self.image_item = None
@@ -180,8 +178,9 @@ class MainFrame(BasicMainFrame):
             self.tree_manager.reload_item(self.imageTreeCtrl.Selection)
 
     def tree_key_down(self, event: 'TreeEvent'):
-        if event.GetKeyCode() == WXK_DELETE:
-            self.del_item(event)
+        match event.GetKeyCode():
+            case constants.WXK_DELETE:
+                self.del_item(event)
 
     def set_settings_as_default(self, event=None):
         self.settings.default = self.settings.all
@@ -191,10 +190,10 @@ class MainFrame(BasicMainFrame):
 
     def check_saving_format(self, event):
         self.controls.saving_format = self.controls.saving_format.lower()
-        if self.controls.saving_format in EXTENSION_KEYS:
+        if self.controls.saving_format in constants.EXTENSION_KEYS:
             self.record_saving_format()
         else:
-            self.dialog.async_warning('不支持的格式: {}, 仅支持以下格式: \n{}'.format(self.controls.saving_format, EXTENSION_KEYS_STRING), '保存格式错误')
+            self.dialog.async_warning('不支持的格式: {}, 仅支持以下格式: \n{}'.format(self.controls.saving_format, constants.EXTENSION_KEYS_STRING), '保存格式错误')
             self.controls.saving_format = self.controls.previous_saving_format
 
     def record_saving_format(self, event=None):
