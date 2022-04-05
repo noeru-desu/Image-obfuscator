@@ -2,9 +2,11 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-04 20:21:48
+LastEditTime : 2022-04-05 17:34:43
 Description  : 文件保存功能
 """
+from atexit import register as at_exit
+from concurrent.futures import ThreadPoolExecutor
 from os import listdir
 from os.path import isdir
 from threading import Lock
@@ -17,14 +19,14 @@ from wx import (CHK_CHECKED, CHK_UNCHECKED, CHK_UNDETERMINED, DIRP_CHANGE_DIR,
 import image_encryptor.modes.decrypt as decrypt
 import image_encryptor.modes.encrypt as encrypt
 import image_encryptor.modes.anti_harmony as anti_harmony
-from image_encryptor.constants import DECRYPTION_MODE, ENCRYPTION_MODE
+from image_encryptor import constants
 from image_encryptor.frame.controls import ProgressBar
+from image_encryptor.frame.file_item import ImageItem
 from image_encryptor.utils.thread import ThreadManager
 
 if TYPE_CHECKING:
     from image_encryptor.frame.controls import Settings
     from image_encryptor.frame.events import MainFrame
-    from image_encryptor.frame.tree_manager import ImageItem
 
 ENABLE = 2
 DISABLE = 3
@@ -40,13 +42,14 @@ class ImageSaver(object):
     """文件保存相关功能"""
     __slots__ = (
         'frame', 'saving_thread', 'lock', 'progress_plane_displayed', 'file_count', 'loading_progress',
-        'task_num', 'bar', 'filter'
+        'task_num', 'bar', 'filter', 'saving_thread_pool'
     )
 
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
         self.frame.process_pool.create_tag('bulk_save', False, False)   # 注册线程池标签
         self.saving_thread = ThreadManager('saving-thread')
+        self.saving_thread_pool = ThreadPoolExecutor(self.frame.process_pool._max_workers, 'saving_thread_pool')
         self.lock = Lock()
         self.progress_plane_displayed = False
         self.file_count = 0
@@ -54,23 +57,60 @@ class ImageSaver(object):
         self.task_num = 0
         self.bar = None
         self.filter = None
+        at_exit(self.saving_thread_pool.shutdown, wait=False, cancel_futures=True)
 
     def save_selected_image(self):
         """保存选中的图像"""
         if self.frame.image_item is None:
             self.frame.dialog.async_error('没有选择图像')
             return
-        if self._check():                       # 相关合法性检查
+        if self._check():   # 相关合法性检查
             return
         self.show_saving_progress_plane(False)
         if not self.frame.update_password_dict():   # 检查密码栏内容是否合法
             self.frame.controls.password = 'none'
-        if self.frame.controls.proc_mode == ENCRYPTION_MODE:
-            self.saving_thread.start_new(encrypt.normal, self._save_selected_image_call_back, (self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress, self.frame.image_item.cache.loaded_image, True))
-        elif self.frame.controls.proc_mode == DECRYPTION_MODE:
-            self.saving_thread.start_new(decrypt.normal, self._save_selected_image_call_back, (self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress, self.frame.image_item.cache.loaded_image, True))
-        else:
-            self.saving_thread.start_new(anti_harmony.normal, self._save_selected_image_call_back, (self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress, self.frame.image_item.cache.loaded_image, True))
+        cache = self.frame.image_item.cache.previews.get_scalable_cache(self.frame.settings.encryption_settings_hash)
+        if cache is None:
+            print(1)
+            match self.frame.controls.proc_mode:
+                case constants.ENCRYPTION_MODE:
+                    self.saving_thread.start_new(encrypt.normal, self._save_selected_image_call_back, (
+                        self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress,
+                        self.frame.image_item.cache.loaded_image, True
+                    ))
+                case constants.DECRYPTION_MODE:
+                    self.saving_thread.start_new(decrypt.normal, self._save_selected_image_call_back, (
+                        self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress,
+                        self.frame.image_item.cache.loaded_image, True
+                    ))
+                case constants.ANTY_HARMONY_MODE:
+                    self.saving_thread.start_new(anti_harmony.normal, self._save_selected_image_call_back, (
+                        self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress,
+                        self.frame.image_item.cache.loaded_image, True
+                    ))
+        else:   # 如果存在原始图像处理结果缓存则直接保存缓存
+            settings = self.frame.settings.all
+            self.frame.savingProgress.SetValue(50)
+            self.frame.savingProgressInfo.SetLabelText('正在保存文件')
+            match self.frame.controls.proc_mode:
+                case constants.ENCRYPTION_MODE:
+                    self.saving_thread.start_new(encrypt.save_image, self._save_selected_image_from_cache_call_back, (
+                        cache, self.frame.image_item.path_data, settings.saving_path, settings.saving_format, settings.saving_quality,
+                        settings.saving_subsampling_level,
+                        settings.encryption_parameters_data(*self.frame.image_item.cache.loaded_image.size).encryption_parameters_dict
+                    ))
+                case constants.DECRYPTION_MODE:
+                    self.saving_thread.start_new(decrypt.save_image, self._save_selected_image_from_cache_call_back, (
+                        cache, self.frame.image_item.path_data, settings.saving_path, settings.saving_format, settings.saving_quality,
+                        settings.saving_subsampling_level
+                    ))
+                case constants.ANTY_HARMONY_MODE:
+                    self.saving_thread.start_new(anti_harmony.save_image, self._save_selected_image_call_back, (
+                        cache, self.frame.image_item.path_data, settings.saving_path, settings.saving_format, settings.saving_quality,
+                        settings.saving_subsampling_level
+                    ))
+            self.frame.savingProgress.SetValue(100)
+            self.frame.savingProgressInfo.SetLabelText('完成')
 
     def _save_selected_image_call_back(self, error, result):
         """保存选中的图像完成后的回调函数"""
@@ -80,6 +120,10 @@ class ImageSaver(object):
             self.frame.dialog.async_error(data, '生成加密图像时出现意外错误')
         else:
             self.frame.controls.display_and_cache_processed_preview(data)     # 顺便刷新一下预览图
+
+    def _save_selected_image_from_cache_call_back(self, error, result):
+        """保存选中的图像完成后的回调函数"""
+        self.hide_saving_progress_plane()
 
     def bulk_save(self):
         """批量保存"""
@@ -125,18 +169,50 @@ class ImageSaver(object):
             else:
                 uf = True
 
-            image_data = ('RGBA', image_item.cache.loaded_image.size, image_item.cache.loaded_image.tobytes())  # 打包所需的可封存的对象
-
-            if image_item.settings.proc_mode == ENCRYPTION_MODE:
-                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(encrypt.batch, image_data, image_item.path_data, image_item.settings.properties_tuple, self.frame.settings.saving_settings.properties_tuple, uf), self._bulk_save_callback)
-            elif image_item.settings.proc_mode == DECRYPTION_MODE:
-                image_item.cache.encryption_data.password = self.frame.password_dict.get_password(image_item.cache.encryption_data.password_base64)
-                if image_item.cache.encryption_data.password is None:
-                    self.frame.logger.warning(f'[{image_item.path_data.file_name}]未找到密码，跳过保存')
-                    continue
-                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(decrypt.batch, image_data, image_item.path_data, image_item.cache.encryption_data.properties_tuple, self.frame.settings.saving_settings.properties_tuple, uf), self._bulk_save_callback)
-            else:
-                self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(anti_harmony.batch, image_data, self.frame.settings.saving_settings.properties_tuple, uf), self._bulk_save_callback)
+            cache = image_item.cache.previews.get_scalable_cache(image_item.settings.encryption_settings_hash)
+            if cache is None:
+                loaded_image = image_item.cache.loaded_image
+                image_data = ('RGBA', loaded_image.size, loaded_image.tobytes())  # 打包所需的可封存的对象
+                match image_item.settings.proc_mode:
+                    case constants.ENCRYPTION_MODE:
+                        self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(
+                            encrypt.batch, image_data, image_item.path_data, image_item.settings.properties_tuple,
+                            self.frame.settings.saving_settings.properties_tuple, uf
+                        ), self._bulk_save_callback)
+                    case constants.DECRYPTION_MODE:
+                        image_item.cache.encryption_data.password = self.frame.password_dict.get_password(
+                            image_item.cache.encryption_data.password_base64
+                        )
+                        if image_item.cache.encryption_data.password is None:
+                            self.frame.logger.warning(f'[{image_item.path_data.file_name}]未找到密码，跳过保存')
+                            continue
+                        self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(
+                            decrypt.batch, image_data, image_item.path_data, image_item.cache.encryption_data.properties_tuple,
+                            self.frame.settings.saving_settings.properties_tuple, uf
+                        ), self._bulk_save_callback)
+                    case constants.ANTY_HARMONY_MODE:
+                        self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(
+                            anti_harmony.batch, image_data, self.frame.settings.saving_settings.properties_tuple, uf
+                        ), self._bulk_save_callback)
+            else:   # 如果存在原始图像处理结果缓存则直接保存缓存
+                match self.frame.controls.proc_mode:
+                    case constants.ENCRYPTION_MODE:
+                        self.saving_thread_pool.submit(encrypt.save_image,
+                            cache, image_item.path_data, self.frame.controls.saving_path, self.frame.controls.saving_format, self.frame.controls.saving_quality,
+                            self.frame.controls.saving_subsampling_level,
+                            image_item.settings.encryption_parameters_data(*image_item.cache.loaded_image.size).encryption_parameters_dict,
+                            uf
+                        ).add_done_callback(self._bulk_save_callback)
+                    case constants.DECRYPTION_MODE:
+                        self.saving_thread_pool.submit(decrypt.save_image,
+                            cache, image_item.path_data, self.frame.controls.saving_path, self.frame.controls.saving_format, self.frame.controls.saving_quality,
+                            self.frame.controls.saving_subsampling_level, uf
+                        ).add_done_callback(self._bulk_save_callback)
+                    case constants.ANTY_HARMONY_MODE:
+                        self.saving_thread_pool.submit(anti_harmony.save_image,
+                            cache, image_item.path_data, self.frame.controls.saving_path, self.frame.controls.saving_format, self.frame.controls.saving_quality,
+                            self.frame.controls.saving_subsampling_level, uf
+                        ).add_done_callback(self._bulk_save_callback)
 
             self.task_num += 1
 
@@ -190,7 +266,7 @@ class ImageSaver(object):
         if ID_OK == dialog.ShowModal():
             return dialog.GetPath()
 
-    def _bulk_save_callback(self, future, tag_name, result):
+    def _bulk_save_callback(self, future, tag_name=None, result=(None, None)):
         """批量保存回调函数"""
         # TODO result疑似无法获取(疑似ProcessTaskManager.callback出现问题)
         with self.lock:     # 线程锁，防止进度累加错误

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-08 14:16:34
+LastEditTime : 2022-04-05 13:43:12
 Description  : 节点树控制
 """
 from os.path import isdir, join, sep, split
@@ -115,7 +115,7 @@ class TreeManager(object):
             return
 
     @property
-    def all_image_item_data(self) -> Generator[Union['ImageItem', 'FolderItem'], None, None]:
+    def all_image_item_data(self) -> Generator['ImageItem', None, None]:
         try:
             for i in self.file_dict.values():
                 yield self.tree_ctrl.GetItemData(i)
@@ -123,7 +123,7 @@ class TreeManager(object):
             return
 
     @property
-    def all_folder_item_data(self) -> Generator[Union['ImageItem', 'FolderItem'], None, None]:
+    def all_folder_item_data(self) -> Generator['FolderItem', None, None]:
         try:
             for i in self.root_dir_dict.values():
                 yield self.tree_ctrl.GetItemData(i)

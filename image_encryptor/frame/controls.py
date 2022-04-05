@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-04 19:19:20
+LastEditTime : 2022-04-05 13:48:20
 Description  : 整理
 """
 from abc import ABC
@@ -503,10 +503,8 @@ class SettingsManager(object):
     def encryption_settings(self):
         return (
             self.controls.proc_mode, self.controls.cutting_row, self.controls.cutting_col,
-            self.controls.shuffle_chunks, self.controls.flip_chunks, self.controls.mapping_R,
-            self.controls.mapping_G, self.controls.mapping_B, self.controls.mapping_A,
-            self.controls.XOR_encryption, self.controls.XOR_R, self.controls.XOR_G,
-            self.controls.XOR_B, self.controls.XOR_A, self.controls.noise_XOR,
+            self.controls.shuffle_chunks, self.controls.flip_chunks, self.controls.mapping_channels,
+            self.controls.XOR_encryption, self.controls.XOR_channels, self.controls.noise_XOR,
             self.controls.noise_factor, self.controls.password
         )
 
@@ -623,6 +621,19 @@ class SettingsData(SettingsBase):
                                         self.noise_XOR, self.noise_factor, has_password,
                                         PasswordDict.get_validation_field_base64(password) if has_password else 0, EA_VERSION,
                                         True, self.password))
+
+    @property
+    def encryption_settings(self) -> tuple:
+        return (
+            self.proc_mode, self.cutting_row, self.cutting_col,
+            self.shuffle_chunks, self.flip_chunks, self.mapping_channels,
+            self.XOR_encryption, self.XOR_channels, self.noise_XOR,
+            self.noise_factor, self.password
+        )
+
+    @property
+    def encryption_settings_hash(self) -> int:
+        return hash(self.encryption_settings)
 
 
 class Settings(SettingsData):

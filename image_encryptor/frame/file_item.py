@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-05 13:26:58
+LastEditTime : 2022-04-05 16:38:41
 Description  : 图像项目
 """
 from abc import ABC
@@ -133,7 +133,7 @@ class ImageItemCache(object):
 
     @property
     def loaded_image(self) -> 'Image':
-        assert self._item.selected, 'Image is not selected.'    # 低内存占用模式下可能出现内存泄露
+        # assert self._item.selected, 'Image is not selected.'    # 低内存占用模式下可能出现内存泄露
         if self._loaded_image is None:
             reload_encryption_data = self._item.loading_image_data_error is not None
             self._loaded_image, self._item.loading_image_data_error = open_image(self._item.loaded_image_path)
@@ -145,7 +145,10 @@ class ImageItemCache(object):
                 if reload_encryption_data:
                     self._item.load_encryption_parameters()
                 self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, BLACK)
-        # if not self._item.frame.startup_parameters.low_memory or self._item.selected:
+        if self._item.frame.startup_parameters.low_memory and not self._item.selected:
+            loaded_image = self._loaded_image
+            del self._loaded_image
+            return loaded_image
         return self._loaded_image
 
     @loaded_image.setter
