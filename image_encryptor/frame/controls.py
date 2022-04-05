@@ -505,10 +505,9 @@ class SettingsManager(object):
             self.controls.proc_mode, self.controls.cutting_row, self.controls.cutting_col,
             self.controls.shuffle_chunks, self.controls.flip_chunks, self.controls.mapping_R,
             self.controls.mapping_G, self.controls.mapping_B, self.controls.mapping_A,
-            self.controls.XOR_encryption, self.controls.noise_XOR, self.controls.XOR_R,
-            self.controls.XOR_G, self.controls.XOR_B, self.controls.XOR_A,
-            self.controls.noise_XOR, self.controls.noise_factor, self.controls.password,    # 后面是预览设置
-            self.controls.resampling_filter_id, self.controls.preview_source
+            self.controls.XOR_encryption, self.controls.XOR_R, self.controls.XOR_G,
+            self.controls.XOR_B, self.controls.XOR_A, self.controls.noise_XOR,
+            self.controls.noise_factor, self.controls.password
         )
 
     @property
@@ -518,7 +517,8 @@ class SettingsManager(object):
 
     @property
     def encryption_settings_hash_with_size(self):
-        return hash((self.encryption_settings, *self.controls.preview_size))
+        """在encryption_settings_hash的基础上添加resampling_filter_id/preview_source/preview_size"""
+        return hash((self.encryption_settings, self.controls.resampling_filter_id, self.controls.preview_source, *self.controls.preview_size))
 
     @property
     def all_dict(self):
