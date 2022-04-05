@@ -91,7 +91,7 @@ class ImageSaver(object):
         self.show_saving_progress_plane(True)
         if self.frame.imageTreeCtrl.Selection.IsOk():   # 检查是否选择了某一文件
             image_data = self.frame.tree_manager.selected_item_data
-            if image_data is not None:                  # 是否选择的是文件夹，如果不是，则同步gui内容至对应image_item实例
+            if isinstance(image_data, ImageItem):                  # 是否选择的是文件夹，如果不是，则同步gui内容至对应image_item实例
                 image_data.settings = self.frame.settings.all
         else:
             self.frame.apply_settings_to_all()      # 如果没有选择任何文件，则将当前gui内容同步到所有image_item实例
