@@ -57,7 +57,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install pip --upgrade
-          pip install pillow colorlog pycryptodome numpy zstandard
+          pip install colorlog pycryptodome numpy zstandard
+          pip install -U "https://download.lfd.uci.edu/pythonlibs/x6hvwk7i/Pillow_SIMD-9.0.0.post0-cp310-cp310-win_amd64.whl"
           pip install -U "https://wxpython.org/Phoenix/snapshot-builds/wxPython-4.1.2a1.dev5310+af8cca51-cp310-cp310-win_amd64.whl"
           pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
       - name: Cache Dependency Walker
