@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-05 17:34:43
+LastEditTime : 2022-04-09 19:47:21
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -290,6 +290,10 @@ class ImageSaver(object):
     def _check(self):
         """常规合法性检查"""
         if not isdir(self.frame.controls.saving_path):
+            path = self.frame.dialog.select_dir('选择保存位置')
+            if path is not None:
+                self.frame.controls.saving_path = path
+                return False
             self.frame.dialog.error('没有选择保存文件夹或选择的文件夹不存在', '保存时出现错误')
             return True
         elif self.saving_thread.is_alive or self.frame.process_pool.check_tag('bulk_save'):
