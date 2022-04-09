@@ -16,7 +16,7 @@ from PIL.Image import init as Pillow_init
 from PIL.Image import new
 from wx import (IMAGE_QUALITY_BICUBIC, IMAGE_QUALITY_BILINEAR,
                 IMAGE_QUALITY_BOX_AVERAGE, IMAGE_QUALITY_HIGH,
-                IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_NORMAL, WXK_DELETE, Colour)
+                IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_NORMAL, Colour)
 from wx import version as wx_ver
 
 Pillow_init()
@@ -62,7 +62,6 @@ EAERR_INCOMPATIBLE = '该版本不支持0.1.0-BETA版加密器加密的图像'
 EAERR_NOT_SUPPORT = '选择的图像文件由更高版本的加密器加密, 请使用最新版的加密器进行解密'
 
 LIGHT_RED = Colour(255, 30, 30)
-WXK_DELETE = WXK_DELETE
 
 VERSION_INFO = (
     f'Python {py_ver}',

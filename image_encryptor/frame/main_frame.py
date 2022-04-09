@@ -13,7 +13,7 @@ from multiprocessing import cpu_count
 from os import getcwd
 from typing import TYPE_CHECKING
 
-from wx import App
+from wx import WXK_F5, App, AcceleratorTable, AcceleratorEntry, ACCEL_NORMAL, WXK_DELETE, ACCEL_CTRL
 from wx.core import EmptyString
 
 from image_encryptor.constants import (BRANCH, EXTENSION_KEYS_STRING,
@@ -81,6 +81,11 @@ class MainFrame(MF):
         self.stop_reloading_func = SegmentTrigger((self.set_reloading_btn_text, self.set_stop_reloading_signal, self.stop_reloading), self.init_reloading_btn)
         at_exit(self.process_pool.shutdown, wait=False, cancel_futures=True)
         at_exit(self.universal_thread_pool.shutdown, wait=False, cancel_futures=True)
+
+        # 快捷键
+        self.SetAcceleratorTable(AcceleratorTable([
+            AcceleratorEntry(ACCEL_NORMAL, WXK_DELETE, self.delBtn.Id),          # Del    - 删除选中的项目
+        ]))
 
         # 准备工作
         self.run_path = run_path

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-05 09:15:35
+LastEditTime : 2022-04-09 18:46:35
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -176,10 +176,12 @@ class MainFrame(BasicMainFrame):
                 return
             self.tree_manager.reload_item(self.imageTreeCtrl.Selection)
 
+    '''
     def tree_key_down(self, event: 'TreeEvent'):
         match event.GetKeyCode():
             case constants.WXK_DELETE:
                 self.del_item(event)
+    '''
 
     def set_settings_as_default(self, event=None):
         self.settings.default = self.settings.all
