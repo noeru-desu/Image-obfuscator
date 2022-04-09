@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-04 19:27:52
+LastEditTime : 2022-04-09 19:56:06
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -85,6 +85,12 @@ class MainFrame(MF):
         # 快捷键
         self.SetAcceleratorTable(AcceleratorTable([
             AcceleratorEntry(ACCEL_NORMAL, WXK_DELETE, self.delBtn.Id),          # Del    - 删除选中的项目
+            AcceleratorEntry(ACCEL_NORMAL, WXK_F5, self.manuallyRefreshBtn.Id),  # F5     - 手动刷新预览图
+            AcceleratorEntry(ACCEL_CTRL, ord('d'), self.delBtn.Id),              # Ctrl+D - 删除选中的项目(同Del)
+            AcceleratorEntry(ACCEL_CTRL, ord('r'), self.reloadingBtn.Id),        # Ctrl+R - 重载选中的项目
+            AcceleratorEntry(ACCEL_CTRL, ord('s'), self.savingBtn.Id),           # Ctrl+S - 保存选中的项目
+            AcceleratorEntry(ACCEL_CTRL, ord('o'), self.loadingFileBtn.Id),      # Ctrl+O - 打开图像
+            AcceleratorEntry(ACCEL_CTRL, ord('v'), self.loadingClipboardBtn.Id)  # Ctrl+V - 从剪切板打开图像
         ]))
 
         # 准备工作

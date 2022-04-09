@@ -17,19 +17,20 @@ import wx.xrc
 
 class MainFrame (wx.Frame):
     __slots__ = (
-        'noiseFactor', 'm_staticText141', 'flipFilter', 'passwordFilter', 'm_staticText12', 'shuffleFilter', 'mappingA',
-        'savingOptions''m_button10', 'm_button3', 'm_button31', 'XORG', 'XORB', 'previewMode', 'mappingG', 'loadingPrograss',
-        'm_staticText14''resamplingFilter', 'm_staticText82111', 'shuffleChunks', 'cuttingRow', 'm_button8', 'maxImagePixels',
-        'passwordCtrl''m_staticText8212', 'savingPrograssPanel', 'imageTreeCtrl', 'XorFilter', 'lowMemoryMode', 'savingProgress',
-        'loadingPanel''noiseFactorNum', 'previewSource', 'previewOptions', 'm_spinCtrl4', 'otherOptions', 'stopLoadingBtn',
-        'loadingPrograssInfo''m_staticText81', 'm_staticline31', 'imagePanel', 'importedBitmap', 'XOREncryption',
-        'processingSettingsPanel1''savingFormat', 'savingQuality', 'qualityInfo', 'm_staticText82', 'importedBitmapPlanel',
-        'flipChunks''m_button312', 'm_button32', 'cuttingCol', 'settingsPanel', 'mappingR', 'previewedBitmap', 'm_staticText8',
-        'm_button6''m_staticText34', 'reloadingBtn', 'noiseXor', 'xorPanel', 'previewProgressInfo', 'imageTreePanel', 'qqFilter',
-        'previewProgress''m_staticText9', 'm_button7', 'stopSavingBtn', 'subsamplingInfo', 'savingProgressInfo', 'm_staticline4',
-        'subsamplingLevel''processingOptions', 'decryptionFilter', 'imageInfo', 'imageTreeSearchCtrl', 'procMode', 'mappingFilter',
-        'XORA''mappingB', 'savingFilters', 'm_panel25', 'loadingPrograssPanel', 'encryptionFilter', 'savingBtnPanel',
-        'selectSavingPath''m_button311', 'previewedBitmapPlanel', 'm_button5', 'XORR', 'disableCache'
+        'xorPanel', 'shuffleFilter', 'imagePanel', 'XOREncryption', 'noiseFactor', 'm_button6', 'disableCache',
+        'processingOptions''mappingA', 'imageInfo', 'm_staticText141', 'XORG', 'XORA', 'mappingFilter', 'delBtn', 'm_staticline4',
+        'procMode''qualityInfo', 'mappingR', 'noiseFactorNum', 'previewMode', 'stopLoadingBtn', 'XORB', 'm_button31',
+        'maxImagePixels''previewSource', 'otherOptions', 'noiseXor', 'previewOptions', 'loadingPrograssPanel', 'shuffleChunks',
+        'XorFilter''imageTreePanel', 'processingSettingsPanel1', 'm_staticText82111', 'savingProgress', 'imageTreeCtrl',
+        'passwordFilter''loadingFileBtn', 'm_staticText9', 'flipChunks', 'previewedBitmapPlanel', 'm_staticText81',
+        'loadingPrograssInfo''manuallyRefreshBtn', 'lowMemoryMode', 'savingFilters', 'savingBtn', 'savingFormat', 'm_staticText12',
+        'loadingClipboardBtn''savingProgressInfo', 'savingQuality', 'cuttingCol', 'selectSavingPath', 'm_staticline31',
+        'm_button8''flipFilter', 'subsamplingInfo', 'm_panel25', 'mappingG', 'mappingB', 'redundantCacheLength', 'savingBtnPanel',
+        'previewProgressInfo''loadingPrograss', 'm_staticText14', 'qqFilter', 'settingsPanel', 'importedBitmapPlanel',
+        'subsamplingLevel''m_staticText8', 'previewedBitmap', 'cuttingRow', 'decryptionFilter', 'stopSavingBtn',
+        'encryptionFilter''passwordCtrl', 'savingOptions', 'loadingPanel', 'imageTreeSearchCtrl', 'm_staticText82',
+        'm_staticText8212''m_button311', 'savingPrograssPanel', 'importedBitmap', 'XORR', 'resamplingFilter', 'previewProgress',
+        'm_button312''m_staticText34', 'reloadingBtn'
     )
 
     def __init__(self, parent):
@@ -66,14 +67,14 @@ class MainFrame (wx.Frame):
         self.loadingPanel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.Size(-1, -1), wx.TAB_TRAVERSAL)
         bSizer91 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_button5 = wx.Button(self.loadingPanel, wx.ID_ANY, u"载入文件", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer91.Add(self.m_button5, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.loadingFileBtn = wx.Button(self.loadingPanel, wx.ID_ANY, u"载入文件", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer91.Add(self.loadingFileBtn, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
 
         self.m_button6 = wx.Button(self.loadingPanel, wx.ID_ANY, u"载入文件夹", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer91.Add(self.m_button6, 0, wx.ALIGN_CENTER_VERTICAL, 5)
 
-        self.m_button32 = wx.Button(self.loadingPanel, wx.ID_ANY, u"从剪贴板载入", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer91.Add(self.m_button32, 0, wx.ALL, 5)
+        self.loadingClipboardBtn = wx.Button(self.loadingPanel, wx.ID_ANY, u"从剪贴板载入", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer91.Add(self.loadingClipboardBtn, 0, wx.ALL, 5)
 
         self.imageInfo = wx.StaticText(self.loadingPanel, wx.ID_ANY, u"未选择图像", wx.DefaultPosition, wx.DefaultSize, 0)
         self.imageInfo.Wrap(-1)
@@ -100,10 +101,10 @@ class MainFrame (wx.Frame):
 
         bSizer40 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_button10 = wx.Button(self.imageTreePanel, wx.ID_ANY, u"删除此项", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_button10.SetToolTip(u"卸载选中的项目")
+        self.delBtn = wx.Button(self.imageTreePanel, wx.ID_ANY, u"删除此项", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.delBtn.SetToolTip(u"卸载选中的项目")
 
-        bSizer40.Add(self.m_button10, 1, 0, 5)
+        bSizer40.Add(self.delBtn, 1, 0, 5)
 
         self.reloadingBtn = wx.Button(self.imageTreePanel, wx.ID_ANY, u"重载此项", wx.DefaultPosition, wx.DefaultSize, 0)
         self.reloadingBtn.SetToolTip(u"重新加载选中项目的图像文件")
@@ -405,8 +406,8 @@ class MainFrame (wx.Frame):
 
         bSizer40.Add(self.previewProgressInfo, 1, wx.ALL, 5)
 
-        self.m_button3 = wx.Button(self.previewOptions, wx.ID_ANY, u"刷新预览图", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer40.Add(self.m_button3, 0, wx.ALIGN_CENTER | wx.ALL, 1)
+        self.manuallyRefreshBtn = wx.Button(self.previewOptions, wx.ID_ANY, u"刷新预览图", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer40.Add(self.manuallyRefreshBtn, 0, wx.ALIGN_CENTER | wx.ALL, 1)
 
         bSizer30.Add(bSizer40, 0, wx.EXPAND, 5)
 
@@ -582,8 +583,8 @@ class MainFrame (wx.Frame):
         self.savingBtnPanel = wx.Panel(self.savingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer20 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_button7 = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存当前选中的图像", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer20.Add(self.m_button7, 0, wx.ALL, 5)
+        self.savingBtn = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存当前选中的图像", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer20.Add(self.savingBtn, 0, wx.ALL, 5)
 
         self.m_button8 = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存所有符合过滤条件的图像", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer20.Add(self.m_button8, 0, wx.ALL, 5)
@@ -693,12 +694,11 @@ class MainFrame (wx.Frame):
         self.Bind(wx.EVT_MOVE_END, self.on_move_end)
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.stopLoadingBtn.Bind(wx.EVT_BUTTON, self.stop_loading_event)
-        self.m_button5.Bind(wx.EVT_BUTTON, self.load_file)
+        self.loadingFileBtn.Bind(wx.EVT_BUTTON, self.load_file)
         self.m_button6.Bind(wx.EVT_BUTTON, self.load_dir)
-        self.m_button32.Bind(wx.EVT_BUTTON, self.load_image_from_clipboard)
-        self.m_button10.Bind(wx.EVT_BUTTON, self.del_item)
+        self.loadingClipboardBtn.Bind(wx.EVT_BUTTON, self.load_image_from_clipboard)
+        self.delBtn.Bind(wx.EVT_BUTTON, self.del_item)
         self.reloadingBtn.Bind(wx.EVT_BUTTON, self.reload_item)
-        self.imageTreeCtrl.Bind(wx.EVT_TREE_KEY_DOWN, self.tree_key_down)
         self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.switch_image)
         self.procMode.Bind(wx.EVT_RADIOBOX, self.processing_mode_change)
         self.passwordCtrl.Bind(wx.EVT_TEXT_ENTER, self.update_password_dict)
@@ -725,13 +725,13 @@ class MainFrame (wx.Frame):
         self.m_button312.Bind(wx.EVT_BUTTON, self.revert_to_default)
         self.previewMode.Bind(wx.EVT_RADIOBOX, self.preview_mode_change)
         self.previewSource.Bind(wx.EVT_RADIOBOX, self.force_refresh_preview)
-        self.m_button3.Bind(wx.EVT_BUTTON, self.manual_refresh)
+        self.manuallyRefreshBtn.Bind(wx.EVT_BUTTON, self.manually_refresh)
         self.resamplingFilter.Bind(wx.EVT_RADIOBOX, self.force_refresh_preview)
         self.savingFormat.Bind(wx.EVT_COMBOBOX, self.record_saving_format)
         self.savingFormat.Bind(wx.EVT_TEXT_ENTER, self.check_saving_format)
         self.savingQuality.Bind(wx.EVT_SCROLL, self.update_quality_num)
         self.subsamplingLevel.Bind(wx.EVT_SCROLL, self.update_subsampling_num)
-        self.m_button7.Bind(wx.EVT_BUTTON, self.save_selected_image)
+        self.savingBtn.Bind(wx.EVT_BUTTON, self.save_selected_image)
         self.m_button8.Bind(wx.EVT_BUTTON, self.bulk_save)
         self.stopSavingBtn.Bind(wx.EVT_BUTTON, self.stop_saving_event)
         self.redundantCacheLength.Bind(wx.EVT_TEXT_ENTER, self.change_redundant_cache_length)
@@ -767,9 +767,6 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def reload_item(self, event):
-        event.Skip()
-
-    def tree_key_down(self, event):
         event.Skip()
 
     def switch_image(self, event):
@@ -808,7 +805,7 @@ class MainFrame (wx.Frame):
     def force_refresh_preview(self, event):
         event.Skip()
 
-    def manual_refresh(self, event):
+    def manually_refresh(self, event):
         event.Skip()
 
     def record_saving_format(self, event):

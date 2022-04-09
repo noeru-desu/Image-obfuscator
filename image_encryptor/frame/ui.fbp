@@ -435,7 +435,7 @@
                                     <property name="minimize_button">0</property>
                                     <property name="minimum_size"></property>
                                     <property name="moveable">1</property>
-                                    <property name="name">m_button5</property>
+                                    <property name="name">loadingFileBtn</property>
                                     <property name="pane_border">1</property>
                                     <property name="pane_position"></property>
                                     <property name="pane_size"></property>
@@ -583,7 +583,7 @@
                                     <property name="minimize_button">0</property>
                                     <property name="minimum_size"></property>
                                     <property name="moveable">1</property>
-                                    <property name="name">m_button32</property>
+                                    <property name="name">loadingClipboardBtn</property>
                                     <property name="pane_border">1</property>
                                     <property name="pane_position"></property>
                                     <property name="pane_size"></property>
@@ -682,11 +682,11 @@
                         <property name="name">bSizer281</property>
                         <property name="orient">wxHORIZONTAL</property>
                         <property name="permission">none</property>
-                        <object class="sizeritem" expanded="0">
+                        <object class="sizeritem" expanded="1">
                             <property name="border">5</property>
                             <property name="flag">wxEXPAND | wxALL</property>
                             <property name="proportion">2</property>
-                            <object class="wxPanel" expanded="0">
+                            <object class="wxPanel" expanded="1">
                                 <property name="BottomDockable">1</property>
                                 <property name="LeftDockable">1</property>
                                 <property name="RightDockable">1</property>
@@ -737,7 +737,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style">wxTAB_TRAVERSAL</property>
-                                <object class="wxBoxSizer" expanded="0">
+                                <object class="wxBoxSizer" expanded="1">
                                     <property name="minimum_size"></property>
                                     <property name="name">bSizer262</property>
                                     <property name="orient">wxVERTICAL</property>
@@ -864,7 +864,7 @@
                                                     <property name="minimize_button">0</property>
                                                     <property name="minimum_size"></property>
                                                     <property name="moveable">1</property>
-                                                    <property name="name">m_button10</property>
+                                                    <property name="name">delBtn</property>
                                                     <property name="pane_border">1</property>
                                                     <property name="pane_position"></property>
                                                     <property name="pane_size"></property>
@@ -1022,7 +1022,6 @@
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style"></property>
-                                            <event name="OnTreeKeyDown">tree_key_down</event>
                                             <event name="OnTreeSelChanged">switch_image</event>
                                         </object>
                                     </object>
@@ -3960,7 +3959,7 @@
                                                                                     <property name="minimize_button">0</property>
                                                                                     <property name="minimum_size"></property>
                                                                                     <property name="moveable">1</property>
-                                                                                    <property name="name">m_button3</property>
+                                                                                    <property name="name">manuallyRefreshBtn</property>
                                                                                     <property name="pane_border">1</property>
                                                                                     <property name="pane_position"></property>
                                                                                     <property name="pane_size"></property>
@@ -3983,7 +3982,7 @@
                                                                                     <property name="window_extra_style"></property>
                                                                                     <property name="window_name"></property>
                                                                                     <property name="window_style"></property>
-                                                                                    <event name="OnButtonClick">manual_refresh</event>
+                                                                                    <event name="OnButtonClick">manually_refresh</event>
                                                                                 </object>
                                                                             </object>
                                                                         </object>
@@ -5640,7 +5639,7 @@
                                                                 <property name="minimize_button">0</property>
                                                                 <property name="minimum_size"></property>
                                                                 <property name="moveable">1</property>
-                                                                <property name="name">m_button7</property>
+                                                                <property name="name">savingBtn</property>
                                                                 <property name="pane_border">1</property>
                                                                 <property name="pane_position"></property>
                                                                 <property name="pane_size"></property>
