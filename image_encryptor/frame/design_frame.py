@@ -17,20 +17,20 @@ import wx.xrc
 
 class MainFrame (wx.Frame):
     __slots__ = (
-        'xorPanel', 'shuffleFilter', 'imagePanel', 'XOREncryption', 'noiseFactor', 'm_button6', 'disableCache',
-        'processingOptions''mappingA', 'imageInfo', 'm_staticText141', 'XORG', 'XORA', 'mappingFilter', 'delBtn', 'm_staticline4',
-        'procMode''qualityInfo', 'mappingR', 'noiseFactorNum', 'previewMode', 'stopLoadingBtn', 'XORB', 'm_button31',
-        'maxImagePixels''previewSource', 'otherOptions', 'noiseXor', 'previewOptions', 'loadingPrograssPanel', 'shuffleChunks',
-        'XorFilter''imageTreePanel', 'processingSettingsPanel1', 'm_staticText82111', 'savingProgress', 'imageTreeCtrl',
-        'passwordFilter''loadingFileBtn', 'm_staticText9', 'flipChunks', 'previewedBitmapPlanel', 'm_staticText81',
-        'loadingPrograssInfo''manuallyRefreshBtn', 'lowMemoryMode', 'savingFilters', 'savingBtn', 'savingFormat', 'm_staticText12',
-        'loadingClipboardBtn''savingProgressInfo', 'savingQuality', 'cuttingCol', 'selectSavingPath', 'm_staticline31',
-        'm_button8''flipFilter', 'subsamplingInfo', 'm_panel25', 'mappingG', 'mappingB', 'redundantCacheLength', 'savingBtnPanel',
-        'previewProgressInfo''loadingPrograss', 'm_staticText14', 'qqFilter', 'settingsPanel', 'importedBitmapPlanel',
-        'subsamplingLevel''m_staticText8', 'previewedBitmap', 'cuttingRow', 'decryptionFilter', 'stopSavingBtn',
-        'encryptionFilter''passwordCtrl', 'savingOptions', 'loadingPanel', 'imageTreeSearchCtrl', 'm_staticText82',
-        'm_staticText8212''m_button311', 'savingPrograssPanel', 'importedBitmap', 'XORR', 'resamplingFilter', 'previewProgress',
-        'm_button312''m_staticText34', 'reloadingBtn'
+        'm_button311', 'savingQuality', 'm_staticline31', 'XORB', 'XORA', 'loadingPrograssInfo', 'm_panel25', 'mappingFilter',
+        'subsamplingInfo', 'noiseFactorNum', 'xorPanel', 'm_staticText14', 'processingOptions', 'imagePanel', 'loadingPanel',
+        'noiseXor', 'previewSource', 'flipFilter', 'm_staticText34', 'previewedBitmap', 'loadingPrograss', 'mappingG',
+        'savingOptions', 'settingsPanel', 'imageInfo', 'savingFormat', 'cuttingRow', 'importedBitmapPlanel', 'subsamplingLevel',
+        'selectSavingPath', 'shuffleFilter', 'm_staticText81', 'XOREncryption', 'procMode', 'resamplingFilter', 'm_staticline4',
+        'previewProgress', 'decryptionFilter', 'processingSettingsPanel1', 'm_staticText12', 'savingProgress', 'otherOptions',
+        'loadingPrograssPanel', 'loadingClipboardBtn', 'm_staticText82111', 'savingPrograssPanel', 'XorFilter', 'stopSavingBtn',
+        'passwordFilter', 'importedBitmap', 'm_staticText8212', 'disableCache', 'maxImagePixels', 'savingBtn', 'savingBtnPanel',
+        'noiseFactor', 'previewProgressInfo', 'imageTreePanel', 'redundantCacheLength', 'XORG', 'mappingR', 'm_button6',
+        'imageTreeSearchCtrl', 'mappingA', 'm_button312', 'qualityInfo', 'reloadingBtn', 'loadingFileBtn', 'm_button8', 'delBtn',
+        'encryptionFilter', 'savingFilters', 'm_staticText141', 'flipChunks', 'savingProgressInfo', 'shuffleChunks',
+        'manuallyRefreshBtn', 'lowMemoryMode', 'm_staticText8', 'passwordCtrl', 'previewMode', 'mappingB', 'stopLoadingBtn',
+        'previewOptions', 'm_staticText82', 'qqFilter', 'imageTreeCtrl', 'previewedBitmapPlanel', 'm_button31', 'cuttingCol',
+        'm_staticText9', 'XORR'
     )
 
     def __init__(self, parent):

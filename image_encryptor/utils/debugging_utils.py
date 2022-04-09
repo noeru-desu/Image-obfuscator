@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-03-27 08:07:12
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-03 09:40:01
+LastEditTime : 2022-04-09 20:13:31
 Description  : 调试函数
 """
 from functools import wraps as functools_wraps
@@ -51,7 +51,6 @@ def gen_slots_str(a_set):
         if len(b_args_str) + len(i) > 118:
             a_args_str += '\n' + ('\000' * 8) + b_args_str + ','
             b_args_str = f"'{i}'"
-            start = True
         elif start:
             start = False
             b_args_str += f"'{i}'"
