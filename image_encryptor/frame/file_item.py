@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-05 16:38:41
+LastEditTime : 2022-04-06 21:08:23
 Description  : 图像项目
 """
 from abc import ABC
@@ -128,7 +128,7 @@ class ImageItemCache(object):
         self.preview_size: tuple[int, int] = None
         self.previews = PreviewCache(item.frame.startup_parameters)
         self.loading_encryption_attributes_error = None
-        self._encryption_data = None
+        self._encryption_data: EncryptionParameters = None
         self._loaded_image = loaded_image
 
     @property

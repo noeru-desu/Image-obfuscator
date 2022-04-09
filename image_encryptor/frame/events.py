@@ -39,7 +39,7 @@ class MainFrame(BasicMainFrame):
         self.resized = True
         event.Skip()
 
-    def manual_refresh(self, event):
+    def manually_refresh(self, event):
         if self.controls.preview_mode != constants.DO_NOT_REFRESH:
             self.force_refresh_preview()
 

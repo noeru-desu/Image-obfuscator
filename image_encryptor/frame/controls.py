@@ -2,12 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-05 13:48:20
+LastEditTime : 2022-04-07 06:08:07
 Description  : 整理
 """
 from abc import ABC
 from os.path import splitext
-from typing import TYPE_CHECKING, Callable, Iterable, Optional
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union
 
 from wx import Bitmap
 
@@ -49,7 +49,7 @@ class Controls(object):
         return self.frame.loadingPrograssInfo.Label
 
     @loading_prograss_info.setter
-    def loading_prograss_info(self, v):
+    def loading_prograss_info(self, v: str):
         self.frame.loadingPrograssInfo.Label = v
 
     @property
@@ -65,7 +65,7 @@ class Controls(object):
         return self.frame.imageInfo.Label
 
     @image_info.setter
-    def image_info(self, v):
+    def image_info(self, v: str):
         try:
             self.frame.imageInfo.Label = v
         except RuntimeError:
@@ -103,7 +103,7 @@ class Controls(object):
         self.frame.previewedBitmapPlanel.Layout()
 
     @property
-    def previewed_image(self):
+    def previewed_image(self) -> 'Image':
         raise NotImplementedError
 
     @previewed_image.setter
@@ -296,11 +296,11 @@ class Controls(object):
         self.frame.previewProgress.Value = v
 
     @property
-    def resampling_filter_id(self):
+    def resampling_filter_id(self) -> int:
         return self.frame.resamplingFilter.Selection
 
     @resampling_filter_id.setter
-    def resampling_filter_id(self, v):
+    def resampling_filter_id(self, v: int):
         self.frame.resamplingFilter.Selection = v
 
     @property
@@ -449,7 +449,7 @@ class Controls(object):
         return ''.join(channels)
 
     @mapping_channels.setter
-    def mapping_channels(self, v):
+    def mapping_channels(self, v: Iterable[str]):
         for i in 'rgba':
             self.mapping_checkboxes[i].SetValue(i in v)
 
@@ -467,7 +467,7 @@ class Controls(object):
         return ''.join(channels)
 
     @XOR_channels.setter
-    def XOR_channels(self, v):
+    def XOR_channels(self, v: Iterable[str]):
         for i in 'rgba':
             self.XOR_checkboxes[i].SetValue(i in v)
 
@@ -551,16 +551,16 @@ class SettingsManager(object):
 
 class SettingsBase(ABC):
     __slots__ = ()
-    SETTING_NAMES: Iterable
+    SETTING_NAMES: Iterable[str]
 
     def __repr__(self) -> str:
         return ', '.join(f'{i}: {getattr(self, i)}' for i in self.SETTING_NAMES)
 
-    def __getitem__(self, i):
+    def __getitem__(self, i: Any):
         if isinstance(i, str):
             return getattr(self, i)
 
-    def inherit_tuple(self, settings: tuple):
+    def inherit_tuple(self, settings: tuple[Any]):
         for n, v in zip(self.SETTING_NAMES, settings):
             setattr(self, n, v)
 
@@ -585,14 +585,14 @@ class SettingsData(SettingsBase):
         'saving_subsampling_level'
     )
 
-    def __init__(self, settings: tuple):
+    def __init__(self, settings: tuple[Any]):
         self.inherit_tuple(settings)
         # if isinstance(settings, tuple):
         #     self.inherit_tuple(settings)
         # elif isinstance(settings, dict):
         #     self._inherit_dict_settings(settings)
 
-    def _inherit_dict_settings(self, settings_dict):
+    def _inherit_dict_settings(self, settings_dict: dict[str, Any]):
         self.proc_mode = settings_dict['proc_mode']
         self.cutting_row = settings_dict['cutting_row']
         self.cutting_col = settings_dict['cutting_col']
@@ -600,7 +600,7 @@ class SettingsData(SettingsBase):
         self.flip_chunks = settings_dict['flip_chunks']
         self.mapping_channels = settings_dict['mapping_channels']
         self.XOR_channels = settings_dict['XOR_channels']
-        self.XOR_encryption = settings_dict['XOR_encryption'] if 'XOR_encryption' in settings_dict else bool(self.XOR_channels)
+        self.XOR_encryption = settings_dict.get('XOR_encryption', bool(self.XOR_channels))
         self.noise_XOR = settings_dict['noise_XOR']
         self.noise_factor = settings_dict['noise_factor']
         self.password = settings_dict['password']
@@ -613,7 +613,7 @@ class SettingsData(SettingsBase):
     def copy(self):
         return SettingsData(tuple(self.properties))
 
-    def encryption_parameters_data(self, orig_width, orig_height):
+    def encryption_parameters_data(self, orig_width: int, orig_height: int):
         has_password = self.password != 'none'
         password = self.password if has_password else 100
         return EncryptionParametersData((self.cutting_col, self.cutting_row, orig_width, orig_height, self.shuffle_chunks,
@@ -623,7 +623,7 @@ class SettingsData(SettingsBase):
                                         True, self.password))
 
     @property
-    def encryption_settings(self) -> tuple:
+    def encryption_settings(self) -> tuple[Any]:
         return (
             self.proc_mode, self.cutting_row, self.cutting_col,
             self.shuffle_chunks, self.flip_chunks, self.mapping_channels,
@@ -639,7 +639,7 @@ class SettingsData(SettingsBase):
 class Settings(SettingsData):
     __slots__ = ('controls',)
 
-    def __init__(self, controls: 'Controls', settings=None):
+    def __init__(self, controls: 'Controls', settings: tuple[Any] = None):
         self.controls = controls
         if settings is None:
             self._init()
@@ -711,13 +711,13 @@ class EncryptionParametersData(SettingsBase):
         # 需保证dynamic_auth与password在最后，参考self.encryption_parameters_dict
     )
 
-    def __init__(self, parameters):
+    def __init__(self, parameters: Union[dict[str, Any], tuple[Any]]):
         if isinstance(parameters, dict):
             self._inherit_dict_settings(parameters)
         elif isinstance(parameters, tuple):
             self.inherit_tuple(parameters)
 
-    def _inherit_dict_settings(self, parameters_dict):
+    def _inherit_dict_settings(self, parameters_dict: dict[str, Any]):
         self.cutting_row: int = parameters_dict['cutting_row']
         self.cutting_col: int = parameters_dict['cutting_col']
         self.orig_width: int = parameters_dict['orig_width']
@@ -735,14 +735,14 @@ class EncryptionParametersData(SettingsBase):
         self.password: str = None
 
     @property
-    def encryption_parameters_dict(self):
+    def encryption_parameters_dict(self) -> dict[str, Any]:
         return {k: getattr(self, k) for k in self.SETTING_NAMES[:-2]}
 
 
 class EncryptionParameters(EncryptionParametersData):
     __slots__ = ('controls',)
 
-    def __init__(self, controls: 'Controls', parameters):
+    def __init__(self, controls: 'Controls', parameters: dict[str, Any] | tuple[Any]):
         self.controls = controls
         super().__init__(parameters)
 
@@ -790,7 +790,7 @@ class ProgressBar(object):
         assert total_steps > 0, f'total_steps must be greater than 0 (currently {total_steps})'
         gauge.Value = 0
         self.gauge = gauge
-        self.gauge_range = gauge.Range
+        self.gauge_range: int = gauge.Range
         self.total_steps = total_steps
         self.step_size = self.gauge_range // total_steps
         self.finished_step = True
@@ -809,7 +809,7 @@ class ProgressBar(object):
         self.value = 0
         self._coefficient = self.step_size / max_value
 
-    def update(self, value):
+    def update(self, value: int):
         assert not self.finished_step, 'Step information is not initialized, please call next_step first.'
         if value > self.max_value:
             return

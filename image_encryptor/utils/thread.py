@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-20 09:28:04
+LastEditTime : 2022-04-06 21:40:46
 Description  : 线程相关类
 """
 from concurrent.futures import (CancelledError, ProcessPoolExecutor,
@@ -209,8 +209,8 @@ class ProcessTaskManager(ProcessPoolExecutor):
     def wait(self, future: 'Future'):
         with suppress(CancelledError):
             error = future.exception()
-        if error is not None:
-            print(error)
+            if error is not None:
+                print(error)
 
     def callback(self, watchdog_future, tag_name, future: 'Future', callback=None, *callback_args, **callback_kwargs):
         if callback is not None:

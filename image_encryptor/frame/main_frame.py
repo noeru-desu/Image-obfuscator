@@ -89,6 +89,7 @@ class MainFrame(MF):
         self.controls.redundant_cache_length = self.startup_parameters.maximum_redundant_cache_length
         self.controls.disable_cache = self.startup_parameters.disable_cache
         self.controls.low_memory_mode = self.startup_parameters.low_memory
+        self.selectSavingPath.PickerCtrl.SetLabel('选择文件夹')
 
         self.image_item: 'ImageItem' = None
 
@@ -163,8 +164,8 @@ class MainFrame(MF):
         self.tree_manager.reloading_thread.set_exit_signal()
         self.controls.stop_loading_btn_text = '强制终止重载'
 
-    def apply_settings_to_all(self, settings_list=None):
-        if settings_list is None:
+    def apply_settings_to_all(self, settings_list: list[str] = ...):
+        if settings_list is Ellipsis:
             properties_tuple = self.settings.all.properties_tuple
             for i in self.tree_manager.all_image_item_data:
                 i.settings = Settings(self.controls, properties_tuple)

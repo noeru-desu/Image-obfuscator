@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-09 18:44:07
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-04 19:22:51
+LastEditTime : 2022-04-06 20:59:41
 Description  : 参数解析
 """
 from argparse import ArgumentParser
@@ -18,7 +18,7 @@ class Parameters(object):
         self.disable_cache = False
         self.low_memory: bool = False
         self.maximum_redundant_cache_length: int = 5
-        self._dark_mode: bool = None
+        self._dark_mode: bool = False
 
     def __repr__(self) -> str:
         return ', '.join(f'{n} = {getattr(self, n)}' for n in self.PARAMETER_NAMES)

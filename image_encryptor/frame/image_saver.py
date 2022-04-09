@@ -71,7 +71,6 @@ class ImageSaver(object):
             self.frame.controls.password = 'none'
         cache = self.frame.image_item.cache.previews.get_scalable_cache(self.frame.settings.encryption_settings_hash)
         if cache is None:
-            print(1)
             match self.frame.controls.proc_mode:
                 case constants.ENCRYPTION_MODE:
                     self.saving_thread.start_new(encrypt.normal, self._save_selected_image_call_back, (

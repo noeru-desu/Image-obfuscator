@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-03 14:20:35
+LastEditTime : 2022-04-06 06:24:39
 Description  : 一些小东西
 """
 from functools import wraps as functools_wraps
@@ -68,6 +68,18 @@ def catch_exception_and_return(func):
             return func(*args, **kwargs), None
         except Exception:
             return None, format_exc()
+    return wrap
+
+
+def return_exception(func):
+    @functools_wraps(func)
+    def wrap(*args, **kwargs):
+        copy_signature(wrap, func)
+        try:
+            func(*args, **kwargs)
+            return None
+        except Exception:
+            return format_exc()
     return wrap
 
 
