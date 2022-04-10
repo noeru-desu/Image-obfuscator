@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-09 19:47:21
+LastEditTime : 2022-04-10 09:41:16
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -104,7 +104,7 @@ class ImageSaver(object):
                         settings.saving_subsampling_level
                     ))
                 case constants.ANTY_HARMONY_MODE:
-                    self.saving_thread.start_new(anti_harmony.save_image, self._save_selected_image_call_back, (
+                    self.saving_thread.start_new(anti_harmony.save_image, self._save_selected_image_from_cache_call_back, (
                         cache, self.frame.image_item.path_data, settings.saving_path, settings.saving_format, settings.saving_quality,
                         settings.saving_subsampling_level
                     ))
