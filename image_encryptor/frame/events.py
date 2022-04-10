@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-09 18:46:35
+LastEditTime : 2022-04-10 08:51:23
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -18,13 +18,14 @@ from image_encryptor.frame.main_frame import MainFrame as BasicMainFrame
 
 if TYPE_CHECKING:
     from wx import CommandEvent, SizeEvent, SpinEvent, TreeEvent, TreeItemId
+    from image_encryptor.modules.argparse import Parameters
 
 
 class MainFrame(BasicMainFrame):
     __slots__ = ('deleted_item', 'resized', 'first_choice')
 
-    def __init__(self, parent, run_path=...):
-        super().__init__(parent, run_path)
+    def __init__(self, parent, startup_parameters: 'Parameters', run_path: str = ...):
+        super().__init__(parent, startup_parameters, run_path)
         self.deleted_item = False
         self.resized = False
         self.first_choice = True

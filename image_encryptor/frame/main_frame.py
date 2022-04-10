@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-09 19:56:06
+LastEditTime : 2022-04-10 07:33:01
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -120,9 +120,9 @@ class MainFrame(MF):
             i.SetForegroundColour('White')
 
     @classmethod
-    def run(cls, path=getcwd()):
+    def run(cls, startup_parameters: 'Parameters', path=getcwd()):
         app = App(useBestVisual=True)
-        self = cls(None, path)
+        self = cls(None, startup_parameters, path)
 
         self.Show()
 
