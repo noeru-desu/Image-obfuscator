@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-07 06:08:07
+LastEditTime : 2022-04-10 14:50:38
 Description  : 整理
 """
 from abc import ABC
@@ -761,9 +761,7 @@ class EncryptionParameters(EncryptionParametersData):
             self.controls.XOR_encryption = True
         self.controls.XOR_channels = self.XOR_channels
         if self.has_password:
-            while True:
-                if self.password is not None:
-                    break
+            while self.password is None:
                 self.password = self.controls.frame.password_dict.get_password(self.password_base64)
                 if self.password is not None:
                     break

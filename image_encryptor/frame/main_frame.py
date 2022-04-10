@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-10 07:33:01
+LastEditTime : 2022-04-10 13:04:46
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -57,14 +57,16 @@ class MainFrame(MF):
             self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
         else:
             self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}')
-
-        # 组件
-        if startup_parameters.dark_mode:
-            self.dark_mode()
-        self.startup_parameters = startup_parameters
         self.logger = Logger('image-encryptor')
         for i in VERSION_INFO:
             self.logger.info(i)
+
+        # 处理启动参数
+        if startup_parameters.dark_mode:
+            self.dark_mode()
+        self.startup_parameters = startup_parameters
+
+        # 各项实现或组件
         self.controls = Controls(self)
         self.settings = SettingsManager(self.controls)
         self.dialog = Dialog(self)
@@ -75,10 +77,19 @@ class MainFrame(MF):
         self.image_loader = ImageLoader(self)
         self.preview_generator = PreviewGenerator(self)
         self.image_saver = ImageSaver(self)
-        self.imageTreeCtrl.SetDropTarget(DragLoader(self))
-        self.savingOptions.SetDropTarget(DragSavingPath(self))
         self.stop_loading_func = SegmentTrigger((self.set_stop_loading_signal, self.stop_loading), self.init_loading_btn)
         self.stop_reloading_func = SegmentTrigger((self.set_reloading_btn_text, self.set_stop_reloading_signal, self.stop_reloading), self.init_reloading_btn)
+
+        # 同步启动参数至界面
+        self.controls.redundant_cache_length = self.startup_parameters.maximum_redundant_cache_length
+        self.controls.disable_cache = self.startup_parameters.disable_cache
+        self.controls.low_memory_mode = self.startup_parameters.low_memory
+
+        # 文件拖入
+        self.imageTreeCtrl.SetDropTarget(DragLoader(self))
+        self.savingOptions.SetDropTarget(DragSavingPath(self))
+
+        # hook
         at_exit(self.process_pool.shutdown, wait=False, cancel_futures=True)
         at_exit(self.universal_thread_pool.shutdown, wait=False, cancel_futures=True)
 
@@ -97,9 +108,6 @@ class MainFrame(MF):
         self.run_path = run_path
         self.xorPanel.Disable()
         self.savingFormat.ToolTip = f'{self.savingFormat.GetToolTipText()}{EXTENSION_KEYS_STRING}'
-        self.controls.redundant_cache_length = self.startup_parameters.maximum_redundant_cache_length
-        self.controls.disable_cache = self.startup_parameters.disable_cache
-        self.controls.low_memory_mode = self.startup_parameters.low_memory
         self.selectSavingPath.PickerCtrl.SetLabel('选择文件夹')
 
         self.image_item: 'ImageItem' = None
