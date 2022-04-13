@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-10 14:50:38
+LastEditTime : 2022-04-13 21:23:21
 Description  : 整理
 """
 from abc import ABC
@@ -87,7 +87,7 @@ class Controls(object):
     @imported_image.setter
     def imported_image(self, v: 'Image'):
         addr = id(v)
-        if addr == self.imported_image_id:
+        if addr == self.imported_image_id:  # 防止重复的Image->Bitmap转换
             return
         self.imported_image_id = addr
         self.frame.importedBitmap.Bitmap = Bitmap.FromBufferRGBA(*v.size, v.tobytes())
@@ -413,6 +413,15 @@ class Controls(object):
 
     @property
     def redundant_cache_length(self) -> int:
+        """启动参数: 冗余缓存最大长度
+
+        处理结果缓存中会同时缓存多个不同加密设置生成的图像数据
+        (处理结果缓存类似于LRU缓存)
+        除最新缓存外的其他缓存都将在取消选择图像项目时删除
+
+        Returns:
+            int: 冗余缓存最大长度
+        """
         return self.frame.redundantCacheLength.Value
 
     @redundant_cache_length.setter
@@ -421,6 +430,13 @@ class Controls(object):
 
     @property
     def low_memory_mode(self) -> bool:
+        """启动参数: 低内存占用模式
+
+        开启后，将在取消选中图像项目时删除相关的图像数据(包括原始数据与缓存，图像和文件信息除外)
+
+        Returns:
+            bool: 是否开启
+        """
         return self.frame.lowMemoryMode.Value
 
     @low_memory_mode.setter
@@ -429,6 +445,11 @@ class Controls(object):
 
     @property
     def disable_cache(self) -> bool:
+        """启动参数: 禁用处理结果缓存
+
+        Returns:
+            bool: 是否禁用
+        """
         return self.frame.disableCache.Value
 
     @disable_cache.setter
@@ -436,7 +457,12 @@ class Controls(object):
         self.frame.disableCache.Value = v
 
     @property
-    def mapping_channels(self):
+    def mapping_channels(self) -> str:
+        """选择的需要随机映射的各通道字符串
+
+        Returns:
+            str: 选择的需要随机映射的各通道(如`rgb`/`b`/`rgba`/`ga`)
+        """
         channels = []
         if self.mapping_R:
             channels.append('r')
@@ -455,6 +481,11 @@ class Controls(object):
 
     @property
     def XOR_channels(self):
+        """选择的需要异或加密的各通道字符串
+
+        Returns:
+            str: 选择的需要异或加密的各通道(如`rgb`/`b`/`rgba`/`ga`)
+        """
         channels = []
         if self.XOR_R:
             channels.append('r')
@@ -472,6 +503,11 @@ class Controls(object):
             self.XOR_checkboxes[i].SetValue(i in v)
 
     def gen_image_info(self, item: 'ImageItem' = None):
+        """输出图像信息至界面
+
+        Args:
+            item (ImageItem, optional): ImageItem实例. 默认为None, 输出为`未选择图像`
+        """
         if item is None:
             self.image_info = '未选择图像'
         else:
@@ -480,9 +516,17 @@ class Controls(object):
                                                         )
 
     def clear_preview(self):
+        """取消显示所有缓存"""
         self.frame.importedBitmap.Bitmap = self.frame.previewedBitmap.Bitmap = Bitmap()
 
     def display_and_cache_processed_preview(self, image: 'WrappedImage'):
+        """显示并缓存处理结果
+
+        如果`image`参数传入的实例支持缩放操作，则添加到可缩放缓存，反之则添加到普通缓存
+
+        Args:
+            image (WrappedImage): 需要显示并缓存的WrappedImage的子类实例
+        """
         if image.scalable:
             self.frame.image_item.cache.previews.add_scalable_cache(self.frame.settings.encryption_settings_hash, image)
             self.previewed_bitmap = image.gen_wxBitmap(self.preview_size, self.resampling_filter_id)
@@ -501,6 +545,7 @@ class SettingsManager(object):
 
     @property
     def encryption_settings(self):
+        """当前所有加密设置的元组, 一般为生成encryption_settings_hash时使用"""
         return (
             self.controls.proc_mode, self.controls.cutting_row, self.controls.cutting_col,
             self.controls.shuffle_chunks, self.controls.flip_chunks, self.controls.mapping_channels,
@@ -510,6 +555,7 @@ class SettingsManager(object):
 
     @property
     def encryption_settings_hash(self):
+        """当前加密设置的hash"""
         # hash(self.encryption_settings) 耗时约为 hashlib.md5(repr(self.encryption_settings).encode()).digest() 的 55%
         return hash(self.encryption_settings)
 
@@ -520,6 +566,7 @@ class SettingsManager(object):
 
     @property
     def all_dict(self):
+        """所有加密设置的字典(此方法尚未被使用)"""
         return {
             'proc_mode': self.controls.proc_mode,
             'cutting_row': self.controls.cutting_row,
@@ -540,11 +587,13 @@ class SettingsManager(object):
         }
 
     @property
-    def all(self):
+    def all(self) -> 'Settings':
+        """以当前的所有加密设置实例化Settings类"""
         return Settings(self.controls)
 
     @property
-    def saving_settings(self):
+    def saving_settings(self) -> 'SavingSettings':
+        """以当前的所有保存设置实例化SavingSettings类"""
         return SavingSettings(self.controls.saving_path, self.controls.saving_format_index, EXTENSION_KEYS[self.controls.saving_format_index],
                               self.controls.saving_quality, self.controls.saving_subsampling_level)
 
@@ -560,20 +609,41 @@ class SettingsBase(ABC):
         if isinstance(i, str):
             return getattr(self, i)
 
-    def inherit_tuple(self, settings: tuple[Any]):
+    def inherit_tuple(self, settings: Iterable[Any]):
+        """将可迭代对象(一般是由`self.properties_tuple`生成的元组)中的数据同步到自身
+
+        Args:
+            settings (Iterable[Any]): 可迭代对象(一般是由`(self.properties_tuple)`生成的元组)
+        """
+        assert len(self.SETTING_NAMES) == len(settings), f'Wrong settings arguments length, currently {len(settings)} (expected {len(self.SETTING_NAMES)})'
         for n, v in zip(self.SETTING_NAMES, settings):
             setattr(self, n, v)
 
     @property
     def properties(self):
+        """返回`self.SETTING_NAMES`中每个属性名的值的生成器
+
+        Returns:
+            Generator: `self.SETTING_NAMES`中每个属性名的值
+        """
         return (getattr(self, i) for i in self.SETTING_NAMES)
 
     @property
     def properties_tuple(self):
+        """将`self.properties`转换为元组
+
+        Returns:
+            tuple: `self.SETTING_NAMES`中每个属性名的值的元组
+        """
         return tuple(self.properties)
 
     @property
     def properties_hash(self):
+        """`self.properties_tuple`的hash值
+
+        Returns:
+            int: hash结果(已加盐)
+        """
         return hash(self.properties)
 
 
@@ -585,7 +655,7 @@ class SettingsData(SettingsBase):
         'saving_subsampling_level'
     )
 
-    def __init__(self, settings: tuple[Any]):
+    def __init__(self, settings: Iterable[Any]):
         self.inherit_tuple(settings)
         # if isinstance(settings, tuple):
         #     self.inherit_tuple(settings)
@@ -639,7 +709,7 @@ class SettingsData(SettingsBase):
 class Settings(SettingsData):
     __slots__ = ('controls',)
 
-    def __init__(self, controls: 'Controls', settings: tuple[Any] = None):
+    def __init__(self, controls: 'Controls', settings: Iterable[Any] = None):
         self.controls = controls
         if settings is None:
             self._init()
@@ -711,10 +781,10 @@ class EncryptionParametersData(SettingsBase):
         # 需保证dynamic_auth与password在最后，参考self.encryption_parameters_dict
     )
 
-    def __init__(self, parameters: Union[dict[str, Any], tuple[Any]]):
+    def __init__(self, parameters: Union[dict[str, Any], Iterable[Any]]):
         if isinstance(parameters, dict):
             self._inherit_dict_settings(parameters)
-        elif isinstance(parameters, tuple):
+        elif isinstance(parameters, Iterable):
             self.inherit_tuple(parameters)
 
     def _inherit_dict_settings(self, parameters_dict: dict[str, Any]):
@@ -742,7 +812,7 @@ class EncryptionParametersData(SettingsBase):
 class EncryptionParameters(EncryptionParametersData):
     __slots__ = ('controls',)
 
-    def __init__(self, controls: 'Controls', parameters: dict[str, Any] | tuple[Any]):
+    def __init__(self, controls: 'Controls', parameters: dict[str, Any] | Iterable[Any]):
         self.controls = controls
         super().__init__(parameters)
 
