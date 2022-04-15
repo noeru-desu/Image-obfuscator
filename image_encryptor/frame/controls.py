@@ -2,8 +2,8 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-13 21:23:21
-Description  : 整理
+LastEditTime : 2022-04-14 20:44:40
+Description  : 界面控制相关
 """
 from abc import ABC
 from os.path import splitext
@@ -555,7 +555,7 @@ class SettingsManager(object):
 
     @property
     def encryption_settings_hash(self):
-        """当前加密设置的hash"""
+        """当前加密设置的hash(已加盐)"""
         # hash(self.encryption_settings) 耗时约为 hashlib.md5(repr(self.encryption_settings).encode()).digest() 的 55%
         return hash(self.encryption_settings)
 
@@ -646,6 +646,14 @@ class SettingsBase(ABC):
         """
         return hash(self.properties)
 
+    def copy(self):
+        """返回当前实例的浅拷贝
+
+        Returns:
+            Type[Self]: 当前实例的浅拷贝
+        """
+        raise NotImplementedError()
+
 
 class SettingsData(SettingsBase):
     __slots__ = SETTING_NAMES = (
@@ -656,6 +664,10 @@ class SettingsData(SettingsBase):
     )
 
     def __init__(self, settings: Iterable[Any]):
+        """
+        Args:
+            settings (Iterable[Any]): 可迭代对象(一般是由`(self.properties_tuple)`生成的元组)
+        """
         self.inherit_tuple(settings)
         # if isinstance(settings, tuple):
         #     self.inherit_tuple(settings)
@@ -663,6 +675,11 @@ class SettingsData(SettingsBase):
         #     self._inherit_dict_settings(settings)
 
     def _inherit_dict_settings(self, settings_dict: dict[str, Any]):
+        """尚未使用
+
+        Args:
+            settings_dict (dict[str, Any]): 所有加密设置的字典
+        """
         self.proc_mode = settings_dict['proc_mode']
         self.cutting_row = settings_dict['cutting_row']
         self.cutting_col = settings_dict['cutting_col']
@@ -680,10 +697,16 @@ class SettingsData(SettingsBase):
         self.saving_quality = settings_dict['saving_quality']
         self.saving_subsampling_level = settings_dict['saving_subsampling_level']
 
-    def copy(self):
-        return SettingsData(tuple(self.properties))
-
     def encryption_parameters_data(self, orig_width: int, orig_height: int):
+        """根据当前实例的数据与给出的参数实例化EncryptionParametersData类
+
+        Args:
+            orig_width (int): 原始图像宽度
+            orig_height (int): 原始图像高度
+
+        Returns:
+            EncryptionParametersData
+        """
         has_password = self.password != 'none'
         password = self.password if has_password else 100
         return EncryptionParametersData((self.cutting_col, self.cutting_row, orig_width, orig_height, self.shuffle_chunks,
@@ -694,6 +717,7 @@ class SettingsData(SettingsBase):
 
     @property
     def encryption_settings(self) -> tuple[Any]:
+        """当前实例中加密设置的元组, 一般为生成encryption_settings_hash时使用"""
         return (
             self.proc_mode, self.cutting_row, self.cutting_col,
             self.shuffle_chunks, self.flip_chunks, self.mapping_channels,
@@ -703,13 +727,22 @@ class SettingsData(SettingsBase):
 
     @property
     def encryption_settings_hash(self) -> int:
+        """当前加密设置的hash(已加盐)"""
         return hash(self.encryption_settings)
 
+    def copy(self):
+        return SettingsData(self.properties_tuple)
 
 class Settings(SettingsData):
     __slots__ = ('controls',)
 
     def __init__(self, controls: 'Controls', settings: Iterable[Any] = None):
+        """
+        Args:
+            controls (Controls): Controls实例.\n
+            settings (Iterable[Any], optional): settings (Iterable[Any]): 可迭代对象(一般是由`(self.properties_tuple)`生成的元组)
+            默认为None, 为None时将从界面中获取加密设置
+        """
         self.controls = controls
         if settings is None:
             self._init()
@@ -735,6 +768,7 @@ class Settings(SettingsData):
         self.saving_subsampling_level = self.controls.saving_subsampling_level
 
     def backtrack_interface(self):
+        """将加密设置显示到界面"""
         self.controls.proc_mode = self.proc_mode if self.proc_mode != DECRYPTION_MODE else ENCRYPTION_MODE
         if self.controls.proc_mode == ANTY_HARMONY_MODE:
             self.controls.frame.processingSettingsPanel1.Disable()
@@ -758,7 +792,6 @@ class Settings(SettingsData):
         self.controls.frame.passwordCtrl.Enable()
 
     def copy(self):
-        """将设置实例浅拷贝"""
         return Settings(self.controls, self.properties_tuple)
 
 
@@ -782,6 +815,10 @@ class EncryptionParametersData(SettingsBase):
     )
 
     def __init__(self, parameters: Union[dict[str, Any], Iterable[Any]]):
+        """
+        Args:
+            parameters: 加密参数字典(一般由`self.encryption_parameters_dict`生成)或加密参数元组(一般由`self.properties_tuple`生成)
+        """
         if isinstance(parameters, dict):
             self._inherit_dict_settings(parameters)
         elif isinstance(parameters, Iterable):
@@ -806,6 +843,7 @@ class EncryptionParametersData(SettingsBase):
 
     @property
     def encryption_parameters_dict(self) -> dict[str, Any]:
+        """生成用于添加到被加密文件末尾的加密参数字典"""
         return {k: getattr(self, k) for k in self.SETTING_NAMES[:-2]}
 
 
@@ -817,6 +855,7 @@ class EncryptionParameters(EncryptionParametersData):
         super().__init__(parameters)
 
     def backtrack_interface(self):
+        """将加密参数显示到界面"""
         self.controls.proc_mode = DECRYPTION_MODE
         self.controls.frame.processingSettingsPanel1.Disable()
         self.controls.cutting_row = self.cutting_row

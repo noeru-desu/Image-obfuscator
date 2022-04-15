@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-10 13:04:46
+LastEditTime : 2022-04-15 20:52:05
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -23,7 +23,7 @@ from image_encryptor.frame.controls import (Controls, SegmentTrigger, Settings,
                                             SettingsManager)
 from image_encryptor.frame.design_frame import MainFrame as MF
 from image_encryptor.frame.dialog import Dialog
-from image_encryptor.frame.drag_importer import DragLoader, DragSavingPath
+from image_encryptor.frame.drag_importer import DragLoadingFile, DragSavingPath
 from image_encryptor.frame.image_loader import ImageLoader
 from image_encryptor.frame.image_saver import ImageSaver
 from image_encryptor.frame.preview_generator import PreviewGenerator
@@ -34,6 +34,8 @@ from image_encryptor.utils.thread import ProcessTaskManager
 # from image_encryptor.utils.debugging_utils import gen_slots_str
 
 if TYPE_CHECKING:
+    from os import PathLike
+    from wx import Window
     from image_encryptor.frame.tree_manager import ImageItem
     from image_encryptor.modules.argparse import Parameters
 
@@ -48,7 +50,13 @@ class MainFrame(MF):
         'image_saver', 'stop_loading_func', 'stop_reloading_func'
     )
 
-    def __init__(self, parent, startup_parameters: 'Parameters', run_path=getcwd()):
+    def __init__(self, parent: 'Window', startup_parameters: 'Parameters', run_path: 'PathLike[str]' = getcwd()):
+        """
+        Args:
+            parent (Window): 父窗口, 可为`None`
+            startup_parameters (Parameters): 启动参数实例
+            run_path (str, optional): 运行路径. 默认为`os.getcwd()`.
+        """
         # o_args = set(dir(self))
         super().__init__(parent)
         # n_args = set(dir(self))
@@ -86,7 +94,7 @@ class MainFrame(MF):
         self.controls.low_memory_mode = self.startup_parameters.low_memory
 
         # 文件拖入
-        self.imageTreeCtrl.SetDropTarget(DragLoader(self))
+        self.imageTreeCtrl.SetDropTarget(DragLoadingFile(self))
         self.savingOptions.SetDropTarget(DragSavingPath(self))
 
         # hook
@@ -129,6 +137,12 @@ class MainFrame(MF):
 
     @classmethod
     def run(cls, startup_parameters: 'Parameters', path=getcwd()):
+        """运行窗口
+
+        Args:
+            startup_parameters (Parameters): 启动参数实例
+            run_path (str, optional): 运行路径. 默认为`os.getcwd()`.
+        """
         app = App(useBestVisual=True)
         self = cls(None, startup_parameters, path)
 
@@ -136,8 +150,16 @@ class MainFrame(MF):
 
         app.MainLoop()
 
-    def add_password_dict(self, password, dialog_parent=...):
-        """添加成功则返回True"""
+    def add_password_dict(self, password: str, dialog_parent: 'Window' = ...) -> bool:
+        """添加密码到密码字典
+
+        Args:
+            password (str): 需要添加的密码
+            dialog_parent (Window, optional): 对话框的父窗口. 默认为`MainFrame`
+
+        Returns:
+            bool: 添加成功则返回`True`
+        """
         try:
             self.password_dict[self.password_dict.get_validation_field_base64(password)] = password
             self.password_dict[self.password_dict.get_validation_field_base64(password, False)] = password
@@ -184,6 +206,11 @@ class MainFrame(MF):
         self.controls.stop_loading_btn_text = '强制终止重载'
 
     def apply_settings_to_all(self, settings_list: list[str] = ...):
+        """将当前加密设置应用到全部
+
+        Args:
+            settings_list (list[str], optional): 需要同步的加密设置属性名. 默认为全部加密设置
+        """
         if settings_list is Ellipsis:
             properties_tuple = self.settings.all.properties_tuple
             for i in self.tree_manager.all_image_item_data:

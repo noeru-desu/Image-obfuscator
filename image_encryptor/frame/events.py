@@ -2,15 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-10 08:51:23
+LastEditTime : 2022-04-15 21:08:31
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
 
-from PIL import ImageGrab
-from wx import (DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR,
-                FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, ID_OK,
-                DirDialog, FileDialog)
+from PIL.ImageGrab import grabclipboard
 
 from image_encryptor import constants
 from image_encryptor.frame.file_item import FolderItem, ImageItem
@@ -34,7 +31,6 @@ class MainFrame(BasicMainFrame):
         if self.resized:
             self.refresh_preview(event)
             self.resized = False
-        event.Skip()
 
     def on_size(self, event: 'SizeEvent'):
         self.resized = True
@@ -59,17 +55,17 @@ class MainFrame(BasicMainFrame):
         self.image_item.display_processed_preview(False)
 
     def load_file(self, event):
-        with FileDialog(self, "选择图像", style=FD_OPEN | FD_CHANGE_DIR | FD_PREVIEW | FD_FILE_MUST_EXIST) as dialog:
-            if ID_OK == dialog.ShowModal():
-                self.image_loader.load(dialog.GetPath())
+        path = self.dialog.select_file('选择图像')
+        if path is not None:
+            self.image_loader.load(path)
 
     def load_dir(self, event):
-        with DirDialog(self, "选择文件夹", style=DIRP_CHANGE_DIR | DIRP_DIR_MUST_EXIST) as dialog:
-            if ID_OK == dialog.ShowModal():
-                self.image_loader.load(dialog.GetPath())
+        path = self.dialog.select_dir('选择文件夹')
+        if path is not None:
+            self.image_loader.load(path)
 
     def load_image_from_clipboard(self, event):
-        clipboard = ImageGrab.grabclipboard()
+        clipboard = grabclipboard()
         if clipboard is None:
             self.dialog.async_warning('没有从剪切板导入任何图像')
         else:
@@ -106,7 +102,7 @@ class MainFrame(BasicMainFrame):
                 self.controls.frame.processingSettingsPanel1.Enable()
                 self.controls.frame.passwordCtrl.Enable()
         else:
-            self.image_item.check_encryption_parameters()
+            self.image_item.display_encryption_parameters()
             if self.image_item.cache.loading_encryption_attributes_error is not None:
                 self.controls.proc_mode = self.controls.previous_proc_mode
                 self.dialog.async_warning(self.image_item.cache.loading_encryption_attributes_error)
@@ -148,7 +144,7 @@ class MainFrame(BasicMainFrame):
             self.controls.previous_proc_mode = image_data.settings.proc_mode
             self.controls.gen_image_info(image_data)
             if image_data.settings.proc_mode == constants.DECRYPTION_MODE and image_data.encrypted_image:
-                image_data.cache.encryption_data.backtrack_interface()
+                image_data.cache.encryption_parameters.backtrack_interface()
             else:
                 image_data.settings.backtrack_interface()
             self.processingOptions.Enable()

@@ -2,11 +2,11 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-12 21:10:06
+LastEditTime : 2022-04-15 21:02:36
 Description  : 节点树控制
 """
 from os.path import isdir, join, sep, split
-from typing import TYPE_CHECKING, Generator, Optional, Union
+from typing import TYPE_CHECKING, Generator, Optional, Union, overload
 
 from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
 
@@ -56,7 +56,7 @@ class TreeManager(object):
         dir_list = relative_path.split(sep)
         if root_path not in self.root_dir_dict:
             self.frame.logger.info(f'根文件夹添加至文件树: {root_path}')
-            self.root_dir_dict[root_path] = root = self.tree_ctrl.AppendItem(self.root, root_path, 0, data=FolderItem(self.frame, root_path, True))
+            self.root_dir_dict[root_path] = root = self.tree_ctrl.AppendItem(self.root, root_path, 0, data=FolderItem(self.frame, root_path))
         else:
             root = self.root_dir_dict[root_path]
         if not relative_path:
@@ -72,10 +72,11 @@ class TreeManager(object):
                 data.parent = parent_data
         return root
 
-    def add_file(self, data: 'ImageItem', root_path: str, relative_path: str = ..., file: str = ..., add_to_root=True) -> 'TreeItemId':
+    @overload
+    def add_file(self, data: 'ImageItem', file_path: str, *, add_to_root=True) -> 'TreeItemId':
         """添加文件项目到文件树，如果重复则不进行操作\n
         如果处理期间涉及的目录不存在于文件树中，将自动创建\n
-        relative_path 和 file 参数需要同时给出或不给出，\n
+        `relative_path` 和 `file` 参数需要同时给出或不给出，\n
         不给出时，将进行如下操作：
 
         `
@@ -87,6 +88,7 @@ class TreeManager(object):
 
         Args:
             data (ImageItem): 需要绑定到项目的数据实例(一般为ImageItem实例)
+            file_path (str): 要添加的文件的绝对路径
             root_path (str): 要添加到的根文件夹
             relative_path (str, optional): 要添加到的根文件夹中的相对路径. 默认分情况处理，具体见上文
             file (str, optional): 文件名称. 默认分情况处理，具体见上文
@@ -95,12 +97,18 @@ class TreeManager(object):
         Returns:
             TreeItemId: 添加的到文件树的项目的TreeItemId
         """
+
+    @overload
+    def add_file(self, data: 'ImageItem', root_path: str, relative_path: str, file: str, add_to_root=True) -> 'TreeItemId': ...
+
+    def add_file(self, data: 'ImageItem', root_path: str, relative_path: str = ..., file: str = ..., add_to_root=True) -> 'TreeItemId':
         if relative_path is ... and file is ...:
+            absolute_path = root_path
             relative_path = ''
             root_path, file = split(root_path)
         else:
-            assert relative_path is not ... and file is not ..., 'relative_path and file arguments need to be given or not given at the same time.'
-        absolute_path = join(root_path, relative_path, file)
+            assert relative_path is not ... and file is not ..., '"relative_path" and "file" arguments need to be given or not given at the same time.'
+            absolute_path = join(root_path, relative_path, file)
         if absolute_path in self.file_dict:
             return self.file_dict[absolute_path]
         root = self.root

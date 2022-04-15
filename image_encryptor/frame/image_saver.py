@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-10 09:41:16
+LastEditTime : 2022-04-15 20:43:15
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -46,6 +46,10 @@ class ImageSaver(object):
     )
 
     def __init__(self, frame: 'MainFrame'):
+        """
+        Args:
+            frame (MainFrame): `MainFrame`实例
+        """
         self.frame = frame
         self.frame.process_pool.create_tag('bulk_save', False, False)   # 注册线程池标签
         self.saving_thread = ThreadManager('saving-thread')
@@ -171,7 +175,7 @@ class ImageSaver(object):
             cache = image_item.cache.previews.get_scalable_cache(image_item.settings.encryption_settings_hash)
             if cache is None:
                 loaded_image = image_item.cache.loaded_image
-                image_data = ('RGBA', loaded_image.size, loaded_image.tobytes())  # 打包所需的可封存的对象
+                image_data = ('RGBA', loaded_image.size, loaded_image.tobytes())  # 打包所需的可序列化对象(图像数据方面)
                 match image_item.settings.proc_mode:
                     case constants.ENCRYPTION_MODE:
                         self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(
@@ -179,14 +183,14 @@ class ImageSaver(object):
                             self.frame.settings.saving_settings.properties_tuple, uf
                         ), self._bulk_save_callback)
                     case constants.DECRYPTION_MODE:
-                        image_item.cache.encryption_data.password = self.frame.password_dict.get_password(
-                            image_item.cache.encryption_data.password_base64
+                        image_item.cache.encryption_parameters.password = self.frame.password_dict.get_password(
+                            image_item.cache.encryption_parameters.password_base64
                         )
-                        if image_item.cache.encryption_data.password is None:
+                        if image_item.cache.encryption_parameters.password is None:
                             self.frame.logger.warning(f'[{image_item.path_data.file_name}]未找到密码，跳过保存')
                             continue
                         self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(
-                            decrypt.batch, image_data, image_item.path_data, image_item.cache.encryption_data.properties_tuple,
+                            decrypt.batch, image_data, image_item.path_data, image_item.cache.encryption_parameters.properties_tuple,
                             self.frame.settings.saving_settings.properties_tuple, uf
                         ), self._bulk_save_callback)
                     case constants.ANTY_HARMONY_MODE:

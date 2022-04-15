@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-05 12:59:11
+LastEditTime : 2022-04-15 06:31:39
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 @catch_exception_and_return
 def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.Image', save: bool, type_conversion: Callable = ...) -> 'WrappedImage':
-    encryption_data = frame.image_item.cache.encryption_data
+    encryption_data = frame.image_item.cache.encryption_parameters
     if encryption_data.has_password:
         if encryption_data.password is None:
             encryption_data.password = frame.password_dict.get_password(encryption_data.password_base64)
