@@ -24,10 +24,10 @@ if TYPE_CHECKING:
 
 
 @catch_exception_and_return
-def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.Image', save: bool) -> 'WrappedPillowImage':
+def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.Image', save: bool, scalable: bool) -> 'WrappedPillowImage':
     logger('开始处理')
 
-    image = WrappedPillowImage(AntiHarmony(image).generate_image())
+    image = WrappedPillowImage(AntiHarmony(image).generate_image(), scalable)
 
     if save:
         gauge.SetValue(50)

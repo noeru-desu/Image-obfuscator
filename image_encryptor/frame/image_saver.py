@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-15 20:43:15
+LastEditTime : 2022-04-23 18:08:26
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -89,7 +89,7 @@ class ImageSaver(object):
                 case constants.ANTY_HARMONY_MODE:
                     self.saving_thread.start_new(anti_harmony.normal, self._save_selected_image_call_back, (
                         self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress,
-                        self.frame.image_item.cache.loaded_image, True
+                        self.frame.image_item.cache.loaded_image, True, True
                     ))
         else:   # 如果存在原始图像处理结果缓存则直接保存缓存
             settings = self.frame.settings.all

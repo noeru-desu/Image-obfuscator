@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-05 09:00:28
+LastEditTime : 2022-04-23 17:05:46
 Description  : 图像生成功能
 """
 from typing import TYPE_CHECKING
@@ -48,7 +48,7 @@ class PreviewGenerator(object):
             case constants.ANTY_HARMONY_MODE:
                 self.preview_thread.start_new(anti_harmony.normal, self._generate_preview_call_back, (
                     self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress,
-                    source, False
+                    source, False, self.frame.controls.preview_source == constants.ORIG_IMAGE
                 ))
 
     def _generate_preview_call_back(self, err, result):

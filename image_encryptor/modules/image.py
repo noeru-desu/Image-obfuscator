@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-04 19:47:17
+LastEditTime : 2022-04-23 17:10:36
 Description  : 图像相关工具
 """
 from abc import ABC
@@ -223,10 +223,11 @@ class PillowImage(WrappedImage):
 
 
 class WrappedPillowImage(PillowImage):
-    __slots__ = ()
+    __slots__ = ('scalable',)
 
-    def __init__(self, image: 'PIL_Image.Image') -> None:
+    def __init__(self, image: 'PIL_Image.Image', scalable=True) -> None:
         self.image = image
+        self.scalable = scalable
 
 
 class wxImage(WrappedImage):
