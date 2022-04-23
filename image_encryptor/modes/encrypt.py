@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-05 18:07:36
+LastEditTime : 2022-04-23 16:30:29
 Description  : 加密模式
 """
 from json import dumps
@@ -55,7 +55,7 @@ def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.I
         image = PillowImage(*image)
         bar.next_step(1)
         logger('完成，正在保存文件')
-        save_image(
+        _save_image(
             image, frame.image_item.path_data, settings.saving_path, settings.saving_format,
             settings.saving_quality, settings.saving_subsampling_level,
             settings.encryption_parameters_data(*original_size).encryption_parameters_dict
@@ -81,7 +81,7 @@ def batch(image_data, path_data: 'PathData', settings, saving_format, auto_folde
 
     image = process(image, settings, 100 if settings.password == 'none' else settings.password)
 
-    save_image(
+    _save_image(
         array_to_image(*image), path_data, saving_settings.path, saving_settings.format,
         saving_settings.quality, saving_settings.subsampling_level,
         settings.encryption_parameters_data(*original_size).encryption_parameters_dict,
@@ -121,7 +121,7 @@ def process_and_output_progress(image: 'Image.Image', settings: 'Settings', pass
     return image
 
 
-def save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'PathData', saving_path: str, saving_format: str, quality: int, subsampling: int, encryption_parameters_data: dict, auto_folder=False):
+def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'PathData', saving_path: str, saving_format: str, quality: int, subsampling: int, encryption_parameters_data: dict, auto_folder=False):
     name, _ = splitext(image_path_data.file_name)
     name = f"{name.replace('-decrypted', '')}-encrypted.{saving_format}"
     if auto_folder:
@@ -138,3 +138,6 @@ def save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'Pat
 
     with open(output_path, "a") as f:
         f.write('\n{}'.format(dumps(encryption_parameters_data, separators=(',', ':'))))
+
+
+save_image = catch_exception_and_return(_save_image)

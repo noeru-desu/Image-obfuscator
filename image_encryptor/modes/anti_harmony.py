@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-05 13:07:24
+LastEditTime : 2022-04-23 17:19:20
 Description  : 主要针对QQ群的图像反阻止发送功能
 """
 from os import makedirs
@@ -53,7 +53,7 @@ def batch(image_data, path_data: 'PathData', saving_settings, auto_folder):
     )
 
 
-def save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'PathData', saving_path: str, saving_format: str, quality: int, subsampling: int, auto_folder=False):
+def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'PathData', saving_path: str, saving_format: str, quality: int, subsampling: int, auto_folder=False):
     name, _ = splitext(image_path_data.file_name)
     name = f"{name}-anti-harmony.{saving_format}"
     if auto_folder:
@@ -66,3 +66,6 @@ def save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'Pat
         image.convert('RGB')
 
     image.save(join(save_dir, name), quality=quality, subsampling=subsampling)
+
+
+save_image = catch_exception_and_return(_save_image)

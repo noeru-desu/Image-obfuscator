@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-15 06:31:39
+LastEditTime : 2022-04-23 16:28:20
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -13,6 +13,7 @@ from PIL import Image
 
 from image_encryptor.frame.controls import (EncryptionParametersData,
                                             ProgressBar, SavingSettings)
+from image_encryptor.modes.anti_harmony import save_image
 from image_encryptor.modules.image import (PillowImage, WrappedPillowImage,
                                            array_to_image, crop_array)
 from image_encryptor.modules.image_encrypt import ImageDecrypt
@@ -66,7 +67,7 @@ def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.I
     if save:
         bar.next_step(1)
         logger('正在保存文件')
-        save_image(
+        _save_image(
             image, frame.image_item.path_data, frame.controls.saving_path, frame.controls.saving_format,
             frame.controls.saving_quality, frame.controls.saving_subsampling_level
         )
@@ -82,7 +83,7 @@ def batch(image_data, path_data: 'PathData', encryption_data, saving_settings, a
 
     image = process(Image.frombytes(*image_data), EncryptionParametersData(encryption_data))
 
-    save_image(
+    _save_image(
         image, path_data, saving_settings.path, saving_settings.format,
         saving_settings.quality, saving_settings.subsampling_level, auto_folder
     )
@@ -125,7 +126,7 @@ def process_and_output_progress(image: 'Image.Image', encryption_data: 'Encrypti
     return image
 
 
-def save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'PathData', saving_path: str, saving_format: str, quality: int, subsampling: int, auto_folder=False):
+def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'PathData', saving_path: str, saving_format: str, quality: int, subsampling: int, auto_folder=False):
     name, _ = splitext(image_path_data.file_name)
     name = f"{name.replace('-encrypted', '')}-decrypted.{saving_format}"
     if auto_folder:
@@ -138,3 +139,6 @@ def save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'Pat
         image.convert('RGB')
 
     image.save(join(save_dir, name), quality=quality, subsampling=subsampling)
+
+
+save_image = catch_exception_and_return(_save_image)
