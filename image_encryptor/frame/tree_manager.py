@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-15 21:02:36
+LastEditTime : 2022-05-01 14:43:30
 Description  : 节点树控制
 """
 from os.path import isdir, join, sep, split
@@ -32,9 +32,9 @@ class TreeManager(object):
         tree_image_list.Add(ArtProvider.GetBitmap(ART_NORMAL_FILE, size=Size(16, 16)))
         self.tree_ctrl.AssignImageList(tree_image_list)
         self.root = self.tree_ctrl.AddRoot(root_name, image=root_icon_index)
-        self.root_dir_dict = {}
-        self.dir_dict = {}
-        self.file_dict = {}
+        self.root_dir_dict: dict[str, 'TreeItemId'] = {}
+        self.dir_dict: dict[str, 'TreeItemId'] = {}
+        self.file_dict: dict[str, 'TreeItemId'] = {}
 
     @staticmethod
     def _recursively_merge_list(list: list):
@@ -43,12 +43,13 @@ class TreeManager(object):
             li = join(li, i)
             yield li, i
 
-    def add_dir(self, root_path: str, relative_path: str = None) -> 'TreeItemId':   # TODO 添加文件树追加功能(即添加不存在的项目，而不是跳过操作)
+    def add_dir(self, root_path: str, relative_path: str = None) -> 'TreeItemId':
         """添加文件夹至文件树，如果重复则不进行操作
 
         Args:
             root_path (str): 文件树中的根文件夹(不存在时自动添加)
             relative_path (str, optional): 根文件夹中的相对路径(不存在时自动添加, 可为多级文件夹). 默认为None.
+            append (bool, optional): . 默认为None.
 
         Returns:
             TreeItemId: 添加的到文件树的项目的TreeItemId(如果有多个则返回最后一个)
@@ -83,7 +84,7 @@ class TreeManager(object):
         relative_path = ''
         `\n
         `
-        root_path, file = os.path.split(root_path)
+        root_path, file = os.path.split(file_path)
         `
 
         Args:

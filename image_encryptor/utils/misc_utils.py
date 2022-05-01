@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-06 06:24:39
+LastEditTime : 2022-05-01 12:47:03
 Description  : 一些小东西
 """
 from functools import wraps as functools_wraps
@@ -10,6 +10,7 @@ from inspect import signature
 from os import walk
 from os.path import normpath
 from traceback import format_exc
+from types import FunctionType
 from typing import Callable, Iterable, Any
 
 
@@ -51,7 +52,7 @@ def walk_file_generator(path, topdown=False):
         yield '', files
 
 
-def copy_signature(target: Callable, origin: Callable) -> Callable:
+def copy_signature(target: FunctionType, origin: FunctionType) -> FunctionType:
     """
     Copy the function signature of origin into target
     """
@@ -60,26 +61,38 @@ def copy_signature(target: Callable, origin: Callable) -> Callable:
     return target
 
 
-def catch_exception_and_return(func):
+def catch_exc_and_return(func: FunctionType):
     @functools_wraps(func)
     def wrap(*args, **kwargs):
-        copy_signature(wrap, func)
         try:
             return func(*args, **kwargs), None
         except Exception:
             return None, format_exc()
+    copy_signature(wrap, func)
+    wrap.original = func
     return wrap
 
 
 def return_exception(func):
     @functools_wraps(func)
     def wrap(*args, **kwargs):
-        copy_signature(wrap, func)
         try:
             func(*args, **kwargs)
             return None
         except Exception:
             return format_exc()
+    copy_signature(wrap, func)
+    return wrap
+
+
+def catch_exc_for_frame_method(func):
+    @functools_wraps(func)
+    def wrap(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except Exception:
+            self.dialog.error(format_exc())
+    copy_signature(wrap, func)
     return wrap
 
 
@@ -96,6 +109,19 @@ def anadiplosis(iterable: Iterable, start: Any = ..., end: Any = ...):
             previous = i
     if end is not Ellipsis:
         yield previous, end
+
+
+def isclassmethod(func: FunctionType) -> bool:
+    """通过比较`func`参数的
+        `__qualname__`与`__name__`属性是否一致\n
+        接受的参数名中是否存在名为`self`的参数
+    来尝试判断`func`是否是一个类方法(满足其中一个条件)
+    注意: 已实例化的类中的方法可直接使用`isinstance(func, MethodType)`或`inspect.ismethod(func)`进行准确的判断
+
+    Args:
+        func (FunctionType)
+    """
+    return func.__qualname__ != func.__name__ or 'self' in signature(func).parameters
 
 
 class FakeBar:

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-14 20:44:40
+LastEditTime : 2022-05-01 12:41:44
 Description  : 界面控制相关
 """
 from abc import ABC
@@ -716,6 +716,10 @@ class SettingsData(SettingsBase):
                                         True, self.password))
 
     @property
+    def available_password(self):
+        return 100 if self.password == 'none' else self.password
+
+    @property
     def encryption_settings(self) -> tuple[Any]:
         """当前实例中加密设置的元组, 一般为生成encryption_settings_hash时使用"""
         return (
@@ -853,6 +857,14 @@ class EncryptionParameters(EncryptionParametersData):
     def __init__(self, controls: 'Controls', parameters: dict[str, Any] | Iterable[Any]):
         self.controls = controls
         super().__init__(parameters)
+
+    def get_password(self):
+        if not self.has_password:
+            return 100
+        if self.password is not None:
+            return self.password
+        self.password = self.controls.frame.password_dict.get_password(self.password_base64)
+        return None if self.password is None else self.password
 
     def backtrack_interface(self):
         """将加密参数显示到界面"""

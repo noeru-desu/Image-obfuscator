@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-23 16:30:29
+LastEditTime : 2022-05-01 07:07:54
 Description  : 加密模式
 """
 from json import dumps
@@ -17,7 +17,7 @@ from image_encryptor.frame.controls import (ProgressBar, SavingSettings,
 from image_encryptor.modules.image_encrypt import ImageEncrypt
 from image_encryptor.modules.image import (PillowImage, WrappedPillowImage,
                                            array_to_image)
-from image_encryptor.utils.misc_utils import catch_exception_and_return
+from image_encryptor.utils.misc_utils import catch_exc_and_return
 if TYPE_CHECKING:
     from wx import Gauge
     from image_encryptor.frame.controls import Settings
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from image_encryptor.modules.image import WrappedImage
 
 
-@catch_exception_and_return
+@catch_exc_and_return
 def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.Image', save: bool, type_conversion: Callable = ...) -> 'WrappedImage':
     settings = frame.settings.all
 
@@ -70,7 +70,7 @@ def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.I
     return image
 
 
-@catch_exception_and_return
+@catch_exc_and_return
 def batch(image_data, path_data: 'PathData', settings, saving_format, auto_folder: bool):
     settings = SettingsData(settings)
     if not (settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels or settings.XOR_encryption):
@@ -79,7 +79,7 @@ def batch(image_data, path_data: 'PathData', settings, saving_format, auto_folde
     saving_settings = SavingSettings(*saving_format)
     original_size = image.size
 
-    image = process(image, settings, 100 if settings.password == 'none' else settings.password)
+    image = process(image, settings, settings.available_password)
 
     _save_image(
         array_to_image(*image), path_data, saving_settings.path, saving_settings.format,
@@ -140,4 +140,4 @@ def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'Pa
         f.write('\n{}'.format(dumps(encryption_parameters_data, separators=(',', ':'))))
 
 
-save_image = catch_exception_and_return(_save_image)
+save_image = catch_exc_and_return(_save_image)

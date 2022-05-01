@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-23 17:19:20
+LastEditTime : 2022-04-30 06:30:04
 Description  : 主要针对QQ群的图像反阻止发送功能
 """
 from os import makedirs
@@ -14,7 +14,7 @@ from PIL import Image
 from image_encryptor.frame.controls import SavingSettings
 from image_encryptor.modules.image_encrypt import AntiHarmony
 from image_encryptor.modules.image import WrappedPillowImage
-from image_encryptor.utils.misc_utils import catch_exception_and_return
+from image_encryptor.utils.misc_utils import catch_exc_and_return
 
 if TYPE_CHECKING:
     from wx import Gauge
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from image_encryptor.modules.image import PillowImage
 
 
-@catch_exception_and_return
+@catch_exc_and_return
 def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.Image', save: bool, scalable: bool) -> 'WrappedPillowImage':
     logger('开始处理')
 
@@ -41,7 +41,7 @@ def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.I
     return image
 
 
-@catch_exception_and_return
+@catch_exc_and_return
 def batch(image_data, path_data: 'PathData', saving_settings, auto_folder):
     saving_settings = SavingSettings(saving_settings)
 
@@ -68,4 +68,4 @@ def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'Pa
     image.save(join(save_dir, name), quality=quality, subsampling=subsampling)
 
 
-save_image = catch_exception_and_return(_save_image)
+save_image = catch_exc_and_return(_save_image)

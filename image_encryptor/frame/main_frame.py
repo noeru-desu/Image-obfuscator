@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-15 20:52:05
+LastEditTime : 2022-04-30 21:41:06
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -13,7 +13,8 @@ from multiprocessing import cpu_count
 from os import getcwd
 from typing import TYPE_CHECKING
 
-from wx import WXK_F5, App, AcceleratorTable, AcceleratorEntry, ACCEL_NORMAL, WXK_DELETE, ACCEL_CTRL
+from wx import (ACCEL_CTRL, ACCEL_NORMAL, WXK_DELETE, WXK_F5, AcceleratorEntry,
+                AcceleratorTable, App)
 from wx.core import EmptyString
 
 from image_encryptor.constants import (BRANCH, EXTENSION_KEYS_STRING,
@@ -30,14 +31,17 @@ from image_encryptor.frame.preview_generator import PreviewGenerator
 from image_encryptor.frame.tree_manager import TreeManager
 from image_encryptor.modules.password_verifier import PasswordDict
 from image_encryptor.utils.logger import Logger
+from image_encryptor.utils.misc_utils import catch_exc_for_frame_method
 from image_encryptor.utils.thread import ProcessTaskManager
+
 # from image_encryptor.utils.debugging_utils import gen_slots_str
 
 if TYPE_CHECKING:
     from os import PathLike
-    from wx import Window
+
     from image_encryptor.frame.tree_manager import ImageItem
     from image_encryptor.modules.argparse import Parameters
+    from wx import Window
 
 
 class MainFrame(MF):
@@ -205,6 +209,7 @@ class MainFrame(MF):
         self.tree_manager.reloading_thread.set_exit_signal()
         self.controls.stop_loading_btn_text = '强制终止重载'
 
+    @catch_exc_for_frame_method
     def apply_settings_to_all(self, settings_list: list[str] = ...):
         """将当前加密设置应用到全部
 

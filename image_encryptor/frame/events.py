@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-15 21:08:31
+LastEditTime : 2022-04-30 07:57:17
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -12,6 +12,7 @@ from PIL.ImageGrab import grabclipboard
 from image_encryptor import constants
 from image_encryptor.frame.file_item import FolderItem, ImageItem
 from image_encryptor.frame.main_frame import MainFrame as BasicMainFrame
+from image_encryptor.utils.misc_utils import catch_exc_for_frame_method
 
 if TYPE_CHECKING:
     from wx import CommandEvent, SizeEvent, SpinEvent, TreeEvent, TreeItemId
@@ -21,6 +22,7 @@ if TYPE_CHECKING:
 class MainFrame(BasicMainFrame):
     __slots__ = ('deleted_item', 'resized', 'first_choice')
 
+    @catch_exc_for_frame_method
     def __init__(self, parent, startup_parameters: 'Parameters', run_path: str = ...):
         super().__init__(parent, startup_parameters, run_path)
         self.deleted_item = False
@@ -36,10 +38,12 @@ class MainFrame(BasicMainFrame):
         self.resized = True
         event.Skip()
 
+    @catch_exc_for_frame_method
     def manually_refresh(self, event):
         if self.controls.preview_mode != constants.DO_NOT_REFRESH:
             self.force_refresh_preview()
 
+    @catch_exc_for_frame_method
     def refresh_preview(self, event=None):
         if self.image_item is None:
             return
@@ -48,22 +52,26 @@ class MainFrame(BasicMainFrame):
         self.image_item.display_initial_preview()
         self.image_item.display_processed_preview()
 
+    @catch_exc_for_frame_method
     def force_refresh_preview(self, event=None):
         if self.image_item is None:
             return
         self.image_item.display_initial_preview(False)
         self.image_item.display_processed_preview(False)
 
+    @catch_exc_for_frame_method
     def load_file(self, event):
         path = self.dialog.select_file('选择图像')
         if path is not None:
             self.image_loader.load(path)
 
+    @catch_exc_for_frame_method
     def load_dir(self, event):
         path = self.dialog.select_dir('选择文件夹')
         if path is not None:
             self.image_loader.load(path)
 
+    @catch_exc_for_frame_method
     def load_image_from_clipboard(self, event):
         clipboard = grabclipboard()
         if clipboard is None:
@@ -71,6 +79,7 @@ class MainFrame(BasicMainFrame):
         else:
             self.image_loader.load(clipboard)
 
+    @catch_exc_for_frame_method
     def update_password_dict(self, event=None):
         """更新成功则返回True"""
         if self.controls.password == '':
@@ -84,12 +93,15 @@ class MainFrame(BasicMainFrame):
             return False
         return True
 
+    @catch_exc_for_frame_method
     def save_selected_image(self, event):
         self.image_saver.save_selected_image()
 
+    @catch_exc_for_frame_method
     def bulk_save(self, event):
         self.image_saver.bulk_save()
 
+    @catch_exc_for_frame_method
     def processing_mode_change(self, event):
         if self.image_item is None and self.controls.proc_mode == constants.DECRYPTION_MODE:
             self.controls.proc_mode = self.controls.previous_proc_mode
@@ -110,6 +122,7 @@ class MainFrame(BasicMainFrame):
         self.controls.previous_proc_mode = self.controls.proc_mode
         self.refresh_preview(event)
 
+    @catch_exc_for_frame_method
     def preview_mode_change(self, event):
         if self.controls.preview_mode == constants.DO_NOT_REFRESH:
             self.previewedBitmap.Show(False)
@@ -117,6 +130,7 @@ class MainFrame(BasicMainFrame):
             self.previewedBitmap.Show(True)
             self.refresh_preview(event)
 
+    @catch_exc_for_frame_method
     def switch_image(self, event: 'TreeEvent'):
         image_item: 'TreeItemId' = event.GetOldItem()
         if image_item.IsOk() and not self.first_choice:
@@ -159,6 +173,7 @@ class MainFrame(BasicMainFrame):
         else:
             self.controls.gen_image_info()
 
+    @catch_exc_for_frame_method
     def del_item(self, event):
         if self.imageTreeCtrl.Selection.IsOk():
             self.deleted_item = True
@@ -166,6 +181,7 @@ class MainFrame(BasicMainFrame):
         if not self.tree_manager.file_dict:
             self.controls.gen_image_info()
 
+    @catch_exc_for_frame_method
     def reload_item(self, event):
         if self.imageTreeCtrl.Selection.IsOk():
             self.stop_reloading_func.call()
@@ -180,12 +196,15 @@ class MainFrame(BasicMainFrame):
                 self.del_item(event)
     '''
 
+    @catch_exc_for_frame_method
     def set_settings_as_default(self, event=None):
         self.settings.default = self.settings.all
 
+    @catch_exc_for_frame_method
     def stop_loading_event(self, event):
         self.stop_loading_func.call()
 
+    @catch_exc_for_frame_method
     def check_saving_format(self, event):
         self.controls.saving_format = self.controls.saving_format.lower()
         if self.controls.saving_format in constants.EXTENSION_KEYS:
@@ -194,17 +213,21 @@ class MainFrame(BasicMainFrame):
             self.dialog.async_warning('不支持的格式: {}, 仅支持以下格式: \n{}'.format(self.controls.saving_format, constants.EXTENSION_KEYS_STRING), '保存格式错误')
             self.controls.saving_format = self.controls.previous_saving_format
 
+    @catch_exc_for_frame_method
     def record_saving_format(self, event=None):
         self.controls.previous_saving_format = self.controls.saving_format
 
+    @catch_exc_for_frame_method
     def stop_saving_event(self, event):
         self.image_saver.cancel()
         self.dialog.info('已取消尚未进行的任务')
         self.stopSavingBtn.Disable()
 
+    @catch_exc_for_frame_method
     def apply_to_all(self, event):
         self.apply_settings_to_all()
 
+    @catch_exc_for_frame_method
     def revert_to_default(self, event):
         if self.image_item is None:
             return

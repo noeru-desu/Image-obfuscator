@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-23 16:28:20
+LastEditTime : 2022-05-01 12:44:25
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -13,11 +13,10 @@ from PIL import Image
 
 from image_encryptor.frame.controls import (EncryptionParametersData,
                                             ProgressBar, SavingSettings)
-from image_encryptor.modes.anti_harmony import save_image
 from image_encryptor.modules.image import (PillowImage, WrappedPillowImage,
                                            array_to_image, crop_array)
 from image_encryptor.modules.image_encrypt import ImageDecrypt
-from image_encryptor.utils.misc_utils import catch_exception_and_return
+from image_encryptor.utils.misc_utils import catch_exc_and_return
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
@@ -26,21 +25,13 @@ if TYPE_CHECKING:
     from wx import Gauge
 
 
-@catch_exception_and_return
+@catch_exc_and_return
 def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.Image', save: bool, type_conversion: Callable = ...) -> 'WrappedImage':
     encryption_data = frame.image_item.cache.encryption_parameters
-    if encryption_data.has_password:
-        if encryption_data.password is None:
-            encryption_data.password = frame.password_dict.get_password(encryption_data.password_base64)
-            if encryption_data.password is None:
-                frame.dialog.async_warning('密码字典中不存在此图像的密码')
-                return image
-            else:
-                password = encryption_data.password
-        else:
-            password = encryption_data.password
-    else:
-        password = 100
+    password = encryption_data.get_password()
+    if password is None:
+        frame.dialog.async_warning('密码字典中不存在此图像的密码')
+        return image
 
     step_count = 0
     if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
@@ -77,7 +68,7 @@ def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.I
     return image
 
 
-@catch_exception_and_return
+@catch_exc_and_return
 def batch(image_data, path_data: 'PathData', encryption_data, saving_settings, auto_folder: bool):
     saving_settings = SavingSettings(*saving_settings)
 
@@ -141,4 +132,4 @@ def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'Pa
     image.save(join(save_dir, name), quality=quality, subsampling=subsampling)
 
 
-save_image = catch_exception_and_return(_save_image)
+save_image = catch_exc_and_return(_save_image)

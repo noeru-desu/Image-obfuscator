@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-15 21:05:54
+LastEditTime : 2022-05-01 13:02:17
 Description  : 对话框相关
 """
 from threading import Lock
@@ -86,10 +86,11 @@ class Dialog(object):
             self.frame.logger.error(f'[{title}]{message}')
         return self.dialog(message, title, style, parent)
 
-    def confirmation_frame(self, message: str, title: str = '确认', style: int =YES_NO | CANCEL, yes='是', no='否', cancel='取消', help=None, parent: 'Window' = ...) -> int:
+    def confirmation_frame(self, message: str, title: str = '确认', style: int = YES_NO | CANCEL, yes='是', no='否', cancel='取消', help=None, parent: 'Window' = ...) -> int:
         if parent is Ellipsis:
             parent = self.frame
-        style = YES_NO | CANCEL | HELP if help is not None else YES_NO | CANCEL
+        if help is not None:
+            style |= HELP
         with MessageDialog(parent, message, title, style=style | STAY_ON_TOP) as dialog:
             if help is not None:
                 dialog.SetOKLabel(help)

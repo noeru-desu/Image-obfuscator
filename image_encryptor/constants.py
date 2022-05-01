@@ -5,6 +5,7 @@ LastEditors  : noeru_desu
 LastEditTime : 2022-05-01 13:09:09
 Description  : 常量
 """
+from platform import machine, platform
 from sys import version as py_ver
 
 from numpy import __version__ as numpy_ver
@@ -69,6 +70,7 @@ EAERR_NOT_SUPPORT = '选择的图像文件由更高版本的加密器加密, 请
 LIGHT_RED = Colour(255, 30, 30)
 
 VERSION_INFO = (
+    f'{machine()}-{platform()}',
     f'Python {py_ver}',
     f' - wxPython {wx_ver()}',
     f' - Pillow {pillow_ver}',
