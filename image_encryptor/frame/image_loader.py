@@ -2,16 +2,16 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-15 21:07:10
+LastEditTime : 2022-05-01 14:27:38
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
 from typing import TYPE_CHECKING, Iterable, overload
 
 from PIL import Image
-from wx import ID_CANCEL, ID_NO, ID_YES, CallAfter
+from wx import CallAfter
 
-from image_encryptor.constants import EXTENSION_KEYS
+from image_encryptor.constants import EXTENSION_KEYS, DialogReturnCodes
 from image_encryptor.frame.controls import ProgressBar, Settings
 from image_encryptor.frame.file_item import ImageItem, PathData
 from image_encryptor.modules.image import open_image
@@ -73,22 +73,20 @@ class ImageLoader(object):
         """文件加载任务回调"""
         if error is not None:
             self.frame.dialog.async_error(repr(error))
-        self.frame.loadingPanel.Enable()
-        self.hide_loading_progress_plane()
 
     def _load_image_object(self, image: 'Image.Image'):
         """加载`Image`实例"""
         self.frame.loadingPanel.Disable()
         cache = True
         if self.frame.startup_parameters.low_memory:
-            result = self.frame.dialog.confirmation_frame('是否将该剪切板中的图像缓存在内存中?', cancel='取消载入')
-            if result == ID_CANCEL:
-                self.frame.stop_loading_func.init()
-                return
-            elif result == ID_YES:
-                cache = True
-            elif result == ID_NO:
-                cache = False
+            match self.frame.dialog.confirmation_frame('是否将该剪切板中的图像缓存在内存中?', cancel='取消载入'):
+                case DialogReturnCodes.yes:
+                    cache = True
+                case DialogReturnCodes.no:
+                    cache = False
+                case _:
+                    self.frame.stop_loading_func.init()
+                    return
         self.clipboard_count += 1
         name = f'clipboard-{self.clipboard_count}'
         image_item = ImageItem(self.frame, image.convert('RGBA'), PathData('', '', name), no_file=True, keep_cache_loaded_image=cache)
@@ -100,15 +98,24 @@ class ImageLoader(object):
         """加载文件/文件夹"""
         if isinstance(path_chosen, str):
             path_chosen = (path_chosen,)
+        self.frame.loadingPanel.Disable()
+        self.frame.imageTreeCtrl.Disable()
+        self.frame.processingOptions.Disable()
         for i in path_chosen:
+            if self.loading_thread.exit_signal:
+                self.frame.stop_loading(False)
+                break
             if self._exist(i):
                 continue
             if isfile(i):
-                self.frame.loadingPanel.Disable()
                 self._load_file(i)
             elif isdir(i):
                 if self._load_dir(i) == STOP:
                     break
+        self.frame.imageTreeCtrl.Enable()
+        self.frame.processingOptions.Enable()
+        self.frame.loadingPanel.Enable()
+        self.hide_loading_progress_plane()
 
     def _load_file(self, path_chosen):
         """加载文件"""
@@ -129,14 +136,14 @@ class ImageLoader(object):
         """加载文件夹"""
         self.show_loading_progress_plane()
         folder_name = split(path_chosen)[1]
-        frame_id = self.frame.dialog.confirmation_frame(f'是否将文件夹{folder_name}内子文件夹中的文件也进行载入？', '选择', cancel='取消载入操作')
-        if frame_id == ID_YES:
-            topdown = True
-        elif frame_id == ID_NO:
-            topdown = False
-        else:
-            self.hide_loading_progress_plane()
-            return
+        match self.frame.dialog.confirmation_frame(f'是否将文件夹{folder_name}内子文件夹中的文件也进行载入？', '选择', cancel='取消载入操作'):
+            case DialogReturnCodes.yes:
+                topdown = True
+            case DialogReturnCodes.no:
+                topdown = False
+            case _:
+                self.hide_loading_progress_plane()
+                return
         file_num, files = walk_file(path_chosen, topdown, EXTENSION_KEYS)
         if file_num == 0:
             self.frame.dialog.async_info(f'没有从文件夹{folder_name}中载入任何文件')
@@ -175,22 +182,22 @@ class ImageLoader(object):
     def _exist(self, path_chosen):
         """检测是否已存在于文件树"""
         if path_chosen in self.frame.tree_manager.file_dict:
-            CallAfter(self.frame.imageTreeCtrl.SelectItem, self.frame.tree_manager.file_dict[path_chosen])
-            self.frame.imageTreeCtrl.Expand(self.frame.tree_manager.file_dict[path_chosen])
-            self.frame.dialog.warning('已存在同路径文件\n已自动跳转到相应位置')
-            return True
+            item_id = self.frame.tree_manager.file_dict[path_chosen]
         elif path_chosen in self.frame.tree_manager.root_dir_dict:
-            CallAfter(self.frame.imageTreeCtrl.SelectItem, self.frame.tree_manager.root_dir_dict[path_chosen])
-            self.frame.imageTreeCtrl.Expand(self.frame.tree_manager.root_dir_dict[path_chosen])
-            self.frame.dialog.warning('已存在同路径文件夹\n已自动跳转到相应位置')
-            return True
+            item_id = self.frame.tree_manager.root_dir_dict[path_chosen]
         elif path_chosen in self.frame.tree_manager.dir_dict:
-            CallAfter(self.frame.imageTreeCtrl.SelectItem, self.frame.tree_manager.dir_dict[path_chosen])
-            self.frame.imageTreeCtrl.Expand(self.frame.tree_manager.dir_dict[path_chosen])
-            self.frame.dialog.warning('已存在同路径文件夹\n已自动跳转到相应位置')
-            return True
+            item_id = self.frame.tree_manager.dir_dict[path_chosen]
         else:
             return False
+        match self.frame.dialog.confirmation_frame('已存在同路径文件, 是否在跳转到相应位置后重载?\n(点击"取消"不进行任何操作)', '每一文件只可存在1个实例'):
+            case DialogReturnCodes.yes:
+                CallAfter(self.frame.imageTreeCtrl.SelectItem, item_id)
+                self.frame.imageTreeCtrl.Expand(item_id)
+                self.frame.tree_manager.reload_item(item_id)
+            case DialogReturnCodes.no:
+                CallAfter(self.frame.imageTreeCtrl.SelectItem, item_id)
+                self.frame.imageTreeCtrl.Expand(item_id)
+        return True
 
     def show_loading_progress_plane(self):
         """显示加载进度信息"""
@@ -227,7 +234,8 @@ class ImageLoader(object):
     def add_loading_progress(self):
         """增加加载进度"""
         self.loading_progress += 1
-        self.bar.add()
+        if self.bar is not None:
+            self.bar.add()
         self.frame.controls.loading_prograss_info = f"{self.loading_progress}/{self.file_count} - {format(self.loading_progress / self.file_count * 100, '.2f')}%"
 
     def finish_loading_progress(self):
