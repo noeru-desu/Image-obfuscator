@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 11:33:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-03-06 16:39:49
+LastEditTime : 2022-05-01 08:49:13
 Description  : 粗略包装的AES加密方法
 """
 from base64 import decodebytes, encodebytes
@@ -12,12 +12,11 @@ from Crypto.Cipher import AES
 
 def _auto_fill(par: bytes, fill=b'\x00'):
     """长度小于16时填充至16字节, 大于时填充至8的倍数字节"""
-    if len(par) == 16:
-        return par
-    elif len(par) < 16:
-        par += fill * (16 - len(par))
-    else:
-        par += fill * (len(par) % 8)
+    length = len(par)
+    if length < 16:
+        par += fill * (16 - length)
+    elif length % 8 != 0:
+         par += fill * ((length // 8 + 1) * 8 - length)
     return par
 
 
