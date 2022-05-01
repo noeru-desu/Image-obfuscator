@@ -22,6 +22,8 @@ if TYPE_CHECKING:
     from os import PathLike
     from image_encryptor.frame.events import MainFrame
 
+STOP = 2
+
 
 class ImageLoader(object):
     __slots__ = (
@@ -105,7 +107,8 @@ class ImageLoader(object):
                 self.frame.loadingPanel.Disable()
                 self._load_file(i)
             elif isdir(i):
-                self._load_dir(i)
+                if self._load_dir(i) == STOP:
+                    break
 
     def _load_file(self, path_chosen):
         """加载文件"""
@@ -143,6 +146,9 @@ class ImageLoader(object):
         settings_tuple = self.frame.settings.default.properties_tuple
         for r, fl in files:
             for n in fl:
+                if self.loading_thread.exit_signal:
+                    self.frame.stop_loading(False)
+                    return STOP
                 loaded_image, error = open_image(join(path_chosen, r, n))
                 if error is None:
                     image_item = ImageItem(
@@ -154,9 +160,6 @@ class ImageLoader(object):
                     self.add_loading_progress()
                 else:
                     self._output_image_loading_failure_info(error, False, n)
-                if self.loading_thread.exit_signal:
-                    self.frame.stop_loading(False)
-                    return
         self.finish_loading_progress()
         self.frame.stop_loading_func.init()
         self.frame.dialog.async_info(f'成功从文件夹{folder_name}载入了{self.loading_progress}个文件')
