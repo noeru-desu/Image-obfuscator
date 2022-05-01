@@ -2,12 +2,11 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-23 18:59:01
+LastEditTime : 2022-05-01 08:56:38
 Description  : 常量
 """
 from sys import version as py_ver
 
-from nuitka.Version import getNuitkaVersion as nuitka_ver
 from numpy import __version__ as numpy_ver
 from PIL import __version__ as pillow_ver
 from PIL.Image import (BICUBIC, BILINEAR, BOX, EXTENSION, HAMMING, LANCZOS,
@@ -19,6 +18,11 @@ from wx import (IMAGE_QUALITY_BICUBIC, IMAGE_QUALITY_BILINEAR,
                 IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_NORMAL, Colour)
 from wx import version as wx_ver
 
+try:
+    from nuitka.Version import getNuitkaVersion as nuitka_ver
+except ImportError:
+    nuitka_ver = lambda: '[未安装]'
+
 Pillow_init()
 
 RELEASE = 0
@@ -27,9 +31,9 @@ DEV = 2
 BETA = 3
 ALPHA = 4
 VERSION_TYPE = RELEASE_CANDIDATE
-VERSION_NUMBER = '1.4.0'
-SUB_VERSION_NUMBER = 'release'
-VERSION_BATCH = '20220423-2'
+VERSION_NUMBER = '1.4.1'
+SUB_VERSION_NUMBER = 'dev.1'
+VERSION_BATCH = '20220501-1'
 BRANCH = 'dev/1.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
