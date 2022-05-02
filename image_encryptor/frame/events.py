@@ -108,10 +108,10 @@ class MainFrame(BasicMainFrame):
             return
         elif self.controls.proc_mode != constants.DECRYPTION_MODE:
             if self.controls.proc_mode == constants.ANTY_HARMONY_MODE:
-                self.controls.frame.processingSettingsPanel1.Disable()
+                self.controls.frame.processingSettingsPanel.Disable()
                 self.controls.frame.passwordCtrl.Disable()
             else:
-                self.controls.frame.processingSettingsPanel1.Enable()
+                self.controls.frame.processingSettingsPanel.Enable()
                 self.controls.frame.passwordCtrl.Enable()
         else:
             self.image_item.display_encryption_parameters()

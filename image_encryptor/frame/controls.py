@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-01 12:41:44
+LastEditTime : 2022-05-02 16:01:43
 Description  : 界面控制相关
 """
 from abc import ABC
@@ -78,7 +78,7 @@ class Controls(object):
     @imported_bitmap.setter
     def imported_bitmap(self, v: 'Bitmap'):
         self.frame.importedBitmap.Bitmap = v
-        self.frame.importedBitmapPlanel.Layout()
+        self.frame.importedBitmapPanel.Layout()
 
     @property
     def imported_image(self) -> 'Image':
@@ -91,7 +91,7 @@ class Controls(object):
             return
         self.imported_image_id = addr
         self.frame.importedBitmap.Bitmap = Bitmap.FromBufferRGBA(*v.size, v.tobytes())
-        self.frame.importedBitmapPlanel.Layout()
+        self.frame.importedBitmapPanel.Layout()
 
     @property
     def previewed_bitmap(self) -> 'Bitmap':
@@ -100,7 +100,7 @@ class Controls(object):
     @previewed_bitmap.setter
     def previewed_bitmap(self, v: 'Bitmap'):
         self.frame.previewedBitmap.Bitmap = v
-        self.frame.previewedBitmapPlanel.Layout()
+        self.frame.previewedBitmapPanel.Layout()
 
     @property
     def previewed_image(self) -> 'Image':
@@ -109,7 +109,7 @@ class Controls(object):
     @previewed_image.setter
     def previewed_image(self, v: 'WrappedImage'):
         self.frame.previewedBitmap.Bitmap = v.wxBitmap
-        self.frame.previewedBitmapPlanel.Layout()
+        self.frame.previewedBitmapPanel.Layout()
 
     @property
     def proc_mode(self) -> int:
@@ -393,7 +393,7 @@ class Controls(object):
 
     @property
     def preview_size(self) -> tuple[int, int]:
-        return self.frame.importedBitmapPlanel.Size
+        return self.frame.importedBitmapPanel.Size
 
     @property
     def saving_progress_info(self) -> str:
@@ -775,10 +775,10 @@ class Settings(SettingsData):
         """将加密设置显示到界面"""
         self.controls.proc_mode = self.proc_mode if self.proc_mode != DECRYPTION_MODE else ENCRYPTION_MODE
         if self.controls.proc_mode == ANTY_HARMONY_MODE:
-            self.controls.frame.processingSettingsPanel1.Disable()
+            self.controls.frame.processingSettingsPanel.Disable()
             self.controls.frame.passwordCtrl.Disable()
         else:
-            self.controls.frame.processingSettingsPanel1.Enable()
+            self.controls.frame.processingSettingsPanel.Enable()
             self.controls.frame.passwordCtrl.Enable()
         self.controls.cutting_row = self.cutting_row
         self.controls.cutting_col = self.cutting_col
@@ -792,7 +792,7 @@ class Settings(SettingsData):
         self.controls.noise_factor = self.noise_factor
         self.controls.noise_factor_info = str(self.noise_factor)
         self.controls.frame.xorPanel.Enable(self.XOR_encryption)
-        self.controls.frame.processingSettingsPanel1.Enable()
+        self.controls.frame.processingSettingsPanel.Enable()
         self.controls.frame.passwordCtrl.Enable()
 
     def copy(self):
@@ -869,7 +869,7 @@ class EncryptionParameters(EncryptionParametersData):
     def backtrack_interface(self):
         """将加密参数显示到界面"""
         self.controls.proc_mode = DECRYPTION_MODE
-        self.controls.frame.processingSettingsPanel1.Disable()
+        self.controls.frame.processingSettingsPanel.Disable()
         self.controls.cutting_row = self.cutting_row
         self.controls.cutting_col = self.cutting_col
         self.controls.shuffle_chunks = self.shuffle_chunks
