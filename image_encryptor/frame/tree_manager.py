@@ -2,10 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-02 14:18:13
+LastEditTime : 2022-05-02 14:44:21
 Description  : 节点树控制
 """
-from os.path import isdir, join, sep, split
+from os.path import join, sep, split
 from typing import TYPE_CHECKING, Generator, Optional, Union, overload
 
 from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
@@ -44,7 +44,7 @@ class TreeManager(object):
             yield li, i
 
     def add_dir(self, root_path: str, relative_path: str = None) -> 'TreeItemId':
-        """添加文件夹至文件树，如果重复则不进行操作
+        """添加文件夹至文件树，如果重复则不进行操作(重复时`root_dir_dict`优先级高于`dir_dict`)
 
         Args:
             root_path (str): 文件树中的根文件夹(不存在时自动添加)
@@ -53,30 +53,34 @@ class TreeManager(object):
         Returns:
             TreeItemId: 添加的到文件树的项目的TreeItemId(如果有多个则返回最后一个)
         """
-        dir_list = relative_path.split(sep)
-        if root_path not in self.root_dir_dict:
+        if root_path in self.root_dir_dict:
+            root = self.root_dir_dict[root_path]
+        elif root_path in self.dir_dict:
+            root = self.dir_dict[root_path]
+        else:
             self.frame.logger.info(f'根文件夹添加至文件树: {root_path}')
             self.root_dir_dict[root_path] = root = self.tree_ctrl.AppendItem(self.root, root_path, 0, data=FolderItem(self.frame, root_path))
-        else:
-            root = self.root_dir_dict[root_path]
         if not relative_path:
             return root
+        dir_list = relative_path.split(sep)
         for r_path, name in self._recursively_merge_list(dir_list):
             path = join(root_path, r_path)
-            if path not in self.dir_dict:
+            if path in self.root_dir_dict:
+                root = self.root_dir_dict[path]
+            elif path in self.dir_dict:
+                root = self.dir_dict[path]
+            else:
                 self.frame.logger.info(f'文件夹添加至文件树: {r_path}')
                 parent_data: 'FolderItem' = self.tree_ctrl.GetItemData(root)
                 data = FolderItem(self.frame, path)
                 self.dir_dict[path] = root = self.tree_ctrl.AppendItem(root, name, 0, data=data)
                 parent_data.children[root] = data
                 data.parent = parent_data
-            else:
-                root = self.dir_dict[path]
         return root
 
     @overload
     def add_file(self, data: 'ImageItem', file_path: str, *, add_to_root=True) -> 'TreeItemId':
-        """添加文件项目到文件树，如果重复则不进行操作\n
+        """添加文件项目到文件树，如果重复则不进行操作(重复时`root_dir_dict`优先级高于`dir_dict`)\n
         如果处理期间涉及的目录不存在于文件树中，将自动创建\n
         `relative_path` 和 `file` 参数需要同时给出或不给出，\n
         不给出时，将进行如下操作：

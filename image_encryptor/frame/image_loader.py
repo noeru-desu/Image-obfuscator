@@ -2,14 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-01 14:27:38
+LastEditTime : 2022-05-02 14:47:25
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
 from typing import TYPE_CHECKING, Iterable, overload
 
 from PIL import Image
-from wx import CallAfter
+from wx import ID_YES, YES_NO, CallAfter
 
 from image_encryptor.constants import EXTENSION_KEYS, DialogReturnCodes
 from image_encryptor.frame.controls import ProgressBar, Settings
@@ -151,12 +151,22 @@ class ImageLoader(object):
             return
         self.init_loading_progress(file_num, True)
         settings_tuple = self.frame.settings.default.properties_tuple
+        loaded_num = 0
+        load_failures = 0
+
         for r, fl in files:
             for n in fl:
+
                 if self.loading_thread.exit_signal:
                     self.frame.stop_loading(False)
                     return STOP
-                loaded_image, error = open_image(join(path_chosen, r, n))
+
+                absolute_path = join(path_chosen, r, n)
+                if absolute_path in self.frame.tree_manager.file_dict:
+                    self.add_loading_progress()
+                    continue
+
+                loaded_image, error = open_image(absolute_path)
                 if error is None:
                     image_item = ImageItem(
                         self.frame, None if self.frame.startup_parameters.low_memory else loaded_image,
@@ -165,12 +175,16 @@ class ImageLoader(object):
                     self.frame.tree_manager.add_file(image_item, path_chosen, r, n, False)
                     image_item.load_encryption_parameters()
                     self.add_loading_progress()
+                    loaded_num += 1
                 else:
+                    load_failures += 1
                     self._output_image_loading_failure_info(error, False, n)
+
         self.finish_loading_progress()
         self.frame.stop_loading_func.init()
-        self.frame.dialog.async_info(f'成功从文件夹{folder_name}载入了{self.loading_progress}个文件')
-        self.loading_progress = 0
+        self.frame.dialog.async_info('成功从文件夹{}\n载入了{}个文件\n跳过了{}个文件\n失败了{}个文件'.format(
+            folder_name, loaded_num, self.loading_progress - load_failures - loaded_num, load_failures
+        ))
 
     def _output_image_loading_failure_info(self, massage: str, pop_up=True, file_name='图像'):
         """输出图像加载时出现的错误信息"""
@@ -185,17 +199,29 @@ class ImageLoader(object):
             item_id = self.frame.tree_manager.file_dict[path_chosen]
         elif path_chosen in self.frame.tree_manager.root_dir_dict:
             item_id = self.frame.tree_manager.root_dir_dict[path_chosen]
+            if self.frame.dialog.confirmation_frame('是否尝试从文件夹追加图像到程序中?', '请选择', YES_NO) == ID_YES:
+                self.frame.imageTreeCtrl.CollapseAll()
+                self.frame.imageTreeCtrl.EnsureVisible(item_id)
+                self.frame.imageTreeCtrl.Expand(item_id)
+                return False
         elif path_chosen in self.frame.tree_manager.dir_dict:
             item_id = self.frame.tree_manager.dir_dict[path_chosen]
+            if self.frame.dialog.confirmation_frame('是否尝试从文件夹追加图像到程序中?', '请选择', YES_NO) == ID_YES:
+                self.frame.imageTreeCtrl.CollapseAll()
+                self.frame.imageTreeCtrl.EnsureVisible(item_id)
+                self.frame.imageTreeCtrl.Expand(item_id)
+                return False
         else:
             return False
-        match self.frame.dialog.confirmation_frame('已存在同路径文件, 是否在跳转到相应位置后重载?\n(点击"取消"不进行任何操作)', '每一文件只可存在1个实例'):
+        match self.frame.dialog.confirmation_frame('已存在同路径文件(夹), 是否在跳转到相应位置后重载?', '每一文件(夹)只可存在1个实例', cancel='取消操作'):
             case DialogReturnCodes.yes:
                 CallAfter(self.frame.imageTreeCtrl.SelectItem, item_id)
+                self.frame.imageTreeCtrl.EnsureVisible(item_id)
                 self.frame.imageTreeCtrl.Expand(item_id)
                 self.frame.tree_manager.reload_item(item_id)
             case DialogReturnCodes.no:
                 CallAfter(self.frame.imageTreeCtrl.SelectItem, item_id)
+                self.frame.imageTreeCtrl.EnsureVisible(item_id)
                 self.frame.imageTreeCtrl.Expand(item_id)
         return True
 
@@ -222,6 +248,7 @@ class ImageLoader(object):
             file_count (int): 需要加载的文件总数
             use_progress_bar (bool, optional): 是否使用进度条. 默认为`False`.
         """
+        self.loading_progress = 0
         self.file_count = file_count
         if use_progress_bar:
             self.bar = ProgressBar(self.frame.loadingPrograss)
