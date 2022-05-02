@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-01 14:43:30
+LastEditTime : 2022-05-02 14:18:13
 Description  : 节点树控制
 """
 from os.path import isdir, join, sep, split
@@ -49,7 +49,6 @@ class TreeManager(object):
         Args:
             root_path (str): 文件树中的根文件夹(不存在时自动添加)
             relative_path (str, optional): 根文件夹中的相对路径(不存在时自动添加, 可为多级文件夹). 默认为None.
-            append (bool, optional): . 默认为None.
 
         Returns:
             TreeItemId: 添加的到文件树的项目的TreeItemId(如果有多个则返回最后一个)
@@ -71,6 +70,8 @@ class TreeManager(object):
                 self.dir_dict[path] = root = self.tree_ctrl.AppendItem(root, name, 0, data=data)
                 parent_data.children[root] = data
                 data.parent = parent_data
+            else:
+                root = self.dir_dict[path]
         return root
 
     @overload
