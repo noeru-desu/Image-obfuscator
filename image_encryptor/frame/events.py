@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-30 07:57:17
+LastEditTime : 2022-05-02 16:18:33
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -234,6 +234,17 @@ class MainFrame(BasicMainFrame):
         self.image_item.settings = self.settings.default.copy()
         self.image_item.settings.backtrack_interface()
         self.refresh_preview()
+
+    def expand_all_item(self, event):
+        self.imageTreeCtrl.ExpandAll()
+
+    def collapse_all_item(self, event):
+        self.imageTreeCtrl.CollapseAll()
+        if isinstance(self.tree_manager.selected_item_data, FolderItem):
+            self.image_item = None
+            self.controls.gen_image_info()
+            self.processingOptions.Disable()
+            self.controls.clear_preview()
 
     def toggle_factor_slider_switch(self, event: 'CommandEvent'):
         self.noiseFactor.Enable(event.IsChecked())

@@ -17,20 +17,20 @@ import wx.xrc
 
 class MainFrame (wx.Frame):
     __slots__ = (
-        'm_button311', 'savingQuality', 'm_staticline31', 'XORB', 'XORA', 'loadingPrograssInfo', 'm_panel25', 'mappingFilter',
-        'subsamplingInfo', 'noiseFactorNum', 'xorPanel', 'm_staticText14', 'processingOptions', 'imagePanel', 'loadingPanel',
-        'noiseXor', 'previewSource', 'flipFilter', 'm_staticText34', 'previewedBitmap', 'loadingPrograss', 'mappingG',
-        'savingOptions', 'settingsPanel', 'imageInfo', 'savingFormat', 'cuttingRow', 'importedBitmapPlanel', 'subsamplingLevel',
-        'selectSavingPath', 'shuffleFilter', 'm_staticText81', 'XOREncryption', 'procMode', 'resamplingFilter', 'm_staticline4',
-        'previewProgress', 'decryptionFilter', 'processingSettingsPanel1', 'm_staticText12', 'savingProgress', 'otherOptions',
-        'loadingPrograssPanel', 'loadingClipboardBtn', 'm_staticText82111', 'savingPrograssPanel', 'XorFilter', 'stopSavingBtn',
-        'passwordFilter', 'importedBitmap', 'm_staticText8212', 'disableCache', 'maxImagePixels', 'savingBtn', 'savingBtnPanel',
-        'noiseFactor', 'previewProgressInfo', 'imageTreePanel', 'redundantCacheLength', 'XORG', 'mappingR', 'm_button6',
-        'imageTreeSearchCtrl', 'mappingA', 'm_button312', 'qualityInfo', 'reloadingBtn', 'loadingFileBtn', 'm_button8', 'delBtn',
-        'encryptionFilter', 'savingFilters', 'm_staticText141', 'flipChunks', 'savingProgressInfo', 'shuffleChunks',
-        'manuallyRefreshBtn', 'lowMemoryMode', 'm_staticText8', 'passwordCtrl', 'previewMode', 'mappingB', 'stopLoadingBtn',
-        'previewOptions', 'm_staticText82', 'qqFilter', 'imageTreeCtrl', 'previewedBitmapPlanel', 'm_button31', 'cuttingCol',
-        'm_staticText9', 'XORR'
+        'XORA', 'XORB', 'XOREncryption', 'XORG', 'XORR', 'XorFilter', 'collapseAllBtn', 'cuttingCol', 'cuttingRow',
+        'decryptionFilter', 'delBtn', 'disableCache', 'encryptionFilter', 'expandAllBtn', 'flipChunks', 'flipFilter', 'imageInfo',
+        'imagePanel', 'imageTreeCtrl', 'imageTreePanel', 'imageTreeSearchCtrl', 'importedBitmap', 'importedBitmapPanel',
+        'loadingClipboardBtn', 'loadingFileBtn', 'loadingPanel', 'loadingPrograss', 'loadingPrograssInfo', 'loadingPrograssPanel',
+        'lowMemoryMode', 'm_button31', 'm_button311', 'm_button312', 'm_button6', 'm_button8', 'm_panel25', 'm_staticText12',
+        'm_staticText14', 'm_staticText141', 'm_staticText34', 'm_staticText8', 'm_staticText81', 'm_staticText82',
+        'm_staticText82111', 'm_staticText8212', 'm_staticText9', 'm_staticline31', 'm_staticline4', 'manuallyRefreshBtn',
+        'mappingA', 'mappingB', 'mappingFilter', 'mappingG', 'mappingR', 'maxImagePixels', 'noiseFactor', 'noiseFactorNum',
+        'noiseXor', 'otherOptions', 'passwordCtrl', 'passwordFilter', 'previewMode', 'previewOptions', 'previewProgress',
+        'previewProgressInfo', 'previewSource', 'previewedBitmap', 'previewedBitmapPanel', 'procMode', 'processingOptions',
+        'processingSettingsPanel', 'qqFilter', 'qualityInfo', 'redundantCacheLength', 'reloadingBtn', 'resamplingFilter',
+        'savingBtn', 'savingBtnPanel', 'savingFilters', 'savingFormat', 'savingOptions', 'savingPrograssPanel', 'savingProgress',
+        'savingProgressInfo', 'savingQuality', 'selectSavingPath', 'settingsPanel', 'shuffleChunks', 'shuffleFilter',
+        'stopLoadingBtn', 'stopSavingBtn', 'subsamplingInfo', 'subsamplingLevel', 'xorPanel'
     )
 
     def __init__(self, parent):
@@ -101,17 +101,37 @@ class MainFrame (wx.Frame):
 
         bSizer40 = wx.BoxSizer(wx.HORIZONTAL)
 
+        bSizer50 = wx.BoxSizer(wx.VERTICAL)
+
         self.delBtn = wx.Button(self.imageTreePanel, wx.ID_ANY, u"删除此项", wx.DefaultPosition, wx.DefaultSize, 0)
         self.delBtn.SetToolTip(u"卸载选中的项目")
 
-        bSizer40.Add(self.delBtn, 1, 0, 5)
+        bSizer50.Add(self.delBtn, 0, wx.EXPAND, 5)
 
         self.reloadingBtn = wx.Button(self.imageTreePanel, wx.ID_ANY, u"重载此项", wx.DefaultPosition, wx.DefaultSize, 0)
         self.reloadingBtn.SetToolTip(u"重新加载选中项目的图像文件")
 
-        bSizer40.Add(self.reloadingBtn, 1, 0, 5)
+        bSizer50.Add(self.reloadingBtn, 0, wx.EXPAND, 5)
+
+        bSizer40.Add(bSizer50, 1, wx.EXPAND, 5)
+
+        bSizer51 = wx.BoxSizer(wx.VERTICAL)
+
+        self.expandAllBtn = wx.Button(self.imageTreePanel, wx.ID_ANY, u"全部展开", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.expandAllBtn.SetToolTip(u"重新加载选中项目的图像文件")
+
+        bSizer51.Add(self.expandAllBtn, 0, wx.EXPAND, 5)
+
+        self.collapseAllBtn = wx.Button(self.imageTreePanel, wx.ID_ANY, u"全部收起", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.collapseAllBtn.SetToolTip(u"重新加载选中项目的图像文件")
+
+        bSizer51.Add(self.collapseAllBtn, 0, wx.EXPAND, 5)
+
+        bSizer40.Add(bSizer51, 1, wx.EXPAND, 5)
 
         bSizer262.Add(bSizer40, 0, wx.EXPAND, 5)
+
+        bSizer262.Add((0, 0), 0, wx.ALL | wx.EXPAND, 3)
 
         self.imageTreeCtrl = wx.TreeCtrl(self.imageTreePanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_DEFAULT_STYLE | wx.TR_FULL_ROW_HIGHLIGHT |
                                          wx.TR_HAS_VARIABLE_ROW_HEIGHT | wx.TR_HIDE_ROOT | wx.TR_NO_BUTTONS | wx.TR_ROW_LINES | wx.TR_SINGLE | wx.TR_TWIST_BUTTONS)
@@ -127,31 +147,31 @@ class MainFrame (wx.Frame):
 
         sbSizer2 = wx.StaticBoxSizer(wx.StaticBox(self.imagePanel, wx.ID_ANY, u"导入图像-预览图"), wx.VERTICAL)
 
-        self.importedBitmapPlanel = wx.Panel(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.importedBitmapPanel = wx.Panel(sbSizer2.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer261 = wx.BoxSizer(wx.VERTICAL)
 
-        self.importedBitmap = wx.StaticBitmap(self.importedBitmapPlanel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.importedBitmap = wx.StaticBitmap(self.importedBitmapPanel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer261.Add(self.importedBitmap, 1, wx.EXPAND, 0)
 
-        self.importedBitmapPlanel.SetSizer(bSizer261)
-        self.importedBitmapPlanel.Layout()
-        bSizer261.Fit(self.importedBitmapPlanel)
-        sbSizer2.Add(self.importedBitmapPlanel, 1, wx.EXPAND, 5)
+        self.importedBitmapPanel.SetSizer(bSizer261)
+        self.importedBitmapPanel.Layout()
+        bSizer261.Fit(self.importedBitmapPanel)
+        sbSizer2.Add(self.importedBitmapPanel, 1, wx.EXPAND, 5)
 
         gSizer1.Add(sbSizer2, 1, wx.EXPAND, 5)
 
         sbSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.imagePanel, wx.ID_ANY, u"处理结果-预览图"), wx.VERTICAL)
 
-        self.previewedBitmapPlanel = wx.Panel(sbSizer3.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.previewedBitmapPanel = wx.Panel(sbSizer3.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer27 = wx.BoxSizer(wx.VERTICAL)
 
-        self.previewedBitmap = wx.StaticBitmap(self.previewedBitmapPlanel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.previewedBitmap = wx.StaticBitmap(self.previewedBitmapPanel, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer27.Add(self.previewedBitmap, 1, wx.EXPAND, 0)
 
-        self.previewedBitmapPlanel.SetSizer(bSizer27)
-        self.previewedBitmapPlanel.Layout()
-        bSizer27.Fit(self.previewedBitmapPlanel)
-        sbSizer3.Add(self.previewedBitmapPlanel, 1, wx.EXPAND, 5)
+        self.previewedBitmapPanel.SetSizer(bSizer27)
+        self.previewedBitmapPanel.Layout()
+        bSizer27.Fit(self.previewedBitmapPanel)
+        sbSizer3.Add(self.previewedBitmapPanel, 1, wx.EXPAND, 5)
 
         gSizer1.Add(sbSizer3, 1, wx.EXPAND, 5)
 
@@ -190,44 +210,44 @@ class MainFrame (wx.Frame):
 
         bSizer12.Add(bSizer282, 0, wx.EXPAND, 5)
 
-        self.processingSettingsPanel1 = wx.Panel(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.processingSettingsPanel = wx.Panel(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer33 = wx.BoxSizer(wx.HORIZONTAL)
 
         bSizer13 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer131 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText8 = wx.StaticText(self.processingSettingsPanel1, wx.ID_ANY, u"切割行数", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText8 = wx.StaticText(self.processingSettingsPanel, wx.ID_ANY, u"切割行数", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText8.Wrap(-1)
 
         bSizer131.Add(self.m_staticText8, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
-        self.cuttingRow = wx.SpinCtrl(self.processingSettingsPanel1, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(60, -1), wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 1, 100000000, 25)
+        self.cuttingRow = wx.SpinCtrl(self.processingSettingsPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(60, -1), wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 1, 100000000, 25)
         bSizer131.Add(self.cuttingRow, 0, wx.ALL, 3)
 
         bSizer13.Add(bSizer131, 0, wx.EXPAND, 5)
 
         bSizer15 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText9 = wx.StaticText(self.processingSettingsPanel1, wx.ID_ANY, u"切割列数", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText9 = wx.StaticText(self.processingSettingsPanel, wx.ID_ANY, u"切割列数", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText9.Wrap(-1)
 
         bSizer15.Add(self.m_staticText9, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
-        self.cuttingCol = wx.SpinCtrl(self.processingSettingsPanel1, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(60, -1), wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 1, 100000000, 25)
+        self.cuttingCol = wx.SpinCtrl(self.processingSettingsPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(60, -1), wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 1, 100000000, 25)
         bSizer15.Add(self.cuttingCol, 0, wx.ALL | wx.EXPAND, 3)
 
         bSizer13.Add(bSizer15, 0, wx.EXPAND, 5)
 
-        self.shuffleChunks = wx.CheckBox(self.processingSettingsPanel1, wx.ID_ANY, u"随机打乱分块", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.shuffleChunks = wx.CheckBox(self.processingSettingsPanel, wx.ID_ANY, u"随机打乱分块", wx.DefaultPosition, wx.DefaultSize, 0)
         self.shuffleChunks.SetValue(True)
         bSizer13.Add(self.shuffleChunks, 0, wx.ALL, 5)
 
-        self.flipChunks = wx.CheckBox(self.processingSettingsPanel1, wx.ID_ANY, u"随机翻转分块", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.flipChunks = wx.CheckBox(self.processingSettingsPanel, wx.ID_ANY, u"随机翻转分块", wx.DefaultPosition, wx.DefaultSize, 0)
         self.flipChunks.SetValue(True)
         bSizer13.Add(self.flipChunks, 0, wx.ALL, 5)
 
-        mappingSizer = wx.StaticBoxSizer(wx.StaticBox(self.processingSettingsPanel1, wx.ID_ANY, u"分块随机通道映射"), wx.HORIZONTAL)
+        mappingSizer = wx.StaticBoxSizer(wx.StaticBox(self.processingSettingsPanel, wx.ID_ANY, u"分块随机通道映射"), wx.HORIZONTAL)
 
         self.mappingR = wx.CheckBox(mappingSizer.GetStaticBox(), wx.ID_ANY, u"R", wx.DefaultPosition, wx.Size(-1, -1), 0)
         self.mappingR.SetToolTip(u"红色通道")
@@ -251,12 +271,12 @@ class MainFrame (wx.Frame):
 
         bSizer13.Add(mappingSizer, 0, wx.ALL, 3)
 
-        self.XOREncryption = wx.CheckBox(self.processingSettingsPanel1, wx.ID_ANY, u"使用异或加密", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.XOREncryption = wx.CheckBox(self.processingSettingsPanel, wx.ID_ANY, u"使用异或加密", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer13.Add(self.XOREncryption, 0, wx.ALL, 5)
 
         bSizer33.Add(bSizer13, 0, wx.EXPAND, 5)
 
-        xorSizer = wx.StaticBoxSizer(wx.StaticBox(self.processingSettingsPanel1, wx.ID_ANY, u"异或加密"), wx.HORIZONTAL)
+        xorSizer = wx.StaticBoxSizer(wx.StaticBox(self.processingSettingsPanel, wx.ID_ANY, u"异或加密"), wx.HORIZONTAL)
 
         self.xorPanel = wx.Panel(xorSizer.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer47 = wx.BoxSizer(wx.HORIZONTAL)
@@ -323,10 +343,10 @@ class MainFrame (wx.Frame):
 
         bSizer33.Add(xorSizer, 0, wx.ALL | wx.EXPAND, 3)
 
-        self.processingSettingsPanel1.SetSizer(bSizer33)
-        self.processingSettingsPanel1.Layout()
-        bSizer33.Fit(self.processingSettingsPanel1)
-        bSizer12.Add(self.processingSettingsPanel1, 0, wx.EXPAND, 5)
+        self.processingSettingsPanel.SetSizer(bSizer33)
+        self.processingSettingsPanel.Layout()
+        bSizer33.Fit(self.processingSettingsPanel)
+        bSizer12.Add(self.processingSettingsPanel, 0, wx.EXPAND, 5)
 
         bSizer31 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -699,6 +719,8 @@ class MainFrame (wx.Frame):
         self.loadingClipboardBtn.Bind(wx.EVT_BUTTON, self.load_image_from_clipboard)
         self.delBtn.Bind(wx.EVT_BUTTON, self.del_item)
         self.reloadingBtn.Bind(wx.EVT_BUTTON, self.reload_item)
+        self.expandAllBtn.Bind(wx.EVT_BUTTON, self.expand_all_item)
+        self.collapseAllBtn.Bind(wx.EVT_BUTTON, self.collapse_all_item)
         self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.switch_image)
         self.procMode.Bind(wx.EVT_RADIOBOX, self.processing_mode_change)
         self.passwordCtrl.Bind(wx.EVT_TEXT_ENTER, self.update_password_dict)
@@ -767,6 +789,12 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def reload_item(self, event):
+        event.Skip()
+
+    def expand_all_item(self, event):
+        event.Skip()
+
+    def collapse_all_item(self, event):
         event.Skip()
 
     def switch_image(self, event):
