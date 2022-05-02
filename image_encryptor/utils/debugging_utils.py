@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-03-27 08:07:12
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-01 09:13:02
+LastEditTime : 2022-05-02 15:12:22
 Description  : 调试函数
 """
 from functools import wraps as functools_wraps
@@ -53,6 +53,7 @@ def print_result(func):
 
 
 def gen_slots_str(a_set):
+    a_set = sorted(a_set)
     a_args_str = ('\000' * 4) + '__slots__ = ('
     b_args_str = ''
     start = True
