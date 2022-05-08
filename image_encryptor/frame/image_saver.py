@@ -16,9 +16,9 @@ from wx import (CHK_CHECKED, CHK_UNCHECKED, CHK_UNDETERMINED, DIRP_CHANGE_DIR,
                 DIRP_DIR_MUST_EXIST, ID_CANCEL, ID_NO, ID_OK, ID_YES,
                 DirDialog)
 
+import image_encryptor.modes.anti_shielded as anti_shielded
 import image_encryptor.modes.decrypt as decrypt
 import image_encryptor.modes.encrypt as encrypt
-import image_encryptor.modes.anti_harmony as anti_harmony
 from image_encryptor import constants
 from image_encryptor.frame.controls import ProgressBar
 from image_encryptor.frame.file_item import ImageItem
@@ -195,7 +195,7 @@ class ImageSaver(object):
                         ), self._bulk_save_callback)
                     case constants.ANTY_HARMONY_MODE:
                         self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(
-                            anti_harmony.batch, image_data, self.frame.settings.saving_settings.properties_tuple, uf
+                            anti_shielded.batch, image_data, self.frame.settings.saving_settings.properties_tuple, uf
                         ), self._bulk_save_callback)
             else:   # 如果存在原始图像处理结果缓存则直接保存缓存
                 match self.frame.controls.proc_mode:
@@ -213,6 +213,7 @@ class ImageSaver(object):
                         ).add_done_callback(self._bulk_save_callback)
                     case constants.ANTY_HARMONY_MODE:
                         self.saving_thread_pool.submit(anti_harmony.save_image,
+                        self.saving_thread_pool.submit(anti_shielded.save_image,
                             cache, image_item.path_data, self.frame.controls.saving_path, self.frame.controls.saving_format, self.frame.controls.saving_quality,
                             self.frame.controls.saving_subsampling_level, uf
                         ).add_done_callback(self._bulk_save_callback)

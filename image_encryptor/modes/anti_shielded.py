@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-30 06:30:04
+LastEditTime : 2022-05-04 19:55:03
 Description  : 主要针对QQ群的图像反阻止发送功能
 """
 from os import makedirs
@@ -14,7 +14,7 @@ from PIL import Image
 from image_encryptor.frame.controls import SavingSettings
 from image_encryptor.modules.image_encrypt import AntiHarmony
 from image_encryptor.modules.image import WrappedPillowImage
-from image_encryptor.utils.misc_utils import catch_exc_and_return
+from image_encryptor.modules.decorator import catch_exc_and_return
 
 if TYPE_CHECKING:
     from wx import Gauge
@@ -32,7 +32,7 @@ def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.I
     if save:
         gauge.SetValue(50)
         logger('完成, 正在保存文件')
-        save_image(
+        _save_image(
             image, frame.image_item.path_data, frame.controls.saving_path, frame.controls.saving_format,
             frame.controls.saving_quality, frame.controls.saving_subsampling_level
         )
@@ -47,7 +47,7 @@ def batch(image_data, path_data: 'PathData', saving_settings, auto_folder):
 
     image = AntiHarmony(Image.frombytes(*image_data)).generate_image()
 
-    save_image(
+    _save_image(
         image, path_data, saving_settings.path, saving_settings.format,
         saving_settings.quality, saving_settings.subsampling_level, auto_folder
     )
@@ -55,9 +55,9 @@ def batch(image_data, path_data: 'PathData', saving_settings, auto_folder):
 
 def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'PathData', saving_path: str, saving_format: str, quality: int, subsampling: int, auto_folder=False):
     name, _ = splitext(image_path_data.file_name)
-    name = f"{name}-anti-harmony.{saving_format}"
+    name = f"{name}-anti-shielded.{saving_format}"
     if auto_folder:
-        save_dir = join(saving_path, image_path_data.relative_path)
+        save_dir = join(saving_path, image_path_data.relative_saving_dir)
         if not isdir(save_dir):
             makedirs(save_dir)
     else:

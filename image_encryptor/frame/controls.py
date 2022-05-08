@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-02 16:01:43
+LastEditTime : 2022-05-08 18:35:35
 Description  : 界面控制相关
 """
 from abc import ABC
@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union
 
 from wx import Bitmap
 
-from image_encryptor.constants import (ANTY_HARMONY_MODE, DECRYPTION_MODE,
+from image_encryptor.constants import (ANTI_SHIELDED_MODE, DECRYPTION_MODE,
                                        EA_VERSION, ENCRYPTION_MODE,
                                        EXTENSION_KEYS)
 from image_encryptor.modules.password_verifier import PasswordDict
@@ -774,7 +774,7 @@ class Settings(SettingsData):
     def backtrack_interface(self):
         """将加密设置显示到界面"""
         self.controls.proc_mode = self.proc_mode if self.proc_mode != DECRYPTION_MODE else ENCRYPTION_MODE
-        if self.controls.proc_mode == ANTY_HARMONY_MODE:
+        if self.controls.proc_mode == ANTI_SHIELDED_MODE:
             self.controls.frame.processingSettingsPanel.Disable()
             self.controls.frame.passwordCtrl.Disable()
         else:

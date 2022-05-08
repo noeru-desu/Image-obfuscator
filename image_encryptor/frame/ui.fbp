@@ -1202,7 +1202,8 @@
                                             <property name="window_extra_style"></property>
                                             <property name="window_name"></property>
                                             <property name="window_style"></property>
-                                            <event name="OnTreeSelChanged">switch_image</event>
+                                            <event name="OnTreeSelChanged">switched_image</event>
+                                            <event name="OnTreeSelChanging">switching_image</event>
                                         </object>
                                     </object>
                                 </object>
