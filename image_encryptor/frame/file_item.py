@@ -280,14 +280,20 @@ class ImageItemCache(object):
         del self._loaded_image
 
 
-class PathData(NamedTuple):
-    root_path: str
-    relative_path: str
-    file_name: str
+class PathData(object):
+    __slots__ = ('root_path', 'relative_path', 'file_name', 'relative_saving_dir', 'full_path')
 
-    @property
-    def full_path(self) -> str:
-        return join(*self)
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        """`PathData`只读"""
+        raise AttributeError("can't set attribute")
+
+    def __init__(self, root_path: str, relative_path: str, file_name: str, no_saving_dir=False):
+        setter = super().__setattr__
+        setter('root_path', root_path)
+        setter('relative_path', relative_path)
+        setter('file_name', file_name)
+        setter('relative_saving_dir', '' if no_saving_dir else join(split(root_path)[1], relative_path))
+        setter('full_path', join(self.root_path, self.relative_path, self.file_name))
 
 
 class ImageItem(Item):

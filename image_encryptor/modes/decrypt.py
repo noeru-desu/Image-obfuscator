@@ -121,7 +121,7 @@ def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'Pa
     name, _ = splitext(image_path_data.file_name)
     name = f"{name.replace('-encrypted', '')}-decrypted.{saving_format}"
     if auto_folder:
-        save_dir = join(saving_path, image_path_data.relative_path)
+        save_dir = join(saving_path, image_path_data.relative_saving_dir)
         if not isdir(save_dir):
             makedirs(save_dir)
     else:
