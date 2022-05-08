@@ -240,7 +240,7 @@ class MainFrame(BasicMainFrame):
 
     def collapse_all_item(self, event):
         self.imageTreeCtrl.CollapseAll()
-        if isinstance(self.tree_manager.selected_item_data, FolderItem):
+        if self.imageTreeCtrl.Selection.IsOk() and isinstance(self.tree_manager.selected_item_data, FolderItem):
             self.image_item = None
             self.controls.gen_image_info()
             self.processingOptions.Disable()
