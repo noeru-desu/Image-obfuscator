@@ -2,16 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-01 12:47:03
+LastEditTime : 2022-05-08 15:20:40
 Description  : 一些小东西
 """
-from functools import wraps as functools_wraps
 from inspect import signature
 from os import walk
 from os.path import normpath
-from traceback import format_exc
 from types import FunctionType
-from typing import Callable, Iterable, Any
+from typing import Iterable, Any
 
 
 def walk_file(path, topdown=False, filter=None) -> tuple[int, list[tuple[list, list]]]:
@@ -59,41 +57,6 @@ def copy_signature(target: FunctionType, origin: FunctionType) -> FunctionType:
     # https://stackoverflow.com/questions/39926567/python-create-decorator-preserving-function-arguments
     target.__signature__ = signature(origin)
     return target
-
-
-def catch_exc_and_return(func: FunctionType):
-    @functools_wraps(func)
-    def wrap(*args, **kwargs):
-        try:
-            return func(*args, **kwargs), None
-        except Exception:
-            return None, format_exc()
-    copy_signature(wrap, func)
-    wrap.original = func
-    return wrap
-
-
-def return_exception(func):
-    @functools_wraps(func)
-    def wrap(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-            return None
-        except Exception:
-            return format_exc()
-    copy_signature(wrap, func)
-    return wrap
-
-
-def catch_exc_for_frame_method(func):
-    @functools_wraps(func)
-    def wrap(self, *args, **kwargs):
-        try:
-            return func(self, *args, **kwargs)
-        except Exception:
-            self.dialog.error(format_exc())
-    copy_signature(wrap, func)
-    return wrap
 
 
 def anadiplosis(iterable: Iterable, start: Any = ..., end: Any = ...):

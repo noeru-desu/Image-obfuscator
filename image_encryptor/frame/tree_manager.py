@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-02 14:44:21
+LastEditTime : 2022-05-08 14:41:55
 Description  : 节点树控制
 """
 from os.path import join, sep, split
@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Generator, Optional, Union, overload
 from wx import ART_FOLDER, ART_NORMAL_FILE, ArtProvider, ImageList, Size
 
 from image_encryptor.frame.file_item import FolderItem
-from image_encryptor.utils.thread import ThreadManager
+from image_encryptor.utils.thread import SingleThreadExecutor
 
 if TYPE_CHECKING:
     from wx import TreeCtrl, TreeItemId
@@ -21,12 +21,13 @@ if TYPE_CHECKING:
 
 class TreeManager(object):
     'wx.TreeCtrl类的控制器'
-    __slots__ = ('frame', 'tree_ctrl', 'reloading_thread', 'root', 'root_dir_dict', 'dir_dict', 'file_dict')
+    __slots__ = ('frame', 'tree_ctrl', 'reloading_thread', 'root', 'root_dir_dict', 'dir_dict', 'file_dict', 'stop_reloading_signal')
 
     def __init__(self, frame: 'MainFrame', tree_ctrl: 'TreeCtrl', root_name: str, root_icon_index=0):
         self.frame = frame
         self.tree_ctrl = tree_ctrl
-        self.reloading_thread = ThreadManager('reloading-thread')
+        self.reloading_thread = SingleThreadExecutor('reloading-thread')
+        self.stop_reloading_signal = False
         tree_image_list = ImageList(16, 16, True, 2)
         tree_image_list.Add(ArtProvider.GetBitmap(ART_FOLDER, size=Size(16, 16)))
         tree_image_list.Add(ArtProvider.GetBitmap(ART_NORMAL_FILE, size=Size(16, 16)))
@@ -98,7 +99,7 @@ class TreeManager(object):
             root_path (str): 要添加到的根文件夹
             relative_path (str, optional): 要添加到的根文件夹中的相对路径. 默认分情况处理，具体见上文
             file (str, optional): 文件名称. 默认分情况处理，具体见上文
-            add_to_root (bool, optional): 是否无视前3个参数, 直接添加到根目录中. 默认为True
+            add_to_root (bool, optional): 是否无视`root_path`与`relative_path`参数, 直接添加到根目录中. 默认为True
 
         Returns:
             TreeItemId: 添加的到文件树的项目的TreeItemId
@@ -149,7 +150,7 @@ class TreeManager(object):
             item_id (TreeItemId): 项目的TreeItemId, 如果为无效ID则不进行操作
         """
         if item_id.IsOk():
-            self.reloading_thread.start_new(self.tree_ctrl.GetItemData(item_id).reload_item)
+            self.reloading_thread.add_task(self.tree_ctrl.GetItemData(item_id).reload_item)
 
     @property
     def selected_item_data(self) -> Optional[Union['ImageItem', 'FolderItem']]:

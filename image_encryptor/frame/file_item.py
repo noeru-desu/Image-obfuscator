@@ -2,22 +2,22 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-02 10:26:48
+LastEditTime : 2022-05-08 14:57:42
 Description  : 图像项目
 """
 from abc import ABC
 from collections import OrderedDict
 from gc import collect
-from os.path import isfile, join
-from typing import TYPE_CHECKING, Hashable, NamedTuple, Optional, Union
+from os.path import isfile, join, split
+from typing import TYPE_CHECKING, Any, Hashable, Optional, Union
 
-from wx import BLACK, CallAfter, Bitmap
+from wx import BLACK, Bitmap, CallAfter
 
 from image_encryptor.constants import (DECRYPTION_MODE, ENCRYPTION_MODE,
                                        LIGHT_RED, PIL_RESAMPLING_FILTERS)
 from image_encryptor.frame.controls import EncryptionParameters
-from image_encryptor.modules.version_adapter import load_encryption_attributes
 from image_encryptor.modules.image import cal_best_size, open_image
+from image_encryptor.modules.version_adapter import load_encryption_attributes
 
 if TYPE_CHECKING:
     from PIL.Image import Image
@@ -54,9 +54,9 @@ class Item(ABC):
         raise NotImplementedError()
 
     def reload_done(self):
-        """重载完成后的操作"""
-        if self.frame.tree_manager.reloading_thread.exit_signal:
-            self.frame.stop_reloading(False)
+        """重载完后的操作"""
+        if self.frame.tree_manager.stop_reloading_signal:
+            self.frame.stop_reloading(False, False)
         self.frame.stop_reloading_func.init()
 
 
@@ -433,7 +433,7 @@ class ImageItem(Item):
             self.frame.dialog.async_warning('来自剪贴板的文件不支持重载操作')
             self.reload_done()
             return 0, 0
-        if self.frame.tree_manager.reloading_thread.exit_signal:
+        if self.frame.tree_manager.stop_reloading_signal:
             return 0, 1
         loaded_image, error = open_image(self.loaded_image_path)
         if error is not None:
@@ -492,12 +492,12 @@ class FolderItem(Item):
             collect()
 
     def reload_item(self, dialog=True, refresh_preview=False):
-        if self.frame.tree_manager.reloading_thread.exit_signal:
+        if self.frame.tree_manager.stop_reloading_signal:
             return 0, 0
         fail_num = 0
         success_num = 0
         for data in self.children.values():
-            if self.frame.tree_manager.reloading_thread.exit_signal:
+            if self.frame.tree_manager.stop_reloading_signal:
                 break
             add_success_num, add_fail_num = data.reload_item(False, False)
             success_num += add_success_num

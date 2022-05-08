@@ -2,13 +2,10 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-02 10:41:24
+LastEditTime : 2022-05-08 19:28:59
 Description  : 对话框相关
 """
-from collections import deque
-from threading import Semaphore, Thread
-from traceback import format_exc
-from typing import TYPE_CHECKING, Callable, Deque, Optional
+from typing import TYPE_CHECKING, Optional
 
 from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DEFAULT_STYLE,
                 DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR, FD_DEFAULT_STYLE,
@@ -18,6 +15,7 @@ from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DEFAULT_STYLE,
                 MessageDialog)
 
 from image_encryptor.frame.design_frame import PasswordDialog as PD
+from image_encryptor.utils.thread import SingleThreadExecutor
 # from image_encryptor.utils.debugging_utils import gen_slots_str
 
 if TYPE_CHECKING:
@@ -28,7 +26,7 @@ if TYPE_CHECKING:
 
 
 class Dialog(object):
-    __slots__ = ('frame', 'async_dialog_thread')
+    __slots__ = ('frame', 'dialog_thread')
 
     def __init__(self, frame: 'MainFrame', maxlen: int = None):
         """
@@ -37,7 +35,8 @@ class Dialog(object):
             maxlen (int, optional): 异步对话框队列长度. 默认为None(无限).
         """
         self.frame = frame
-        self.async_dialog_thread = DialogThread(self, maxlen)
+        self.dialog_thread = SingleThreadExecutor('dialog-thread', maxlen)
+        self.dialog_thread.set_exception_callback(lambda err, dialog: dialog(err.traceback), self.error)
 
     def dialog(self, message: str, title: str, style: int, parent: 'Window' = ...) -> int:
         if parent is Ellipsis:
@@ -140,33 +139,33 @@ class Dialog(object):
     """
 
     def async_info(self, message: str, title: str = '信息', additional_style: int = ..., log: bool = True, force: bool = False, parent: 'Window' = ...) -> bool:
-        if self.async_dialog_thread.full:
+        if self.dialog_thread.full:
             return False
-        self.async_dialog_thread.add_task(self.info, (message, title, additional_style, log, parent))
+        self.dialog_thread.add_task(self.info, (message, title, additional_style, log, parent))
         return True
 
     def async_question(self, message: str, title: str =' 确认', additional_style: int = ..., log: bool = True, force: bool = False, parent: 'Window' = ...) -> bool:
-        if self.async_dialog_thread.full:
+        if self.dialog_thread.full:
             return False
-        self.async_dialog_thread.add_task(self.question, (message, title, additional_style, log, parent))
+        self.dialog_thread.add_task(self.question, (message, title, additional_style, log, parent))
         return True
 
     def async_warning(self, message: str, title: str= '警告', additional_style: int = ..., log: bool = True, force: bool = False, parent: 'Window' = ...) -> bool:
-        if self.async_dialog_thread.full:
+        if self.dialog_thread.full:
             return False
-        self.async_dialog_thread.add_task(self.warning, (message, title, additional_style, log, parent))
+        self.dialog_thread.add_task(self.warning, (message, title, additional_style, log, parent))
         return True
 
     def async_error(self, message: str, title: str= '错误', additional_style: int = ..., log: bool = True, force: bool = False, parent: 'Window' = ...) -> bool:
-        if self.async_dialog_thread.full:
+        if self.dialog_thread.full:
             return False
-        self.async_dialog_thread.add_task(self.error, (message, title, additional_style, log, parent))
+        self.dialog_thread.add_task(self.error, (message, title, additional_style, log, parent))
         return True
 
     def async_confirmation_frame(self, message: str, title: str = '确认', additional_style: int = ..., yes: str = '是', no: str = '否', cancel: str = '取消', help: str = None, force: bool = False, parent: 'Window' = ...) -> bool:
-        if self.async_dialog_thread.full:
+        if self.dialog_thread.full:
             return False
-        self.async_dialog_thread.add_task(self.confirmation_frame, (message, title, additional_style, yes, no, cancel, help, parent))
+        self.dialog_thread.add_task(self.confirmation_frame, (message, title, additional_style, yes, no, cancel, help, parent))
         return True
 
     @staticmethod
@@ -226,45 +225,3 @@ class PasswordDialog(PD):
 
     def user_cancel(self, event):
         self.EndModal(ID_CANCEL)
-
-
-class DialogThread(Thread):
-    __slots__ = ('dialog', 'deque', 'semaphore', 'exit_signal')
-
-    def __init__(self, dialog: 'Dialog', maxlen: int = None) -> None:
-        super().__init__(name='dialog-thread', daemon=True)
-        self.dialog = dialog
-        self.deque: Deque[tuple(Callable, tuple, dict, Callable, tuple, dict)] = deque(maxlen=maxlen)
-        self.semaphore = Semaphore(0)
-        self.exit_signal = False
-        self.start()
-
-    def run(self):
-        while True:
-            self.semaphore.acquire()
-            if self.exit_signal:
-                break
-            func, args, kwargs, cb_func, cb_args, cb_kwargs = self.deque.popleft()
-            try:
-                if cb_func is None:
-                    func(*args, **kwargs)
-                else:
-                    cb_func(func(*args, **kwargs), *cb_args, **cb_kwargs)
-            except Exception:
-                self.dialog.error(format_exc())
-
-    def set_exit_signal(self):
-        self.exit_signal = True
-        self.semaphore.release()
-
-    def add_task(self, target: Callable, args: tuple = (), kwargs: dict = None, cb: Callable = None, cb_args: tuple =(), cb_kwargs: dict = None):
-        if kwargs is None:
-            kwargs = {}
-        if cb_kwargs is None:
-            cb_kwargs = {}
-        self.deque.append((target, args, kwargs, cb, cb_args, cb_kwargs))
-        self.semaphore.release()
-
-    @property
-    def full(self):
-        return self.deque.maxlen is not None and len(self.deque) == self.deque.maxlen

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-30 21:41:06
+LastEditTime : 2022-05-08 19:29:30
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -29,9 +29,9 @@ from image_encryptor.frame.image_loader import ImageLoader
 from image_encryptor.frame.image_saver import ImageSaver
 from image_encryptor.frame.preview_generator import PreviewGenerator
 from image_encryptor.frame.tree_manager import TreeManager
+from image_encryptor.modules.decorator import catch_exc_for_frame_method
 from image_encryptor.modules.password_verifier import PasswordDict
 from image_encryptor.utils.logger import Logger
-from image_encryptor.utils.misc_utils import catch_exc_for_frame_method
 from image_encryptor.utils.thread import ProcessTaskManager
 
 # from image_encryptor.utils.debugging_utils import gen_slots_str
@@ -180,15 +180,21 @@ class MainFrame(MF):
 
     def stop_loading(self, force=True):
         if force:
-            self.image_loader.loading_thread.kill()
+            self.image_loader.loading_thread.clear_task()
+            self.image_loader.loading_thread.interrupt_task()
             self.image_loader.hide_loading_progress_plane()
+            self.imageTreeCtrl.Enable()
+            self.processingOptions.Enable()
+            self.loadingPanel.Enable()
             self.dialog.async_warning('已强制终止载入文件')
         else:
             self.dialog.async_warning('已停止载入文件')
+        self.image_loader.stop_loading_signal = False
         self.stop_loading_func.init()
 
     def set_stop_loading_signal(self):
-        self.image_loader.loading_thread.set_exit_signal()
+        self.image_loader.loading_thread.clear_task()
+        self.image_loader.stop_loading_signal = True
         self.controls.stop_loading_btn_text = '强制终止载入'
 
     def init_reloading_btn(self):
@@ -197,16 +203,17 @@ class MainFrame(MF):
     def set_reloading_btn_text(self):
         self.controls.reloading_btn_text = '停止重载'
 
-    def stop_reloading(self, force=True):
+    def stop_reloading(self, force=True, dialog=True):
         if force:
-            self.tree_manager.reloading_thread.kill()
+            self.tree_manager.reloading_thread.interrupt_task()
             self.dialog.async_warning('已强制终止重载操作')
-        else:
+        elif dialog:
             self.dialog.async_warning('已停止重载操作')
+        self.tree_manager.stop_reloading_signal = False
         self.stop_loading_func.init()
 
     def set_stop_reloading_signal(self):
-        self.tree_manager.reloading_thread.set_exit_signal()
+        self.tree_manager.stop_reloading_signal = True
         self.controls.stop_loading_btn_text = '强制终止重载'
 
     @catch_exc_for_frame_method

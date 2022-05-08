@@ -721,7 +721,8 @@ class MainFrame (wx.Frame):
         self.reloadingBtn.Bind(wx.EVT_BUTTON, self.reload_item)
         self.expandAllBtn.Bind(wx.EVT_BUTTON, self.expand_all_item)
         self.collapseAllBtn.Bind(wx.EVT_BUTTON, self.collapse_all_item)
-        self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.switch_image)
+        self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.switched_image)
+        self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGING, self.switching_image)
         self.procMode.Bind(wx.EVT_RADIOBOX, self.processing_mode_change)
         self.passwordCtrl.Bind(wx.EVT_TEXT_ENTER, self.update_password_dict)
         self.cuttingRow.Bind(wx.EVT_SPINCTRL, self.refresh_preview)
@@ -797,7 +798,10 @@ class MainFrame (wx.Frame):
     def collapse_all_item(self, event):
         event.Skip()
 
-    def switch_image(self, event):
+    def switched_image(self, event):
+        event.Skip()
+
+    def switching_image(self, event):
         event.Skip()
 
     def processing_mode_change(self, event):

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-02 13:46:31
+LastEditTime : 2022-05-08 18:25:13
 Description  : 常量
 """
 from platform import machine, platform
@@ -14,10 +14,10 @@ from PIL.Image import (BICUBIC, BILINEAR, BOX, EXTENSION, HAMMING, LANCZOS,
                        NEAREST)
 from PIL.Image import init as Pillow_init
 from PIL.Image import new
-from wx import (ID_CANCEL, ID_HELP, ID_NO, ID_YES, IMAGE_QUALITY_BICUBIC,
-                IMAGE_QUALITY_BILINEAR, IMAGE_QUALITY_BOX_AVERAGE,
-                IMAGE_QUALITY_HIGH, IMAGE_QUALITY_NEAREST,
-                IMAGE_QUALITY_NORMAL, Colour)
+from wx import (ID_CANCEL, ID_HELP, ID_NO, ID_OK, ID_YES,
+                IMAGE_QUALITY_BICUBIC, IMAGE_QUALITY_BILINEAR,
+                IMAGE_QUALITY_BOX_AVERAGE, IMAGE_QUALITY_HIGH,
+                IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_NORMAL, Colour)
 from wx import version as wx_ver
 
 try:
@@ -34,8 +34,8 @@ BETA = 3
 ALPHA = 4
 VERSION_TYPE = DEV
 VERSION_NUMBER = '1.4.2'
-SUB_VERSION_NUMBER = 'dev.1'
-VERSION_BATCH = '20220502-1'
+SUB_VERSION_NUMBER = 'dev.2'
+VERSION_BATCH = '20220508-1'
 BRANCH = 'dev/1.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
@@ -82,7 +82,14 @@ VERSION_INFO = (
 
 
 class DialogReturnCodes(object):
+    ok = ID_OK
     yes = ID_YES
     no = ID_NO
     cancel = ID_CANCEL
     help = ID_HELP
+
+
+class ProcModes(object):
+    encryption_mode = ENCRYPTION_MODE
+    decryption_mode = DECRYPTION_MODE
+    anti_shielded_mode = ANTI_SHIELDED_MODE

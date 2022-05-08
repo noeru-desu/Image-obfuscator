@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-01 07:07:54
+LastEditTime : 2022-05-08 13:51:40
 Description  : 加密模式
 """
 from json import dumps
@@ -17,7 +17,7 @@ from image_encryptor.frame.controls import (ProgressBar, SavingSettings,
 from image_encryptor.modules.image_encrypt import ImageEncrypt
 from image_encryptor.modules.image import (PillowImage, WrappedPillowImage,
                                            array_to_image)
-from image_encryptor.utils.misc_utils import catch_exc_and_return
+from image_encryptor.modules.decorator import catch_exc_and_return
 if TYPE_CHECKING:
     from wx import Gauge
     from image_encryptor.frame.controls import Settings

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-30 08:04:53
+LastEditTime : 2022-05-08 11:17:54
 Description  : 拖放处理
 """
 from os.path import isdir
@@ -24,11 +24,7 @@ class DragLoadingFile(FileDropTarget):
 
     def OnDropFiles(self, x, y, filenames):
         try:
-            if self.frame.image_loader.loading_thread.is_alive:
-                self.frame.dialog.async_warning('请等待当前载入任务结束后再载入新的文件')
-            else:
-                filenames = tuple(filenames)
-                self.frame.image_loader.load(filenames)
+            self.frame.image_loader.load(tuple(filenames))
         except RuntimeError:
             return False
         except Exception:

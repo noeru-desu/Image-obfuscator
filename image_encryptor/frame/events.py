@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-02 16:18:33
+LastEditTime : 2022-05-08 18:46:12
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -12,7 +12,7 @@ from PIL.ImageGrab import grabclipboard
 from image_encryptor import constants
 from image_encryptor.frame.file_item import FolderItem, ImageItem
 from image_encryptor.frame.main_frame import MainFrame as BasicMainFrame
-from image_encryptor.utils.misc_utils import catch_exc_for_frame_method
+from image_encryptor.modules.decorator import catch_exc_for_frame_method
 
 if TYPE_CHECKING:
     from wx import CommandEvent, SizeEvent, SpinEvent, TreeEvent, TreeItemId
@@ -130,8 +130,12 @@ class MainFrame(BasicMainFrame):
             self.previewedBitmap.Show(True)
             self.refresh_preview(event)
 
+    def switching_image(self, event: 'TreeEvent'):
+        if self.image_loader.loading_thread.thread.in_execution:
+            event.Veto()
+
     @catch_exc_for_frame_method
-    def switch_image(self, event: 'TreeEvent'):
+    def switched_image(self, event: 'TreeEvent'):
         image_item: 'TreeItemId' = event.GetOldItem()
         if image_item.IsOk() and not self.first_choice:
             image_data: 'ImageItem' = self.imageTreeCtrl.GetItemData(image_item)
@@ -185,9 +189,8 @@ class MainFrame(BasicMainFrame):
     def reload_item(self, event):
         if self.imageTreeCtrl.Selection.IsOk():
             self.stop_reloading_func.call()
-            if self.tree_manager.reloading_thread.is_alive:
-                return
-            self.tree_manager.reload_item(self.imageTreeCtrl.Selection)
+            if self.stop_reloading_func._num == 0:
+                self.tree_manager.reload_item(self.imageTreeCtrl.Selection)
 
     '''
     def tree_key_down(self, event: 'TreeEvent'):

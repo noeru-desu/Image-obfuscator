@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-01 12:44:25
+LastEditTime : 2022-05-04 19:55:05
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -16,7 +16,7 @@ from image_encryptor.frame.controls import (EncryptionParametersData,
 from image_encryptor.modules.image import (PillowImage, WrappedPillowImage,
                                            array_to_image, crop_array)
 from image_encryptor.modules.image_encrypt import ImageDecrypt
-from image_encryptor.utils.misc_utils import catch_exc_and_return
+from image_encryptor.modules.decorator import catch_exc_and_return
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame

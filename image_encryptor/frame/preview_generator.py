@@ -2,17 +2,17 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-23 17:05:46
+LastEditTime : 2022-05-08 18:06:50
 Description  : 图像生成功能
 """
 from typing import TYPE_CHECKING
 
 import image_encryptor.modes.decrypt as decrypt
 import image_encryptor.modes.encrypt as encrypt
-import image_encryptor.modes.anti_harmony as anti_harmony
-from image_encryptor import constants
+import image_encryptor.modes.anti_shielded as anti_shielded
+from image_encryptor.constants import ProcModes, ORIG_IMAGE
 from image_encryptor.modules.image import ImageData, PillowImage
-from image_encryptor.utils.thread import ThreadManager
+from image_encryptor.utils.thread import SingleThreadExecutor
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
@@ -23,35 +23,39 @@ class PreviewGenerator(object):
 
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
-        self.preview_thread = ThreadManager('preview-thread', True)
+        self.preview_thread = SingleThreadExecutor('preview-thread')
 
     def generate_preview(self):
         if not self.frame.update_password_dict():
             self.frame.controls.password = 'none'
-        if self.frame.controls.preview_source == constants.ORIG_IMAGE:
+        if self.frame.controls.preview_source == ORIG_IMAGE:
             source = self.frame.image_item.cache.loaded_image
             type_conversion = PillowImage
         else:
             source = self.frame.image_item.cache.initial_preview
             type_conversion = ImageData
+        with self.preview_thread.thread.lock:
+            if self.preview_thread.thread.in_execution:
+                self.preview_thread.clear_task()
+                self.preview_thread.interrupt_task()
         match self.frame.controls.proc_mode:
-            case constants.ENCRYPTION_MODE:
-                self.preview_thread.start_new(encrypt.normal, self._generate_preview_call_back, (
+            case ProcModes.encryption_mode:
+                self.preview_thread.add_task(encrypt.normal, (
                     self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress,
                     source, False, type_conversion
-                ))
-            case constants.DECRYPTION_MODE:
-                self.preview_thread.start_new(decrypt.normal, self._generate_preview_call_back, (
+                ), cb=self._generate_preview_call_back, highest_priority=True)
+            case ProcModes.decryption_mode:
+                self.preview_thread.add_task(decrypt.normal, (
                     self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress,
                     self.frame.image_item.cache.loaded_image, False, PillowImage
-                ))
-            case constants.ANTY_HARMONY_MODE:
-                self.preview_thread.start_new(anti_harmony.normal, self._generate_preview_call_back, (
+                ), cb=self._generate_preview_call_back, highest_priority=True)
+            case ProcModes.anti_shielded_mode:
+                self.preview_thread.add_task(anti_shielded.normal, (
                     self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress,
-                    source, False, self.frame.controls.preview_source == constants.ORIG_IMAGE
-                ))
+                    source, False, self.frame.controls.preview_source == ORIG_IMAGE
+                ), cb=self._generate_preview_call_back, highest_priority=True)
 
-    def _generate_preview_call_back(self, err, result):
+    def _generate_preview_call_back(self, result):
         data, error = result
         if error is not None:
             self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')

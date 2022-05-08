@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-02 14:47:25
+LastEditTime : 2022-05-08 19:30:54
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
@@ -15,8 +15,9 @@ from image_encryptor.constants import EXTENSION_KEYS, DialogReturnCodes
 from image_encryptor.frame.controls import ProgressBar, Settings
 from image_encryptor.frame.file_item import ImageItem, PathData
 from image_encryptor.modules.image import open_image
+from image_encryptor.modules.decorator import catch_exc_and_return
 from image_encryptor.utils.misc_utils import walk_file
-from image_encryptor.utils.thread import ThreadManager
+from image_encryptor.utils.thread import SingleThreadExecutor
 
 if TYPE_CHECKING:
     from os import PathLike
@@ -28,7 +29,7 @@ STOP = 2
 class ImageLoader(object):
     __slots__ = (
         'frame', 'loading_thread', 'progress_plane_displayed', 'file_count', 'loading_progress',
-        'clipboard_count', 'bar'
+        'clipboard_count', 'bar', 'stop_loading_signal'
     )
 
     def __init__(self, frame: 'MainFrame'):
@@ -37,11 +38,12 @@ class ImageLoader(object):
             frame (MainFrame): `MainFrame`实例
         """
         self.frame = frame
-        self.loading_thread = ThreadManager('loading-thread')
+        self.loading_thread = SingleThreadExecutor('loading-thread')
         self.progress_plane_displayed = False
         self.file_count = 0
         self.loading_progress = 0
         self.clipboard_count = 0
+        self.stop_loading_signal = False
         self.bar = None
 
     @overload
@@ -58,22 +60,24 @@ class ImageLoader(object):
     def load(self, path: Iterable['PathLike[str]'] | 'PathLike[str]') -> None: ...
 
     def load(self, target: Iterable['PathLike[str]'] | 'PathLike[str]' | Image.Image):
-        if not self.loading_thread.is_ended:
-            self.frame.dialog.async_warning('请等待当前图像载入完成后再载入新的图像')
-            return
         Image.MAX_IMAGE_PIXELS = self.frame.controls.max_image_pixels if self.frame.controls.max_image_pixels != 0 else None
         if not self.frame.tree_manager.file_dict:
             self.frame.set_settings_as_default()  # 当没有加载任何图像时，将当前的设置设为默认设置
         if isinstance(target, Image.Image):
-            self.loading_thread.start_new(self._load_image_object, self._loading_callback, (target,))
+            self.loading_thread.add_task(self._load_image_object, (target,), cb=self._loading_callback)
         else:
-            self.loading_thread.start_new(self._load_selected_path, self._loading_callback, (target,))
+            self.loading_thread.add_task(self._load_selected_path, (target,), cb=self._loading_callback)
 
-    def _loading_callback(self, error, result):
+    def _loading_callback(self, result):
         """文件加载任务回调"""
-        if error is not None:
-            self.frame.dialog.async_error(repr(error))
+        err = result[1]
+        if err is not None:
+            self.frame.dialog.async_error(err)
+        self.frame.processingOptions.Enable()
+        self.frame.loadingPanel.Enable()
+        self.hide_loading_progress_plane()
 
+    @catch_exc_and_return
     def _load_image_object(self, image: 'Image.Image'):
         """加载`Image`实例"""
         self.frame.loadingPanel.Disable()
@@ -94,15 +98,15 @@ class ImageLoader(object):
         self.frame.imageTreeCtrl.SelectItem(item_id)
         self.frame.stop_loading_func.init()
 
+    @catch_exc_and_return
     def _load_selected_path(self, path_chosen):
         """加载文件/文件夹"""
         if isinstance(path_chosen, str):
             path_chosen = (path_chosen,)
         self.frame.loadingPanel.Disable()
-        self.frame.imageTreeCtrl.Disable()
         self.frame.processingOptions.Disable()
         for i in path_chosen:
-            if self.loading_thread.exit_signal:
+            if self.stop_loading_signal:
                 self.frame.stop_loading(False)
                 break
             if self._exist(i):
@@ -112,10 +116,6 @@ class ImageLoader(object):
             elif isdir(i):
                 if self._load_dir(i) == STOP:
                     break
-        self.frame.imageTreeCtrl.Enable()
-        self.frame.processingOptions.Enable()
-        self.frame.loadingPanel.Enable()
-        self.hide_loading_progress_plane()
 
     def _load_file(self, path_chosen):
         """加载文件"""
@@ -157,7 +157,7 @@ class ImageLoader(object):
         for r, fl in files:
             for n in fl:
 
-                if self.loading_thread.exit_signal:
+                if self.stop_loading_signal:
                     self.frame.stop_loading(False)
                     return STOP
 
