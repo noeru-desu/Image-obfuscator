@@ -61,7 +61,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install pip --upgrade
-          pip install -U colorlog pycryptodome numpy zstandard
+          pip install -U colorlog pycryptodome numpy zstandard ordered-set
           pip install -U "https://wxpython.org/Phoenix/snapshot-builds/wxPython-4.1.2a1.dev5310+af8cca51-cp310-cp310-win_amd64.whl"
           pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
           pip uninstall -y Pillow
