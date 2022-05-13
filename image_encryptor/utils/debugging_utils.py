@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-03-27 08:07:12
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-02 15:12:22
+LastEditTime : 2022-05-12 06:21:05
 Description  : 调试函数
 """
 from functools import wraps as functools_wraps
@@ -10,7 +10,7 @@ from threading import RLock
 from time import perf_counter, perf_counter_ns
 from traceback import print_exc
 from typing import Iterable, Type
-from types import FunctionType, MethodType
+from types import FunctionType
 
 from image_encryptor.utils.misc_utils import copy_signature, isclassmethod
 
