@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-08 19:30:54
+LastEditTime : 2022-05-13 20:03:50
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
 
 STOP = 2
+SKIP = 3
 
 
 class ImageLoader(object):
@@ -70,9 +71,11 @@ class ImageLoader(object):
 
     def _loading_callback(self, result):
         """文件加载任务回调"""
-        err = result[1]
+        select, err = result
         if err is not None:
             self.frame.dialog.async_error(err)
+        if select is not None:
+            CallAfter(self.frame.imageTreeCtrl.SelectItem, select)
         self.frame.processingOptions.Enable()
         self.frame.loadingPanel.Enable()
         self.hide_loading_progress_plane()
@@ -95,8 +98,8 @@ class ImageLoader(object):
         name = f'clipboard-{self.clipboard_count}'
         image_item = ImageItem(self.frame, image.convert('RGBA'), PathData('', '', name), no_file=True, keep_cache_loaded_image=cache)
         item_id = self.frame.tree_manager.add_file(image_item, '', '', name)
-        self.frame.imageTreeCtrl.SelectItem(item_id)
         self.frame.stop_loading_func.init()
+        return item_id
 
     @catch_exc_and_return
     def _load_selected_path(self, path_chosen):
@@ -105,17 +108,27 @@ class ImageLoader(object):
             path_chosen = (path_chosen,)
         self.frame.loadingPanel.Disable()
         self.frame.processingOptions.Disable()
+        item_id = None
         for i in path_chosen:
             if self.stop_loading_signal:
                 self.frame.stop_loading(False)
                 break
-            if self._exist(i):
-                continue
+            match self._exist(i):
+                case 3:
+                    continue
+                case None:
+                    pass
+                case _item_id:
+                    item_id = _item_id
+                    continue
             if isfile(i):
-                self._load_file(i)
+                _item_id = self._load_file(i)
+                if _item_id is not None:
+                    item_id = _item_id
             elif isdir(i):
                 if self._load_dir(i) == STOP:
                     break
+        return item_id
 
     def _load_file(self, path_chosen):
         """加载文件"""
@@ -127,10 +140,11 @@ class ImageLoader(object):
             )
             item_id = self.frame.tree_manager.add_file(image_item, path_chosen)
             image_item.load_encryption_parameters()
-            CallAfter(self.frame.imageTreeCtrl.SelectItem, item_id)     # 此方法在加密模式下会调用密码输入框，需回到主线程执行
         else:
             self._output_image_loading_failure_info(error)
+            item_id = None
         self.frame.stop_loading_func.init()
+        return item_id
 
     def _load_dir(self, path_chosen):
         """加载文件夹"""
@@ -203,27 +217,27 @@ class ImageLoader(object):
                 self.frame.imageTreeCtrl.CollapseAll()
                 self.frame.imageTreeCtrl.EnsureVisible(item_id)
                 self.frame.imageTreeCtrl.Expand(item_id)
-                return False
+                return
         elif path_chosen in self.frame.tree_manager.dir_dict:
             item_id = self.frame.tree_manager.dir_dict[path_chosen]
             if self.frame.dialog.confirmation_frame('是否尝试从文件夹追加图像到程序中?', '请选择', YES_NO) == ID_YES:
                 self.frame.imageTreeCtrl.CollapseAll()
                 self.frame.imageTreeCtrl.EnsureVisible(item_id)
                 self.frame.imageTreeCtrl.Expand(item_id)
-                return False
+                return
         else:
-            return False
+            return
         match self.frame.dialog.confirmation_frame('已存在同路径文件(夹), 是否在跳转到相应位置后重载?', '每一文件(夹)只可存在1个实例', cancel='取消操作'):
             case DialogReturnCodes.yes:
-                CallAfter(self.frame.imageTreeCtrl.SelectItem, item_id)
                 self.frame.imageTreeCtrl.EnsureVisible(item_id)
                 self.frame.imageTreeCtrl.Expand(item_id)
                 self.frame.tree_manager.reload_item(item_id)
             case DialogReturnCodes.no:
-                CallAfter(self.frame.imageTreeCtrl.SelectItem, item_id)
                 self.frame.imageTreeCtrl.EnsureVisible(item_id)
                 self.frame.imageTreeCtrl.Expand(item_id)
-        return True
+            case _:
+                return SKIP
+        return item_id
 
     def show_loading_progress_plane(self):
         """显示加载进度信息"""

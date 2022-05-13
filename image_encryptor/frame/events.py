@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-08 18:46:12
+LastEditTime : 2022-05-13 06:37:51
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING
@@ -131,7 +131,7 @@ class MainFrame(BasicMainFrame):
             self.refresh_preview(event)
 
     def switching_image(self, event: 'TreeEvent'):
-        if self.image_loader.loading_thread.thread.in_execution:
+        if self.image_loader.loading_thread.in_execution:
             event.Veto()
 
     @catch_exc_for_frame_method
