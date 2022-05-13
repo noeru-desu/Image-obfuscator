@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-12 06:24:33
+LastEditTime : 2022-05-13 21:07:13
 Description  : 一些小东西
 """
 from collections import deque
@@ -12,7 +12,6 @@ from os.path import normpath
 from threading import Lock, Semaphore
 from types import FunctionType
 from typing import Iterable, Any, Iterator, Union
-from typing_extensions import Self
 
 
 def walk_file(path, topdown=False, filter=None) -> tuple[int, list[tuple[list, list]]]:
@@ -110,10 +109,8 @@ class SingleTaskDeque(object):
         self._internal_lock = Lock()
         self._lock = Lock() if blocking else None
         self._blocking = blocking
-        if item is None or not self._blocking:
-            self._task = item
-        else:
-            self._task = None
+        self._task = item
+        if blocking:
             self._lock.acquire()
 
     def empty(self):
@@ -146,7 +143,7 @@ class SingleTaskDeque(object):
 class Deque(object):
     __slots__ = ('_deque', '_lock', '_semaphore', '_blocking')
 
-    def __new__(cls: type[Self], item: Any = None, maxlen: int = None, blocking=True) -> Self | SingleTaskDeque:
+    def __new__(cls: type['Deque'], item: Any = None, maxlen: int = None, blocking=True) -> Union['Deque', SingleTaskDeque]:
         return SingleTaskDeque(item, blocking) if maxlen == 1 else super().__new__(cls)
 
     def __init__(self, iterable: Iterable = (), maxlen: int = None, blocking=True):
