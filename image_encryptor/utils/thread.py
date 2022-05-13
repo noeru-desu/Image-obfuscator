@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-08 18:30:09
+LastEditTime : 2022-05-13 19:51:07
 Description  : 线程相关类
 """
 from collections import deque
@@ -14,6 +14,8 @@ from threading import Lock, Semaphore
 from threading import Thread as threading_Thread
 from traceback import format_exc, print_exc
 from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, Union
+
+from image_encryptor.utils.misc_utils import Deque
 
 if TYPE_CHECKING:
     from concurrent.futures import Future
@@ -215,6 +217,7 @@ class SingleThreadExecutor(object):
             self.semaphore = Semaphore(0)
             self.exit_signal = False
             self.in_execution = False
+            self.idle = True
             self.changed_signal = False
             self.lock = Lock()
 
@@ -238,19 +241,23 @@ class SingleThreadExecutor(object):
 
         def perform_task(self):
             with self.lock:
+                self.idle = True
                 self.in_execution = False
             self.semaphore.acquire()
             with self.lock:
-                self.in_execution = True
+                self.idle = False
                 if self.exit_signal:
                     return STOP
                 self.changed_signal = False
-                func, args, kwargs, cb_func, cb_args, cb_kwargs = self.executor.deque.popleft()
+                func, args, kwargs, cb_func, cb_args, cb_kwargs = self.executor.deque.get()
             try:
-                if cb_func is None:
-                    func(*args, **kwargs)
-                else:
-                    cb_func(func(*args, **kwargs), *cb_args, **cb_kwargs)
+                with self.lock:
+                    self.in_execution = True
+                result = func(*args, **kwargs)
+                with self.lock:
+                    self.in_execution = False
+                if cb_func is not None:
+                    cb_func(result, *cb_args, **cb_kwargs)
             except TaskInterrupted:
                 pass
             except Exception as e:
@@ -270,7 +277,7 @@ class SingleThreadExecutor(object):
         """
         self.name = name
         self.exc_cb: Optional[Callable] = None
-        self.deque: deque[tuple[Callable, tuple, dict, Optional[Callable], tuple, dict]] = deque(maxlen=maxlen)
+        self.deque: Deque[tuple[Callable, tuple, dict, Optional[Callable], tuple, dict]] = Deque(maxlen=maxlen, blocking=False)
         self.restartable = True
         self.thread = self.Thread(self, name)
         self.thread.start()
@@ -301,13 +308,13 @@ class SingleThreadExecutor(object):
     @property
     def task_list(self) -> list:
         """当前任务列表"""
-        return self.get_task_list()
+        return list(self.deque)
 
     def get_task_list(self) -> list:
         """获取当前任务列表"""
         return list(self.deque)
 
-    def clear_task(self):
+    def clear_task(self):   # ! 可能出现信号量未重置的问题
         self.deque.clear()
 
     def shutdown(self, wait: bool = True, restartable=False):
@@ -319,13 +326,13 @@ class SingleThreadExecutor(object):
             restartable (bool, optional): 是否在线程关闭后仍可手动重启. 默认为`False`. 为`False`时未执行的任务相当于被舍弃.
         """
         self.set_exit_signal(True)
-        if not wait and self.thread.in_execution:
+        if not wait and not self.thread.idle:
             self.interrupt_task()
         self.restartable = restartable
 
     def interrupt_task(self):
         """中断当前任务的执行操作, 并执行下一项任务(如果有)"""
-        assert self.thread.in_execution, 'No task in progress.'
+        assert not self.thread.idle, 'No task in progress.'
         self.thread.set_async_exc(TaskInterrupted)
 
     def set_exit_signal(self, signal: bool = True):
@@ -362,22 +369,19 @@ class SingleThreadExecutor(object):
         if cb_kwargs is None:
             cb_kwargs = {}
         with self.thread.lock:
-            if_full = self.is_full()
-            if highest_priority:
-                self.deque.appendleft((target, args, kwargs, cb, cb_args, cb_kwargs))
-            else:
-                self.deque.append((target, args, kwargs, cb, cb_args, cb_kwargs))
-            if not if_full:
+            is_full = self.deque.full()
+            self.deque.put((target, args, kwargs, cb, cb_args, cb_kwargs), highest_priority)
+            if not is_full:
                 self.thread.semaphore.release()
 
     @property
     def full(self):
         """队列是否已满"""
-        return self.is_full()
+        return self.deque.full()
 
     def is_full(self):
         """队列是否已满"""
-        return self.deque.maxlen is not None and len(self.deque) == self.deque.maxlen
+        return self.deque.full()
 
     @property
     def alive(self):
@@ -385,6 +389,16 @@ class SingleThreadExecutor(object):
 
     def is_alive(self):
         return self.thread.is_alive()
+
+    @property
+    def idle(self):
+        """是否为闲置状态(即完全空闲)"""
+        return self.thread.idle
+
+    @property
+    def in_execution(self):
+        """是否正在执行任务(不包含回调)"""
+        return self.thread.in_execution
 
 
 class ThreadManager(object):

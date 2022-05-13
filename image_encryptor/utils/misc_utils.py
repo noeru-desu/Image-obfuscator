@@ -2,14 +2,17 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-08 15:20:40
+LastEditTime : 2022-05-12 06:24:33
 Description  : 一些小东西
 """
+from collections import deque
 from inspect import signature
 from os import walk
 from os.path import normpath
+from threading import Lock, Semaphore
 from types import FunctionType
-from typing import Iterable, Any
+from typing import Iterable, Any, Iterator, Union
+from typing_extensions import Self
 
 
 def walk_file(path, topdown=False, filter=None) -> tuple[int, list[tuple[list, list]]]:
@@ -98,3 +101,84 @@ class FakeBar:
     @staticmethod
     def finish():
         pass
+
+
+class SingleTaskDeque(object):
+    __slots__ = ('_task', '_lock', '_internal_lock', '_blocking')
+
+    def __init__(self, item: Any = None, blocking=True) -> None:
+        self._internal_lock = Lock()
+        self._lock = Lock() if blocking else None
+        self._blocking = blocking
+        if item is None or not self._blocking:
+            self._task = item
+        else:
+            self._task = None
+            self._lock.acquire()
+
+    def empty(self):
+        return self._task is None
+
+    def full(self):
+        return self._task is not None
+
+    def put(self, item, left=False):
+        with self._internal_lock:
+            self._task = item
+            if self._blocking and self._lock.locked():
+                self._lock.release()
+
+    def get(self, blocking: bool = True, timeout: float = -1):
+        with self._internal_lock:
+            if self._blocking:
+                self._lock.acquire(blocking, timeout)
+            task = self._task
+            self._task = None
+            return task
+
+    def clear(self):
+        with self._internal_lock:
+            self.task = None
+            if self._blocking and not self._lock.locked():
+                self._lock.acquire()
+
+
+class Deque(object):
+    __slots__ = ('_deque', '_lock', '_semaphore', '_blocking')
+
+    def __new__(cls: type[Self], item: Any = None, maxlen: int = None, blocking=True) -> Self | SingleTaskDeque:
+        return SingleTaskDeque(item, blocking) if maxlen == 1 else super().__new__(cls)
+
+    def __init__(self, iterable: Iterable = (), maxlen: int = None, blocking=True):
+        self._deque = deque(iterable, maxlen)
+        self._lock = Lock()
+        self._semaphore = Semaphore(len(iterable)) if blocking else None
+        self._blocking = blocking
+
+    def __iter__(self) -> Iterator:
+        return self._deque.__iter__()
+
+    def empty(self):
+        return len(self._deque) < self._deque.maxlen
+
+    def full(self):
+        return self._deque.maxlen is not None and len(self._deque) == self._deque.maxlen
+
+    def put(self, item, left=False):
+        with self._lock:
+            is_full = self.full()
+            self._deque.appendleft(item) if left else self._deque.append(item)
+            if self._blocking and not is_full:
+                self._semaphore.release()
+
+    def get(self, blocking: bool = True, timeout: float = None, from_right=False):
+        with self._lock:
+            if self._blocking:
+                self._semaphore.acquire(blocking, timeout)
+            return self._deque.pop() if from_right else self._deque.popleft()
+
+    def clear(self):
+        with self._lock:
+            self._deque.clear()
+            if self._blocking:
+                self._semaphore = Semaphore(0)
