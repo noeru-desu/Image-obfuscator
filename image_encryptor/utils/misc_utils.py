@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-13 21:07:13
+LastEditTime : 2022-05-15 07:46:19
 Description  : 一些小东西
 """
 from collections import deque
@@ -112,6 +112,9 @@ class SingleTaskDeque(object):
         self._task = item
         if blocking:
             self._lock.acquire()
+
+    def __iter__(self) -> Iterator:
+        return ().__iter__() if self._task is None else (self._task,).__iter__()
 
     def empty(self):
         return self._task is None
