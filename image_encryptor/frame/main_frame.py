@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-08 19:29:30
+LastEditTime : 2022-05-15 07:47:35
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -39,9 +39,9 @@ from image_encryptor.utils.thread import ProcessTaskManager
 if TYPE_CHECKING:
     from os import PathLike
 
+    from wx import Window
     from image_encryptor.frame.tree_manager import ImageItem
     from image_encryptor.modules.argparse import Parameters
-    from wx import Window
 
 
 class MainFrame(MF):
@@ -51,7 +51,7 @@ class MainFrame(MF):
     __slots__ = (
         'startup_parameters', 'logger', 'controls', 'settings', 'dialog', 'universal_thread_pool',
         'password_dict', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator',
-        'image_saver', 'stop_loading_func', 'stop_reloading_func'
+        'image_saver', 'stop_loading_func', 'stop_reloading_func', 'image_item', 'run_path'
     )
 
     def __init__(self, parent: 'Window', startup_parameters: 'Parameters', run_path: 'PathLike[str]' = getcwd()):
@@ -66,9 +66,9 @@ class MainFrame(MF):
         # n_args = set(dir(self))
         # gen_slots_str(n_args - o_args)
         if VERSION_TYPE > 0:
-            self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH})')
+            self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) {"[Not optimized]" if __debug__ else ""}')
         else:
-            self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}')
+            self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER} {"[Not optimized]" if __debug__ else ""}')
         self.logger = Logger('image-encryptor')
         for i in VERSION_INFO:
             self.logger.info(i)
