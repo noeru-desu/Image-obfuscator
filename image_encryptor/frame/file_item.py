@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-08 14:57:42
+LastEditTime : 2022-05-14 19:33:44
 Description  : 图像项目
 """
 from abc import ABC
@@ -281,7 +281,11 @@ class ImageItemCache(object):
 
 
 class PathData(object):
-    __slots__ = ('root_path', 'relative_path', 'file_name', 'relative_saving_dir', 'full_path')
+    root_path: str
+    relative_path: str
+    file_name: str
+    relative_saving_dir: str
+    full_path: str
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         """`PathData`只读"""
@@ -430,7 +434,7 @@ class ImageItem(Item):
 
     def reload_item(self, dialog=True, refresh_preview=True) -> Optional[tuple[int, int]]:
         if self.no_file:
-            self.frame.dialog.async_warning('来自剪贴板的文件不支持重载操作')
+            self.frame.dialog.async_warning(f'来自剪贴板的图像[{self.path_data.file_name}]不支持重载操作')
             self.reload_done()
             return 0, 0
         if self.frame.tree_manager.stop_reloading_signal:
@@ -438,7 +442,7 @@ class ImageItem(Item):
         loaded_image, error = open_image(self.loaded_image_path)
         if error is not None:
             if dialog:
-                self.frame.dialog.async_warning(f'图像重载失败: {error}')
+                self.frame.dialog.async_warning(f'{self.path_data.file_name}重载失败: {error}')
                 self.reload_done()
             self.frame.imageTreeCtrl.SetItemTextColour(self.item_id, LIGHT_RED)
             return 0, 1
@@ -448,7 +452,7 @@ class ImageItem(Item):
         self.cache.clear_cache()
         self.load_encryption_parameters()
         if dialog:
-            self.frame.dialog.async_info('图像重载成功')
+            self.frame.dialog.async_info(f'{self.path_data.file_name}重载成功')
             self.reload_done()
         if refresh_preview:
             if self.encrypted_image:

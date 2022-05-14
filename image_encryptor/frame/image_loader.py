@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-13 20:03:50
+LastEditTime : 2022-05-14 19:35:16
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
@@ -76,6 +76,7 @@ class ImageLoader(object):
             self.frame.dialog.async_error(err)
         if select is not None:
             CallAfter(self.frame.imageTreeCtrl.SelectItem, select)
+        self.frame.dialog.dialog_thread.unpause()
         self.frame.processingOptions.Enable()
         self.frame.loadingPanel.Enable()
         self.hide_loading_progress_plane()
@@ -108,6 +109,7 @@ class ImageLoader(object):
             path_chosen = (path_chosen,)
         self.frame.loadingPanel.Disable()
         self.frame.processingOptions.Disable()
+        self.frame.dialog.dialog_thread.pause()
         item_id = None
         for i in path_chosen:
             if self.stop_loading_signal:
