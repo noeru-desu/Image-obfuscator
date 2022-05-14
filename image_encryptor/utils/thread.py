@@ -2,15 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-13 19:51:07
+LastEditTime : 2022-05-15 07:17:06
 Description  : 线程相关类
 """
-from collections import deque
 from concurrent.futures import (CancelledError, ProcessPoolExecutor,
                                 ThreadPoolExecutor)
 from contextlib import suppress
 from ctypes import c_long, py_object, pythonapi
-from threading import Lock, Semaphore
+from threading import Lock, Semaphore, Event
 from threading import Thread as threading_Thread
 from traceback import format_exc, print_exc
 from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, Union
@@ -220,6 +219,8 @@ class SingleThreadExecutor(object):
             self.idle = True
             self.changed_signal = False
             self.lock = Lock()
+            self.pause = Event()
+            self.pause.set()
 
         def set_async_exc(self, exc_type: type[Any] = SystemExit):
             if self.is_alive():
@@ -244,7 +245,10 @@ class SingleThreadExecutor(object):
                 self.idle = True
                 self.in_execution = False
             self.semaphore.acquire()
+            self.pause.wait()
             with self.lock:
+                if self.executor.deque.empty():
+                    return
                 self.idle = False
                 if self.exit_signal:
                     return STOP
@@ -373,6 +377,14 @@ class SingleThreadExecutor(object):
             self.deque.put((target, args, kwargs, cb, cb_args, cb_kwargs), highest_priority)
             if not is_full:
                 self.thread.semaphore.release()
+
+    def pause(self):
+        """暂停线程的任务获取操作"""
+        self.thread.pause.clear()
+
+    def unpause(self):
+        """取消暂停线程的任务获取操作"""
+        self.thread.pause.set()
 
     @property
     def full(self):
