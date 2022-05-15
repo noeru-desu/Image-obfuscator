@@ -2,7 +2,7 @@
  * @Author       : noeru_desu
  * @Date         : 2021-11-21 19:21:41
  * @LastEditors  : noeru_desu
- * @LastEditTime : 2022-05-15 11:55:54
+ * @LastEditTime : 2022-05-15 12:03:35
  * @Description  : README
 -->
 # Image Encryptor
@@ -29,6 +29,8 @@ CLI版本已停止支持 (2.x版本中可能被重新添加)
 
 GUI版本为`ImageEncryptor.py`
 
+向Python传入`-O`或`-OO`参数启动GUI版本时，将在参数本身的优化操作之外，禁用部分装饰器
+
 ## 从源代码构建可执行文件
 
 使用Pyinstaller构建时没有注意事项。
@@ -38,6 +40,8 @@ GUI版本为`ImageEncryptor.py`
 ## Github Actions 自动构建
 
 Actions页面的CI中可下载自动构建的可执行文件包
+
+只有发布时的构建才会使用`-OO`参数来优化字节码和禁用部分装饰器
 
 >目前CI仅测试程序能否正常启动，没有测试各项功能是否存在问题
 
