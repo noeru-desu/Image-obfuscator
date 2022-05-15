@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-15 07:46:19
+LastEditTime : 2022-05-15 10:30:11
 Description  : 一些小东西
 """
 from collections import deque
@@ -116,6 +116,9 @@ class SingleTaskDeque(object):
     def __iter__(self) -> Iterator:
         return ().__iter__() if self._task is None else (self._task,).__iter__()
 
+    def spare(self):
+        return self._task is None
+
     def empty(self):
         return self._task is None
 
@@ -158,8 +161,11 @@ class Deque(object):
     def __iter__(self) -> Iterator:
         return self._deque.__iter__()
 
+    def spare(self):
+        return self._deque.maxlen is None or (len(self._deque) < self._deque.maxlen)
+
     def empty(self):
-        return len(self._deque) < self._deque.maxlen
+        return len(self._deque) == 0
 
     def full(self):
         return self._deque.maxlen is not None and len(self._deque) == self._deque.maxlen
