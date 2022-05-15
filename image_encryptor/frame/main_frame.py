@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-15 07:47:35
+LastEditTime : 2022-05-15 12:11:52
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -65,6 +65,8 @@ class MainFrame(MF):
         super().__init__(parent)
         # n_args = set(dir(self))
         # gen_slots_str(n_args - o_args)
+        self.Disable()
+        self.Show()
         if VERSION_TYPE > 0:
             self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) {"[Not optimized]" if __debug__ else ""}')
         else:
@@ -148,9 +150,7 @@ class MainFrame(MF):
             run_path (str, optional): 运行路径. 默认为`os.getcwd()`.
         """
         app = App(useBestVisual=True)
-        self = cls(None, startup_parameters, path)
-
-        self.Show()
+        cls(None, startup_parameters, path).Enable()
 
         app.MainLoop()
 
