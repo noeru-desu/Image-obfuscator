@@ -2,7 +2,7 @@
  * @Author       : noeru_desu
  * @Date         : 2021-11-21 19:21:41
  * @LastEditors  : noeru_desu
- * @LastEditTime : 2022-03-27 08:35:00
+ * @LastEditTime : 2022-05-15 11:55:54
  * @Description  : README
 -->
 # Image Encryptor
@@ -25,7 +25,7 @@ Python版本：`3.10`
 
 `requirements.txt`包含所有依赖库名称
 
-CLI版本已停止支持
+CLI版本已停止支持 (2.x版本中可能被重新添加)
 
 GUI版本为`ImageEncryptor.py`
 
@@ -35,10 +35,10 @@ GUI版本为`ImageEncryptor.py`
 
 使用Nuitka构建时请添加`--include-package=PIL`参数，否则Pillow库只能进行常见图像格式的编解码(当然如果不介意的话也不要紧)。
 
-## 自动构建
+## Github Actions 自动构建
 
 Actions页面的CI中可下载自动构建的可执行文件包
 
->目前CI仅测试程序能否正常启动，没有测试各项功能是否可使用或是否存在Bug
+>目前CI仅测试程序能否正常启动，没有测试各项功能是否存在问题
 
-压缩包命名格式为：适用系统-Python编译器-C++编译器(-C++编译器版本)-build.Github Actions运行ID
+压缩包命名格式为：`适用系统`-`Python编译器`-`C编译器`-`MSVC版本`-build.`Github Actions运行ID`
