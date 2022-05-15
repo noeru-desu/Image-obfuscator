@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-14 19:33:44
+LastEditTime : 2022-05-15 11:48:10
 Description  : 图像项目
 """
 from abc import ABC
@@ -212,7 +212,7 @@ class ImageItemCache(object):
         self.initial_preview: Image = None
         self.preview_size: tuple[int, int] = None
         self.previews = PreviewCache(item.frame.startup_parameters)
-        self.loading_encryption_attributes_error = None
+        self.loading_encryption_attributes_error: Optional[str] = None
         self._encryption_parameters: EncryptionParameters = None
         self._loaded_image = loaded_image
 
@@ -329,13 +329,14 @@ class ImageItem(Item):
         self.selected = False
         self.no_file = no_file
         self.keep_cache_loaded_image = keep_cache_loaded_image
+        self.loading_image_data_error = None
 
         self.encrypted_image: bool = None
         if self.no_file:
             self.encrypted_image = False
-            self.loading_image_data_error = '来自剪贴板的文件不支持解密操作'
+            self.cache.loading_encryption_attributes_error = f'来自剪贴板的图像[{self.path_data.file_name}]不支持解密操作'
         else:
-            self.loading_image_data_error = None
+            self.cache.loading_encryption_attributes_error = None
 
     def unselect(self):
         """取消选中时的相关操作"""
