@@ -77,7 +77,7 @@ jobs:
         shell: cmd
         run: |
           mkdir nuitka
-          nuitka --python-flag=-OO --clang --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,dll-files,pkg-resources,numpy,multiprocessing --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow --include-module=wx._xml --include-package=PIL --nofollow-import-to=pydoc,urllib,socket,tkinter,PIL._tkinter,PIL._imagingtk,PIL._tkinter_finder,PIL.ImageShow --output-dir=nuitka --windows-disable-console ImageEncryptor.py
+          nuitka --python-flag=-OO,no_docstrings --clang --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,dll-files,pkg-resources,numpy,multiprocessing --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow --include-module=wx._xml --include-package=PIL --nofollow-import-to=pydoc,urllib,socket,tkinter,PIL._tkinter,PIL._imagingtk,PIL._tkinter_finder,PIL.ImageShow --output-dir=nuitka --windows-disable-console ImageEncryptor.py
       - name: Build artifacts (with console)
         run: |
           nuitka --clang --msvc=latest --lto=yes --onefile --assume-yes-for-downloads --plugin-enable=anti-bloat,dll-files,pkg-resources,numpy,multiprocessing --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow --include-module=wx._xml --include-package=PIL --nofollow-import-to=pydoc,urllib,socket,tkinter,PIL._tkinter,PIL._imagingtk,PIL._tkinter_finder,PIL.ImageShow --output-dir=nuitka -o ImageEncryptor_with_console.exe ImageEncryptor.py
