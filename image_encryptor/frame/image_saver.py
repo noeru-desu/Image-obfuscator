@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Iterable, NamedTuple
 from wx import (CHK_CHECKED, CHK_UNCHECKED, CHK_UNDETERMINED, DIRP_CHANGE_DIR,
                 DIRP_DIR_MUST_EXIST, DirDialog)
 
-import image_encryptor.modes.anti_shielded as anti_shielded
+import image_encryptor.modes.antishield as antishield
 import image_encryptor.modes.decrypt as decrypt
 import image_encryptor.modes.encrypt as encrypt
 from image_encryptor.constants import DialogReturnCodes, ProcModes
@@ -86,9 +86,9 @@ class ImageSaver(object):
                         self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress,
                         self.frame.image_item.cache.loaded_image, True
                     ).add_done_callback(self._save_selected_image_call_back)
-                case ProcModes.anti_shielded_mode:
+                case ProcModes.antishield_mode:
                     self.saving_thread_pool.submit(
-                        anti_shielded.normal,
+                        antishield.normal,
                         self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress,
                         self.frame.image_item.cache.loaded_image, True, True
                     ).add_done_callback(self._save_selected_image_call_back)
@@ -110,9 +110,9 @@ class ImageSaver(object):
                         cache, self.frame.image_item.path_data, settings.saving_path, settings.saving_format, settings.saving_quality,
                         settings.saving_subsampling_level
                     ).add_done_callback(self._save_selected_image_from_cache_call_back)
-                case ProcModes.anti_shielded_mode:
+                case ProcModes.antishield_mode:
                     self.saving_thread_pool.submit(
-                        anti_shielded.save_image,
+                        antishield.save_image,
                         cache, self.frame.image_item.path_data, settings.saving_path, settings.saving_format, settings.saving_quality,
                         settings.saving_subsampling_level
                     ).add_done_callback(self._save_selected_image_from_cache_call_back)
@@ -200,9 +200,9 @@ class ImageSaver(object):
                             decrypt.batch, image_data, image_item.path_data, image_item.cache.encryption_parameters.properties_tuple,
                             self.frame.settings.saving_settings.properties_tuple, uf
                         ), self._bulk_save_callback)
-                    case ProcModes.anti_shielded_mode:
+                    case ProcModes.antishield_mode:
                         self.frame.process_pool.add_task('bulk_save', self.frame.process_pool.submit(
-                            anti_shielded.batch, image_data, self.frame.settings.saving_settings.properties_tuple, uf
+                            antishield.batch, image_data, self.frame.settings.saving_settings.properties_tuple, uf
                         ), self._bulk_save_callback)
             else:   # 如果存在原始图像处理结果缓存则直接保存缓存
                 match self.frame.controls.proc_mode:
@@ -218,8 +218,8 @@ class ImageSaver(object):
                             cache, image_item.path_data, self.frame.controls.saving_path, self.frame.controls.saving_format, self.frame.controls.saving_quality,
                             self.frame.controls.saving_subsampling_level, uf
                         ).add_done_callback(self._bulk_save_callback)
-                    case ProcModes.anti_shielded_mode:
-                        self.saving_thread_pool.submit(anti_shielded.save_image,
+                    case ProcModes.antishield_mode:
+                        self.saving_thread_pool.submit(antishield.save_image,
                             cache, image_item.path_data, self.frame.controls.saving_path, self.frame.controls.saving_format, self.frame.controls.saving_quality,
                             self.frame.controls.saving_subsampling_level, uf
                         ).add_done_callback(self._bulk_save_callback)

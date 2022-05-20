@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union
 
 from wx import Bitmap
 
-from image_encryptor.constants import (ANTI_SHIELDED_MODE, DECRYPTION_MODE,
+from image_encryptor.constants import (ANTISHIELD_MODE, DECRYPTION_MODE,
                                        EA_VERSION, ENCRYPTION_MODE,
                                        EXTENSION_KEYS)
 from image_encryptor.modules.password_verifier import PasswordDict

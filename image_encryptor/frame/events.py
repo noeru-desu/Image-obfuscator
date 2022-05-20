@@ -107,7 +107,7 @@ class MainFrame(BasicMainFrame):
             self.controls.proc_mode = self.controls.previous_proc_mode
             return
         elif self.controls.proc_mode != constants.DECRYPTION_MODE:
-            if self.controls.proc_mode == constants.ANTI_SHIELDED_MODE:
+            if self.controls.proc_mode == constants.ANTISHIELD_MODE:
                 self.controls.frame.processingSettingsPanel.Disable()
                 self.controls.frame.passwordCtrl.Disable()
             else:

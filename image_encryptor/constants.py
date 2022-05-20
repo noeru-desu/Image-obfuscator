@@ -50,7 +50,7 @@ MANUALLY_REFRESH = 1
 AUTO_REFRESH = 2
 ENCRYPTION_MODE = 0
 DECRYPTION_MODE = 1
-ANTI_SHIELDED_MODE = 2
+ANTISHIELD_MODE = 2
 PREVIEW_IMAGE = 0
 ORIG_IMAGE = 1
 
@@ -92,4 +92,4 @@ class DialogReturnCodes(object):
 class ProcModes(object):
     encryption_mode = ENCRYPTION_MODE
     decryption_mode = DECRYPTION_MODE
-    anti_shielded_mode = ANTI_SHIELDED_MODE
+    antishield_mode = ANTISHIELD_MODE

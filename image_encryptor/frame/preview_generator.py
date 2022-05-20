@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import image_encryptor.modes.decrypt as decrypt
 import image_encryptor.modes.encrypt as encrypt
-import image_encryptor.modes.anti_shielded as anti_shielded
+import image_encryptor.modes.antishield as antishield
 from image_encryptor.constants import ProcModes, ORIG_IMAGE
 from image_encryptor.modules.image import ImageData, PillowImage
 from image_encryptor.utils.thread import SingleThreadExecutor
@@ -48,8 +48,8 @@ class PreviewGenerator(object):
                     self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress,
                     self.frame.image_item.cache.loaded_image, False, PillowImage
                 ), cb=self._generate_preview_call_back)
-            case ProcModes.anti_shielded_mode:
-                self.preview_thread.add_task(anti_shielded.normal, (
+            case ProcModes.antishield_mode:
+                self.preview_thread.add_task(antishield.normal, (
                     self.frame, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress,
                     source, False, self.frame.controls.preview_source == ORIG_IMAGE
                 ), cb=self._generate_preview_call_back)

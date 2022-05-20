@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-04 19:55:03
+LastEditTime : 2022-05-21 07:48:20
 Description  : 主要针对QQ群的图像反阻止发送功能
 """
 from os import makedirs
@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Callable, Union
 from PIL import Image
 
 from image_encryptor.frame.controls import SavingSettings
-from image_encryptor.modules.image_encrypt import AntiHarmony
+from image_encryptor.modules.image_encrypt import AntiShield
 from image_encryptor.modules.image import WrappedPillowImage
 from image_encryptor.modules.decorator import catch_exc_and_return
 
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.Image', save: bool, scalable: bool) -> 'WrappedPillowImage':
     logger('开始处理')
 
-    image = WrappedPillowImage(AntiHarmony(image).generate_image(), scalable)
+    image = WrappedPillowImage(AntiShield(image).generate_image(), scalable)
 
     if save:
         gauge.SetValue(50)
@@ -45,7 +45,7 @@ def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.I
 def batch(image_data, path_data: 'PathData', saving_settings, auto_folder):
     saving_settings = SavingSettings(saving_settings)
 
-    image = AntiHarmony(Image.frombytes(*image_data)).generate_image()
+    image = AntiShield(Image.frombytes(*image_data)).generate_image()
 
     _save_image(
         image, path_data, saving_settings.path, saving_settings.format,

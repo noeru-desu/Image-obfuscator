@@ -346,7 +346,7 @@ class ImageDecrypt(object):
         return self.base.xor_pixels(channels, noise, noise_factor)
 
 
-class AntiHarmony(object):
+class AntiShield(object):
     __slots__ = ('image', 'right_pos', 'button_pos')
 
     def __init__(self, image: 'Image.Image'):
