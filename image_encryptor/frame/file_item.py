@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-15 11:48:10
+LastEditTime : 2022-05-18 21:49:06
 Description  : 图像项目
 """
 from abc import ABC
@@ -71,10 +71,12 @@ class PreviewCache(object):
 
     def clear_redundant_cache(self) -> None:
         """清理冗余缓存, 即从普通缓存与可缩放缓存中删除除最新缓存外的其他缓存"""
-        for i in tuple(self.normal_cache)[:-1]:
-            del self.normal_cache[i]
-        for i in tuple(self.scalable_cache)[:-1]:
-            del self.scalable_cache[i]
+        if len(self.normal_cache) > 1:
+            for i in tuple(self.normal_cache)[:-1]:
+                del self.normal_cache[i]
+        if len(self.scalable_cache) > 1:
+            for i in tuple(self.scalable_cache)[:-1]:
+                del self.scalable_cache[i]
 
     def add_cache(self, cache_hash: Hashable, image: Union['WrappedImage', 'Bitmap']) -> None:
         """添加缓存(自动识别缓存类型)
