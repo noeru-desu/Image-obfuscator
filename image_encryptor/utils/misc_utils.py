@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-15 10:30:11
+LastEditTime : 2022-05-17 06:35:00
 Description  : 一些小东西
 """
 from collections import deque
@@ -59,21 +59,6 @@ def copy_signature(target: FunctionType, origin: FunctionType) -> FunctionType:
     # https://stackoverflow.com/questions/39926567/python-create-decorator-preserving-function-arguments
     target.__signature__ = signature(origin)
     return target
-
-
-def anadiplosis(iterable: Iterable, start: Any = ..., end: Any = ...):
-    if start is Ellipsis:
-        previous = iterable[0]
-        for i in iterable[1:]:
-            yield previous, i
-            previous = i
-    else:
-        previous = start
-        for i in iterable:
-            yield previous, i
-            previous = i
-    if end is not Ellipsis:
-        yield previous, end
 
 
 def isclassmethod(func: FunctionType) -> bool:
