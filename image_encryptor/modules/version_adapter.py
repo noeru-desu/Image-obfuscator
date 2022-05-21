@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-04 19:46:46
+LastEditTime : 2022-05-21 08:09:37
 Description  : 对低版本加密的图像的加密信息进行转换, 向下兼容
 """
 from json import JSONDecodeError, loads
@@ -118,4 +118,6 @@ def read_last_line(file):
                 break
             else:
                 offset -= 25
+                if __debug__:
+                    print(f'expanded to {offset}')
     return last_line
