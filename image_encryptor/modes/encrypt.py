@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-08 13:51:40
+LastEditTime : 2022-05-21 08:17:22
 Description  : 加密模式
 """
 from json import dumps
@@ -11,6 +11,7 @@ from os.path import isdir, join, splitext
 from typing import TYPE_CHECKING, Any, Callable, Union
 
 from PIL import Image
+from image_encryptor.constants import json_encoder_default
 
 from image_encryptor.frame.controls import (ProgressBar, SavingSettings,
                                             SettingsData)
@@ -137,7 +138,7 @@ def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'Pa
     image.save(output_path, quality=quality, subsampling=subsampling)
 
     with open(output_path, "a") as f:
-        f.write('\n{}'.format(dumps(encryption_parameters_data, separators=(',', ':'))))
+        f.write('\n{}'.format(dumps(encryption_parameters_data, default=json_encoder_default, separators=(',', ':'))))
 
 
 save_image = catch_exc_and_return(_save_image)

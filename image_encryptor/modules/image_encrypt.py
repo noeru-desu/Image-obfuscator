@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-04 19:44:46
+LastEditTime : 2022-05-21 07:59:22
 Description  : 图像加密模块
 """
 from copy import copy
@@ -25,6 +25,7 @@ from image_encryptor.utils.misc_utils import FakeBar
 
 if TYPE_CHECKING:
     from numpy import ndarray
+    from image_encryptor.frame.controls import Channels
 
 
 channel_num = {'r': 0, 'g': 1, 'b': 2, 'a': 3}
@@ -61,7 +62,7 @@ class ImageEncryptBaseV2(object):
         self.init = False
         self._shuffle = Shuffle(random_seed)
 
-    def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: str, bar=FakeBar):
+    def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: 'Channels', bar=FakeBar):
         """
         :description: 生成打乱后的图像分块、翻转分块, 与每个分块所在的坐标列表
         """
@@ -73,7 +74,7 @@ class ImageEncryptBaseV2(object):
         # 使用对应的映射表
         if len(mapped_channels) > 1:
             self.mapped_channels = mapped_channels
-            self.mapping_table = MappingFuncV2.decrypt[mapped_channels] if decryption_mode else MappingFuncV2.encrypt[mapped_channels]
+            self.mapping_table = MappingFuncV2.decrypt[mapped_channels.hash] if decryption_mode else MappingFuncV2.encrypt[mapped_channels.hash]
         else:
             self.mapped_channels = False
             self.mapping_table = None
@@ -95,7 +96,7 @@ class ImageEncryptBaseV2(object):
             self._shuffle.obverse_on_self(self.block_flip_list)
         if self.mapping_table is not None:
             if len(self.mapping_table) != 1:
-                self.block_mapping_list = (MappingFuncV2.index_dict[mapped_channels] * ceil(self.block_num / len(self.mapping_table)))[:self.block_num]
+                self.block_mapping_list = (MappingFuncV2.index_dict[mapped_channels.hash] * ceil(self.block_num / len(self.mapping_table)))[:self.block_num]
                 self._shuffle.obverse_on_self(self.block_mapping_list)
             else:
                 self.block_mapping_list = ([0] * self.block_num)
@@ -156,7 +157,7 @@ class ImageEncryptBaseV1(ImageEncryptBaseV2):
     """
     __slots__ = ()
 
-    def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: str, bar=FakeBar):
+    def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: 'Channels', bar=FakeBar):
         """
         :description: 生成打乱后的图像分块、翻转分块, 与每个分块所在的坐标列表
         """
@@ -220,7 +221,7 @@ class ImageEncryptBaseV3(object):
         self.image_array[0:image.size[1], 0:image.size[0]] = ascontiguousarray(image, uint8)
         self._shuffle = Shuffle(random_seed)
 
-    def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: str, bar=FakeBar):
+    def init_block_data(self, decryption_mode: bool, shuffle: bool, flip: bool, mapped_channels: 'Channels', bar=FakeBar):
         """
         :description: 生成打乱后的图像分块、翻转分块, 与每个分块所在的坐标列表
         """
@@ -231,7 +232,7 @@ class ImageEncryptBaseV3(object):
         # 使用对应的映射表
         if len(mapped_channels) > 1:
             self.mapped_channels = mapped_channels
-            self.mapping_table = MappingFuncV3.decrypt[mapped_channels] if decryption_mode else MappingFuncV3.encrypt[mapped_channels]
+            self.mapping_table = MappingFuncV3.decrypt[mapped_channels.hash] if decryption_mode else MappingFuncV3.encrypt[mapped_channels.hash]
         else:
             self.mapped_channels = False
             self.mapping_table = None
@@ -240,7 +241,7 @@ class ImageEncryptBaseV3(object):
         # 随机映射
         if self.mapping_table is not None:
             if len(self.mapping_table) != 1:
-                self.block_mapping_list = (MappingFuncV3.index_dict[mapped_channels] * ceil(self.block_num / len(self.mapping_table)))[:self.block_num]
+                self.block_mapping_list = (MappingFuncV3.index_dict[mapped_channels.hash] * ceil(self.block_num / len(self.mapping_table)))[:self.block_num]
                 self._shuffle.obverse_on_self(self.block_mapping_list)
             else:
                 self.block_mapping_list = ([0] * self.block_num)
@@ -267,20 +268,20 @@ class ImageEncryptBaseV3(object):
         randbelow = random._randbelow
         new_image_array = empty((self.ceil_size[1], self.ceil_size[0], 4), uint8)
         if self.flip and self.mapped_channels:
-            for orig_slice, slice, mapping in zip(self.block_pos_list, self.shuffled_block_pos_list, self.block_mapping_list):
-                new_image_array[slice[0], slice[1]] = self.mapping_table[mapping](FlipFuncV2[randbelow(4)](self.image_array[orig_slice[0], orig_slice[1]]))
+            for (o_slice_h, o_slice_w), (slice_h, slice_w), mapping in zip(self.block_pos_list, self.shuffled_block_pos_list, self.block_mapping_list):
+                new_image_array[slice_h, slice_w] = self.mapping_table[mapping](FlipFuncV2[randbelow(4)](self.image_array[o_slice_h, o_slice_w]))
                 bar.add()
         elif self.flip:
-            for orig_slice, slice in zip(self.block_pos_list, self.shuffled_block_pos_list):
-                new_image_array[slice[0], slice[1]] = FlipFuncV2[randbelow(4)](self.image_array[orig_slice[0], orig_slice[1]])
+            for (o_slice_h, o_slice_w), (slice_h, slice_w) in zip(self.block_pos_list, self.shuffled_block_pos_list):
+                new_image_array[slice_h, slice_w] = FlipFuncV2[randbelow(4)](self.image_array[o_slice_h, o_slice_w])
                 bar.add()
         elif self.mapped_channels:
-            for orig_slice, slice, mapping in zip(self.block_pos_list, self.shuffled_block_pos_list, self.block_mapping_list):
-                new_image_array[slice[0], slice[1]] = self.mapping_table[mapping](self.image_array[orig_slice[0], orig_slice[1]])
+            for (o_slice_h, o_slice_w), (slice_h, slice_w), mapping in zip(self.block_pos_list, self.shuffled_block_pos_list, self.block_mapping_list):
+                new_image_array[slice_h, slice_w] = self.mapping_table[mapping](self.image_array[o_slice_h, o_slice_w])
                 bar.add()
         else:
-            for orig_slice, slice in zip(self.block_pos_list, self.shuffled_block_pos_list):
-                new_image_array[slice[0], slice[1]] = self.image_array[orig_slice[0], orig_slice[1]]
+            for (o_slice_h, o_slice_w), (slice_h, slice_w) in zip(self.block_pos_list, self.shuffled_block_pos_list):
+                new_image_array[slice_h, slice_w] = self.image_array[o_slice_h, o_slice_w]
                 bar.add()
         bar.finish()
         self.image_array = new_image_array
@@ -315,7 +316,7 @@ class ImageEncrypt(object):
         else:
             self.base = ImageEncryptBaseV1(image, row, col, random_seed)
 
-    def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: str, bar=FakeBar):
+    def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: 'Channels', bar=FakeBar):
         return self.base.init_block_data(False, shuffle, flip, mapped_channels, bar)
 
     def generate_image(self, bar=FakeBar) -> Union[tuple['ndarray', tuple[int, int]], 'Image.Image']:
@@ -336,7 +337,7 @@ class ImageDecrypt(object):
         else:
             self.base = ImageEncryptBaseV1(image, row, col, random_seed)
 
-    def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: str, bar=FakeBar):
+    def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: 'Channels', bar=FakeBar):
         return self.base.init_block_data(True, shuffle, flip, mapped_channels, bar)
 
     def generate_image(self, bar=FakeBar) -> Union[tuple['ndarray', tuple[int, int]], 'Image.Image']:

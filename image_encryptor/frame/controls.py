@@ -2,12 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-08 18:35:35
+LastEditTime : 2022-05-21 08:06:52
 Description  : 界面控制相关
 """
 from abc import ABC
 from os.path import splitext
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union, Iterator
 
 from wx import Bitmap
 
@@ -34,8 +34,8 @@ class Controls(object):
 
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
-        self.mapping_checkboxes = {'r': frame.mappingR, 'g': frame.mappingG, 'b': frame.mappingB, 'a': frame.mappingA}
-        self.XOR_checkboxes = {'r': frame.XORR, 'g': frame.XORG, 'b': frame.XORB, 'a': frame.XORA}
+        self.mapping_checkboxes = (frame.mappingR, frame.mappingG, frame.mappingB, frame.mappingA)
+        self.XOR_checkboxes = (frame.XORR, frame.XORG, frame.XORB, frame.XORA)
         self.previous_saving_format = 'png'
         self.previous_proc_mode = ENCRYPTION_MODE
         self.imported_image_id = 0
@@ -457,50 +457,32 @@ class Controls(object):
         self.frame.disableCache.Value = v
 
     @property
-    def mapping_channels(self) -> str:
+    def mapping_channels(self) -> 'Channels':
         """选择的需要随机映射的各通道字符串
 
         Returns:
-            str: 选择的需要随机映射的各通道(如`rgb`/`b`/`rgba`/`ga`)
+            tuple: 以RGBA顺序对应的bool
         """
-        channels = []
-        if self.mapping_R:
-            channels.append('r')
-        if self.mapping_G:
-            channels.append('g')
-        if self.mapping_B:
-            channels.append('b')
-        if self.mapping_A:
-            channels.append('a')
-        return ''.join(channels)
+        return Channels((self.mapping_R, self.mapping_G, self.mapping_B, self.mapping_A))
 
     @mapping_channels.setter
-    def mapping_channels(self, v: Iterable[str]):
-        for i in 'rgba':
-            self.mapping_checkboxes[i].SetValue(i in v)
+    def mapping_channels(self, v: 'Channels'):
+        for i, j in zip(self.mapping_checkboxes, v.tuple):
+            i.SetValue(j)
 
     @property
-    def XOR_channels(self):
+    def XOR_channels(self) -> 'Channels':
         """选择的需要异或加密的各通道字符串
 
         Returns:
-            str: 选择的需要异或加密的各通道(如`rgb`/`b`/`rgba`/`ga`)
+            tuple: 以RGBA顺序对应的bool
         """
-        channels = []
-        if self.XOR_R:
-            channels.append('r')
-        if self.XOR_G:
-            channels.append('g')
-        if self.XOR_B:
-            channels.append('b')
-        if self.XOR_A:
-            channels.append('a')
-        return ''.join(channels)
+        return Channels((self.XOR_R, self.XOR_G, self.XOR_B, self.XOR_A))
 
     @XOR_channels.setter
-    def XOR_channels(self, v: Iterable[str]):
-        for i in 'rgba':
-            self.XOR_checkboxes[i].SetValue(i in v)
+    def XOR_channels(self, v: 'Channels'):
+        for i, j in zip(self.XOR_checkboxes, v.tuple):
+            i.SetValue(j)
 
     def gen_image_info(self, item: 'ImageItem' = None):
         """输出图像信息至界面
@@ -534,6 +516,34 @@ class Controls(object):
             bitmap = image.wxBitmap
             self.frame.image_item.cache.previews.add_normal_cache(self.frame.settings.encryption_settings_hash_with_size, bitmap)
             self.previewed_bitmap = bitmap
+
+
+class Channels(object):
+    __slots__ = ('tuple', 'hash', 'len', 'bool')
+
+    def __hash__(self) -> int:
+        if self.hash is ...:
+            self.hash = hash(self.tuple)
+        return self.hash
+
+    def __iter__(self) -> Iterator:
+        return self.tuple.__iter__()
+
+    def __len__(self) -> int:
+        if self.len is ...:
+            self.len = self.tuple.count(True)
+        return self.len
+
+    def __bool__(self) -> bool:
+        if self.bool is ...:
+            self.bool = any(self.tuple)
+        return self.bool
+
+    def __init__(self, __tuple: tuple) -> None:
+        self.tuple = __tuple
+        self.hash: int = ...
+        self.len: int = ...
+        self.bool: bool = ...
 
 
 class SettingsManager(object):
@@ -617,7 +627,7 @@ class SettingsBase(ABC):
         """
         assert len(self.SETTING_NAMES) == len(settings), f'Wrong settings arguments length, currently {len(settings)} (expected {len(self.SETTING_NAMES)})'
         for n, v in zip(self.SETTING_NAMES, settings):
-            setattr(self, n, v)
+            self.__setattr__(n, v)
 
     @property
     def properties(self):
@@ -710,7 +720,7 @@ class SettingsData(SettingsBase):
         has_password = self.password != 'none'
         password = self.password if has_password else 100
         return EncryptionParametersData((self.cutting_col, self.cutting_row, orig_width, orig_height, self.shuffle_chunks,
-                                        self.flip_chunks, self.mapping_channels, self.XOR_channels if self.XOR_encryption else '',
+                                        self.flip_chunks, self.mapping_channels, self.XOR_channels if self.XOR_encryption else Channels((False, False, False, False)),
                                         self.noise_XOR, self.noise_factor, has_password,
                                         PasswordDict.get_validation_field_base64(password) if has_password else 0, EA_VERSION,
                                         True, self.password))
@@ -774,7 +784,7 @@ class Settings(SettingsData):
     def backtrack_interface(self):
         """将加密设置显示到界面"""
         self.controls.proc_mode = self.proc_mode if self.proc_mode != DECRYPTION_MODE else ENCRYPTION_MODE
-        if self.controls.proc_mode == ANTI_SHIELDED_MODE:
+        if self.controls.proc_mode == ANTISHIELD_MODE:
             self.controls.frame.processingSettingsPanel.Disable()
             self.controls.frame.passwordCtrl.Disable()
         else:
@@ -835,8 +845,8 @@ class EncryptionParametersData(SettingsBase):
         self.orig_height: int = parameters_dict['orig_height']
         self.shuffle_chunks: bool = parameters_dict['shuffle_chunks']
         self.flip_chunks: bool = parameters_dict['flip_chunks']
-        self.mapping_channels: str = parameters_dict['mapping_channels']
-        self.XOR_channels: str = parameters_dict['XOR_channels']
+        self.mapping_channels: Channels = Channels(tuple(parameters_dict['mapping_channels']))
+        self.XOR_channels: Channels = Channels(tuple(parameters_dict['XOR_channels']))
         self.noise_XOR: bool = parameters_dict['noise_XOR']
         self.noise_factor: int = parameters_dict['noise_factor']
         self.has_password: bool = parameters_dict['has_password']

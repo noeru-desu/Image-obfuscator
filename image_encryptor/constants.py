@@ -2,9 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-15 11:51:08
+LastEditTime : 2022-05-20 21:48:00
 Description  : 常量
 """
+from json import JSONEncoder
 from platform import machine, platform
 from sys import version as py_ver
 
@@ -93,3 +94,17 @@ class ProcModes(object):
     encryption_mode = ENCRYPTION_MODE
     decryption_mode = DECRYPTION_MODE
     antishield_mode = ANTISHIELD_MODE
+
+
+
+_CONVERSIONS = {
+    'Channels': lambda o: o.tuple
+}
+
+
+def json_encoder_default(o: object):
+    name = o.__class__.__name__
+    if name in _CONVERSIONS:
+        return _CONVERSIONS[name](o)
+    else:
+        raise TypeError(type(o))
