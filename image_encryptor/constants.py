@@ -2,10 +2,9 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-20 21:48:00
+LastEditTime : 2022-05-22 07:19:02
 Description  : 常量
 """
-from json import JSONEncoder
 from platform import machine, platform
 from sys import version as py_ver
 
@@ -33,10 +32,10 @@ RELEASE_CANDIDATE = 1
 DEV = 2
 BETA = 3
 ALPHA = 4
-VERSION_TYPE = DEV
+VERSION_TYPE = RELEASE
 VERSION_NUMBER = '1.4.2'
-SUB_VERSION_NUMBER = 'dev.6'
-VERSION_BATCH = '202205015-3'
+SUB_VERSION_NUMBER = 'release'
+VERSION_BATCH = '202205022-1'
 BRANCH = 'dev/1.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
