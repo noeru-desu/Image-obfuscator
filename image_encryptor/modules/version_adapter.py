@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-22 09:52:42
+LastEditTime : 2022-05-22 10:24:32
 Description  : 对低版本加密的图像的加密信息进行转换, 向下兼容
 """
 from base64 import b64decode, b85encode
@@ -80,17 +80,16 @@ def check_version(data):
         return None, EAERR_INCOMPATIBLE
     elif data['version'] > EA_VERSION:
         return None, EAERR_NOT_SUPPORT
-    match data['version']:
-        case 1:
-            data = v_1_to_2(data)
-        case 2:
-            data = v_2_to_3(data)
-        case 3:
-            data = v_3_to_4(data)
-        case 4:
-            data = v_4_to_5(data)
-        case 5 | 6 | 7:
-            data = v_5_to_8(data)
+    if data['version'] == 1:
+        data = v_1_to_2(data)
+    elif data['version'] == 2:
+        data = v_2_to_3(data)
+    elif data['version'] == 3:
+        data = v_3_to_4(data)
+    elif data['version'] == 4:
+        data = v_4_to_5(data)
+    elif data['version'] <= 7:
+        data = v_5_to_8(data)
     return data, None
 
 
