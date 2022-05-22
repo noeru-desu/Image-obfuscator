@@ -191,7 +191,7 @@ class ImageSaver(object):
                         ), self._bulk_save_callback)
                     case ProcModes.decryption_mode:
                         image_item.cache.encryption_parameters.password = self.frame.password_dict.get_password(
-                            image_item.cache.encryption_parameters.password_base64
+                            image_item.cache.encryption_parameters.password_base85
                         )
                         if image_item.cache.encryption_parameters.password is None:
                             self.frame.logger.warning(f'[{image_item.path_data.file_name}]未找到密码，跳过保存')

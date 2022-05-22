@@ -722,7 +722,7 @@ class SettingsData(SettingsBase):
         return EncryptionParametersData((self.cutting_col, self.cutting_row, orig_width, orig_height, self.shuffle_chunks,
                                         self.flip_chunks, self.mapping_channels, self.XOR_channels if self.XOR_encryption else Channels((False, False, False, False)),
                                         self.noise_XOR, self.noise_factor, has_password,
-                                        PasswordDict.get_validation_field_base64(password) if has_password else 0, EA_VERSION,
+                                        PasswordDict.get_validation_field_base85(password) if has_password else 0, EA_VERSION,
                                         True, self.password))
 
     @property
@@ -824,7 +824,7 @@ class EncryptionParametersData(SettingsBase):
     __slots__ = SETTING_NAMES = (
         'cutting_row', 'cutting_col', 'orig_width', 'orig_height', 'shuffle_chunks',
         'flip_chunks', 'mapping_channels', 'XOR_channels', 'noise_XOR', 'noise_factor',
-        'has_password', 'password_base64', 'version', 'dynamic_auth', 'password'
+        'has_password', 'password_base85', 'version', 'dynamic_auth', 'password'
         # 需保证dynamic_auth与password在最后，参考self.encryption_parameters_dict
     )
 
@@ -850,7 +850,7 @@ class EncryptionParametersData(SettingsBase):
         self.noise_XOR: bool = parameters_dict['noise_XOR']
         self.noise_factor: int = parameters_dict['noise_factor']
         self.has_password: bool = parameters_dict['has_password']
-        self.password_base64: str = parameters_dict['password_base64']
+        self.password_base85: str = parameters_dict['password_base85']
         self.version: int = parameters_dict['version']
         self.dynamic_auth: bool = self.version >= 6
         self.password: str = None
@@ -873,7 +873,7 @@ class EncryptionParameters(EncryptionParametersData):
             return 100
         if self.password is not None:
             return self.password
-        self.password = self.controls.frame.password_dict.get_password(self.password_base64)
+        self.password = self.controls.frame.password_dict.get_password(self.password_base85)
         return None if self.password is None else self.password
 
     def backtrack_interface(self):
@@ -893,10 +893,10 @@ class EncryptionParameters(EncryptionParametersData):
         self.controls.XOR_channels = self.XOR_channels
         if self.has_password:
             while self.password is None:
-                self.password = self.controls.frame.password_dict.get_password(self.password_base64)
+                self.password = self.controls.frame.password_dict.get_password(self.password_base85)
                 if self.password is not None:
                     break
-                self.password = self.controls.frame.dialog.password_dialog(self.controls.frame.image_item.path_data.file_name, self.password_base64, True)
+                self.password = self.controls.frame.dialog.password_dialog(self.controls.frame.image_item.path_data.file_name, self.password_base85, True)
                 if self.password is not None:
                     break
                 self.controls.password = ''

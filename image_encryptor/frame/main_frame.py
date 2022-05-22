@@ -165,8 +165,8 @@ class MainFrame(MF):
             bool: 添加成功则返回`True`
         """
         try:
-            self.password_dict[self.password_dict.get_validation_field_base64(password)] = password
-            self.password_dict[self.password_dict.get_validation_field_base64(password, False)] = password
+            self.password_dict[self.password_dict.get_validation_field_base85(password)] = password
+            self.password_dict[self.password_dict.get_validation_field_base85(password, False)] = password
         except ValueError:
             self.dialog.async_error('密码长度超过AES加密限制, 请确保密码长度不超过32字节', '用于验证密码正确性的字符串生成时出现错误', parent=dialog_parent)
             return False

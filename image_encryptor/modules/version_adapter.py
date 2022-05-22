@@ -2,9 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-21 08:09:37
+LastEditTime : 2022-05-22 09:52:42
 Description  : 对低版本加密的图像的加密信息进行转换, 向下兼容
 """
+from base64 import b64decode, b85encode
 from json import JSONDecodeError, loads
 from os.path import getsize
 
@@ -61,12 +62,16 @@ def v_4_to_5(data):
     data['XOR_channels'] = data['xor_channels']
     data['noise_XOR'] = data['noise_xor']
     data['mapping_channels'] = 'rgb' if data['rgb_mapping'] else ''
-    return data
+    return v_5_to_8(data)
 
 
 def v_5_to_8(data):
     data['XOR_channels'] = tuple(i in data['XOR_channels'] for i in 'rgba')
     data['mapping_channels'] = tuple(i in data['mapping_channels'] for i in 'rgba')
+    if data['has_password']:
+        data['password_base85'] = b85encode(b64decode(data['password_base64'].encode())).decode()
+    else:
+        data['password_base85'] = 0
     return data
 
 
@@ -108,7 +113,7 @@ def read_last_line(file):
     if file_size == 0:
         return None
     with open(file, 'rb') as f:
-        offset = -300
+        offset = -400
         while True:
             if file_size > -offset:
                 f.seek(offset, 2)

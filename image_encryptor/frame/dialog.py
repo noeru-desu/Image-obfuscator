@@ -101,10 +101,10 @@ class Dialog(object):
             dialog.SetYesNoCancelLabels(yes, no, cancel)
             return dialog.ShowModal()
 
-    def password_dialog(self, file_name: str, correct_base64: str, until_correct: bool = False, parent: 'Window' = ...):
+    def password_dialog(self, file_name: str, correct_base85: str, until_correct: bool = False, parent: 'Window' = ...):
         if parent is Ellipsis:
             parent = self.frame
-        dialog = PasswordDialog(parent, file_name, correct_base64, until_correct)
+        dialog = PasswordDialog(parent, file_name, correct_base85, until_correct)
         with dialog:
             return_code = dialog.ShowModal()
         if return_code == ID_CANCEL:
@@ -175,14 +175,14 @@ class Dialog(object):
 
 
 class PasswordDialog(PD):
-    __slots__ = ('_parent', '_correct_base64', '_until_correct', 'correct_password')
+    __slots__ = ('_parent', '_correct_base85', '_until_correct', 'correct_password')
 
-    def __init__(self, parent: 'MainFrame', file_name: str, correct_base64: str, until_correct: bool = False):
+    def __init__(self, parent: 'MainFrame', file_name: str, correct_base85: str, until_correct: bool = False):
         """
         Args:
             parent (MainFrame): MainFrame实例
             file_name (str): 显示的文件名称
-            correct_base64 (str): 正确密码的验证用base64(通常由`PasswordDict.get_validation_field_base64`生成)
+            correct_base85 (str): 正确密码的验证用base85(通常由`PasswordDict.get_validation_field_base85`生成)
             until_correct (bool, optional): 是否一直接受用户输入直到密码正确. 默认为False, 为False时将在一次确认输入后关闭密码输入弹窗
         """
         # o_args = set(dir(self))
@@ -190,7 +190,7 @@ class PasswordDialog(PD):
         # n_args = set(dir(self))
         # gen_slots_str(n_args - o_args)
         self._parent = parent
-        self._correct_base64 = correct_base64
+        self._correct_base85 = correct_base85
         self._until_correct = until_correct
         self.correct_password: str = None
         self.SetReturnCode(ID_CANCEL)
@@ -206,7 +206,7 @@ class PasswordDialog(PD):
             else:
                 self.user_cancel(event)
         elif self._parent.add_password_dict(password, self):
-            password = self._parent.password_dict.get_password(self._correct_base64)
+            password = self._parent.password_dict.get_password(self._correct_base85)
             if password is not None:
                 self.correct_password = password
                 self.EndModal(ID_OK)
