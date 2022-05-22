@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-21 07:59:22
+LastEditTime : 2022-05-22 09:26:19
 Description  : 图像加密模块
 """
 from copy import copy
@@ -309,7 +309,7 @@ class ImageEncrypt(object):
     __slots__ = ('base',)
 
     def __init__(self, image: Image.Image, row: int, col: int, random_seed, version=EA_VERSION) -> None:
-        if version == 7:
+        if version >= 7:
             self.base = ImageEncryptBaseV3(image, row, col, random_seed)
         elif version >= 5:
             self.base = ImageEncryptBaseV2(image, row, col, random_seed)
@@ -330,7 +330,7 @@ class ImageDecrypt(object):
     __slots__ = ('base',)
 
     def __init__(self, image: Image.Image, row: int, col: int, random_seed, version=EA_VERSION) -> None:
-        if version == 7:
+        if version >= 7:
             self.base = ImageEncryptBaseV3(image, row, col, random_seed)
         elif version >= 5:
             self.base = ImageEncryptBaseV2(image, row, col, random_seed)

@@ -19,7 +19,8 @@ from image_encryptor.constants import (EA_VERSION, EAERR_DECODE_FAILED,
 # 5 可选随机映射
 # 6 动态密码验证字段 (无参数转换)
 # 7 加密核心v3 (无参数转换)
-# 8 ...
+# 8 Channels存储格式更改为元组, 原本为字符串
+# 9 ...
 
 
 def v_1_to_2(data):
@@ -64,7 +65,9 @@ def v_4_to_5(data):
 
 
 def v_5_to_8(data):
-    ...
+    data['XOR_channels'] = tuple(i in data['XOR_channels'] for i in 'rgba')
+    data['mapping_channels'] = tuple(i in data['mapping_channels'] for i in 'rgba')
+    return data
 
 
 def check_version(data):
@@ -72,14 +75,17 @@ def check_version(data):
         return None, EAERR_INCOMPATIBLE
     elif data['version'] > EA_VERSION:
         return None, EAERR_NOT_SUPPORT
-    if data['version'] == 1:
-        data = v_1_to_2(data)
-    elif data['version'] == 2:
-        data = v_2_to_3(data)
-    elif data['version'] == 3:
-        data = v_3_to_4(data)
-    elif data['version'] == 4:
-        data = v_4_to_5(data)
+    match data['version']:
+        case 1:
+            data = v_1_to_2(data)
+        case 2:
+            data = v_2_to_3(data)
+        case 3:
+            data = v_3_to_4(data)
+        case 4:
+            data = v_4_to_5(data)
+        case 5 | 6 | 7:
+            data = v_5_to_8(data)
     return data, None
 
 
