@@ -108,6 +108,7 @@ jobs:
             ## 修复
             * 
             * 
+            **_`with_console`版本: 未使用`-OO`参数进行优化, 并在运行时显示CMD窗口_**
           files: |
             ImageEncryptor_*.exe
           draft: true
