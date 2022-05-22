@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-22 09:26:19
+LastEditTime : 2022-05-22 15:18:16
 Description  : 图像加密模块
 """
 from copy import copy
@@ -130,7 +130,7 @@ class ImageEncryptBaseV2(object):
         bar.finish()
         return self.image
 
-    def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
+    def xor_pixels(self, channels: 'Channels', noise=False, noise_factor=255):
         """
         :description: 异或图像中每个像素点的RGB(A)通道
         :return: 异或后的图像
@@ -140,13 +140,13 @@ class ImageEncryptBaseV2(object):
         w, h = self.image.size
         if noise:
             noise_array = random_noise(h, w, len(channels), self._shuffle.seed, noise_factor)
-            for index, channel in enumerate(channels):
-                pixel_array[:, :, channel_num[channel]] ^= noise_array[:, :, index]
+            for index, channel in enumerate(channels.channels_id):
+                pixel_array[:, :, channel] ^= noise_array[:, :, index]
         else:
             random.seed(self._shuffle.seed)
             xor_num = random.randrange(256)
-            for channel in channels:
-                pixel_array[:, :, channel_num[channel]] ^= xor_num
+            for channel in channels.channels_id:
+                pixel_array[:, :, channel] ^= xor_num
         self.image = array_to_image(pixel_array, (w, h))
         return self.image
 
@@ -287,7 +287,7 @@ class ImageEncryptBaseV3(object):
         self.image_array = new_image_array
         return new_image_array, self.ceil_size
 
-    def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
+    def xor_pixels(self, channels: 'Channels', noise=False, noise_factor=255):
         """
         :description: 异或图像中每个像素点的RGB(A)通道
         :return: 异或后的图像
@@ -295,13 +295,13 @@ class ImageEncryptBaseV3(object):
         size = self.image_array.shape[:-1]
         if noise:
             noise_array = random_noise(*size, len(channels), self._shuffle.seed, noise_factor)
-            for index, channel in enumerate(channels):
-                self.image_array[:, :, channel_num[channel]] ^= noise_array[:, :, index]
+            for index, channel in enumerate(channels.channels_id):
+                self.image_array[:, :, channel] ^= noise_array[:, :, index]
         else:
             random.seed(self._shuffle.seed)
             xor_num = random.randrange(256)
-            for channel in channels:
-                self.image_array[:, :, channel_num[channel]] ^= xor_num
+            for channel in channels.channels_id:
+                self.image_array[:, :, channel] ^= xor_num
         return self.image_array, size[::-1]
 
 

@@ -2,10 +2,11 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-21 08:06:52
+LastEditTime : 2022-05-22 15:20:25
 Description  : 界面控制相关
 """
 from abc import ABC
+from itertools import compress
 from os.path import splitext
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union, Iterator
 
@@ -519,31 +520,42 @@ class Controls(object):
 
 
 class Channels(object):
-    __slots__ = ('tuple', 'hash', 'len', 'bool')
+    __slots__ = ('tuple', '_hash', 'len', 'bool', '_channels_id')
 
     def __hash__(self) -> int:
-        if self.hash is ...:
-            self.hash = hash(self.tuple)
         return self.hash
 
     def __iter__(self) -> Iterator:
         return self.tuple.__iter__()
 
     def __len__(self) -> int:
-        if self.len is ...:
+        if self.len is Ellipsis:
             self.len = self.tuple.count(True)
         return self.len
 
     def __bool__(self) -> bool:
-        if self.bool is ...:
+        if self.bool is Ellipsis:
             self.bool = any(self.tuple)
         return self.bool
 
     def __init__(self, __tuple: tuple) -> None:
         self.tuple = __tuple
-        self.hash: int = ...
+        self._hash: int = ...
         self.len: int = ...
         self.bool: bool = ...
+        self._channels_id: tuple[int, int, int ,int] = ...
+
+    @property
+    def hash(self):
+        if self._hash is Ellipsis:
+            self._hash = hash(self.tuple)
+        return self._hash
+
+    @property
+    def channels_id(self):
+        if self._channels_id is Ellipsis:
+            self._channels_id = tuple(compress((0, 1, 2, 3), self.tuple))
+        return self._channels_id
 
 
 class SettingsManager(object):
