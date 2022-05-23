@@ -2,10 +2,16 @@
  * @Author       : noeru_desu
  * @Date         : 2021-11-21 19:21:41
  * @LastEditors  : noeru_desu
- * @LastEditTime : 2022-05-15 12:03:35
+ * @LastEditTime : 2022-05-23 21:39:35
  * @Description  : README
 -->
 # Image Encryptor
+
+## 新版本
+
+此分支([dev/1.x](./tree/dev/1.x))不再添加新功能，仅进行必要的Bug修复
+
+当前正在`v2.x`分支([dev/2.x](./tree/dev/2.x))进行一些重构工作，完成后将添加更多功能
 
 ## 下载
 
