@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-08 11:17:54
+LastEditTime : 2022-05-22 06:42:46
 Description  : 拖放处理
 """
 from os.path import isdir
@@ -48,7 +48,7 @@ class DragSavingPath(FileDropTarget):
                 return True
             elif len(filenames) > 1:
                 self.frame.dialog.async_warning(f'共拖放了{len(filenames)}个文件夹，仅接受第一个文件夹({filenames[0]})')
-            self.frame.controls.saving_path = filenames[0]
+            self.frame.controller.saving_path = filenames[0]
         except RuntimeError:
             return False
         except Exception:

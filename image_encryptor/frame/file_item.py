@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-18 21:49:06
+LastEditTime : 2022-05-27 21:24:14
 Description  : 图像项目
 """
 from abc import ABC
@@ -13,17 +13,15 @@ from typing import TYPE_CHECKING, Any, Hashable, Optional, Union
 
 from wx import BLACK, Bitmap, CallAfter
 
-from image_encryptor.constants import (DECRYPTION_MODE, ENCRYPTION_MODE,
-                                       LIGHT_RED, PIL_RESAMPLING_FILTERS)
-from image_encryptor.frame.controls import EncryptionParameters
+from image_encryptor.constants import LIGHT_RED, PIL_RESAMPLING_FILTERS
 from image_encryptor.modules.image import cal_best_size, open_image
 from image_encryptor.modules.version_adapter import load_encryption_attributes
 
 if TYPE_CHECKING:
     from PIL.Image import Image
     from wx import TreeItemId
-    from image_encryptor.frame.controls import Settings
     from image_encryptor.frame.events import MainFrame
+    from image_encryptor.modes.base import BaseSettings, BaseModeInterface
     from image_encryptor.modules.argparse import Parameters
     from image_encryptor.modules.image import WrappedImage
 
@@ -200,6 +198,17 @@ class PreviewCache(object):
         del self
 
 
+class ImageEncryptionAttributes(object):
+    __slots__ = ('decryption_mode', 'settings')
+
+    def __init__(self, decryption_mode: 'BaseModeInterface', settings: 'BaseSettings') -> None:
+        self.decryption_mode = decryption_mode
+        self.settings = settings
+
+    def backtrack_interface(self):
+        self.settings.backtrack_interface()
+
+
 class ImageItemCache(object):
     """图像项目缓存控制器"""
     __slots__ = ('_item', 'initial_preview', 'previews', 'preview_size', '_encryption_parameters', '_loaded_image', 'loading_encryption_attributes_error')
@@ -215,7 +224,7 @@ class ImageItemCache(object):
         self.preview_size: tuple[int, int] = None
         self.previews = PreviewCache(item.frame.startup_parameters)
         self.loading_encryption_attributes_error: Optional[str] = None
-        self._encryption_parameters: EncryptionParameters = None
+        self._encryption_parameters: 'ImageEncryptionAttributes' = None
         self._loaded_image = loaded_image
 
     @property
@@ -250,15 +259,15 @@ class ImageItemCache(object):
         self._loaded_image = v
 
     @property
-    def encryption_parameters(self) -> Optional['EncryptionParameters']:
+    def encryption_parameters(self) -> Optional['ImageEncryptionAttributes']:
         """被加密图像的加密参数
 
         如果缓存中不存在, 将重新从文件中加载加密参数
 
         Returns:
-            EncryptionParameters
+            BaseSettings
         """
-        if self._encryption_parameters is None:
+        if self._item.encrypted_image is None :
             self._item.load_encryption_parameters()
         return self._encryption_parameters
 
@@ -306,10 +315,10 @@ class ImageItem(Item):
     """每个载入的图像的存储实例"""
     __slots__ = (
         'frame', 'cache', 'path_data', 'loaded_image_path', 'settings', 'parent', 'item_id', 'selected',
-        'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error'
+        'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error', 'proc_mode'
     )
 
-    def __init__(self, frame: 'MainFrame', loaded_image: Optional['Image'], path_data: 'PathData', settings: 'Settings' = ..., no_file=False, keep_cache_loaded_image=False):
+    def __init__(self, frame: 'MainFrame', loaded_image: Optional['Image'], path_data: 'PathData', settings: 'BaseSettings' = ..., no_file=False, keep_cache_loaded_image=False):
         """
         Args:
             frame (MainFrame): `MainFrame`实例
@@ -323,6 +332,7 @@ class ImageItem(Item):
         self.cache = ImageItemCache(self, loaded_image)
 
         self.path_data = path_data
+        self.proc_mode = frame.mode_manager.default_mode
         self.loaded_image_path = path_data.file_name if no_file else path_data.full_path
         self.settings = frame.settings.default.copy() if settings is Ellipsis else settings
 
@@ -359,12 +369,12 @@ class ImageItem(Item):
         Returns:
             bool: 命中缓存返回`False`, 未命中则生成并返回`True`
         """
-        size = self.frame.controls.preview_size
+        size = self.frame.controller.preview_size
         if cache and not self.frame.startup_parameters.disable_cache and self.cache.initial_preview is not None and size == self.cache.preview_size:
-            self.frame.controls.imported_image = self.cache.initial_preview
+            self.frame.controller.imported_image = self.cache.initial_preview
             return False
-        image = self.cache.loaded_image.resize(cal_best_size(*self.cache.loaded_image.size, *size), PIL_RESAMPLING_FILTERS[self.frame.controls.resampling_filter_id])
-        self.frame.controls.imported_image = image
+        image = self.cache.loaded_image.resize(cal_best_size(*self.cache.loaded_image.size, *size), PIL_RESAMPLING_FILTERS[self.frame.controller.resampling_filter_id])
+        self.frame.controller.imported_image = image
         self.cache.preview_size = size
         self.cache.initial_preview = image
         return True
@@ -382,10 +392,10 @@ class ImageItem(Item):
         if cache and not self.frame.startup_parameters.disable_cache:
             cache_hash = self.frame.settings.encryption_settings_hash
             if cache_hash in self.cache.previews.scalable_cache:
-                self.frame.controls.previewed_bitmap = (
+                self.frame.controller.previewed_bitmap = (
                     self.cache.previews.scalable_cache[cache_hash].gen_wxBitmap(
-                        self.frame.controls.preview_size,
-                        self.frame.controls.resampling_filter_id,
+                        self.frame.controller.preview_size,
+                        self.frame.controller.resampling_filter_id,
                     )
                     if resize
                     else self.cache.previews.scalable_cache[cache_hash].wxBitmap
@@ -393,7 +403,7 @@ class ImageItem(Item):
                 return False
             cache_hash = self.frame.settings.encryption_settings_hash_with_size
             if cache_hash in self.cache.previews.normal_cache:
-                self.frame.controls.previewed_bitmap = self.cache.previews.get_normal_cache(cache_hash)
+                self.frame.controller.previewed_bitmap = self.cache.previews.get_normal_cache(cache_hash)
                 return False
         self.frame.preview_generator.generate_preview()
         return True
@@ -405,7 +415,7 @@ class ImageItem(Item):
         if self.encrypted_image is None:
             self.load_encryption_parameters()
         if self.encrypted_image:
-            self.cache.encryption_parameters.backtrack_interface()
+            self.frame.controller.backtrack_interface(self.cache.encryption_parameters, self.cache.encryption_parameters.decryption_mode)
 
     def load_encryption_parameters(self):
         """加载图像加密参数\n
@@ -417,12 +427,17 @@ class ImageItem(Item):
         encryption_parameters, self.cache.loading_encryption_attributes_error = load_encryption_attributes(self.loaded_image_path)
         if self.cache.loading_encryption_attributes_error is None:
             self.encrypted_image = True
-            self.settings.proc_mode = DECRYPTION_MODE
-            self.cache.encryption_parameters = EncryptionParameters(self.frame.controls, encryption_parameters)
+            mode = self.frame.mode_manager.modes[encryption_parameters['corresponding_decryption_mode']]
+            self.cache.encryption_parameters = ImageEncryptionAttributes(mode, mode.instantiate_encryption_parameters_cls(self.frame.controller, encryption_parameters['data']))
+            self.proc_mode = mode
         else:
-            default_proc_mode = self.frame.settings.default.proc_mode
+            default_proc_mode = self.frame.mode_manager.default_mode
             self.encrypted_image = False
-            self.settings.proc_mode = default_proc_mode if default_proc_mode != DECRYPTION_MODE else ENCRYPTION_MODE
+            self.proc_mode = default_proc_mode if default_proc_mode.mode_id != self.proc_mode else self.frame.mode_manager.modes[0]
+
+    @property
+    def encryption_parameters(self):
+        return self.cache.encryption_parameters
 
     def del_item(self, item_id: 'TreeItemId', del_item=True):
         if del_item:
@@ -465,7 +480,7 @@ class ImageItem(Item):
         return 1, 0
 
     def _refresh_encrypted_image(self):
-        self.cache.encryption_parameters.backtrack_interface()
+        self.frame.controller.backtrack_interface(self.cache.encryption_parameters, self.cache.encryption_parameters.decryption_mode)
         self.frame.force_refresh_preview()
 
 

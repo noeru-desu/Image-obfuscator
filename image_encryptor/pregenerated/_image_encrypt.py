@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-04 10:35:30
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-21 06:20:46
+LastEditTime : 2022-05-27 21:28:06
 Description  : 预生成模板
 """
 from time import asctime, localtime
@@ -40,6 +40,7 @@ if TYPE_CHECKING:
 
 
 class MappingFuncV1(object):
+    __slots__ = ()
     encrypt: 'tuple[Callable[[Any, Any, Any, Any], tuple[Any, Any, Any, Any]], ...]' = (
         lambda r, g, b, a: (b, r, g, a), lambda r, g, b, a: (g, r, b, a),
         lambda r, g, b, a: (b, g, r, a), lambda r, g, b, a: (g, b, r, a)
@@ -54,6 +55,7 @@ class MappingFuncV1(object):
 
 
 class MappingFuncV2(object):
+    __slots__ = ()
     encrypt: 'dict[int, Optional[tuple[Callable[[Any, Any, Any, Any], tuple[Any, Any, Any, Any]], ...]]]' = `
         {hash_r}: None, {hash_g}: None, {hash_b}: None, {hash_a}: None,
         {hash_rg}: (lambda r, g, b, a: (g, r, b, a),), {hash_rb}: (lambda r, g, b, a: (b, g, r, a),),
@@ -130,6 +132,7 @@ class MappingFuncV2(object):
 
 
 class MappingFuncV3(object):
+    __slots__ = ()
     encrypt: 'dict[int, Optional[tuple[Callable[[ndarray], ndarray], ...]]]' = `
         {hash_r}: None, {hash_g}: None, {hash_b}: None, {hash_a}: None,
         {hash_rg}: (lambda a: a[:, :, (1, 0, 2, 3)],), {hash_rb}: (lambda a: a[:, :, (2, 1, 0, 3)],),

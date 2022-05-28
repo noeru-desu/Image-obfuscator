@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-15 12:11:52
+LastEditTime : 2022-05-28 20:49:02
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -20,13 +20,14 @@ from wx.core import EmptyString
 from image_encryptor.constants import (BRANCH, EXTENSION_KEYS_STRING,
                                        SUB_VERSION_NUMBER, VERSION_INFO,
                                        VERSION_NUMBER, VERSION_TYPE)
-from image_encryptor.frame.controls import (Controls, SegmentTrigger, Settings,
+from image_encryptor.frame.controller import (Controller, SegmentTrigger,
                                             SettingsManager)
 from image_encryptor.frame.design_frame import MainFrame as MF
 from image_encryptor.frame.dialog import Dialog
 from image_encryptor.frame.drag_importer import DragLoadingFile, DragSavingPath
 from image_encryptor.frame.image_loader import ImageLoader
 from image_encryptor.frame.image_saver import ImageSaver
+from image_encryptor.frame.mode_manager import ModeManager
 from image_encryptor.frame.preview_generator import PreviewGenerator
 from image_encryptor.frame.tree_manager import TreeManager
 from image_encryptor.modules.decorator import catch_exc_for_frame_method
@@ -49,9 +50,9 @@ class MainFrame(MF):
     主窗口类
     """
     __slots__ = (
-        'startup_parameters', 'logger', 'controls', 'settings', 'dialog', 'universal_thread_pool',
+        'startup_parameters', 'logger', 'controller', 'settings', 'dialog', 'universal_thread_pool',
         'password_dict', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator',
-        'image_saver', 'stop_loading_func', 'stop_reloading_func', 'image_item', 'run_path'
+        'image_saver', 'stop_loading_func', 'stop_reloading_func', 'image_item', 'run_path','mode_manager'
     )
 
     def __init__(self, parent: 'Window', startup_parameters: 'Parameters', run_path: 'PathLike[str]' = getcwd()):
@@ -81,9 +82,11 @@ class MainFrame(MF):
         self.startup_parameters = startup_parameters
 
         # 各项实现或组件
-        self.controls = Controls(self)
-        self.settings = SettingsManager(self.controls)
         self.dialog = Dialog(self)
+        self.controller = Controller(self)
+        self.mode_manager = ModeManager(self)
+        self.mode_manager.load_builtin_modes()
+        self.settings = SettingsManager(self.controller)
         self.universal_thread_pool = ThreadPoolExecutor(8, 'universal_thread_pool')
         self.password_dict = PasswordDict()
         self.process_pool = ProcessTaskManager(1 if cpu_count() < 4 else cpu_count() - 2)
@@ -95,9 +98,9 @@ class MainFrame(MF):
         self.stop_reloading_func = SegmentTrigger((self.set_reloading_btn_text, self.set_stop_reloading_signal, self.stop_reloading), self.init_reloading_btn)
 
         # 同步启动参数至界面
-        self.controls.redundant_cache_length = self.startup_parameters.maximum_redundant_cache_length
-        self.controls.disable_cache = self.startup_parameters.disable_cache
-        self.controls.low_memory_mode = self.startup_parameters.low_memory
+        self.controller.redundant_cache_length = self.startup_parameters.maximum_redundant_cache_length
+        self.controller.disable_cache = self.startup_parameters.disable_cache
+        self.controller.low_memory_mode = self.startup_parameters.low_memory
 
         # 文件拖入
         self.imageTreeCtrl.SetDropTarget(DragLoadingFile(self))
@@ -120,7 +123,6 @@ class MainFrame(MF):
 
         # 准备工作
         self.run_path = run_path
-        self.xorPanel.Disable()
         self.savingFormat.ToolTip = f'{self.savingFormat.GetToolTipText()}{EXTENSION_KEYS_STRING}'
         self.selectSavingPath.PickerCtrl.SetLabel('选择文件夹')
 
@@ -165,8 +167,8 @@ class MainFrame(MF):
             bool: 添加成功则返回`True`
         """
         try:
-            self.password_dict[self.password_dict.get_validation_field_base64(password)] = password
-            self.password_dict[self.password_dict.get_validation_field_base64(password, False)] = password
+            self.password_dict[self.password_dict.get_validation_field_base85(password)] = password
+            self.password_dict[self.password_dict.get_validation_field_base85(password, False)] = password
         except ValueError:
             self.dialog.async_error('密码长度超过AES加密限制, 请确保密码长度不超过32字节', '用于验证密码正确性的字符串生成时出现错误', parent=dialog_parent)
             return False
@@ -174,9 +176,9 @@ class MainFrame(MF):
             return True
 
     def init_loading_btn(self):
-        self.controls.loading_prograss = 0
-        self.controls.loading_prograss_info = EmptyString
-        self.controls.stop_loading_btn_text = '停止载入'
+        self.controller.loading_progress = 0
+        self.controller.loading_progress_info = EmptyString
+        self.controller.stop_loading_btn_text = '停止载入'
 
     def stop_loading(self, force=True):
         if force:
@@ -195,13 +197,13 @@ class MainFrame(MF):
     def set_stop_loading_signal(self):
         self.image_loader.loading_thread.clear_task()
         self.image_loader.stop_loading_signal = True
-        self.controls.stop_loading_btn_text = '强制终止载入'
+        self.controller.stop_loading_btn_text = '强制终止载入'
 
     def init_reloading_btn(self):
-        self.controls.reloading_btn_text = '重载此项'
+        self.controller.reloading_btn_text = '重载此项'
 
     def set_reloading_btn_text(self):
-        self.controls.reloading_btn_text = '停止重载'
+        self.controller.reloading_btn_text = '停止重载'
 
     def stop_reloading(self, force=True, dialog=True):
         if force:
@@ -214,21 +216,13 @@ class MainFrame(MF):
 
     def set_stop_reloading_signal(self):
         self.tree_manager.stop_reloading_signal = True
-        self.controls.stop_loading_btn_text = '强制终止重载'
+        self.controller.stop_loading_btn_text = '强制终止重载'
 
     @catch_exc_for_frame_method
-    def apply_settings_to_all(self, settings_list: list[str] = ...):
-        """将当前加密设置应用到全部
-
-        Args:
-            settings_list (list[str], optional): 需要同步的加密设置属性名. 默认为全部加密设置
-        """
-        if settings_list is Ellipsis:
-            properties_tuple = self.settings.all.properties_tuple
-            for i in self.tree_manager.all_image_item_data:
-                i.settings = Settings(self.controls, properties_tuple)
-        else:
-            settings = ((i, getattr(self.image_item, i)) for i in settings_list)
-            for i in self.tree_manager.all_image_item_data:
-                for n, v in settings:
-                    setattr(i, n, v)
+    def apply_settings_to_all(self):
+        """将当前加密设置应用到全部"""
+        properties_tuple = self.settings.all.properties_tuple
+        proc_mode = self.controller.proc_mode_interface
+        for i in self.tree_manager.all_image_item_data:
+            i.proc_mode = proc_mode
+            i.settings = proc_mode.instantiate_settings_cls(self.controller, properties_tuple)

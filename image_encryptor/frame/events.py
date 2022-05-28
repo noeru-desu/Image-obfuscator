@@ -2,27 +2,26 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-13 06:37:51
+LastEditTime : 2022-05-28 20:07:01
 Description  : 事件处理
 """
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from PIL.ImageGrab import grabclipboard
 
-from image_encryptor import constants
+from image_encryptor.constants import DO_NOT_REFRESH, AUTO_REFRESH, EXTENSION_KEYS, EXTENSION_KEYS_STRING
 from image_encryptor.frame.file_item import FolderItem, ImageItem
 from image_encryptor.frame.main_frame import MainFrame as BasicMainFrame
 from image_encryptor.modules.decorator import catch_exc_for_frame_method
 
 if TYPE_CHECKING:
-    from wx import CommandEvent, SizeEvent, SpinEvent, TreeEvent, TreeItemId
+    from wx import CommandEvent, Event, SizeEvent, SpinEvent, TreeEvent, TreeItemId
     from image_encryptor.modules.argparse import Parameters
 
 
 class MainFrame(BasicMainFrame):
     __slots__ = ('deleted_item', 'resized', 'first_choice')
 
-    @catch_exc_for_frame_method
     def __init__(self, parent, startup_parameters: 'Parameters', run_path: str = ...):
         super().__init__(parent, startup_parameters, run_path)
         self.deleted_item = False
@@ -40,14 +39,20 @@ class MainFrame(BasicMainFrame):
 
     @catch_exc_for_frame_method
     def manually_refresh(self, event):
-        if self.controls.preview_mode != constants.DO_NOT_REFRESH:
+        if self.controller.preview_mode != DO_NOT_REFRESH:
             self.force_refresh_preview()
 
     @catch_exc_for_frame_method
-    def refresh_preview(self, event=None):
+    def refresh_preview(self, event: Optional['Event'] = None):
+        """刷新预览图
+
+        Args:
+            event (Event, optional): 事件实例. 默认为`None`. 为None时将忽略`preview_mode`设置, 强制刷新,
+            `refresh_preview`与`force_refresh_preview`的不同之处是, 前者不会忽略图像缓存, 而后者会忽略图像缓存并重新生成预览图
+        """
         if self.image_item is None:
             return
-        if event is not None and self.controls.preview_mode != constants.AUTO_REFRESH:
+        if event is not None and self.controller.preview_mode != AUTO_REFRESH:
             return
         self.image_item.display_initial_preview()
         self.image_item.display_processed_preview()
@@ -80,51 +85,60 @@ class MainFrame(BasicMainFrame):
             self.image_loader.load(clipboard)
 
     @catch_exc_for_frame_method
-    def update_password_dict(self, event=None):
-        """更新成功则返回True"""
-        if self.controls.password == '':
+    def update_password_dict(self, event: Optional['Event'] = None):
+        """更新密码字典
+
+        Args:
+            event (Event, optional): 事件实例. 默认为`None`. 为`None`时不刷新预览图.
+
+        Returns:
+            bool: 是否更新成功
+        """
+        if self.controller.password == '':
             return False
         if event is not None:
             self.refresh_preview(event)
-        if self.controls.password != 'none' and self.controls.password not in self.password_dict.values():
-            if self.add_password_dict(self.controls.password):
+        if self.controller.password != 'none' and self.controller.password not in self.password_dict.values():
+            if self.add_password_dict(self.controller.password):
                 return True
-            self.controls.password = ''
+            self.controller.password = ''
             return False
         return True
 
     @catch_exc_for_frame_method
     def save_selected_image(self, event):
+        self.dialog.warning('保存功能尚未完成', '正在进行重构')
+        return
         self.image_saver.save_selected_image()
 
     @catch_exc_for_frame_method
     def bulk_save(self, event):
+        self.dialog.warning('批量保存功能尚未完成', '正在进行重构')
+        return
         self.image_saver.bulk_save()
 
     @catch_exc_for_frame_method
     def processing_mode_change(self, event):
-        if self.image_item is None and self.controls.proc_mode == constants.DECRYPTION_MODE:
-            self.controls.proc_mode = self.controls.previous_proc_mode
+        selected_mode = self.controller.proc_mode_interface
+        if self.image_item is None and selected_mode.decryption_mode:
+            self.controller.proc_mode_interface = self.controller.previous_proc_mode
             return
-        elif self.controls.proc_mode != constants.DECRYPTION_MODE:
-            if self.controls.proc_mode == constants.ANTISHIELD_MODE:
-                self.controls.frame.processingSettingsPanel.Disable()
-                self.controls.frame.passwordCtrl.Disable()
-            else:
-                self.controls.frame.processingSettingsPanel.Enable()
-                self.controls.frame.passwordCtrl.Enable()
-        else:
+        elif selected_mode.requires_encryption_parameters:
             self.image_item.display_encryption_parameters()
             if self.image_item.cache.loading_encryption_attributes_error is not None:
-                self.controls.proc_mode = self.controls.previous_proc_mode
+                self.controller.proc_mode_interface = self.controller.previous_proc_mode
                 self.dialog.async_warning(self.image_item.cache.loading_encryption_attributes_error)
                 return
-        self.controls.previous_proc_mode = self.controls.proc_mode
+        else:
+            self.controller.proc_settings_panel = selected_mode.settings_panel
+            self.controller.frame.procSettingsPanelContainer.Enable(selected_mode.enable_settings_panel)
+            self.controller.frame.passwordCtrl.Enable(selected_mode.enable_password)
+        self.controller.previous_proc_mode = self.controller.proc_mode_interface
         self.refresh_preview(event)
 
     @catch_exc_for_frame_method
     def preview_mode_change(self, event):
-        if self.controls.preview_mode == constants.DO_NOT_REFRESH:
+        if self.controller.preview_mode == DO_NOT_REFRESH:
             self.previewedBitmap.Show(False)
         else:
             self.previewedBitmap.Show(True)
@@ -140,8 +154,8 @@ class MainFrame(BasicMainFrame):
         if image_item.IsOk() and not self.first_choice:
             image_data: 'ImageItem' = self.imageTreeCtrl.GetItemData(image_item)
             if isinstance(image_data, ImageItem):
-                settings = self.settings.all
-                image_data.settings = settings
+                image_data.proc_mode = self.controller.proc_mode_interface
+                image_data.settings = image_data.proc_mode.instantiate_settings_cls(self.controller)
                 image_data.unselect()
         elif self.deleted_item:
             self.deleted_item = False
@@ -152,30 +166,31 @@ class MainFrame(BasicMainFrame):
 
         if not event.GetItem().IsOk():
             self.image_item = None
-            self.controls.clear_preview()
+            self.controller.clear_preview()
             return
         image_data = self.tree_manager.selected_item_data
         if isinstance(image_data, ImageItem):
             self.image_item = image_data
             image_data.selected = True
-            self.controls.imported_image_id = 0
-            self.controls.previous_proc_mode = image_data.settings.proc_mode
-            self.controls.gen_image_info(image_data)
-            if image_data.settings.proc_mode == constants.DECRYPTION_MODE and image_data.encrypted_image:
-                image_data.cache.encryption_parameters.backtrack_interface()
-            else:
-                image_data.settings.backtrack_interface()
+            self.controller.imported_image_id = 0
+            self.controller.previous_proc_mode = image_data.proc_mode
+            self.controller.gen_image_info(image_data)
             self.processingOptions.Enable()
+            self.controller.proc_settings_panel = image_data.proc_mode.settings_panel
+            if image_data.encrypted_image and image_data.encryption_parameters.decryption_mode.mode_id == image_data.proc_mode.mode_id:
+                self.controller.backtrack_interface(image_data.encryption_parameters)
+            else:
+                self.controller.backtrack_interface(image_data.settings)
 
-            if self.previewMode.Selection == constants.AUTO_REFRESH:
+            if self.previewMode.Selection == AUTO_REFRESH:
                 self.refresh_preview(event)
         elif isinstance(image_data, FolderItem):
             self.image_item = None
-            self.controls.gen_image_info()
+            self.controller.gen_image_info()
             self.processingOptions.Disable()
-            self.controls.clear_preview()
+            self.controller.clear_preview()
         else:
-            self.controls.gen_image_info()
+            self.controller.gen_image_info()
 
     @catch_exc_for_frame_method
     def del_item(self, event):
@@ -183,7 +198,7 @@ class MainFrame(BasicMainFrame):
             self.deleted_item = True
             self.tree_manager.del_item(self.imageTreeCtrl.Selection)
         if not self.tree_manager.file_dict:
-            self.controls.gen_image_info()
+            self.controller.gen_image_info()
 
     @catch_exc_for_frame_method
     def reload_item(self, event):
@@ -201,6 +216,7 @@ class MainFrame(BasicMainFrame):
 
     @catch_exc_for_frame_method
     def set_settings_as_default(self, event=None):
+        self.mode_manager.default_mode = self.controller.proc_mode_interface
         self.settings.default = self.settings.all
 
     @catch_exc_for_frame_method
@@ -209,16 +225,16 @@ class MainFrame(BasicMainFrame):
 
     @catch_exc_for_frame_method
     def check_saving_format(self, event):
-        self.controls.saving_format = self.controls.saving_format.lower()
-        if self.controls.saving_format in constants.EXTENSION_KEYS:
+        self.controller.saving_format = self.controller.saving_format.lower()
+        if self.controller.saving_format in EXTENSION_KEYS:
             self.record_saving_format()
         else:
-            self.dialog.async_warning('不支持的格式: {}, 仅支持以下格式: \n{}'.format(self.controls.saving_format, constants.EXTENSION_KEYS_STRING), '保存格式错误')
-            self.controls.saving_format = self.controls.previous_saving_format
+            self.dialog.async_warning('不支持的格式: {}, 仅支持以下格式: \n{}'.format(self.controller.saving_format, EXTENSION_KEYS_STRING), '保存格式错误')
+            self.controller.saving_format = self.controller.previous_saving_format
 
     @catch_exc_for_frame_method
     def record_saving_format(self, event=None):
-        self.controls.previous_saving_format = self.controls.saving_format
+        self.controller.previous_saving_format = self.controller.saving_format
 
     @catch_exc_for_frame_method
     def stop_saving_event(self, event):
@@ -234,6 +250,7 @@ class MainFrame(BasicMainFrame):
     def revert_to_default(self, event):
         if self.image_item is None:
             return
+        self.controller.proc_mode = self.mode_manager.default_mode
         self.image_item.settings = self.settings.default.copy()
         self.image_item.settings.backtrack_interface()
         self.refresh_preview()
@@ -245,26 +262,15 @@ class MainFrame(BasicMainFrame):
         self.imageTreeCtrl.CollapseAll()
         if self.imageTreeCtrl.Selection.IsOk() and isinstance(self.tree_manager.selected_item_data, FolderItem):
             self.image_item = None
-            self.controls.gen_image_info()
+            self.controller.gen_image_info()
             self.processingOptions.Disable()
-            self.controls.clear_preview()
-
-    def toggle_factor_slider_switch(self, event: 'CommandEvent'):
-        self.noiseFactor.Enable(event.IsChecked())
-        self.refresh_preview(event)
-
-    def toggle_xor_panel_switch(self, event: 'CommandEvent'):
-        self.xorPanel.Enable(event.IsChecked())
-        self.refresh_preview(event)
-
-    def update_noise_factor_num(self, event: 'CommandEvent' = None):
-        self.controls.noise_factor_info = str(self.controls.noise_factor)
+            self.controller.clear_preview()
 
     def update_quality_num(self, event: 'CommandEvent' = None):
-        self.controls.saving_quality_info = str(self.controls.saving_quality)
+        self.controller.saving_quality_info = str(self.controller.saving_quality)
 
     def update_subsampling_num(self, event: 'CommandEvent' = None):
-        self.controls.saving_subsampling_info = str(self.controls.saving_subsampling_level)
+        self.controller.saving_subsampling_info = str(self.controller.saving_subsampling_level)
 
     def change_redundant_cache_length(self, event: 'SpinEvent'):
         self.startup_parameters.maximum_redundant_cache_length = event.Int

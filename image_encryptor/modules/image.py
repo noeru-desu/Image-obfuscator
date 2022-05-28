@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-04-23 17:10:36
+LastEditTime : 2022-05-27 20:27:55
 Description  : 图像相关工具
 """
 from abc import ABC
@@ -160,9 +160,14 @@ def array_to_bitmap(array: 'ndarray', size: tuple = ...) -> 'Bitmap':
     return Bitmap.FromBufferRGBA(*size, array.data)
 
 
+def buffer_to_bitmap(buffer, width: int, height: int) -> 'Bitmap':
+    return Bitmap.FromBufferRGBA(width, height, buffer)
+
+
 class WrappedImage(ABC):
     __slots__ = ()
     scalable: bool
+    cacheable: bool = True
 
     def __init__(self, array: 'ndarray', size: tuple = ...) -> None:
         raise NotImplementedError()
@@ -186,10 +191,10 @@ class WrappedImage(ABC):
 
 
 class PillowImage(WrappedImage):
-    __slots__ = ('image',)
-    scalable = True
+    __slots__ = ('image', 'scalable')
 
-    def __init__(self, array: 'ndarray', size: tuple = ...) -> None:
+    def __init__(self, array: 'ndarray', size: tuple = ..., scalable=True) -> None:
+        self.scalable = scalable
         self.image = array_to_image(array, size)
 
     @property
@@ -223,11 +228,12 @@ class PillowImage(WrappedImage):
 
 
 class WrappedPillowImage(PillowImage):
-    __slots__ = ('scalable',)
+    __slots__ = ('cacheable',)
 
-    def __init__(self, image: 'PIL_Image.Image', scalable=True) -> None:
+    def __init__(self, image: 'PIL_Image.Image', scalable=True, cacheable=True) -> None:
         self.image = image
         self.scalable = scalable
+        self.cacheable = cacheable
 
 
 class wxImage(WrappedImage):

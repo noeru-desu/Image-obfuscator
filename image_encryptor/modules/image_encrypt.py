@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-21 07:59:22
+LastEditTime : 2022-05-24 21:16:16
 Description  : 图像加密模块
 """
 from copy import copy
@@ -25,14 +25,14 @@ from image_encryptor.utils.misc_utils import FakeBar
 
 if TYPE_CHECKING:
     from numpy import ndarray
-    from image_encryptor.frame.controls import Channels
+    from image_encryptor.modes.base import Channels
 
 
 channel_num = {'r': 0, 'g': 1, 'b': 2, 'a': 3}
 random = Random()
 
 
-class ImageEncryptBaseV2(object):
+class BaseImageEncryptV2(object):
     """
     用于图像的加解密(1.0.0-rc.12 ~ 1.2.1)
     """
@@ -130,7 +130,7 @@ class ImageEncryptBaseV2(object):
         bar.finish()
         return self.image
 
-    def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
+    def xor_pixels(self, channels: 'Channels', noise=False, noise_factor=255):
         """
         :description: 异或图像中每个像素点的RGB(A)通道
         :return: 异或后的图像
@@ -140,18 +140,18 @@ class ImageEncryptBaseV2(object):
         w, h = self.image.size
         if noise:
             noise_array = random_noise(h, w, len(channels), self._shuffle.seed, noise_factor)
-            for index, channel in enumerate(channels):
-                pixel_array[:, :, channel_num[channel]] ^= noise_array[:, :, index]
+            for index, channel in enumerate(channels.channels_id):
+                pixel_array[:, :, channel] ^= noise_array[:, :, index]
         else:
             random.seed(self._shuffle.seed)
             xor_num = random.randrange(256)
-            for channel in channels:
-                pixel_array[:, :, channel_num[channel]] ^= xor_num
+            for channel in channels.channels_id:
+                pixel_array[:, :, channel] ^= xor_num
         self.image = array_to_image(pixel_array, (w, h))
         return self.image
 
 
-class ImageEncryptBaseV1(ImageEncryptBaseV2):
+class BaseImageEncryptV1(BaseImageEncryptV2):
     """
     用于图像的加解密(0.1.0 ~ 1.0.0-rc.11)
     """
@@ -190,7 +190,7 @@ class ImageEncryptBaseV1(ImageEncryptBaseV2):
         bar.finish()
 
 
-class ImageEncryptBaseV3(object):
+class BaseImageEncryptV3(object):
     """
     用于图像的加解密(1.3.0 ~)
     """
@@ -287,7 +287,7 @@ class ImageEncryptBaseV3(object):
         self.image_array = new_image_array
         return new_image_array, self.ceil_size
 
-    def xor_pixels(self, channels='rgb', noise=False, noise_factor=255):
+    def xor_pixels(self, channels: 'Channels', noise=False, noise_factor=255):
         """
         :description: 异或图像中每个像素点的RGB(A)通道
         :return: 异或后的图像
@@ -295,13 +295,13 @@ class ImageEncryptBaseV3(object):
         size = self.image_array.shape[:-1]
         if noise:
             noise_array = random_noise(*size, len(channels), self._shuffle.seed, noise_factor)
-            for index, channel in enumerate(channels):
-                self.image_array[:, :, channel_num[channel]] ^= noise_array[:, :, index]
+            for index, channel in enumerate(channels.channels_id):
+                self.image_array[:, :, channel] ^= noise_array[:, :, index]
         else:
             random.seed(self._shuffle.seed)
             xor_num = random.randrange(256)
-            for channel in channels:
-                self.image_array[:, :, channel_num[channel]] ^= xor_num
+            for channel in channels.channels_id:
+                self.image_array[:, :, channel] ^= xor_num
         return self.image_array, size[::-1]
 
 
@@ -309,12 +309,12 @@ class ImageEncrypt(object):
     __slots__ = ('base',)
 
     def __init__(self, image: Image.Image, row: int, col: int, random_seed, version=EA_VERSION) -> None:
-        if version == 7:
-            self.base = ImageEncryptBaseV3(image, row, col, random_seed)
+        if version >= 7:
+            self.base = BaseImageEncryptV3(image, row, col, random_seed)
         elif version >= 5:
-            self.base = ImageEncryptBaseV2(image, row, col, random_seed)
+            self.base = BaseImageEncryptV2(image, row, col, random_seed)
         else:
-            self.base = ImageEncryptBaseV1(image, row, col, random_seed)
+            self.base = BaseImageEncryptV1(image, row, col, random_seed)
 
     def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: 'Channels', bar=FakeBar):
         return self.base.init_block_data(False, shuffle, flip, mapped_channels, bar)
@@ -330,12 +330,12 @@ class ImageDecrypt(object):
     __slots__ = ('base',)
 
     def __init__(self, image: Image.Image, row: int, col: int, random_seed, version=EA_VERSION) -> None:
-        if version == 7:
-            self.base = ImageEncryptBaseV3(image, row, col, random_seed)
+        if version >= 7:
+            self.base = BaseImageEncryptV3(image, row, col, random_seed)
         elif version >= 5:
-            self.base = ImageEncryptBaseV2(image, row, col, random_seed)
+            self.base = BaseImageEncryptV2(image, row, col, random_seed)
         else:
-            self.base = ImageEncryptBaseV1(image, row, col, random_seed)
+            self.base = BaseImageEncryptV1(image, row, col, random_seed)
 
     def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: 'Channels', bar=FakeBar):
         return self.base.init_block_data(True, shuffle, flip, mapped_channels, bar)

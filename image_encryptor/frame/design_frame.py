@@ -17,52 +17,50 @@ import wx.xrc
 
 class MainFrame (wx.Frame):
     __slots__ = (
-        'XORA', 'XORB', 'XOREncryption', 'XORG', 'XORR', 'XorFilter', 'collapseAllBtn', 'cuttingCol', 'cuttingRow',
-        'decryptionFilter', 'delBtn', 'disableCache', 'encryptionFilter', 'expandAllBtn', 'flipChunks', 'flipFilter', 'imageInfo',
-        'imagePanel', 'imageTreeCtrl', 'imageTreePanel', 'imageTreeSearchCtrl', 'importedBitmap', 'importedBitmapPanel',
-        'loadingClipboardBtn', 'loadingFileBtn', 'loadingPanel', 'loadingPrograss', 'loadingPrograssInfo', 'loadingPrograssPanel',
-        'lowMemoryMode', 'm_button31', 'm_button311', 'm_button312', 'm_button6', 'm_button8', 'm_panel25', 'm_staticText12',
-        'm_staticText14', 'm_staticText141', 'm_staticText34', 'm_staticText8', 'm_staticText81', 'm_staticText82',
-        'm_staticText82111', 'm_staticText8212', 'm_staticText9', 'm_staticline31', 'm_staticline4', 'manuallyRefreshBtn',
-        'mappingA', 'mappingB', 'mappingFilter', 'mappingG', 'mappingR', 'maxImagePixels', 'noiseFactor', 'noiseFactorNum',
-        'noiseXor', 'otherOptions', 'passwordCtrl', 'passwordFilter', 'previewMode', 'previewOptions', 'previewProgress',
-        'previewProgressInfo', 'previewSource', 'previewedBitmap', 'previewedBitmapPanel', 'procMode', 'processingOptions',
-        'processingSettingsPanel', 'qqFilter', 'qualityInfo', 'redundantCacheLength', 'reloadingBtn', 'resamplingFilter',
-        'savingBtn', 'savingBtnPanel', 'savingFilters', 'savingFormat', 'savingOptions', 'savingPrograssPanel', 'savingProgress',
-        'savingProgressInfo', 'savingQuality', 'selectSavingPath', 'settingsPanel', 'shuffleChunks', 'shuffleFilter',
-        'stopLoadingBtn', 'stopSavingBtn', 'subsamplingInfo', 'subsamplingLevel', 'xorPanel'
+        'XorFilter', 'collapseAllBtn', 'decryptionFilter', 'delBtn', 'disableCache', 'encryptionFilter', 'expandAllBtn',
+        'flipFilter', 'imageInfo', 'imagePanel', 'imageTreeCtrl', 'imageTreePanel', 'imageTreeSearchCtrl', 'importedBitmap',
+        'importedBitmapPanel', 'loadingClipboardBtn', 'loadingFileBtn', 'loadingPanel', 'loadingProgress', 'loadingProgressInfo',
+        'loadingProgressPanel', 'lowMemoryMode', 'm_button31', 'm_button311', 'm_button312', 'm_button6', 'm_button8', 'm_panel25',
+        'm_staticText12', 'm_staticText14', 'm_staticText34', 'm_staticText81', 'm_staticText82', 'm_staticText82111',
+        'm_staticText8212', 'm_staticline31', 'm_staticline4', 'manuallyRefreshBtn', 'mappingFilter', 'maxImagePixels',
+        'otherOptions', 'passwordCtrl', 'passwordFilter', 'previewMode', 'previewOptions', 'previewProgress',
+        'previewProgressInfo', 'previewSource', 'previewedBitmap', 'previewedBitmapPanel', 'procMode',
+        'procSettingsPanelContainer', 'processingOptions', 'qqFilter', 'qualityInfo', 'redundantCacheLength', 'reloadingBtn',
+        'resamplingFilter', 'savingBtn', 'savingBtnPanel', 'savingFilters', 'savingFormat', 'savingOptions', 'savingProgress',
+        'savingProgressInfo', 'savingProgressPanel', 'savingQuality', 'selectSavingPath', 'settingsPanel', 'shuffleFilter',
+        'stopLoadingBtn', 'stopSavingBtn', 'subsamplingInfo', 'subsamplingLevel'
     )
 
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=u"Image Encryptor", pos=wx.DefaultPosition, size=wx.Size(790, 900), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL, name=u"Image Encryptor")
 
-        self.SetSizeHints(wx.Size(790, 640), wx.DefaultSize)
+        self.SetSizeHints(wx.Size(590, 640), wx.DefaultSize)
         self.SetFont(wx.Font(9, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Segoe UI"))
         self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
 
         bSizer26 = wx.BoxSizer(wx.VERTICAL)
 
-        self.loadingPrograssPanel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.loadingPrograssPanel.Hide()
+        self.loadingProgressPanel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.loadingProgressPanel.Hide()
 
         bSizer263 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.stopLoadingBtn = wx.Button(self.loadingPrograssPanel, wx.ID_ANY, u"停止载入", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.stopLoadingBtn = wx.Button(self.loadingProgressPanel, wx.ID_ANY, u"停止载入", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer263.Add(self.stopLoadingBtn, 0, wx.ALL, 5)
 
-        self.loadingPrograss = wx.Gauge(self.loadingPrograssPanel, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL | wx.GA_SMOOTH)
-        self.loadingPrograss.SetValue(0)
-        bSizer263.Add(self.loadingPrograss, 1, wx.ALIGN_CENTER | wx.ALL, 5)
+        self.loadingProgress = wx.Gauge(self.loadingProgressPanel, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL | wx.GA_SMOOTH)
+        self.loadingProgress.SetValue(0)
+        bSizer263.Add(self.loadingProgress, 1, wx.ALIGN_CENTER | wx.ALL, 5)
 
-        self.loadingPrograssInfo = wx.StaticText(self.loadingPrograssPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
-        self.loadingPrograssInfo.Wrap(-1)
+        self.loadingProgressInfo = wx.StaticText(self.loadingProgressPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.loadingProgressInfo.Wrap(-1)
 
-        bSizer263.Add(self.loadingPrograssInfo, 1, wx.ALIGN_CENTER | wx.ALIGN_LEFT | wx.ALL, 5)
+        bSizer263.Add(self.loadingProgressInfo, 1, wx.ALIGN_CENTER | wx.ALIGN_LEFT | wx.ALL, 5)
 
-        self.loadingPrograssPanel.SetSizer(bSizer263)
-        self.loadingPrograssPanel.Layout()
-        bSizer263.Fit(self.loadingPrograssPanel)
-        bSizer26.Add(self.loadingPrograssPanel, 0, wx.ALL | wx.EXPAND, 5)
+        self.loadingProgressPanel.SetSizer(bSizer263)
+        self.loadingProgressPanel.Layout()
+        bSizer263.Fit(self.loadingProgressPanel)
+        bSizer26.Add(self.loadingProgressPanel, 0, wx.ALL | wx.EXPAND, 5)
 
         self.loadingPanel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.Size(-1, -1), wx.TAB_TRAVERSAL)
         bSizer91 = wx.BoxSizer(wx.HORIZONTAL)
@@ -192,10 +190,16 @@ class MainFrame (wx.Frame):
 
         bSizer282 = wx.BoxSizer(wx.VERTICAL)
 
-        procModeChoices = [u"加密模式", u"解密模式", u"QQ反屏蔽"]
-        self.procMode = wx.RadioBox(self.processingOptions, wx.ID_ANY, u"处理模式", wx.DefaultPosition, wx.DefaultSize, procModeChoices, 1, wx.RA_SPECIFY_COLS)
-        self.procMode.SetSelection(0)
-        bSizer282.Add(self.procMode, 1, wx.ALIGN_CENTER | wx.ALL, 3)
+        sbSizer10 = wx.StaticBoxSizer(wx.StaticBox(self.processingOptions, wx.ID_ANY, u"处理模式"), wx.VERTICAL)
+
+        procModeChoices = []
+        self.procMode = wx.ListBox(sbSizer10.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, procModeChoices, wx.LB_NEEDED_SB | wx.LB_SINGLE)
+        self.procMode.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Segoe UI Variable Display Semib"))
+        self.procMode.SetMaxSize(wx.Size(-1, 120))
+
+        sbSizer10.Add(self.procMode, 1, wx.EXPAND, 5)
+
+        bSizer282.Add(sbSizer10, 1, wx.EXPAND, 5)
 
         self.m_staticText12 = wx.StaticText(self.processingOptions, wx.ID_ANY, u"添加密码到密码字典", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText12.Wrap(-1)
@@ -210,143 +214,8 @@ class MainFrame (wx.Frame):
 
         bSizer12.Add(bSizer282, 0, wx.EXPAND, 5)
 
-        self.processingSettingsPanel = wx.Panel(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        bSizer33 = wx.BoxSizer(wx.HORIZONTAL)
-
-        bSizer13 = wx.BoxSizer(wx.VERTICAL)
-
-        bSizer131 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_staticText8 = wx.StaticText(self.processingSettingsPanel, wx.ID_ANY, u"切割行数", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText8.Wrap(-1)
-
-        bSizer131.Add(self.m_staticText8, 0, wx.ALIGN_CENTER | wx.ALL, 5)
-
-        self.cuttingRow = wx.SpinCtrl(self.processingSettingsPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(60, -1), wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 1, 100000000, 25)
-        bSizer131.Add(self.cuttingRow, 0, wx.ALL, 3)
-
-        bSizer13.Add(bSizer131, 0, wx.EXPAND, 5)
-
-        bSizer15 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_staticText9 = wx.StaticText(self.processingSettingsPanel, wx.ID_ANY, u"切割列数", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText9.Wrap(-1)
-
-        bSizer15.Add(self.m_staticText9, 0, wx.ALIGN_CENTER | wx.ALL, 5)
-
-        self.cuttingCol = wx.SpinCtrl(self.processingSettingsPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(60, -1), wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 1, 100000000, 25)
-        bSizer15.Add(self.cuttingCol, 0, wx.ALL | wx.EXPAND, 3)
-
-        bSizer13.Add(bSizer15, 0, wx.EXPAND, 5)
-
-        self.shuffleChunks = wx.CheckBox(self.processingSettingsPanel, wx.ID_ANY, u"随机打乱分块", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.shuffleChunks.SetValue(True)
-        bSizer13.Add(self.shuffleChunks, 0, wx.ALL, 5)
-
-        self.flipChunks = wx.CheckBox(self.processingSettingsPanel, wx.ID_ANY, u"随机翻转分块", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.flipChunks.SetValue(True)
-        bSizer13.Add(self.flipChunks, 0, wx.ALL, 5)
-
-        mappingSizer = wx.StaticBoxSizer(wx.StaticBox(self.processingSettingsPanel, wx.ID_ANY, u"分块随机通道映射"), wx.HORIZONTAL)
-
-        self.mappingR = wx.CheckBox(mappingSizer.GetStaticBox(), wx.ID_ANY, u"R", wx.DefaultPosition, wx.Size(-1, -1), 0)
-        self.mappingR.SetToolTip(u"红色通道")
-
-        mappingSizer.Add(self.mappingR, 0, 0, 0)
-
-        self.mappingG = wx.CheckBox(mappingSizer.GetStaticBox(), wx.ID_ANY, u"G", wx.DefaultPosition, wx.Size(-1, -1), 0)
-        self.mappingG.SetToolTip(u"绿色通道")
-
-        mappingSizer.Add(self.mappingG, 0, 0, 0)
-
-        self.mappingB = wx.CheckBox(mappingSizer.GetStaticBox(), wx.ID_ANY, u"B", wx.DefaultPosition, wx.Size(-1, -1), 0)
-        self.mappingB.SetToolTip(u"蓝色通道")
-
-        mappingSizer.Add(self.mappingB, 0, 0, 0)
-
-        self.mappingA = wx.CheckBox(mappingSizer.GetStaticBox(), wx.ID_ANY, u"A", wx.DefaultPosition, wx.Size(-1, -1), 0)
-        self.mappingA.SetToolTip(u"透明通道")
-
-        mappingSizer.Add(self.mappingA, 0, 0, 0)
-
-        bSizer13.Add(mappingSizer, 0, wx.ALL, 3)
-
-        self.XOREncryption = wx.CheckBox(self.processingSettingsPanel, wx.ID_ANY, u"使用异或加密", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer13.Add(self.XOREncryption, 0, wx.ALL, 5)
-
-        bSizer33.Add(bSizer13, 0, wx.EXPAND, 5)
-
-        xorSizer = wx.StaticBoxSizer(wx.StaticBox(self.processingSettingsPanel, wx.ID_ANY, u"异或加密"), wx.HORIZONTAL)
-
-        self.xorPanel = wx.Panel(xorSizer.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        bSizer47 = wx.BoxSizer(wx.HORIZONTAL)
-
-        bSizer42 = wx.BoxSizer(wx.VERTICAL)
-
-        self.XORR = wx.CheckBox(self.xorPanel, wx.ID_ANY, u"R", wx.DefaultPosition, wx.Size(-1, -1), 0)
-        self.XORR.SetValue(True)
-        self.XORR.SetToolTip(u"红色通道")
-
-        bSizer42.Add(self.XORR, 0, wx.ALL, 0)
-
-        self.XORG = wx.CheckBox(self.xorPanel, wx.ID_ANY, u"G", wx.DefaultPosition, wx.Size(-1, -1), 0)
-        self.XORG.SetValue(True)
-        self.XORG.SetToolTip(u"绿色通道")
-
-        bSizer42.Add(self.XORG, 0, wx.ALL, 0)
-
-        self.XORB = wx.CheckBox(self.xorPanel, wx.ID_ANY, u"B", wx.DefaultPosition, wx.Size(-1, -1), 0)
-        self.XORB.SetValue(True)
-        self.XORB.SetToolTip(u"蓝色通道")
-
-        bSizer42.Add(self.XORB, 0, wx.ALL, 0)
-
-        self.XORA = wx.CheckBox(self.xorPanel, wx.ID_ANY, u"A", wx.DefaultPosition, wx.Size(-1, -1), 0)
-        self.XORA.SetToolTip(u"透明通道")
-
-        bSizer42.Add(self.XORA, 0, wx.ALL, 0)
-
-        bSizer47.Add(bSizer42, 0, 0, 0)
-
-        bSizer44 = wx.BoxSizer(wx.VERTICAL)
-
-        self.noiseXor = wx.CheckBox(self.xorPanel, wx.ID_ANY, u"噪音", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_RIGHT)
-        self.noiseXor.SetToolTip(u"使用随机的数值异或每一像素")
-
-        bSizer44.Add(self.noiseXor, 0, wx.ALIGN_RIGHT | wx.ALL, 0)
-
-        bSizer331 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_staticText141 = wx.StaticText(self.xorPanel, wx.ID_ANY, u"系数:", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText141.Wrap(-1)
-
-        bSizer331.Add(self.m_staticText141, 0, wx.ALIGN_CENTER | wx.ALL, 0)
-
-        self.noiseFactorNum = wx.StaticText(self.xorPanel, wx.ID_ANY, u"128", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.noiseFactorNum.Wrap(-1)
-
-        bSizer331.Add(self.noiseFactorNum, 0, wx.ALIGN_CENTER | wx.ALL, 0)
-
-        bSizer44.Add(bSizer331, 0, wx.EXPAND, 0)
-
-        self.noiseFactor = wx.Slider(self.xorPanel, wx.ID_ANY, 128, 1, 255, wx.DefaultPosition, wx.Size(-1, 90), wx.SL_BOTH | wx.SL_INVERSE | wx.SL_VERTICAL)
-        self.noiseFactor.Enable(False)
-
-        bSizer44.Add(self.noiseFactor, 1, wx.ALIGN_CENTER | wx.ALL, 0)
-
-        bSizer47.Add(bSizer44, 0, wx.EXPAND, 0)
-
-        self.xorPanel.SetSizer(bSizer47)
-        self.xorPanel.Layout()
-        bSizer47.Fit(self.xorPanel)
-        xorSizer.Add(self.xorPanel, 0, wx.ALL | wx.EXPAND, 0)
-
-        bSizer33.Add(xorSizer, 0, wx.ALL | wx.EXPAND, 3)
-
-        self.processingSettingsPanel.SetSizer(bSizer33)
-        self.processingSettingsPanel.Layout()
-        bSizer33.Fit(self.processingSettingsPanel)
-        bSizer12.Add(self.processingSettingsPanel, 0, wx.EXPAND, 5)
+        self.procSettingsPanelContainer = wx.Panel(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        bSizer12.Add(self.procSettingsPanelContainer, 5, wx.EXPAND, 0)
 
         bSizer31 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -384,7 +253,7 @@ class MainFrame (wx.Frame):
         self.m_staticline4 = wx.StaticLine(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_VERTICAL)
         bSizer31.Add(self.m_staticline4, 0, wx.ALL | wx.EXPAND, 5)
 
-        bSizer12.Add(bSizer31, 1, wx.EXPAND, 5)
+        bSizer12.Add(bSizer31, 0, wx.EXPAND, 5)
 
         bSizer12.Add((0, 0), 1, 0, 5)
 
@@ -614,27 +483,27 @@ class MainFrame (wx.Frame):
         bSizer20.Fit(self.savingBtnPanel)
         bSizer264.Add(self.savingBtnPanel, 0, wx.EXPAND | wx.ALL, 0)
 
-        self.savingPrograssPanel = wx.Panel(self.savingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.savingPrograssPanel.Hide()
+        self.savingProgressPanel = wx.Panel(self.savingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.savingProgressPanel.Hide()
 
         bSizer231 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.stopSavingBtn = wx.Button(self.savingPrograssPanel, wx.ID_ANY, u"取消尚未进行的任务", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.stopSavingBtn = wx.Button(self.savingProgressPanel, wx.ID_ANY, u"取消尚未进行的任务", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer231.Add(self.stopSavingBtn, 0, wx.ALL, 5)
 
-        self.savingProgress = wx.Gauge(self.savingPrograssPanel, wx.ID_ANY, 200, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL)
+        self.savingProgress = wx.Gauge(self.savingProgressPanel, wx.ID_ANY, 200, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL)
         self.savingProgress.SetValue(0)
         bSizer231.Add(self.savingProgress, 2, wx.ALIGN_CENTER | wx.ALL, 5)
 
-        self.savingProgressInfo = wx.StaticText(self.savingPrograssPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.savingProgressInfo = wx.StaticText(self.savingProgressPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         self.savingProgressInfo.Wrap(-1)
 
         bSizer231.Add(self.savingProgressInfo, 1, wx.ALIGN_CENTER | wx.ALIGN_LEFT | wx.ALL, 5)
 
-        self.savingPrograssPanel.SetSizer(bSizer231)
-        self.savingPrograssPanel.Layout()
-        bSizer231.Fit(self.savingPrograssPanel)
-        bSizer264.Add(self.savingPrograssPanel, 0, wx.EXPAND | wx.ALL, 0)
+        self.savingProgressPanel.SetSizer(bSizer231)
+        self.savingProgressPanel.Layout()
+        bSizer231.Fit(self.savingProgressPanel)
+        bSizer264.Add(self.savingProgressPanel, 0, wx.EXPAND | wx.ALL, 0)
 
         self.savingOptions.SetSizer(bSizer264)
         self.savingOptions.Layout()
@@ -723,26 +592,8 @@ class MainFrame (wx.Frame):
         self.collapseAllBtn.Bind(wx.EVT_BUTTON, self.collapse_all_item)
         self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.switched_image)
         self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGING, self.switching_image)
-        self.procMode.Bind(wx.EVT_RADIOBOX, self.processing_mode_change)
+        self.procMode.Bind(wx.EVT_LISTBOX, self.processing_mode_change)
         self.passwordCtrl.Bind(wx.EVT_TEXT_ENTER, self.update_password_dict)
-        self.cuttingRow.Bind(wx.EVT_SPINCTRL, self.refresh_preview)
-        self.cuttingRow.Bind(wx.EVT_TEXT_ENTER, self.refresh_preview)
-        self.cuttingCol.Bind(wx.EVT_SPINCTRL, self.refresh_preview)
-        self.cuttingCol.Bind(wx.EVT_TEXT_ENTER, self.refresh_preview)
-        self.shuffleChunks.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.flipChunks.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.mappingR.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.mappingG.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.mappingB.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.mappingA.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.XOREncryption.Bind(wx.EVT_CHECKBOX, self.toggle_xor_panel_switch)
-        self.XORR.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.XORG.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.XORB.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.XORA.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.noiseXor.Bind(wx.EVT_CHECKBOX, self.toggle_factor_slider_switch)
-        self.noiseFactor.Bind(wx.EVT_SCROLL, self.update_noise_factor_num)
-        self.noiseFactor.Bind(wx.EVT_SCROLL_CHANGED, self.refresh_preview)
         self.m_button31.Bind(wx.EVT_BUTTON, self.apply_to_all)
         self.m_button311.Bind(wx.EVT_BUTTON, self.set_settings_as_default)
         self.m_button312.Bind(wx.EVT_BUTTON, self.revert_to_default)
@@ -808,18 +659,6 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def update_password_dict(self, event):
-        event.Skip()
-
-    def refresh_preview(self, event):
-        event.Skip()
-
-    def toggle_xor_panel_switch(self, event):
-        event.Skip()
-
-    def toggle_factor_slider_switch(self, event):
-        event.Skip()
-
-    def update_noise_factor_num(self, event):
         event.Skip()
 
     def apply_to_all(self, event):

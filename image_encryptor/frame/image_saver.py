@@ -19,12 +19,12 @@ import image_encryptor.modes.antishield as antishield
 import image_encryptor.modes.decrypt as decrypt
 import image_encryptor.modes.encrypt as encrypt
 from image_encryptor.constants import DialogReturnCodes, ProcModes
-from image_encryptor.frame.controls import ProgressBar
+from image_encryptor.frame.controller import ProgressBar
 from image_encryptor.frame.file_item import ImageItem
 
 if TYPE_CHECKING:
     from concurrent.futures import Future
-    from image_encryptor.frame.controls import Settings
+    from image_encryptor.frame.controller import Settings
     from image_encryptor.frame.events import MainFrame
 
 ENABLE = 2
@@ -70,10 +70,10 @@ class ImageSaver(object):
             return
         self.show_saving_progress_plane(False)
         if not self.frame.update_password_dict():   # 检查密码栏内容是否合法
-            self.frame.controls.password = 'none'
+            self.frame.controller.password = 'none'
         cache = self.frame.image_item.cache.previews.get_scalable_cache(self.frame.settings.encryption_settings_hash)
         if cache is None:
-            match self.frame.controls.proc_mode:
+            match self.frame.controller.proc_mode:
                 case ProcModes.encryption_mode:
                     self.saving_thread_pool.submit(
                         encrypt.normal,
@@ -96,7 +96,7 @@ class ImageSaver(object):
             settings = self.frame.settings.all
             self.frame.savingProgress.SetValue(50)
             self.frame.savingProgressInfo.SetLabelText('正在保存文件')
-            match self.frame.controls.proc_mode:
+            match self.frame.controller.proc_mode:
                 case ProcModes.encryption_mode:
                     self.saving_thread_pool.submit(
                         encrypt.save_image,
@@ -126,7 +126,7 @@ class ImageSaver(object):
         if error is not None:
             self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
         else:
-            self.frame.controls.display_and_cache_processed_preview(data)     # 顺便刷新一下预览图
+            self.frame.controller.display_and_cache_processed_preview(data)     # 顺便刷新一下预览图
 
     def _save_selected_image_from_cache_call_back(self, future: 'Future'):
         """保存选中的图像完成后的回调函数"""
@@ -191,7 +191,7 @@ class ImageSaver(object):
                         ), self._bulk_save_callback)
                     case ProcModes.decryption_mode:
                         image_item.cache.encryption_parameters.password = self.frame.password_dict.get_password(
-                            image_item.cache.encryption_parameters.password_base64
+                            image_item.cache.encryption_parameters.password_base85
                         )
                         if image_item.cache.encryption_parameters.password is None:
                             self.frame.logger.warning(f'[{image_item.path_data.file_name}]未找到密码，跳过保存')
@@ -205,23 +205,23 @@ class ImageSaver(object):
                             antishield.batch, image_data, self.frame.settings.saving_settings.properties_tuple, uf
                         ), self._bulk_save_callback)
             else:   # 如果存在原始图像处理结果缓存则直接保存缓存
-                match self.frame.controls.proc_mode:
+                match self.frame.controller.proc_mode:
                     case ProcModes.encryption_mode:
                         self.saving_thread_pool.submit(encrypt.save_image,
-                            cache, image_item.path_data, self.frame.controls.saving_path, self.frame.controls.saving_format, self.frame.controls.saving_quality,
-                            self.frame.controls.saving_subsampling_level,
+                            cache, image_item.path_data, self.frame.controller.saving_path, self.frame.controller.saving_format, self.frame.controller.saving_quality,
+                            self.frame.controller.saving_subsampling_level,
                             image_item.settings.encryption_parameters_data(*image_item.cache.loaded_image.size).encryption_parameters_dict,
                             uf
                         ).add_done_callback(self._bulk_save_callback)
                     case ProcModes.decryption_mode:
                         self.saving_thread_pool.submit(decrypt.save_image,
-                            cache, image_item.path_data, self.frame.controls.saving_path, self.frame.controls.saving_format, self.frame.controls.saving_quality,
-                            self.frame.controls.saving_subsampling_level, uf
+                            cache, image_item.path_data, self.frame.controller.saving_path, self.frame.controller.saving_format, self.frame.controller.saving_quality,
+                            self.frame.controller.saving_subsampling_level, uf
                         ).add_done_callback(self._bulk_save_callback)
                     case ProcModes.antishield_mode:
                         self.saving_thread_pool.submit(antishield.save_image,
-                            cache, image_item.path_data, self.frame.controls.saving_path, self.frame.controls.saving_format, self.frame.controls.saving_quality,
-                            self.frame.controls.saving_subsampling_level, uf
+                            cache, image_item.path_data, self.frame.controller.saving_path, self.frame.controller.saving_format, self.frame.controller.saving_quality,
+                            self.frame.controller.saving_subsampling_level, uf
                         ).add_done_callback(self._bulk_save_callback)
 
             self.task_num += 1
@@ -241,11 +241,11 @@ class ImageSaver(object):
 
     def _check_dir(self, image_item: 'ImageItem'):
         """文件夹相关检查"""
-        if not listdir(self.frame.controls.saving_path):     # 是否为空文件夹
+        if not listdir(self.frame.controller.saving_path):     # 是否为空文件夹
             return DO_NOT_USE_FOLDER
         if image_item.path_data.relative_path:               # 是否有多级文件夹可使用
             match self.frame.dialog.confirmation_frame(
-                    '{}所选的保存文件夹{}内有其他文件\n请选择处理方式'.format(image_item.path_data.file_name, self.frame.controls.saving_path),
+                    '{}所选的保存文件夹{}内有其他文件\n请选择处理方式'.format(image_item.path_data.file_name, self.frame.controller.saving_path),
                     yes='仍然保存', no='选择新的文件夹进行保存', cancel='创建文件树同级文件夹保存', help='跳过保存该文件'
                 ):
                 case DialogReturnCodes.yes:
@@ -257,7 +257,7 @@ class ImageSaver(object):
             return
         else:
             match self.frame.dialog.confirmation_frame(
-                    '{}所选的保存文件夹{}内有其他文件\n请选择处理方式'.format(image_item.path_data.file_name, self.frame.controls.saving_path),
+                    '{}所选的保存文件夹{}内有其他文件\n请选择处理方式'.format(image_item.path_data.file_name, self.frame.controller.saving_path),
                     yes='仍然保存', no='选择新的文件夹进行保存', cancel='跳过保存该文件'
                 ):
                 case DialogReturnCodes.yes:
@@ -270,7 +270,7 @@ class ImageSaver(object):
         """选择文件夹"""
         dialog = DirDialog(self, "选择文件夹", default_path, DIRP_CHANGE_DIR | DIRP_DIR_MUST_EXIST)
         if DialogReturnCodes.ok == dialog.ShowModal():
-            self.frame.controls.saving_path = dialog.GetPath()
+            self.frame.controller.saving_path = dialog.GetPath()
             return DO_NOT_USE_FOLDER
 
     def _bulk_save_callback(self, future, tag_name=None, result=(None, None)):
@@ -281,7 +281,7 @@ class ImageSaver(object):
             if error is not None:
                 self.frame.dialog.async_error(data, '生成加密图像时出现意外错误')
             self.bar.add()
-            self.frame.controls.saving_progress_info = f"{self.bar.value}/{self.task_num} - {format(self.bar.value / self.task_num * 100, '.2f')}%"
+            self.frame.controller.saving_progress_info = f"{self.bar.value}/{self.task_num} - {format(self.bar.value / self.task_num * 100, '.2f')}%"
             if self.bar.value == self.task_num:
                 self.frame.logger.info('完成了所有任务')
                 self.hide_saving_progress_plane()
@@ -297,10 +297,10 @@ class ImageSaver(object):
 
     def _check(self):
         """常规合法性检查"""
-        if not isdir(self.frame.controls.saving_path):
+        if not isdir(self.frame.controller.saving_path):
             path = self.frame.dialog.select_dir('选择保存位置')
             if path is not None:
-                self.frame.controls.saving_path = path
+                self.frame.controller.saving_path = path
                 return False
             self.frame.dialog.error('没有选择保存文件夹或选择的文件夹不存在', '保存时出现错误')
             return True
@@ -313,15 +313,15 @@ class ImageSaver(object):
         if self.progress_plane_displayed:
             return
         self.progress_plane_displayed = True
-        self.frame.controls.saving_progress = 0
-        self.frame.controls.saving_progress_info = ''
+        self.frame.controller.saving_progress = 0
+        self.frame.controller.saving_progress_info = ''
         if btn:
             self.frame.stopSavingBtn.Enable()
             self.frame.stopSavingBtn.Show()
         else:
             self.frame.stopSavingBtn.Hide()
         self.frame.savingBtnPanel.Hide()
-        self.frame.savingPrograssPanel.Show()
+        self.frame.savingProgressPanel.Show()
         self.frame.imageTreeCtrl.Disable()
         self.frame.savingFilters.Disable()
         self.frame.processingOptions.Disable()
@@ -331,7 +331,7 @@ class ImageSaver(object):
         if not self.progress_plane_displayed:
             return
         self.progress_plane_displayed = False
-        self.frame.savingPrograssPanel.Hide()
+        self.frame.savingProgressPanel.Hide()
         self.frame.savingBtnPanel.Show()
         self.frame.imageTreeCtrl.Enable()
         self.frame.savingFilters.Enable()

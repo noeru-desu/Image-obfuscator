@@ -2,16 +2,16 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-21 07:48:20
+LastEditTime : 2022-05-28 19:28:31
 Description  : 主要针对QQ群的图像反阻止发送功能
 """
 from os import makedirs
 from os.path import isdir, join, splitext
-from typing import TYPE_CHECKING, Callable, Union
+from typing import TYPE_CHECKING, Callable, Union, Type
 
 from PIL import Image
 
-from image_encryptor.frame.controls import SavingSettings
+from image_encryptor.frame.controller import SavingSettings
 from image_encryptor.modules.image_encrypt import AntiShield
 from image_encryptor.modules.image import WrappedPillowImage
 from image_encryptor.modules.decorator import catch_exc_and_return
@@ -20,28 +20,37 @@ if TYPE_CHECKING:
     from wx import Gauge
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.file_item import PathData
-    from image_encryptor.modules.image import PillowImage
+    from image_encryptor.modes.base import EmptySettings
+    from image_encryptor.modes.antishield import ModeInterface
+    from image_encryptor.modules.image import PillowImage, ImageData
 
 
-@catch_exc_and_return
-def normal(frame: 'MainFrame', logger: Callable, gauge: 'Gauge', image: 'Image.Image', save: bool, scalable: bool) -> 'WrappedPillowImage':
-    logger('开始处理')
+def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'EmptySettings', label_text_setter: Callable, gauge: 'Gauge') -> 'WrappedPillowImage':
+    label_text_setter('开始处理')
 
-    image = WrappedPillowImage(AntiShield(image).generate_image(), scalable)
+    image = WrappedPillowImage(AntiShield(source).generate_image(), original)
 
-    if save:
-        gauge.SetValue(50)
-        logger('完成, 正在保存文件')
-        _save_image(
-            image, frame.image_item.path_data, frame.controls.saving_path, frame.controls.saving_format,
-            frame.controls.saving_quality, frame.controls.saving_subsampling_level
-        )
     gauge.SetValue(100)
-    logger('完成')
+    label_text_setter('完成')
     return image
 
 
-@catch_exc_and_return
+def normal_save(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'EmptySettings', label_text_setter: Callable, gauge: 'Gauge') -> 'WrappedPillowImage':
+    label_text_setter('开始处理')
+
+    image = WrappedPillowImage(AntiShield(source).generate_image(), original)
+
+    gauge.SetValue(50)
+    label_text_setter('完成, 正在保存文件')
+    _save_image(
+        image, frame.image_item.path_data, frame.controller.saving_path, frame.controller.saving_format,
+        frame.controller.saving_quality, frame.controller.saving_subsampling_level
+    )
+    gauge.SetValue(100)
+    label_text_setter('完成')
+    return image
+
+
 def batch(image_data, path_data: 'PathData', saving_settings, auto_folder):
     saving_settings = SavingSettings(saving_settings)
 

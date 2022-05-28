@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-14 19:35:16
+LastEditTime : 2022-05-28 20:06:23
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
@@ -12,7 +12,7 @@ from PIL import Image
 from wx import ID_YES, YES_NO, CallAfter
 
 from image_encryptor.constants import EXTENSION_KEYS, DialogReturnCodes
-from image_encryptor.frame.controls import ProgressBar, Settings
+from image_encryptor.frame.controller import ProgressBar
 from image_encryptor.frame.file_item import ImageItem, PathData
 from image_encryptor.modules.image import open_image
 from image_encryptor.modules.decorator import catch_exc_and_return
@@ -61,7 +61,7 @@ class ImageLoader(object):
     def load(self, path: Iterable['PathLike[str]'] | 'PathLike[str]') -> None: ...
 
     def load(self, target: Iterable['PathLike[str]'] | 'PathLike[str]' | Image.Image):
-        Image.MAX_IMAGE_PIXELS = self.frame.controls.max_image_pixels if self.frame.controls.max_image_pixels != 0 else None
+        Image.MAX_IMAGE_PIXELS = self.frame.controller.max_image_pixels if self.frame.controller.max_image_pixels != 0 else None
         if not self.frame.tree_manager.file_dict:
             self.frame.set_settings_as_default()  # 当没有加载任何图像时，将当前的设置设为默认设置
         if isinstance(target, Image.Image):
@@ -167,6 +167,7 @@ class ImageLoader(object):
             return
         self.init_loading_progress(file_num, True)
         settings_tuple = self.frame.settings.default.properties_tuple
+        settings_instantiator = self.frame.mode_manager.default_mode.instantiate_settings_cls
         loaded_num = 0
         load_failures = 0
 
@@ -186,7 +187,7 @@ class ImageLoader(object):
                 if error is None:
                     image_item = ImageItem(
                         self.frame, None if self.frame.startup_parameters.low_memory else loaded_image,
-                        PathData(path_chosen, r, n), Settings(self.frame.controls, settings_tuple)
+                        PathData(path_chosen, r, n), settings_instantiator(self.frame.controller, settings_tuple)
                     )
                     self.frame.tree_manager.add_file(image_item, path_chosen, r, n, False)
                     image_item.load_encryption_parameters()
@@ -247,14 +248,14 @@ class ImageLoader(object):
             return
         self.progress_plane_displayed = True
         self.frame.loadingPanel.Hide()
-        self.frame.loadingPrograssPanel.Show()
+        self.frame.loadingProgressPanel.Show()
 
     def hide_loading_progress_plane(self):
         """隐藏加载进度信息"""
         if not self.progress_plane_displayed:
             return
         self.progress_plane_displayed = False
-        self.frame.loadingPrograssPanel.Hide()
+        self.frame.loadingProgressPanel.Hide()
         self.frame.loadingPanel.Show()
 
     def init_loading_progress(self, file_count: int, use_progress_bar=False):
@@ -267,24 +268,24 @@ class ImageLoader(object):
         self.loading_progress = 0
         self.file_count = file_count
         if use_progress_bar:
-            self.bar = ProgressBar(self.frame.loadingPrograss)
+            self.bar = ProgressBar(self.frame.loadingProgress)
             self.bar.next_step(file_count)
         else:
             self.bar = None
-            self.frame.loadingPrograss.SetValue(0)
-        self.frame.controls.loading_prograss_info = f'0/{file_count} - 0%'
+            self.frame.loadingProgress.SetValue(0)
+        self.frame.controller.loading_progress_info = f'0/{file_count} - 0%'
 
     def add_loading_progress(self):
         """增加加载进度"""
         self.loading_progress += 1
         if self.bar is not None:
             self.bar.add()
-        self.frame.controls.loading_prograss_info = f"{self.loading_progress}/{self.file_count} - {format(self.loading_progress / self.file_count * 100, '.2f')}%"
+        self.frame.controller.loading_progress_info = f"{self.loading_progress}/{self.file_count} - {format(self.loading_progress / self.file_count * 100, '.2f')}%"
 
     def finish_loading_progress(self):
         """完成加载进度"""
         if self.bar is not None:
             self.bar.over()
         else:
-            self.frame.loadingPrograss.SetValue(100)
-        self.frame.controls.loading_prograss_info = f'{self.file_count}/{self.file_count} - 100%'
+            self.frame.loadingProgress.SetValue(100)
+        self.frame.controller.loading_progress_info = f'{self.file_count}/{self.file_count} - 100%'
