@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 21:34:06
+LastEditTime : 2022-05-29 08:37:57
 Description  : 对低版本加密的图像的加密信息进行转换, 向下兼容
 """
 from base64 import b64decode, b85encode
 from json import JSONDecodeError, loads
 from os.path import getsize
-from typing import Type
+from typing import Callable, Type
 
 from image_encryptor.constants import (EA_VERSION, EAERR_DECODE_FAILED,
                                        EAERR_INCOMPATIBLE, EAERR_NO_ATTRIBUTES,
@@ -86,6 +86,10 @@ def v_8_to_9(data):
     }
 
 
+version_conversion: list[Callable[[dict], dict]] = (
+    None, v_1_to_2, v_2_to_3, v_3_to_4, v_4_to_5, v_5_to_8, v_5_to_8, v_5_to_8, v_8_to_9
+)
+
 
 def check_version(data: dict):
     version = data.get('version')
@@ -94,18 +98,7 @@ def check_version(data: dict):
     elif version > EA_VERSION:
         return None, EAERR_NOT_SUPPORT
     elif version != EA_VERSION:
-        if version == 1:
-            data = v_1_to_2(data)
-        elif version == 2:
-            data = v_2_to_3(data)
-        elif version == 3:
-            data = v_3_to_4(data)
-        elif version == 4:
-            data = v_4_to_5(data)
-        elif version <= 7:
-            data = v_5_to_8(data)
-        elif version == 8:
-            data = v_8_to_9(data)
+        data = version_conversion[version](data)
     return data, None
 
 
