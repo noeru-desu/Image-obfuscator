@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-29 08:37:57
+LastEditTime : 2022-05-30 21:09:32
 Description  : 对低版本加密的图像的加密信息进行转换, 向下兼容
 """
 from base64 import b64decode, b85encode
@@ -146,3 +146,11 @@ def read_last_line(file, endswith: bytes = None):
                 if __debug__:
                     print(f'expanded to {offset}')
     return last_line
+
+
+def gen_encryption_attributes(corresponding_decryption_mode: str, data: dict):
+    return {
+        'corresponding_decryption_mode': corresponding_decryption_mode,
+        'data': data,
+        'version': EA_VERSION
+    }

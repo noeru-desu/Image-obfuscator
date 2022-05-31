@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 20:07:01
+LastEditTime : 2022-05-31 06:07:45
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING, Optional
@@ -107,8 +107,6 @@ class MainFrame(BasicMainFrame):
 
     @catch_exc_for_frame_method
     def save_selected_image(self, event):
-        self.dialog.warning('保存功能尚未完成', '正在进行重构')
-        return
         self.image_saver.save_selected_image()
 
     @catch_exc_for_frame_method
@@ -164,8 +162,10 @@ class MainFrame(BasicMainFrame):
         if self.first_choice:
             self.first_choice = False
 
+        self.image_item = None
+        self.folder_item = None
+
         if not event.GetItem().IsOk():
-            self.image_item = None
             self.controller.clear_preview()
             return
         image_data = self.tree_manager.selected_item_data
@@ -185,11 +185,12 @@ class MainFrame(BasicMainFrame):
             if self.previewMode.Selection == AUTO_REFRESH:
                 self.refresh_preview(event)
         elif isinstance(image_data, FolderItem):
-            self.image_item = None
+            self.folder_item = image_data
             self.controller.gen_image_info()
             self.processingOptions.Disable()
             self.controller.clear_preview()
         else:
+            self.savingProgressPanel.Disable()
             self.controller.gen_image_info()
 
     @catch_exc_for_frame_method

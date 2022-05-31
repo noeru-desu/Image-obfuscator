@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:48:20
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 19:22:04
+LastEditTime : 2022-05-29 07:51:23
 Description  : 模式管理器
 """
 from typing import TYPE_CHECKING, Type
@@ -12,7 +12,6 @@ from wx import BoxSizer, VERTICAL, ALIGN_CENTER
 from image_encryptor.modes.antishield import ModeInterface as AntiShieldModeInterface
 from image_encryptor.modes.encrypt import ModeInterface as EncryptModeInterface
 from image_encryptor.modes.decrypt import ModeInterface as DecryptModeInterface
-from image_encryptor.modules.decorator import catch_exc_and_return
 
 if TYPE_CHECKING:
     from wx import Panel
@@ -50,11 +49,10 @@ class ModeManager(object):
             return
 
         interface.mode_id = self.mode_id_count
-        interface.gen_preview = catch_exc_and_return(interface.gen_preview)
         if hasattr(interface, 'settings_panel'):
             pass
         elif interface.settings_panel_cls is not None:
-            interface.settings_panel = self.instance_settings_panel(interface.settings_panel_cls)
+            interface.settings_panel = self.add_settings_panel(interface.settings_panel_cls)
         else:
             interface.settings_panel = None
 
@@ -65,7 +63,7 @@ class ModeManager(object):
             self.default_mode = interface
         self.mode_id_count += 1
 
-    def instance_settings_panel(self, panel_cls: Type['Panel']) -> 'Panel':
+    def add_settings_panel(self, panel_cls: Type['Panel']) -> 'Panel':
         cls_id = id(panel_cls)
         if cls_id in self.settings_panels:
             return self.settings_panels[cls_id]

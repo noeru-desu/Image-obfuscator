@@ -2,9 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-08 14:41:55
+LastEditTime : 2022-05-29 07:39:41
 Description  : 节点树控制
 """
+from contextlib import suppress
 from os.path import join, sep, split
 from typing import TYPE_CHECKING, Generator, Optional, Union, overload
 
@@ -81,7 +82,7 @@ class TreeManager(object):
 
     @overload
     def add_file(self, data: 'ImageItem', file_path: str, *, add_to_root=True) -> 'TreeItemId':
-        """添加文件项目到文件树，如果重复则不进行操作(重复时`root_dir_dict`优先级高于`dir_dict`)\n
+        """添加文件项目到文件树，如果重复则不进行操作(所属文件夹重复时`root_dir_dict`优先级高于`dir_dict`)\n
         如果处理期间涉及的目录不存在于文件树中，将自动创建\n
         `relative_path` 和 `file` 参数需要同时给出或不给出，\n
         不给出时，将进行如下操作：
@@ -159,10 +160,8 @@ class TreeManager(object):
         Returns:
             当前选择的项目的数据实例(一般为ImageItem或FolderItem)
         """
-        try:
+        with suppress(RuntimeError):
             return self.tree_ctrl.GetItemData(self.tree_ctrl.Selection)
-        except RuntimeError:
-            return
 
     @property
     def all_item_data(self) -> Generator[Union['ImageItem', 'FolderItem'], None, None]:
@@ -171,15 +170,13 @@ class TreeManager(object):
         Yields:
             文件树中的每一个数据实例: 一般为ImageItem或FolderItem
         """
-        try:
+        with suppress(RuntimeError):
             for i in self.root_dir_dict.values():
                 yield self.tree_ctrl.GetItemData(i)
             for i in self.dir_dict.values():
                 yield self.tree_ctrl.GetItemData(i)
             for i in self.file_dict.values():
                 yield self.tree_ctrl.GetItemData(i)
-        except RuntimeError:
-            return
 
     @property
     def all_image_item_data(self) -> Generator['ImageItem', None, None]:
@@ -188,11 +185,9 @@ class TreeManager(object):
         Yields:
             文件树中的每一个文件项目的数据实例: 一般为ImageItem
         """
-        try:
+        with suppress(RuntimeError):
             for i in self.file_dict.values():
                 yield self.tree_ctrl.GetItemData(i)
-        except RuntimeError:
-            return
 
     @property
     def all_folder_item_data(self) -> Generator['FolderItem', None, None]:
@@ -201,10 +196,8 @@ class TreeManager(object):
         Yields:
             文件树中的每一个文件夹项目的数据实例: 一般为FolderItem
         """
-        try:
+        with suppress(RuntimeError):
             for i in self.root_dir_dict.values():
                 yield self.tree_ctrl.GetItemData(i)
             for i in self.dir_dict.values():
                 yield self.tree_ctrl.GetItemData(i)
-        except RuntimeError:
-            return

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-05-28 18:35:11
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 20:54:42
+LastEditTime : 2022-05-31 06:29:01
 Description  : 
 """
 from typing import TYPE_CHECKING
@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 
 class ProcSettingsPanel(BaseProcSettingsPanel):
+    __slots__ = ()
     TopLevelParent: 'MainFrame'
 
     # def __init__(self, *args):

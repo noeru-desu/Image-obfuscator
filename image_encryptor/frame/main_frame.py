@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 20:49:02
+LastEditTime : 2022-05-29 17:01:29
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from os import PathLike
 
     from wx import Window
-    from image_encryptor.frame.tree_manager import ImageItem
+    from image_encryptor.frame.tree_manager import ImageItem, FolderItem
     from image_encryptor.modules.argparse import Parameters
 
 
@@ -51,7 +51,7 @@ class MainFrame(MF):
     """
     __slots__ = (
         'startup_parameters', 'logger', 'controller', 'settings', 'dialog', 'universal_thread_pool',
-        'password_dict', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator',
+        'password_dict', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator', 'folder_item'
         'image_saver', 'stop_loading_func', 'stop_reloading_func', 'image_item', 'run_path','mode_manager'
     )
 
@@ -127,6 +127,7 @@ class MainFrame(MF):
         self.selectSavingPath.PickerCtrl.SetLabel('选择文件夹')
 
         self.image_item: 'ImageItem' = None
+        self.folder_item: 'FolderItem' = None
 
         self.logger.info('窗口初始化完成')
 

@@ -2,13 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-08 13:52:06
+LastEditTime : 2022-05-31 20:54:30
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
 from concurrent.futures import ThreadPoolExecutor
+from json import dumps
 from os import listdir
-from os.path import isdir
+from os.path import isdir, splitext, join
 from threading import Lock
 from typing import TYPE_CHECKING, Iterable, NamedTuple
 
@@ -18,14 +19,19 @@ from wx import (CHK_CHECKED, CHK_UNCHECKED, CHK_UNDETERMINED, DIRP_CHANGE_DIR,
 import image_encryptor.modes.antishield as antishield
 import image_encryptor.modes.decrypt as decrypt
 import image_encryptor.modes.encrypt as encrypt
-from image_encryptor.constants import DialogReturnCodes, ProcModes
+from image_encryptor.constants import DialogReturnCodes, ProcModes, json_encoder_default
 from image_encryptor.frame.controller import ProgressBar
 from image_encryptor.frame.file_item import ImageItem
+from image_encryptor.modules.image import PillowImage
+from image_encryptor.modules.version_adapter import gen_encryption_attributes
 
 if TYPE_CHECKING:
     from concurrent.futures import Future
-    from image_encryptor.frame.controller import Settings
+    from PIL.Image import Image
+    from image_encryptor.frame.controller import SavingSettings
     from image_encryptor.frame.events import MainFrame
+    from image_encryptor.frame.file_item import PathData
+    from image_encryptor.modes.base import BaseModeInterface, BaseSettings
 
 ENABLE = 2
 DISABLE = 3
@@ -63,61 +69,73 @@ class ImageSaver(object):
 
     def save_selected_image(self):
         """保存选中的图像"""
-        if self.frame.image_item is None:
+        if self.frame.folder_item is not None:
+            self.frame.dialog.async_warning('保存文件夹功能尚未完成', '正在进行重构')
+            return
+        image_item = self.frame.image_item
+        if image_item is None:
             self.frame.dialog.async_error('没有选择图像')
             return
-        if self._check():   # 相关合法性检查
+        if self._check():
             return
         self.show_saving_progress_plane(False)
-        if not self.frame.update_password_dict():   # 检查密码栏内容是否合法
-            self.frame.controller.password = 'none'
-        cache = self.frame.image_item.cache.previews.get_scalable_cache(self.frame.settings.encryption_settings_hash)
+        self.frame.controller.standardized_password_ctrl()
+        mode_interface = self.frame.controller.proc_mode_interface
+        settings = self.frame.settings.all if mode_interface.encryption_parameters_cls is None else image_item.cache.encryption_parameters.settings
+        cache = image_item.cache.previews.get_scalable_cache(self.frame.settings.gen_encryption_settings_hash(settings))
         if cache is None:
-            match self.frame.controller.proc_mode:
-                case ProcModes.encryption_mode:
-                    self.saving_thread_pool.submit(
-                        encrypt.normal,
-                        self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress,
-                        self.frame.image_item.cache.loaded_image, True
-                    ).add_done_callback(self._save_selected_image_call_back)
-                case ProcModes.decryption_mode:
-                    self.saving_thread_pool.submit(
-                        decrypt.normal,
-                        self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress,
-                        self.frame.image_item.cache.loaded_image, True
-                    ).add_done_callback(self._save_selected_image_call_back)
-                case ProcModes.antishield_mode:
-                    self.saving_thread_pool.submit(
-                        antishield.normal,
-                        self.frame, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress,
-                        self.frame.image_item.cache.loaded_image, True, True
-                    ).add_done_callback(self._save_selected_image_call_back)
+            self.saving_thread_pool.submit(
+                self._saving_task,
+                mode_interface, image_item, settings, self.frame.settings.saving_settings
+            ).add_done_callback(self._save_selected_image_call_back)
         else:   # 如果存在原始图像处理结果缓存则直接保存缓存
-            settings = self.frame.settings.all
             self.frame.savingProgress.SetValue(50)
-            self.frame.savingProgressInfo.SetLabelText('正在保存文件')
-            match self.frame.controller.proc_mode:
-                case ProcModes.encryption_mode:
-                    self.saving_thread_pool.submit(
-                        encrypt.save_image,
-                        cache, self.frame.image_item.path_data, settings.saving_path, settings.saving_format, settings.saving_quality,
-                        settings.saving_subsampling_level,
-                        settings.encryption_parameters_data(*self.frame.image_item.cache.loaded_image.size).encryption_parameters_dict
-                    ).add_done_callback(self._save_selected_image_from_cache_call_back)
-                case ProcModes.decryption_mode:
-                    self.saving_thread_pool.submit(
-                        decrypt.save_image,
-                        cache, self.frame.image_item.path_data, settings.saving_path, settings.saving_format, settings.saving_quality,
-                        settings.saving_subsampling_level
-                    ).add_done_callback(self._save_selected_image_from_cache_call_back)
-                case ProcModes.antishield_mode:
-                    self.saving_thread_pool.submit(
-                        antishield.save_image,
-                        cache, self.frame.image_item.path_data, settings.saving_path, settings.saving_format, settings.saving_quality,
-                        settings.saving_subsampling_level
-                    ).add_done_callback(self._save_selected_image_from_cache_call_back)
-            self.frame.savingProgress.SetValue(100)
-            self.frame.savingProgressInfo.SetLabelText('完成')
+            self.saving_thread_pool.submit(
+                self._saving_cache_task,
+                cache, mode_interface, image_item, settings, self.frame.settings.saving_settings
+            ).add_done_callback(self._save_selected_image_from_cache_call_back)
+
+    def _saving_task(self, mode_interface: 'BaseModeInterface', image_item: 'ImageItem', settings: 'BaseSettings', saving_settings: 'SavingSettings', relative_saving_path: str = ''):
+        loaded_image = image_item.cache.loaded_image
+        image, error = mode_interface.proc_image(
+            self.frame, loaded_image, True, PillowImage,
+            settings, self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress
+        )
+        if error is not None:
+            return image, error
+        self._post_save_processing(
+            mode_interface,
+            settings.encryption_parameters_dict(*loaded_image.size) if mode_interface.add_encryption_parameters_in_file else None,
+            self._save_image(image, mode_interface, image_item.path_data, saving_settings, relative_saving_path)
+        )
+        return image, None
+
+    def _saving_cache_task(self, image: 'Image', mode_interface: 'BaseModeInterface', image_item: 'ImageItem', settings: 'BaseSettings', saving_settings: 'SavingSettings', relative_saving_path: str = ''):
+        self._post_save_processing(
+            mode_interface,
+            settings.encryption_parameters_dict(*image_item.cache.loaded_image.size) if mode_interface.add_encryption_parameters_in_file else None,
+            self._save_image(image, mode_interface, image_item.path_data, saving_settings, relative_saving_path)
+        )
+        return image, None
+
+    def _save_image(self, image: 'Image', mode_interface: 'BaseModeInterface', image_path_data: 'PathData', saving_settings: 'SavingSettings', relative_saving_path: str  = ''):
+        name, _ = splitext(image_path_data.file_name)
+        if mode_interface.file_name_suffix is not None:
+            name = f"{name.removesuffix(mode_interface.file_name_suffix[0])}{mode_interface.file_name_suffix[1]}.{saving_settings.format}"
+        else:
+            name = f"{name}.{saving_settings.format}"
+        output_path = join(saving_settings.path, relative_saving_path, name)
+        if saving_settings.format in ('jpg', 'jpeg'):
+            image.covert('RGB')
+        self.frame.savingProgressInfo.SetLabelText('正在保存文件')  # ! 未测试批量时的效果
+        image.save(output_path, quality=saving_settings.quality, subsampling=saving_settings.subsampling_level)
+        return output_path
+
+    def _post_save_processing(self, mode_interface: 'BaseModeInterface', data, output_path: str):
+        if mode_interface.add_encryption_parameters_in_file:
+            encryption_parameters_dict = gen_encryption_attributes(mode_interface.corresponding_decryption_mode, data)
+            with open(output_path, "a") as f:
+                f.write('\n{}'.format(dumps(encryption_parameters_dict, default=json_encoder_default, separators=(',', ':'))))
 
     def _save_selected_image_call_back(self, future: 'Future'):
         """保存选中的图像完成后的回调函数"""
@@ -286,6 +304,7 @@ class ImageSaver(object):
                 self.frame.logger.info('完成了所有任务')
                 self.hide_saving_progress_plane()
 
+    '''
     def _gen_filter(self):
         """生成过滤器"""
         self.filter = Filter(
@@ -294,9 +313,10 @@ class ImageSaver(object):
             id_dict[self.frame.flipFilter.Get3StateValue()], id_dict[self.frame.mappingFilter.Get3StateValue()],
             id_dict[self.frame.XorFilter.Get3StateValue()]
         )
+    '''
 
     def _check(self):
-        """常规合法性检查"""
+        """常规检查(是否选择保存位置/保存位置是否存在/是否已有保存任务)"""
         if not isdir(self.frame.controller.saving_path):
             path = self.frame.dialog.select_dir('选择保存位置')
             if path is not None:
@@ -305,7 +325,7 @@ class ImageSaver(object):
             self.frame.dialog.error('没有选择保存文件夹或选择的文件夹不存在', '保存时出现错误')
             return True
         elif self.progress_plane_displayed or self.frame.process_pool.check_tag('bulk_save'):
-            self.frame.dialog.error('请先等待当前已有的保存任务完成', '无法执行保存操作')
+            self.frame.dialog.error('请等待当前的保存任务完成', '无法执行保存操作')
             return True
         return False
 
@@ -339,6 +359,7 @@ class ImageSaver(object):
         self.frame.savingOptions.Layout()
 
 
+'''
 class Filter(NamedTuple):
     mode: Iterable = (0, 1, 2)
     password: int = IGNORE
@@ -362,3 +383,4 @@ class Filter(NamedTuple):
         if self.xor_filter is not IGNORE and convert_settings[bool(settings.XOR_channels)] is not self.xor_filter:
             return False
         return True
+'''

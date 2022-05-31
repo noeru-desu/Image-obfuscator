@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 19:28:25
+LastEditTime : 2022-05-31 06:25:58
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -20,7 +20,6 @@ from image_encryptor.modules.decorator import catch_exc_and_return
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.file_item import PathData
-    from image_encryptor.modes.decrypt import ModeInterface
     from image_encryptor.modes.decrypt.settings import EncryptionParameters, EncryptionParametersData
     from image_encryptor.modules.image import WrappedImage, ImageData
     from wx import Gauge
@@ -43,7 +42,7 @@ def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return
     image_decrypt = ImageDecrypt(source, encryption_data.cutting_row, encryption_data.cutting_col, password, encryption_data.version)
     label_text_setter('开始处理')
 
-    if encryption_data.XOR_channels:
+    if encryption_data.XOR_encryption:
         label_text_setter('正在异或解密')
         bar.next_step(1)
         image = image_decrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)

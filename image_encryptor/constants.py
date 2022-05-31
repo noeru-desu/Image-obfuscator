@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 21:35:57
+LastEditTime : 2022-05-31 20:58:33
 Description  : 常量
 """
 from json import JSONEncoder
@@ -35,8 +35,8 @@ BETA = 3
 ALPHA = 4
 VERSION_TYPE = ALPHA
 VERSION_NUMBER = '2.0.0'
-SUB_VERSION_NUMBER = 'alpha.1'
-VERSION_BATCH = '20220528-1'
+SUB_VERSION_NUMBER = 'alpha.2'
+VERSION_BATCH = '20220531-1'
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'

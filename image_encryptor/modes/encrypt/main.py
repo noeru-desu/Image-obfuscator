@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 19:28:39
+LastEditTime : 2022-05-31 06:19:30
 Description  : 加密模式
 """
 from json import dumps
@@ -39,7 +39,7 @@ def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return
         return WrappedPillowImage(source)
 
     bar = ProgressBar(gauge, step_count)
-    image_encrypt = ImageEncrypt(source, settings.cutting_row, settings.cutting_col, settings.password)
+    image_encrypt = ImageEncrypt(source, settings.cutting_row, settings.cutting_col, settings.available_password)
     label_text_setter('开始处理')
 
     if settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels:

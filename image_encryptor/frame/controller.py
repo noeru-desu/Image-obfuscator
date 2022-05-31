@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 19:26:47
+LastEditTime : 2022-05-30 21:03:35
 Description  : 界面控制相关
 """
 from os.path import splitext
@@ -332,6 +332,10 @@ class Controller(object):
         """取消显示所有缓存"""
         self.frame.importedBitmap.Bitmap = self.frame.previewedBitmap.Bitmap = Bitmap()
 
+    def standardized_password_ctrl(self):
+        if not self.frame.update_password_dict():
+            self.password = 'none'
+
     def display_and_cache_processed_preview(self, image: 'WrappedImage'):
         """显示并缓存处理结果
 
@@ -374,13 +378,18 @@ class SettingsManager(object):
     @property
     def encryption_settings_hash(self):
         """当前加密设置的hash"""
-        # hash(self.encryption_settings) 耗时约为 hashlib.md5(repr(self.encryption_settings).encode()).digest() 的 55%
         return hash((self.controller.proc_mode_id, self.encryption_settings))
 
     @property
     def encryption_settings_hash_with_size(self):
         """在encryption_settings_hash的基础上添加resampling_filter_id/preview_source/preview_size"""
         return hash((self.controller.proc_mode_id, self.encryption_settings, self.controller.resampling_filter_id, self.controller.preview_source, *self.controller.preview_size))
+
+    def gen_encryption_settings_hash(self, settings: 'BaseSettings'):
+        return hash((self.controller.proc_mode_id, settings.properties_tuple))
+
+    def gen_encryption_settings_hash_with_size(self, settings: 'BaseSettings'):
+        return hash((self.controller.proc_mode_id, settings.properties_tuple, self.controller.resampling_filter_id, self.controller.preview_source, *self.controller.preview_size))
 
     @property
     def all(self) -> 'BaseSettings':

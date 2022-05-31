@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 21:34:29
+LastEditTime : 2022-05-29 17:53:22
 Description  : 图像生成功能
 """
 from typing import TYPE_CHECKING
@@ -23,8 +23,7 @@ class PreviewGenerator(object):
         self.preview_thread = SingleThreadExecutor('preview-thread', 1)
 
     def generate_preview(self):
-        if not self.frame.update_password_dict():
-            self.frame.controller.password = 'none'
+        self.frame.controller.standardized_password_ctrl()
         with self.preview_thread.thread.lock:
             if not self.preview_thread.idle:
                 self.preview_thread.interrupt_task()
@@ -35,12 +34,12 @@ class PreviewGenerator(object):
         else:
             settings = self.frame.settings.all
         if mode_interface.decryption_mode or self.frame.controller.preview_source == ORIG_IMAGE:
-            self.preview_thread.add_task(mode_interface.gen_preview, (
+            self.preview_thread.add_task(mode_interface.proc_image, (
                 self.frame, image_item.cache.loaded_image, True, PillowImage,
                 settings, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress
             ), cb=self._generate_preview_call_back)
         else:
-            self.preview_thread.add_task(mode_interface.gen_preview, (
+            self.preview_thread.add_task(mode_interface.proc_image, (
                 self.frame, image_item.cache.initial_preview, False, ImageData,
                 settings, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress
             ), cb=self._generate_preview_call_back)

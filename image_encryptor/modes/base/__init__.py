@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 18:51:14
+LastEditTime : 2022-05-31 06:01:51
 Description  : 基类
 """
 from abc import ABC
@@ -83,7 +83,9 @@ class BaseSettings(ABC):
 
     @property
     def properties(self):
-        """返回`self.SETTING_NAMES`中每个属性名的值的生成器
+        """返回`self.SETTING_NAMES`中每个属性名的值的生成器.\n
+        此方法返回值必须与`ModeInterface.encryption_settings_tuple`相同,
+        即`SETTING_NAMES`对应内容的类型/顺序与`encryption_settings_tuple`相同
 
         Returns:
             Generator: `self.SETTING_NAMES`中每个属性名的值
@@ -101,7 +103,8 @@ class BaseSettings(ABC):
 
     @property
     def properties_hash(self):
-        """`self.properties_tuple`的hash值
+        """`self.properties_tuple`的hash值\n
+        注意: 此hash不包含`proc_mode_id`, 用于预览图缓存的hash请使用`SettingsManager`中的方法生成
 
         Returns:
             int: hash结果
@@ -118,6 +121,9 @@ class BaseSettings(ABC):
 
     def backtrack_interface(self):
         pass
+
+    def encryption_parameters_dict(self, orig_width: int, orig_height: int):
+        raise NotImplementedError()
 
 
 class EmptySettings(BaseSettings):
@@ -151,22 +157,28 @@ class BaseModeInterface(ABC):
     __slots__ = ('mode_id', 'settings_panel')
 
     frame: 'MainFrame'
+
     default_mode: bool = False           # 是否为默认模式
+    decryption_mode: bool = False   # 是否属于解密模式
     mode_id: int        # 模式ID
     mode_name: str = NotImplemented      # 模式的显示名称
     mode_qualname: str = NotImplemented  # 模式唯一名称 (如`builtin.mode_a`)
-    decryption_mode: bool = False   # 是否属于解密模式
-    add_encryption_parameters_in_file: bool = False     # 是否需要添加加密参数到文件结尾
+
+    settings_cls: Optional[Type['BaseSettings']] = None  # 该模式需使用的设置类
+    default_settings: 'BaseSettings' = EmptySettings()
+
     requires_encryption_parameters: bool = False        # 是否需要读取文件末尾的加密参数
     encryption_parameters_cls: Optional[Type['BaseSettings']] = None  # 读取加密参数后实例化的参数类
     corresponding_decryption_mode: Optional[str] = None # 对应的解密模式的唯一名称
+    add_encryption_parameters_in_file: bool = False     # 是否需要添加加密参数到文件结尾
+
+    settings_controller: Optional['ModeController'] = None     # 面板控制器类
     enable_settings_panel: bool = True  # 是否启用设置面板
     enable_password: bool = True        # 是否使用密码输入框
     settings_panel: Optional['Panel']
     settings_panel_cls: Optional[Type['Panel']] = None    # 该模式的设置面板(`wx.Panel`子类)
-    settings_controller: Optional['ModeController'] = None     # 面板控制器类
-    settings_cls: Optional[Type['BaseSettings']] = None  # 该模式需使用的设置类
-    default_settings: 'BaseSettings' = EmptySettings()
+
+    file_name_suffix: Optional[tuple[str, str]] = None    # 添加到文件名末尾的后缀信息(非格式后缀)
 
     def __init__(self, frame: 'MainFrame'):
         raise NotImplementedError()
@@ -175,7 +187,10 @@ class BaseModeInterface(ABC):
     def encryption_settings_tuple(self):
         return None
 
-    def gen_preview(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings', label_text_setter: Callable, gauge: 'Gauge') -> 'WrappedImage':
+    def proc_image(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings', label_text_setter: Callable, gauge: 'Gauge') -> tuple[Optional['WrappedImage'], Optional[str]]:
+        raise NotImplementedError()
+
+    def proc_image_independently(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings', label_text_setter: Callable, gauge: 'Gauge') -> tuple[Optional['WrappedImage'], Optional[str]]:
         raise NotImplementedError()
 
     def instantiate_settings_cls(self, main_controller, data: Optional[Any] = None):

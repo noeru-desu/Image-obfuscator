@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-# Python code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
+# Python code generated with wxFormBuilder (version 3.10.1-df7791b)
 # http://www.wxformbuilder.org/
 ##
 # PLEASE DO *NOT* EDIT THIS FILE!
@@ -399,9 +399,11 @@ class MainFrame (wx.Frame):
 
         bSizer191.Add(sbSizer61, 1, wx.ALL | wx.EXPAND, 3)
 
-        bSizer23.Add(bSizer191, 1, wx.EXPAND, 5)
+        bSizer23.Add(bSizer191, 0, wx.EXPAND, 5)
 
         self.savingFilters = wx.Panel(self.savingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.savingFilters.Hide()
+
         bSizer311 = wx.BoxSizer(wx.HORIZONTAL)
 
         sbSizer4 = wx.StaticBoxSizer(wx.StaticBox(self.savingFilters, wx.ID_ANY, u"[过滤器]模式"), wx.VERTICAL)
@@ -472,11 +474,11 @@ class MainFrame (wx.Frame):
         self.savingBtnPanel = wx.Panel(self.savingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer20 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.savingBtn = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存当前选中的图像", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer20.Add(self.savingBtn, 0, wx.ALL, 5)
-
-        self.m_button8 = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存所有符合过滤条件的图像", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button8 = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存全部图像", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer20.Add(self.m_button8, 0, wx.ALL, 5)
+
+        self.savingBtn = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存当前选中的图像/文件夹", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer20.Add(self.savingBtn, 0, wx.ALL, 5)
 
         self.savingBtnPanel.SetSizer(bSizer20)
         self.savingBtnPanel.Layout()
@@ -605,8 +607,8 @@ class MainFrame (wx.Frame):
         self.savingFormat.Bind(wx.EVT_TEXT_ENTER, self.check_saving_format)
         self.savingQuality.Bind(wx.EVT_SCROLL, self.update_quality_num)
         self.subsamplingLevel.Bind(wx.EVT_SCROLL, self.update_subsampling_num)
-        self.savingBtn.Bind(wx.EVT_BUTTON, self.save_selected_image)
         self.m_button8.Bind(wx.EVT_BUTTON, self.bulk_save)
+        self.savingBtn.Bind(wx.EVT_BUTTON, self.save_selected_image)
         self.stopSavingBtn.Bind(wx.EVT_BUTTON, self.stop_saving_event)
         self.redundantCacheLength.Bind(wx.EVT_TEXT_ENTER, self.change_redundant_cache_length)
         self.lowMemoryMode.Bind(wx.EVT_CHECKBOX, self.toggle_low_memory_usage_mode)
@@ -691,10 +693,10 @@ class MainFrame (wx.Frame):
     def update_subsampling_num(self, event):
         event.Skip()
 
-    def save_selected_image(self, event):
+    def bulk_save(self, event):
         event.Skip()
 
-    def bulk_save(self, event):
+    def save_selected_image(self, event):
         event.Skip()
 
     def stop_saving_event(self, event):

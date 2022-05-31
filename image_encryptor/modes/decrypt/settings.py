@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:39:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-27 19:55:04
+LastEditTime : 2022-05-31 20:49:11
 Description  : 设置选项
 """
 from typing import TYPE_CHECKING, Iterable, Any, Union
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class EncryptionParametersData(BaseSettings):
     __slots__ = SETTING_NAMES = (
         'cutting_row', 'cutting_col', 'orig_width', 'orig_height', 'shuffle_chunks',
-        'flip_chunks', 'mapping_channels', 'XOR_channels', 'noise_XOR', 'noise_factor',
+        'flip_chunks', 'mapping_channels', 'XOR_channels', 'XOR_encryption', 'noise_XOR', 'noise_factor',
         'has_password', 'password_base85', 'version', 'dynamic_auth', 'password'
         # 需保证dynamic_auth与password在最后，参考self.encryption_parameters_dict
     )
@@ -41,6 +41,7 @@ class EncryptionParametersData(BaseSettings):
         self.flip_chunks: bool = parameters_dict['flip_chunks']
         self.mapping_channels: Channels = Channels(tuple(parameters_dict['mapping_channels']))
         self.XOR_channels: Channels = Channels(tuple(parameters_dict['XOR_channels']))
+        self.XOR_encryption: bool = parameters_dict.get('XOR_encryption', bool(self.XOR_channels))
         self.noise_XOR: bool = parameters_dict['noise_XOR']
         self.noise_factor: int = parameters_dict['noise_factor']
         self.has_password: bool = parameters_dict['has_password']
@@ -53,6 +54,16 @@ class EncryptionParametersData(BaseSettings):
     def encryption_parameters_dict(self) -> dict[str, Any]:
         """生成用于添加到被加密文件末尾的加密参数字典"""
         return {k: getattr(self, k) for k in self.SETTING_NAMES[:-2]}
+
+    @property
+    def properties(self):
+        return (
+            self.cutting_row, self.cutting_col,
+            self.shuffle_chunks, self.flip_chunks,
+            self.mapping_channels, self.XOR_encryption,
+            self.XOR_channels, self.noise_XOR,
+            self.noise_factor, 100 if self.password is None else self.password
+        )
 
 
 class EncryptionParameters(EncryptionParametersData):
@@ -81,8 +92,7 @@ class EncryptionParameters(EncryptionParametersData):
         self.mode_controller.noise_XOR = self.noise_XOR
         self.mode_controller.noise_factor = self.noise_factor
         self.mode_controller.noise_factor_info = str(self.noise_factor)
-        if self.XOR_channels:
-            self.mode_controller.XOR_encryption = True
+        self.mode_controller.XOR_encryption = self.XOR_encryption
         self.mode_controller.XOR_channels = self.XOR_channels
         if self.has_password:
             while self.password is None:

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 19:12:03
+LastEditTime : 2022-05-31 21:00:45
 Description  : 
 """
 from typing import TYPE_CHECKING, Iterable, Any
@@ -42,7 +42,6 @@ class SettingsData(BaseSettings):
         Args:
             settings_dict (dict[str, Any]): 所有加密设置的字典
         """
-        self.proc_mode = settings_dict['proc_mode']
         self.cutting_row = settings_dict['cutting_row']
         self.cutting_col = settings_dict['cutting_col']
         self.shuffle_chunks = settings_dict['shuffle_chunks']
@@ -76,23 +75,18 @@ class SettingsData(BaseSettings):
     def available_password(self):
         return 100 if self.password == 'none' else self.password
 
-    @property
-    def encryption_settings(self) -> tuple[Any]:
-        """当前实例中加密设置的元组, 一般为生成encryption_settings_hash时使用"""
-        return (
-            self.proc_mode, self.cutting_row, self.cutting_col,
-            self.shuffle_chunks, self.flip_chunks, self.mapping_channels,
-            self.XOR_encryption, self.XOR_channels, self.noise_XOR,
-            self.noise_factor, self.password
-        )
-
-    @property
-    def encryption_settings_hash(self) -> int:
-        """当前加密设置的hash"""
-        return hash(self.encryption_settings)
-
     def copy(self):
         return SettingsData(self.properties_tuple)
+
+    def encryption_parameters_dict(self, orig_width: int, orig_height: int):
+        has_password = self.password != 'none'
+        parameters_dict = {k: getattr(self, k) for k in self.SETTING_NAMES[:-1]}
+        parameters_dict['orig_width'] = orig_width
+        parameters_dict['orig_height'] = orig_height
+        parameters_dict['has_password'] = has_password
+        parameters_dict['password_base85'] = PasswordDict.get_validation_field_base85(self.password) if has_password else 0
+        parameters_dict['version'] = EA_VERSION
+        return parameters_dict
 
 
 class Settings(SettingsData):
