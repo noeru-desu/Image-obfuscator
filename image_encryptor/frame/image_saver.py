@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 15:44:33
+LastEditTime : 2022-06-03 19:45:59
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -29,14 +29,8 @@ if TYPE_CHECKING:
     from image_encryptor.frame.file_item import PathData
     from image_encryptor.modes.base import BaseModeInterface, BaseSettings
 
-ENABLE = 2
-DISABLE = 3
-IGNORE = 4
 USE_FOLDER = 5
 DO_NOT_USE_FOLDER = 6
-
-id_dict = {CHK_UNDETERMINED: IGNORE, CHK_CHECKED: ENABLE, CHK_UNCHECKED: DISABLE}
-convert_settings = {True: ENABLE, False: DISABLE}
 
 
 class ImageSaver(object):
@@ -88,27 +82,54 @@ class ImageSaver(object):
             )
 
     def save_selected_folder(self):
-        return
         """保存选中的文件夹"""
         folder_item = self.frame.folder_item
         if self._check():
             return
-        self.show_saving_progress_plane(False)
+        self.show_saving_progress_plane(True)
         self.frame.controller.standardized_password_ctrl()
-        mode_interface = self.frame.controller.proc_mode_interface
-        settings = self.frame.settings.all if mode_interface.encryption_parameters_cls is None else image_item.cache.encryption_parameters.settings
-        cache = image_item.cache.previews.get_scalable_cache(self.frame.settings.gen_encryption_settings_hash(settings))
-        if cache is None:
-            self.saving_thread_pool.submit(
-                self._saving_task,
-                mode_interface, image_item, settings, self.frame.settings.saving_settings
-            ).add_done_callback(self._save_selected_image_call_back)
-        else:   # 如果存在原始图像处理结果缓存则直接保存缓存
-            self.frame.savingProgress.SetValue(50)
-            self.saving_thread_pool.submit(
-                self._saving_cache_task,
-                cache, mode_interface, image_item, settings, self.frame.settings.saving_settings
-            ).add_done_callback(self._save_selected_image_from_cache_call_back)
+        match self.frame.dialog.confirmation_frame('是否创建与文件树层级相同的文件夹进行文件保存', cancel='取消保存操作'):
+            case DialogReturnCodes.yes:
+                use_folder = True
+            case DialogReturnCodes.no:
+                use_folder = False
+            case _:
+                self.hide_saving_progress_plane()
+                return
+
+        self.bar = ProgressBar(self.frame.savingProgress)
+        self.task_num = 0
+        saving_settings = self.frame.settings.saving_settings
+        self.lock.acquire()                                 # 锁住线程锁，防止在任务添加期间执行回调函数，而导致进度识别错误
+
+        for top, name, image_item in folder_item.walk() if use_folder else folder_item.all_included_items():
+            image_item.standardized_proc_mode()
+            settings = image_item.encryption_parameters.settings if image_item.proc_mode.requires_encryption_parameters else image_item.settings
+            cache = image_item.cache.previews.get_scalable_cache(hash((image_item.proc_mode.mode_id, settings.properties_tuple)))
+            relative_saving_path = top if use_folder else ''
+            if cache is None:
+                self.saving_thread.add_task(
+                    self._saving_task,
+                    (image_item.proc_mode, image_item, settings, saving_settings, relative_saving_path, True),
+                    cb=self._bulk_save_callback
+                )
+            else:   # 如果存在原始图像处理结果缓存则直接保存缓存
+                self.saving_thread.add_task(
+                    self._saving_cache_task,
+                    (cache, image_item.proc_mode, image_item, settings, saving_settings, relative_saving_path, True),
+                    cb=self._bulk_save_from_cache_callback
+                )
+
+            self.task_num += 1
+
+        if not self.task_num:   # 对是否分配了任务进行检查
+            self.frame.dialog.async_warning('没有添加任何批量保存任务')
+            self.hide_saving_progress_plane()
+        else:
+            self.bar.next_step(self.task_num)
+            self.frame.dialog.async_info(f'已添加{self.task_num}个批量保存任务')
+            self.frame.savingProgressInfo.SetLabelText(f'0/{self.task_num} - 0%')
+        self.lock.release()     # 任务分配完毕，释放线程锁
 
     def bulk_save(self):
         """批量保存"""
@@ -139,22 +160,10 @@ class ImageSaver(object):
         self.lock.acquire()                                 # 锁住线程锁，防止在任务添加期间执行回调函数，而导致进度识别错误
 
         for image_item in self.frame.tree_manager.all_image_item_data:
-            uf = False                                      # use_folder的局部变量名
-            if not use_folder:                              # 对未使用多级文件夹的情况的一些询问
-                result = self._check_dir(image_item)
-                if result == DO_NOT_USE_FOLDER:
-                    pass
-                elif result == USE_FOLDER:
-                    uf = True
-                else:
-                    continue
-            else:
-                uf = True
-
             image_item.standardized_proc_mode()
             settings = image_item.encryption_parameters.settings if image_item.proc_mode.requires_encryption_parameters else image_item.settings
             cache = image_item.cache.previews.get_scalable_cache(hash((image_item.proc_mode.mode_id, settings.properties_tuple)))
-            relative_saving_path = image_item.path_data.relative_saving_dir if uf else ''
+            relative_saving_path = image_item.path_data.relative_saving_dir if use_folder else ''
             if cache is None:
                 self.saving_thread.add_task(
                     self._saving_task,
@@ -221,7 +230,7 @@ class ImageSaver(object):
         if relative_saving_path and not isdir(saving_path):
             makedirs(saving_path)
         if saving_settings.format in ('jpg', 'jpeg'):
-            image.covert('RGB')
+            image.convert('RGB')
         if not quiet:
             self.frame.savingProgressInfo.SetLabelText('正在保存文件')  # ! 未测试批量时的效果
         image.save(output_path, quality=saving_settings.quality, subsampling=saving_settings.subsampling_level)

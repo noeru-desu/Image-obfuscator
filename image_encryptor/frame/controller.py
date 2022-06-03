@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-30 21:03:35
+LastEditTime : 2022-06-03 21:01:54
 Description  : 界面控制相关
 """
 from os.path import splitext
@@ -248,7 +248,11 @@ class Controller(object):
     def saving_format_index(self, v: int): self.frame.savingFormat.Selection = v
 
     @property
-    def preview_size(self) -> tuple[int, int]: return self.frame.importedBitmapPanel.Size
+    def preview_size(self) -> tuple[int, int]:
+        if self.frame.displayedPreview.Selection != 2:
+            return self.frame.imagePanel.Size
+        image_panel_width, image_panel_height = self.frame.imagePanel.Size
+        return image_panel_width, image_panel_height // 2
 
     @property
     def saving_progress_info(self) -> str: return self.frame.savingProgressInfo.Label

@@ -2,14 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 15:59:22
+LastEditTime : 2022-06-03 21:34:15
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING, Optional
 
 from PIL.ImageGrab import grabclipboard
 
-from image_encryptor.constants import DO_NOT_REFRESH, AUTO_REFRESH, EXTENSION_KEYS, EXTENSION_KEYS_STRING
+from image_encryptor.constants import DO_NOT_REFRESH, AUTO_REFRESH, EXTENSION_KEYS, EXTENSION_KEYS_STRING, LOSSY_FORMATS
 from image_encryptor.frame.file_item import FolderItem, ImageItem
 from image_encryptor.frame.main_frame import MainFrame as BasicMainFrame
 from image_encryptor.modules.decorator import catch_exc_for_frame_method
@@ -30,12 +30,36 @@ class MainFrame(BasicMainFrame):
 
     def on_move_end(self, event):
         if self.resized:
-            self.refresh_preview(event)
-            self.resized = False
+            self.on_change_size(event)
+
+    def on_change_size(self, event):
+        size = self.controller.preview_size
+        self.importedBitmapPanel.SetMaxSize(size)
+        self.previewedBitmapPanel.SetMaxSize(size)
+        self.imagePanel.Layout()
+        self.refresh_preview(event)
+        self.resized = False
 
     def on_size(self, event: 'SizeEvent'):
         self.resized = True
         event.Skip()
+
+    def change_displayed_preview(self, event: 'CommandEvent'):
+        match event.Selection:
+            case 0:
+                self.importedBitmapPanel.Show()
+                self.previewedBitmapPanel.Hide()
+            case 1:
+                self.importedBitmapPanel.Hide()
+                self.previewedBitmapPanel.Show()
+            case 2:
+                self.importedBitmapPanel.Show()
+                self.previewedBitmapPanel.Show()
+        size = self.controller.preview_size
+        self.importedBitmapPanel.SetMaxSize(size)
+        self.previewedBitmapPanel.SetMaxSize(size)
+        self.imagePanel.Layout()
+        self.refresh_preview(event)
 
     @catch_exc_for_frame_method
     def manually_refresh(self, event):
@@ -111,9 +135,8 @@ class MainFrame(BasicMainFrame):
             self.image_saver.save_selected_image()
             return
         elif self.folder_item is not None:
-            self.dialog.async_warning('保存文件夹功能尚未完成', '正在进行重构')
-            return
             self.image_saver.save_selected_folder()
+            return
         self.dialog.async_error('没有选择图像或文件夹')
 
     @catch_exc_for_frame_method
@@ -246,6 +269,11 @@ class MainFrame(BasicMainFrame):
     @catch_exc_for_frame_method
     def record_saving_format(self, event=None):
         self.controller.previous_saving_format = self.controller.saving_format
+        if self.controller.saving_format in LOSSY_FORMATS:
+            self.dialog.warning(
+                '''当前保存格式为有损压缩格式, 这将导致加密后保存的图像在后续解密时出现不可预估的 噪点/分界线/颜色异常 等损坏
+损坏程度与加密方法和下方的有损格式保存设置相关''', '不可逆处理警告'
+            )
 
     @catch_exc_for_frame_method
     def stop_saving_event(self, event):

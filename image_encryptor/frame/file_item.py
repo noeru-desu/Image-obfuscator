@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 15:49:17
+LastEditTime : 2022-06-03 19:29:28
 Description  : 图像项目
 """
 from abc import ABC
@@ -549,18 +549,28 @@ class FolderItem(Item):
             self.reload_done()
         return success_num, fail_num
 
-    def all_included_items(self, sub_folder: bool = True) -> Generator[ImageItem, None, None]:
+    def all_included_items(self, sub_folder: bool = True) -> Generator[tuple[None, None, ImageItem], None, None]:
         for i in self.children.values():
             if sub_folder and isinstance(i, FolderItem):
                     yield from i.all_included_items()
             elif isinstance(i, ImageItem):
-                yield i
+                yield None, None, i
 
     def walk(self, sub_folder: bool = True, path_offset: int = ...) -> Generator[tuple[str, str, ImageItem], None, None]:
+        """遍历全部子项目
+
+        Args:
+            sub_folder (bool, optional): 是否遍历子目录. 默认为`True`
+            path_offset (int, optional): 绝对路径截断位置. 默认为当前文件夹的上级路径长度
+            (`len(self.parent_dir) + 1`, 即不包含自身, `+1`用于删除`/`)
+
+        Yields:
+            Generator[tuple[str, str, ImageItem], None, None]: (截断后的文件夹绝对路径, 文件夹名称, 子项目)
+        """
         if path_offset is Ellipsis:
             path_offset = len(self.parent_dir) + 1
         for i in self.children.values():
             if sub_folder and isinstance(i, FolderItem):
                     yield from i.walk(path_offset=path_offset)
             elif isinstance(i, ImageItem):
-                yield self.path[:path_offset], self.name, i
+                yield self.path[path_offset:], self.name, i

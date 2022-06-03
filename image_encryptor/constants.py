@@ -2,10 +2,9 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 15:44:55
+LastEditTime : 2022-06-03 21:38:26
 Description  : 常量
 """
-from json import JSONEncoder
 from platform import machine, platform
 from sys import version as py_ver
 
@@ -35,14 +34,17 @@ BETA = 3
 ALPHA = 4
 VERSION_TYPE = ALPHA
 VERSION_NUMBER = '2.0.0'
-SUB_VERSION_NUMBER = 'alpha.3'
-VERSION_BATCH = '20220603-1'
+SUB_VERSION_NUMBER = 'alpha.4'
+VERSION_BATCH = '20220603-2'
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
 
 EXTENSION_KEYS = [i.lstrip('.') for i in EXTENSION.keys()]
 EXTENSION_KEYS_STRING = ' '.join(EXTENSION_KEYS)
+LOSSY_FORMATS = (
+    'jpg', 'jpeg', 'wmf', 'webp'
+)
 PIL_RESAMPLING_FILTERS = (NEAREST, BOX, BILINEAR, HAMMING, BICUBIC, LANCZOS)
 WX_RESAMPLING_FILTERS = (IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_BOX_AVERAGE, IMAGE_QUALITY_BILINEAR, IMAGE_QUALITY_NORMAL, IMAGE_QUALITY_BICUBIC, IMAGE_QUALITY_HIGH)
 
