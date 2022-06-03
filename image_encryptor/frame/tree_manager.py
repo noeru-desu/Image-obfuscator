@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-29 07:39:41
+LastEditTime : 2022-06-03 14:50:04
 Description  : 节点树控制
 """
 from contextlib import suppress
@@ -17,7 +17,7 @@ from image_encryptor.utils.thread import SingleThreadExecutor
 if TYPE_CHECKING:
     from wx import TreeCtrl, TreeItemId
     from image_encryptor.frame.events import MainFrame
-    from image_encryptor.frame.file_item import ImageItem
+    from image_encryptor.frame.file_item import ImageItem, Item
 
 
 class TreeManager(object):
@@ -74,10 +74,12 @@ class TreeManager(object):
             else:
                 self.frame.logger.info(f'文件夹添加至文件树: {r_path}')
                 parent_data: 'FolderItem' = self.tree_ctrl.GetItemData(root)
+                parent_id = root
                 data = FolderItem(self.frame, path)
                 self.dir_dict[path] = root = self.tree_ctrl.AppendItem(root, name, 0, data=data)
                 parent_data.children[root] = data
                 data.parent = parent_data
+                data.parent_id = parent_id
         return root
 
     @overload
@@ -132,17 +134,22 @@ class TreeManager(object):
             parent_data: 'FolderItem' = self.tree_ctrl.GetItemData(root)
             parent_data.children[item_id] = data
             data.parent = parent_data
+            data.parent_id = root
         # self.frame.logger.info(f'文件添加至文件树: {file}')
         return item_id
 
-    def del_item(self, item_id: 'TreeItemId'):
+    def del_item(self, item_id: 'TreeItemId', __item: 'Item' = None):
         """从文件树删除指定的文件夹/文件
 
         Args:
             item_id (TreeItemId): 项目的TreeItemId, 如果为无效ID则不进行操作
+            __item (Item): 内部迭代删除空父级时使用, 正常使用无需传入
         """
         if item_id.IsOk():
-            self.tree_ctrl.GetItemData(item_id).del_item(item_id)
+            item = self.tree_ctrl.GetItemData(item_id) if __item is None else __item
+            item.del_item(item_id)
+            if item.parent is not None and (not item.parent.children):
+                self.del_item(item.parent_id, item.parent)
 
     def reload_item(self, item_id: 'TreeItemId'):
         """重载指定的文件夹/文件

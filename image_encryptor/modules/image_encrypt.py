@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-24 21:16:16
+LastEditTime : 2022-06-03 13:53:27
 Description  : 图像加密模块
 """
 from copy import copy
@@ -364,6 +364,7 @@ class AntiShield(object):
 
 
 class Shuffle(object):
+    """有序序列打乱功能, 使用时请注意线程安全"""
     __slots__ = ('seed',)
 
     def __init__(self, seed) -> None:

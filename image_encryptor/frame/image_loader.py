@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 20:06:23
+LastEditTime : 2022-06-03 15:49:36
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
@@ -98,6 +98,8 @@ class ImageLoader(object):
         self.clipboard_count += 1
         name = f'clipboard-{self.clipboard_count}'
         image_item = ImageItem(self.frame, image.convert('RGBA'), PathData('', '', name), no_file=True, keep_cache_loaded_image=cache)
+        if image_item.proc_mode.requires_encryption_parameters:
+            image_item.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
         item_id = self.frame.tree_manager.add_file(image_item, '', '', name)
         self.frame.stop_loading_func.init()
         return item_id
@@ -142,6 +144,8 @@ class ImageLoader(object):
             )
             item_id = self.frame.tree_manager.add_file(image_item, path_chosen)
             image_item.load_encryption_parameters()
+            if (not image_item.encrypted_image) and image_item.proc_mode.requires_encryption_parameters:
+                image_item.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
         else:
             self._output_image_loading_failure_info(error)
             item_id = None
@@ -191,6 +195,8 @@ class ImageLoader(object):
                     )
                     self.frame.tree_manager.add_file(image_item, path_chosen, r, n, False)
                     image_item.load_encryption_parameters()
+                    if (not image_item.encrypted_image) and image_item.proc_mode.requires_encryption_parameters:
+                        image_item.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
                     self.add_loading_progress()
                     loaded_num += 1
                 else:
@@ -199,8 +205,8 @@ class ImageLoader(object):
 
         self.finish_loading_progress()
         self.frame.stop_loading_func.init()
-        self.frame.dialog.async_info('成功从文件夹{}\n载入了{}个文件\n跳过了{}个文件\n失败了{}个文件'.format(
-            folder_name, loaded_num, self.loading_progress - load_failures - loaded_num, load_failures
+        self.frame.dialog.async_info('从文件夹{}\n载入了{}个文件\n跳过了{}个文件\n失败了{}个文件'.format(
+            folder_name, loaded_num, self.file_count - load_failures - loaded_num, load_failures
         ))
 
     def _output_image_loading_failure_info(self, massage: str, pop_up=True, file_name='图像'):

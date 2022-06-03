@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:48:20
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-29 07:51:23
+LastEditTime : 2022-06-03 15:48:06
 Description  : 模式管理器
 """
 from typing import TYPE_CHECKING, Type
@@ -72,3 +72,7 @@ class ModeManager(object):
         self.settings_panels[cls_id] = settings_panel
         settings_panel.Hide()
         return settings_panel
+
+    @property
+    def default_no_encryption_parameters_required_mode(self):
+        return self.modes[0] if self.default_mode.requires_encryption_parameters else self.default_mode

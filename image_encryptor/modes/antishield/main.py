@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 19:28:31
+LastEditTime : 2022-06-03 15:59:56
 Description  : 主要针对QQ群的图像反阻止发送功能
 """
 from os import makedirs
@@ -21,7 +21,6 @@ if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.file_item import PathData
     from image_encryptor.modes.base import EmptySettings
-    from image_encryptor.modes.antishield import ModeInterface
     from image_encryptor.modules.image import PillowImage, ImageData
 
 
@@ -33,6 +32,10 @@ def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return
     gauge.SetValue(100)
     label_text_setter('完成')
     return image
+
+
+def normal_gen_quietly(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'EmptySettings') -> 'WrappedPillowImage':
+    return WrappedPillowImage(AntiShield(source).generate_image(), original)
 
 
 def normal_save(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'EmptySettings', label_text_setter: Callable, gauge: 'Gauge') -> 'WrappedPillowImage':

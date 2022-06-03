@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-31 20:58:33
+LastEditTime : 2022-06-03 15:44:55
 Description  : 常量
 """
 from json import JSONEncoder
@@ -35,8 +35,8 @@ BETA = 3
 ALPHA = 4
 VERSION_TYPE = ALPHA
 VERSION_NUMBER = '2.0.0'
-SUB_VERSION_NUMBER = 'alpha.2'
-VERSION_BATCH = '20220531-1'
+SUB_VERSION_NUMBER = 'alpha.3'
+VERSION_BATCH = '20220603-1'
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
@@ -49,9 +49,6 @@ WX_RESAMPLING_FILTERS = (IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_BOX_AVERAGE, IMAGE
 DO_NOT_REFRESH = 0
 MANUALLY_REFRESH = 1
 AUTO_REFRESH = 2
-ENCRYPTION_MODE = 0
-DECRYPTION_MODE = 1
-ANTISHIELD_MODE = 2
 PREVIEW_IMAGE = 0
 ORIG_IMAGE = 1
 
@@ -88,13 +85,6 @@ class DialogReturnCodes(object):
     no = ID_NO
     cancel = ID_CANCEL
     help = ID_HELP
-
-
-class ProcModes(object):
-    encryption_mode = ENCRYPTION_MODE
-    decryption_mode = DECRYPTION_MODE
-    antishield_mode = ANTISHIELD_MODE
-
 
 
 _CONVERSIONS = {

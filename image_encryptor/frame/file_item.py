@@ -2,14 +2,14 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-27 21:24:14
+LastEditTime : 2022-06-03 15:49:17
 Description  : 图像项目
 """
 from abc import ABC
 from collections import OrderedDict
 from gc import collect
 from os.path import isfile, join, split
-from typing import TYPE_CHECKING, Any, Hashable, Optional, Union
+from typing import TYPE_CHECKING, Any, Generator, Hashable, Optional, Union
 
 from wx import BLACK, Bitmap, CallAfter
 
@@ -27,8 +27,10 @@ if TYPE_CHECKING:
 
 
 class Item(ABC):
-    __slots__ = ()
+    __slots__ = ('frame', 'parent', 'parent_id')
     frame: 'MainFrame'
+    parent: Optional['FolderItem']
+    parent_id: Optional['TreeItemId']
 
     def del_item(self, item_id: 'TreeItemId', del_item=True):
         """删除自身项目
@@ -314,7 +316,7 @@ class PathData(object):
 class ImageItem(Item):
     """每个载入的图像的存储实例"""
     __slots__ = (
-        'frame', 'cache', 'path_data', 'loaded_image_path', 'settings', 'parent', 'item_id', 'selected',
+        'cache', 'path_data', 'loaded_image_path', 'settings', 'item_id', 'selected',
         'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error', 'proc_mode'
     )
 
@@ -337,7 +339,8 @@ class ImageItem(Item):
         self.settings = frame.settings.default.copy() if settings is Ellipsis else settings
 
         self.item_id: TreeItemId = ...
-        self.parent: Optional[FolderItem] = None
+        self.parent: Optional['FolderItem'] = None
+        self.parent_id: Optional['TreeItemId'] = None
         self.selected = False
         self.no_file = no_file
         self.keep_cache_loaded_image = keep_cache_loaded_image
@@ -431,9 +434,24 @@ class ImageItem(Item):
             self.cache.encryption_parameters = ImageEncryptionAttributes(mode, mode.instantiate_encryption_parameters_cls(self.frame.controller, encryption_parameters['data']))
             self.proc_mode = mode
         else:
-            default_proc_mode = self.frame.mode_manager.default_mode
             self.encrypted_image = False
-            self.proc_mode = default_proc_mode if default_proc_mode.mode_id != self.proc_mode else self.frame.mode_manager.modes[0]
+            self.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
+
+    def standardized_proc_mode(self):
+        if self.proc_mode.requires_encryption_parameters:
+            if self.encrypted_image:
+                if self.cache.encryption_parameters.decryption_mode.mode_id != self.proc_mode.mode_id:
+                    self.proc_mode = self.cache.encryption_parameters.decryption_mode
+            else:
+                self.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
+                self.settings = self.frame.mode_manager.default_no_encryption_parameters_required_mode.default_settings
+
+    @property
+    def available_settings(self):
+        if self.encrypted_image and self.proc_mode.mode_id == self.cache.encryption_parameters.decryption_mode.mode_id:
+            return self.cache.encryption_parameters.settings
+        else:
+            return self.settings
 
     @property
     def encryption_parameters(self):
@@ -485,7 +503,7 @@ class ImageItem(Item):
 
 
 class FolderItem(Item):
-    __slots__ = ('frame', 'path', 'children', 'parent')
+    __slots__ = ('path', 'name', 'children', 'parent_dir')
 
     def __init__(self, frame: 'MainFrame', path: str):
         """
@@ -495,8 +513,10 @@ class FolderItem(Item):
         """
         self.frame = frame
         self.path = path
-        self.children: dict[TreeItemId, Union[FolderItem, ImageItem]] = {}
-        self.parent: Optional[FolderItem] = None
+        self.parent_dir, self.name = split(path)
+        self.children: dict[TreeItemId, Union['FolderItem', 'ImageItem']] = {}
+        self.parent: Optional['FolderItem'] = None
+        self.parent_id: Optional['TreeItemId'] = None
 
     def del_item(self, item_id: 'TreeItemId', del_item=True):
         for id, data in tuple(self.children.items()):
@@ -528,3 +548,19 @@ class FolderItem(Item):
             self.frame.dialog.async_info(f'重载成功: {success_num}个, 失败: {fail_num}个')
             self.reload_done()
         return success_num, fail_num
+
+    def all_included_items(self, sub_folder: bool = True) -> Generator[ImageItem, None, None]:
+        for i in self.children.values():
+            if sub_folder and isinstance(i, FolderItem):
+                    yield from i.all_included_items()
+            elif isinstance(i, ImageItem):
+                yield i
+
+    def walk(self, sub_folder: bool = True, path_offset: int = ...) -> Generator[tuple[str, str, ImageItem], None, None]:
+        if path_offset is Ellipsis:
+            path_offset = len(self.parent_dir) + 1
+        for i in self.children.values():
+            if sub_folder and isinstance(i, FolderItem):
+                    yield from i.walk(path_offset=path_offset)
+            elif isinstance(i, ImageItem):
+                yield self.path[:path_offset], self.name, i

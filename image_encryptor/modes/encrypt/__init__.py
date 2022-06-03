@@ -2,17 +2,16 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:43:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-31 20:54:59
+LastEditTime : 2022-06-03 13:31:39
 Description  : 
 """
 from typing import TYPE_CHECKING
 
 from image_encryptor.modes.base import BaseModeInterface
 from image_encryptor.modes.encrypt.controller import EncryptModeController
-from image_encryptor.modes.encrypt.main import normal_gen
+from image_encryptor.modes.encrypt.main import normal_gen, normal_gen_quietly
 from image_encryptor.modes.encrypt.settings import Settings
 from image_encryptor.modes.encrypt.panel import ProcSettingsPanel
-from image_encryptor.modules.decorator import catch_exc_and_return
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
@@ -35,9 +34,11 @@ class ModeInterface(BaseModeInterface):
         self.settings_cls = Settings
         self.default_settings = Settings(frame.controller, self.settings_controller, (25, 25, True, True, '', False, 'rgb', False, 128, None))
 
-    @catch_exc_and_return
     def proc_image(self, *args):
         return normal_gen(*args)
+
+    def proc_image_quietly(self, *args):
+        return normal_gen_quietly(*args)
 
     @property
     def encryption_settings_tuple(self):

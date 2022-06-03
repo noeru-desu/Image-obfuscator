@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-31 06:19:30
+LastEditTime : 2022-06-03 16:00:19
 Description  : 加密模式
 """
 from json import dumps
@@ -24,7 +24,6 @@ if TYPE_CHECKING:
     from wx import Gauge
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.file_item import PathData
-    from image_encryptor.modes.encrypt import ModeInterface
     from image_encryptor.modes.encrypt.settings import Settings
     from image_encryptor.modules.image import WrappedImage, ImageData
 
@@ -59,6 +58,23 @@ def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return
     image = return_type(*image)
     bar.over()
     label_text_setter('完成')
+    return image
+
+
+def normal_gen_quietly(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'Settings') -> 'WrappedImage':
+    if not settings.shuffle_chunks and not settings.flip_chunks and not settings.mapping_channels and not settings.XOR_encryption:
+        return WrappedPillowImage(source)
+
+    image_encrypt = ImageEncrypt(source, settings.cutting_row, settings.cutting_col, settings.available_password)
+
+    if settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels:
+        image_encrypt.init_block_data(settings.shuffle_chunks, settings.flip_chunks, settings.mapping_channels)
+        image = image_encrypt.generate_image()
+
+    if settings.XOR_encryption:
+        image = image_encrypt.xor_pixels(settings.XOR_channels, settings.noise_XOR, settings.noise_factor)
+
+    image = return_type(*image)
     return image
 
 

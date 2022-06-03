@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-15 07:17:06
+LastEditTime : 2022-06-03 14:16:44
 Description  : 线程相关类
 """
 from concurrent.futures import (CancelledError, ProcessPoolExecutor,
@@ -320,6 +320,7 @@ class SingleThreadExecutor(object):
 
     def clear_task(self):   # ! 可能出现信号量未重置的问题
         self.deque.clear()
+        self.thread.semaphore = Semaphore(0)
 
     def shutdown(self, wait: bool = True, restartable=False):
         """关闭线程, 尚未被执行的任务将被搁置
@@ -357,6 +358,7 @@ class SingleThreadExecutor(object):
 
         普通任务: 将在已有任务(如果有)顺次执行完毕后执行
         最高优先级任务: 将在当前任务(如果有)执行完毕后执行, 原有任务依次后移
+        调用回调函数时将插入`target`的返回值在第一个参数的位置
 
         Args:
             target (Callable): 目标可调用对象

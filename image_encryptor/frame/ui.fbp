@@ -4650,7 +4650,7 @@
                                                                 <property name="gripper">0</property>
                                                                 <property name="hidden">0</property>
                                                                 <property name="id">wxID_ANY</property>
-                                                                <property name="label">取消尚未进行的任务</property>
+                                                                <property name="label">取消所有保存任务</property>
                                                                 <property name="margins"></property>
                                                                 <property name="markup">0</property>
                                                                 <property name="max_size"></property>

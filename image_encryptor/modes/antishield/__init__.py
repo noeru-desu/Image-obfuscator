@@ -2,14 +2,13 @@
 Author       : noeru_desu
 Date         : 2022-04-17 12:11:48
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-31 20:54:51
+LastEditTime : 2022-06-03 13:40:14
 Description  : 
 """
 from typing import TYPE_CHECKING
 
-from image_encryptor.modes.antishield.main import normal_gen
+from image_encryptor.modes.antishield.main import normal_gen, normal_gen_quietly
 from image_encryptor.modes.base import BaseModeInterface
-from image_encryptor.modules.decorator import catch_exc_and_return
 
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
@@ -26,6 +25,8 @@ class ModeInterface(BaseModeInterface):
         self.enable_settings_panel = False
         self.enable_password = False
 
-    @catch_exc_and_return
     def proc_image(self, *args):
         return normal_gen(*args)
+
+    def proc_image_quietly(self, *args):
+        return normal_gen_quietly(*args)

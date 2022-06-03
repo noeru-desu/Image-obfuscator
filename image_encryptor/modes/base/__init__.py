@@ -2,11 +2,13 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-31 06:01:51
+LastEditTime : 2022-06-03 13:43:27
 Description  : 基类
 """
 from abc import ABC
 from itertools import compress
+
+from image_encryptor.modules.decorator import catch_exc_and_return
 
 from typing import TYPE_CHECKING, Callable, Optional, Iterable, Any, Union, Type, Iterator
 
@@ -180,7 +182,15 @@ class BaseModeInterface(ABC):
 
     file_name_suffix: Optional[tuple[str, str]] = None    # 添加到文件名末尾的后缀信息(非格式后缀)
 
-    def __init__(self, frame: 'MainFrame'):
+    supports_multiprocessing = False
+
+    def __new__(cls, frame: 'MainFrame', mode_id: int):
+        cls.proc_image = catch_exc_and_return(cls.proc_image)
+        cls.proc_image_quietly = catch_exc_and_return(cls.proc_image_quietly)
+        # TODO [需要SharedMemory支持] cls.proc_image_independently = catch_exc_and_return(lambda image_data, original)
+        return super().__new__(cls)
+
+    def __init__(self, frame: 'MainFrame', mode_id: int):
         raise NotImplementedError()
 
     @property
@@ -190,7 +200,10 @@ class BaseModeInterface(ABC):
     def proc_image(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings', label_text_setter: Callable, gauge: 'Gauge') -> tuple[Optional['WrappedImage'], Optional[str]]:
         raise NotImplementedError()
 
-    def proc_image_independently(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings', label_text_setter: Callable, gauge: 'Gauge') -> tuple[Optional['WrappedImage'], Optional[str]]:
+    def proc_image_quietly(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings'):
+        raise NotImplementedError()
+
+    def proc_image_independently(self, source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings') -> tuple[Optional['WrappedImage'], Optional[str]]:
         raise NotImplementedError()
 
     def instantiate_settings_cls(self, main_controller, data: Optional[Any] = None):
@@ -212,6 +225,8 @@ class BaseModeInterface(ABC):
         if self.add_encryption_parameters_in_file and self.corresponding_decryption_mode is None:
             ok = False
             self.frame.logger.error('add_encryption_parameters_in_file为True时请设置corresponding_decryption_mode属性')
+        if self.supports_multiprocessing:
+            self.frame.logger.warning('多进程处理将不会被使用')
         if not ok:
             self.frame.dialog.error('模式元数据错误, 请查看控制台')
         return ok

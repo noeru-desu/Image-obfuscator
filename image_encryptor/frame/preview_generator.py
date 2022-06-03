@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-29 17:53:22
+LastEditTime : 2022-06-03 15:11:44
 Description  : 图像生成功能
 """
 from typing import TYPE_CHECKING
@@ -29,7 +29,7 @@ class PreviewGenerator(object):
                 self.preview_thread.interrupt_task()
         image_item = self.frame.image_item
         mode_interface = self.frame.controller.proc_mode_interface
-        if image_item.encrypted_image and mode_interface.mode_id == image_item.encryption_parameters.decryption_mode.mode_id:
+        if mode_interface.requires_encryption_parameters:
             settings = image_item.cache.encryption_parameters.settings
         else:
             settings = self.frame.settings.all

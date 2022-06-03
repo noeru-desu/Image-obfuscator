@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-31 06:07:45
+LastEditTime : 2022-06-03 15:59:22
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING, Optional
@@ -107,18 +107,26 @@ class MainFrame(BasicMainFrame):
 
     @catch_exc_for_frame_method
     def save_selected_image(self, event):
-        self.image_saver.save_selected_image()
+        if self.image_item is not None:
+            self.image_saver.save_selected_image()
+            return
+        elif self.folder_item is not None:
+            self.dialog.async_warning('保存文件夹功能尚未完成', '正在进行重构')
+            return
+            self.image_saver.save_selected_folder()
+        self.dialog.async_error('没有选择图像或文件夹')
 
     @catch_exc_for_frame_method
     def bulk_save(self, event):
-        self.dialog.warning('批量保存功能尚未完成', '正在进行重构')
-        return
+        if not self.tree_manager.file_dict:
+            self.dialog.async_error('没有载入图像')
+            return
         self.image_saver.bulk_save()
 
     @catch_exc_for_frame_method
     def processing_mode_change(self, event):
         selected_mode = self.controller.proc_mode_interface
-        if self.image_item is None and selected_mode.decryption_mode:
+        if self.image_item is None and selected_mode.requires_encryption_parameters:
             self.controller.proc_mode_interface = self.controller.previous_proc_mode
             return
         elif selected_mode.requires_encryption_parameters:
@@ -177,7 +185,8 @@ class MainFrame(BasicMainFrame):
             self.controller.gen_image_info(image_data)
             self.processingOptions.Enable()
             self.controller.proc_settings_panel = image_data.proc_mode.settings_panel
-            if image_data.encrypted_image and image_data.encryption_parameters.decryption_mode.mode_id == image_data.proc_mode.mode_id:
+            image_data.standardized_proc_mode()
+            if image_data.proc_mode.requires_encryption_parameters:
                 self.controller.backtrack_interface(image_data.encryption_parameters)
             else:
                 self.controller.backtrack_interface(image_data.settings)
@@ -195,9 +204,10 @@ class MainFrame(BasicMainFrame):
 
     @catch_exc_for_frame_method
     def del_item(self, event):
-        if self.imageTreeCtrl.Selection.IsOk():
+        selection = self.imageTreeCtrl.Selection
+        if selection.IsOk():
             self.deleted_item = True
-            self.tree_manager.del_item(self.imageTreeCtrl.Selection)
+            self.tree_manager.del_item(selection)
         if not self.tree_manager.file_dict:
             self.controller.gen_image_info()
 
@@ -240,8 +250,9 @@ class MainFrame(BasicMainFrame):
     @catch_exc_for_frame_method
     def stop_saving_event(self, event):
         self.image_saver.cancel()
-        self.dialog.info('已取消尚未进行的任务')
+        self.dialog.info('已取消所有保存任务')
         self.stopSavingBtn.Disable()
+        self.image_saver.hide_saving_progress_plane()
 
     @catch_exc_for_frame_method
     def apply_to_all(self, event):
