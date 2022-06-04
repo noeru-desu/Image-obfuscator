@@ -2,12 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 21:34:15
+LastEditTime : 2022-06-04 18:39:50
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING, Optional
 
 from PIL.ImageGrab import grabclipboard
+from wx import VERTICAL, HORIZONTAL, CallAfter
 
 from image_encryptor.constants import DO_NOT_REFRESH, AUTO_REFRESH, EXTENSION_KEYS, EXTENSION_KEYS_STRING, LOSSY_FORMATS
 from image_encryptor.frame.file_item import FolderItem, ImageItem
@@ -30,15 +31,12 @@ class MainFrame(BasicMainFrame):
 
     def on_move_end(self, event):
         if self.resized:
-            self.on_change_size(event)
+            self.set_preview_plane_size()
+            self.refresh_preview(event)
+            self.resized = False
 
-    def on_change_size(self, event):
-        size = self.controller.preview_size
-        self.importedBitmapPanel.SetMaxSize(size)
-        self.previewedBitmapPanel.SetMaxSize(size)
-        self.imagePanel.Layout()
-        self.refresh_preview(event)
-        self.resized = False
+    def on_maximize(self, event):
+        CallAfter(self.refresh_preview, event)
 
     def on_size(self, event: 'SizeEvent'):
         self.resized = True
@@ -55,10 +53,12 @@ class MainFrame(BasicMainFrame):
             case 2:
                 self.importedBitmapPanel.Show()
                 self.previewedBitmapPanel.Show()
-        size = self.controller.preview_size
-        self.importedBitmapPanel.SetMaxSize(size)
-        self.previewedBitmapPanel.SetMaxSize(size)
-        self.imagePanel.Layout()
+        self.set_preview_plane_size()
+        self.refresh_preview(event)
+
+    def change_preview_layout(self, event):
+        self.imagePanel.Sizer.SetOrientation(VERTICAL if self.controller.preview_layout == 0 else HORIZONTAL)
+        self.set_preview_plane_size()
         self.refresh_preview(event)
 
     @catch_exc_for_frame_method

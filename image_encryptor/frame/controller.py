@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 21:01:54
+LastEditTime : 2022-06-04 12:23:50
 Description  : 界面控制相关
 """
 from os.path import splitext
@@ -88,6 +88,20 @@ class Controller(object):
         self.frame.importedBitmapPanel.Layout()
 
     @property
+    def preview_size(self) -> tuple[int, int]:
+        return self.frame.importedBitmapSizerPanel.Size
+
+    @property
+    def preview_plane_size(self) -> tuple[int, int]:
+        if self.frame.displayedPreview.Selection != 2:
+            return self.frame.imagePanel.Size
+        image_panel_width, image_panel_height = self.frame.imagePanel.Size
+        if self.preview_layout == 0:
+            return image_panel_width, image_panel_height // 2
+        else:
+            return image_panel_width // 2, image_panel_height
+
+    @property
     def imported_image(self) -> 'Image': raise NotImplementedError()
 
     @imported_image.setter
@@ -114,6 +128,14 @@ class Controller(object):
     def previewed_image(self, v: 'WrappedImage'):
         self.frame.previewedBitmap.Bitmap = v.wxBitmap
         self.frame.previewedBitmapPanel.Layout()
+
+    @property
+    def preview_layout(self) -> int:
+        return self.frame.previewLayout.Selection
+
+    @preview_layout.setter
+    def preview_layout(self, v: int):
+        self.frame.previewLayout.Selection = v
 
     @property
     def proc_mode(self) -> int: raise NotImplementedError()
@@ -246,13 +268,6 @@ class Controller(object):
 
     @saving_format_index.setter
     def saving_format_index(self, v: int): self.frame.savingFormat.Selection = v
-
-    @property
-    def preview_size(self) -> tuple[int, int]:
-        if self.frame.displayedPreview.Selection != 2:
-            return self.frame.imagePanel.Size
-        image_panel_width, image_panel_height = self.frame.imagePanel.Size
-        return image_panel_width, image_panel_height // 2
 
     @property
     def saving_progress_info(self) -> str: return self.frame.savingProgressInfo.Label

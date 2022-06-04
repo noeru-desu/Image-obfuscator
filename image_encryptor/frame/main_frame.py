@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-29 17:01:29
+LastEditTime : 2022-06-04 19:03:40
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -156,6 +156,12 @@ class MainFrame(MF):
         cls(None, startup_parameters, path).Enable()
 
         app.MainLoop()
+
+    def set_preview_plane_size(self):
+        size = self.controller.preview_plane_size
+        self.importedBitmapPanel.SetInitialSize(size)
+        self.previewedBitmapPanel.SetInitialSize(size)
+        self.imagePanel.Layout()
 
     def add_password_dict(self, password: str, dialog_parent: 'Window' = ...) -> bool:
         """添加密码到密码字典
