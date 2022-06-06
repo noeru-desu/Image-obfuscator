@@ -2,28 +2,28 @@
 Author       : noeru_desu
 Date         : 2022-04-04 10:35:30
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-27 21:28:06
+LastEditTime : 2022-06-07 06:21:45
 Description  : 预生成模板
 """
 from time import asctime, localtime
 
 gen_func = lambda: template.format(
     generated_time=asctime(localtime()),
-    hash_r=hash((True, False, False ,False)),
-    hash_g=hash((False, True, False ,False)),
-    hash_b=hash((False, False, True ,False)),
-    hash_a=hash((False, False, False ,True)),
-    hash_rg=hash((True, True, False ,False)),
-    hash_rb=hash((True, False, True ,False)),
-    hash_ra=hash((True, False, False ,True)),
-    hash_gb=hash((False, True, True ,False)),
-    hash_ga=hash((False, True, False ,True)),
-    hash_ba=hash((False, False, True ,True)),
-    hash_rgb=hash((True, True, True ,False)),
-    hash_rga=hash((True, True, False ,True)),
-    hash_rba=hash((True, False, True ,True)),
-    hash_gba=hash((False, True, True ,True)),
-    hash_rgba=hash((True, True, True ,True))
+    hash_r=hash((True, False, False, False)),
+    hash_g=hash((False, True, False, False)),
+    hash_b=hash((False, False, True, False)),
+    hash_a=hash((False, False, False, True)),
+    hash_rg=hash((True, True, False, False)),
+    hash_rb=hash((True, False, True, False)),
+    hash_ra=hash((True, False, False, True)),
+    hash_gb=hash((False, True, True, False)),
+    hash_ga=hash((False, True, False, True)),
+    hash_ba=hash((False, False, True, True)),
+    hash_rgb=hash((True, True, True, False)),
+    hash_rga=hash((True, True, False, True)),
+    hash_rba=hash((True, False, True, True)),
+    hash_gba=hash((False, True, True, True)),
+    hash_rgba=hash((True, True, True, True))
 )
 
 template = """# Generated on {generated_time}
