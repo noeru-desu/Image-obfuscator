@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-05-28 18:35:11
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-31 06:29:01
+LastEditTime : 2022-06-21 19:21:10
 Description  : 
 """
 from typing import TYPE_CHECKING
@@ -35,7 +35,7 @@ class ProcSettingsPanel(BaseProcSettingsPanel):
         self.refresh_preview(event)
 
     def update_noise_factor_num(self, event: 'CommandEvent' = None):
-        self.noiseFactorNum.Label = str(self.noiseFactor.Value)
+        self.noiseFactorNum.SetLabelText(str(self.noiseFactor.GetValue()))
 
     def refresh_preview(self, event):
         self.TopLevelParent.refresh_preview(event)

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 19:45:59
+LastEditTime : 2022-06-22 11:38:57
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 from wx import (CHK_CHECKED, CHK_UNCHECKED, CHK_UNDETERMINED, DIRP_CHANGE_DIR,
                 DIRP_DIR_MUST_EXIST, DirDialog)
 
-from image_encryptor.constants import DialogReturnCodes, json_encoder_default
+from image_encryptor.constants import DialogReturnCodes
 from image_encryptor.frame.controller import ProgressBar
 from image_encryptor.frame.file_item import ImageItem
 from image_encryptor.modules.image import PillowImage
@@ -206,7 +206,7 @@ class ImageSaver(object):
             return image, error
         self._post_save_processing(
             mode_interface,
-            settings.encryption_parameters_dict(*loaded_image.size) if mode_interface.add_encryption_parameters_in_file else None,
+            settings.serialize_encryption_parameters(*loaded_image.size) if mode_interface.add_encryption_parameters_in_file else None,
             self._save_image(image, mode_interface, image_item.path_data, saving_settings, relative_saving_path, quiet)
         )
         return image, None
@@ -214,7 +214,7 @@ class ImageSaver(object):
     def _saving_cache_task(self, image: 'Image', mode_interface: 'BaseModeInterface', image_item: 'ImageItem', settings: 'BaseSettings', saving_settings: 'SavingSettings', relative_saving_path: str = '', quiet=False):
         self._post_save_processing(
             mode_interface,
-            settings.encryption_parameters_dict(*image_item.cache.loaded_image.size) if mode_interface.add_encryption_parameters_in_file else None,
+            settings.serialize_encryption_parameters(*image_item.cache.loaded_image.size) if mode_interface.add_encryption_parameters_in_file else None,
             self._save_image(image, mode_interface, image_item.path_data, saving_settings, relative_saving_path, quiet)
         )
         return image, None
@@ -238,9 +238,9 @@ class ImageSaver(object):
 
     def _post_save_processing(self, mode_interface: 'BaseModeInterface', data, output_path: str):
         if mode_interface.add_encryption_parameters_in_file:
-            encryption_parameters_dict = gen_encryption_attributes(mode_interface.corresponding_decryption_mode, data)
+            serialize_encryption_parameters = gen_encryption_attributes(mode_interface.corresponding_decryption_mode, data)
             with open(output_path, "a") as f:
-                f.write('\n{}'.format(dumps(encryption_parameters_dict, default=json_encoder_default, separators=(',', ':'))))
+                f.write('\n{}'.format(dumps(serialize_encryption_parameters, separators=(',', ':'))))
 
     def _check_dir(self, image_item: 'ImageItem'):
         """文件夹相关检查"""

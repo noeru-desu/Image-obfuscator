@@ -26,10 +26,10 @@ class MainFrame (wx.Frame):
         'manuallyRefreshBtn', 'mappingFilter', 'maxImagePixels', 'otherOptions', 'passwordCtrl', 'passwordFilter', 'previewLayout',
         'previewMode', 'previewOptions', 'previewProgress', 'previewProgressInfo', 'previewSource', 'previewedBitmap',
         'previewedBitmapPanel', 'previewedBitmapSizerPanel', 'procMode', 'procSettingsPanelContainer', 'processingOptions',
-        'qqFilter', 'qualityInfo', 'redundantCacheLength', 'reloadingBtn', 'resamplingFilter', 'savingBtn', 'savingBtnPanel',
-        'savingFilters', 'savingFormat', 'savingOptions', 'savingProgress', 'savingProgressInfo', 'savingProgressPanel',
-        'savingQuality', 'selectSavingPath', 'settingsPanel', 'shuffleFilter', 'stopLoadingBtn', 'stopSavingBtn',
-        'subsamplingInfo', 'subsamplingLevel'
+        'qqFilter', 'qualityInfo', 'recordInterfaceSettings', 'recordPasswordDict', 'redundantCacheLength', 'reloadingBtn',
+        'resamplingFilter', 'savingBtn', 'savingBtnPanel', 'savingFilters', 'savingFormat', 'savingOptions', 'savingProgress',
+        'savingProgressInfo', 'savingProgressPanel', 'savingQuality', 'selectSavingPath', 'settingsPanel', 'shuffleFilter',
+        'stopLoadingBtn', 'stopSavingBtn', 'subsamplingInfo', 'subsamplingLevel'
     )
 
     def __init__(self, parent):
@@ -580,6 +580,18 @@ class MainFrame (wx.Frame):
 
         sbSizer17.Add(self.disableCache, 0, wx.ALL, 5)
 
+        self.recordInterfaceSettings = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"记录界面设置", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.recordInterfaceSettings.SetValue(True)
+        self.recordInterfaceSettings.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n记录界面设置: 在退出时记录界面设置, 并在下次启动时回溯界面")
+
+        sbSizer17.Add(self.recordInterfaceSettings, 0, wx.ALL, 5)
+
+        self.recordPasswordDict = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"记录密码字典", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.recordPasswordDict.SetValue(True)
+        self.recordPasswordDict.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n记录密码字典: 在退出时保存密码字典, 并在下次启动时重新载入")
+
+        sbSizer17.Add(self.recordPasswordDict, 0, wx.ALL, 5)
+
         self.m_panel25.SetSizer(sbSizer17)
         self.m_panel25.Layout()
         sbSizer17.Fit(self.m_panel25)
@@ -601,7 +613,6 @@ class MainFrame (wx.Frame):
 
         # Connect Events
         self.Bind(wx.EVT_CLOSE, self.exit)
-        self.Bind(wx.EVT_ICONIZE, self.on_maximize)
         self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)
         self.Bind(wx.EVT_MOVE_END, self.on_move_end)
         self.Bind(wx.EVT_SIZE, self.on_size)
@@ -636,6 +647,8 @@ class MainFrame (wx.Frame):
         self.redundantCacheLength.Bind(wx.EVT_TEXT_ENTER, self.change_redundant_cache_length)
         self.lowMemoryMode.Bind(wx.EVT_CHECKBOX, self.toggle_low_memory_usage_mode)
         self.disableCache.Bind(wx.EVT_CHECKBOX, self.toggle_disable_cache)
+        self.recordInterfaceSettings.Bind(wx.EVT_CHECKBOX, self.toggle_record_interface_settings)
+        self.recordPasswordDict.Bind(wx.EVT_CHECKBOX, self.toggle_record_password_dict)
 
     def __del__(self):
         pass
@@ -741,6 +754,12 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def toggle_disable_cache(self, event):
+        event.Skip()
+
+    def toggle_record_interface_settings(self, event):
+        event.Skip()
+
+    def toggle_record_password_dict(self, event):
         event.Skip()
 
 

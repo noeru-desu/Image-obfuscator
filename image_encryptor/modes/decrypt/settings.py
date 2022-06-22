@@ -2,9 +2,11 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:39:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-31 20:49:11
+LastEditTime : 2022-06-22 11:24:31
 Description  : 设置选项
 """
+from base64 import b85decode
+from pickle import loads as pickle_loads
 from typing import TYPE_CHECKING, Iterable, Any, Union
 
 from image_encryptor.modes.base import BaseSettings, Channels
@@ -19,18 +21,20 @@ class EncryptionParametersData(BaseSettings):
         'cutting_row', 'cutting_col', 'orig_width', 'orig_height', 'shuffle_chunks',
         'flip_chunks', 'mapping_channels', 'XOR_channels', 'XOR_encryption', 'noise_XOR', 'noise_factor',
         'has_password', 'password_base85', 'version', 'dynamic_auth', 'password'
-        # 需保证dynamic_auth与password在最后，参考self.encryption_parameters_dict
+        # 需保证dynamic_auth与password在最后，参考self.serialize_encryption_parameters
     )
 
-    def __init__(self, parameters: Union[dict[str, Any], Iterable[Any]]):
+    def __init__(self, parameters: Iterable[Any]):
         """
         Args:
-            parameters: 加密参数字典(一般由`self.encryption_parameters_dict`生成)或加密参数元组(一般由`self.properties_tuple`生成)
+            parameters: 加密参数字典或加密参数元组(一般由`self.properties_tuple`生成)
         """
-        if isinstance(parameters, dict):
+        if isinstance(parameters, tuple):
+            self.inherit_tuple(parameters, False)
+        else:
             self._inherit_dict_settings(parameters)
-        elif isinstance(parameters, Iterable):
-            self.inherit_tuple(parameters)
+        self.dynamic_auth: bool = self.version >= 6
+        self.password: str = None
 
     def _inherit_dict_settings(self, parameters_dict: dict[str, Any]):
         self.cutting_row: int = parameters_dict['cutting_row']
@@ -47,13 +51,10 @@ class EncryptionParametersData(BaseSettings):
         self.has_password: bool = parameters_dict['has_password']
         self.password_base85: str = parameters_dict['password_base85']
         self.version: int = parameters_dict['version']
-        self.dynamic_auth: bool = self.version >= 6
-        self.password: str = None
 
-    @property
-    def encryption_parameters_dict(self) -> dict[str, Any]:
-        """生成用于添加到被加密文件末尾的加密参数字典"""
-        return {k: getattr(self, k) for k in self.SETTING_NAMES[:-2]}
+    @staticmethod
+    def deserialize_encrypted_parameters(data: str):
+        return pickle_loads(b85decode(data))
 
     @property
     def properties(self):

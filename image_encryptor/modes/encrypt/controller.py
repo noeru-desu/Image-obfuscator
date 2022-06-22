@@ -33,100 +33,100 @@ class EncryptModeController(ModeController):
         self.XOR_checkboxes = (settings_panel.XORR, settings_panel.XORG, settings_panel.XORB, settings_panel.XORA)
 
     @property
-    def cutting_row(self) -> int: return self.settings_panel.cuttingRow.Value
+    def cutting_row(self) -> int: return self.settings_panel.cuttingRow.GetValue()
 
     @cutting_row.setter
-    def cutting_row(self, v: int): self.settings_panel.cuttingRow.Value = v
+    def cutting_row(self, v: int): self.settings_panel.cuttingRow.SetValue(v)
 
     @property
-    def cutting_col(self) -> int: return self.settings_panel.cuttingCol.Value
+    def cutting_col(self) -> int: return self.settings_panel.cuttingCol.GetValue()
 
     @cutting_col.setter
-    def cutting_col(self, v: int): self.settings_panel.cuttingCol.Value = v
+    def cutting_col(self, v: int): self.settings_panel.cuttingCol.SetValue(v)
 
     @property
-    def shuffle_chunks(self) -> bool: return self.settings_panel.shuffleChunks.Value
+    def shuffle_chunks(self) -> bool: return self.settings_panel.shuffleChunks.GetValue()
 
     @shuffle_chunks.setter
-    def shuffle_chunks(self, v: bool): self.settings_panel.shuffleChunks.Value = v
+    def shuffle_chunks(self, v: bool): self.settings_panel.shuffleChunks.SetValue(v)
 
     @property
-    def flip_chunks(self) -> bool: return self.settings_panel.flipChunks.Value
+    def flip_chunks(self) -> bool: return self.settings_panel.flipChunks.GetValue()
 
     @flip_chunks.setter
-    def flip_chunks(self, v: bool): self.settings_panel.flipChunks.Value = v
+    def flip_chunks(self, v: bool): self.settings_panel.flipChunks.SetValue(v)
 
     @property
-    def mapping_R(self) -> bool: return self.settings_panel.mappingR.Value
+    def mapping_R(self) -> bool: return self.settings_panel.mappingR.GetValue()
 
     @mapping_R.setter
-    def mapping_R(self, v: bool): self.settings_panel.mappingR.Value = v
+    def mapping_R(self, v: bool): self.settings_panel.mappingR.SetValue(v)
 
     @property
-    def mapping_G(self) -> bool: return self.settings_panel.mappingG.Value
+    def mapping_G(self) -> bool: return self.settings_panel.mappingG.GetValue()
 
     @mapping_G.setter
-    def mapping_G(self, v: bool): self.settings_panel.mappingG.Value = v
+    def mapping_G(self, v: bool): self.settings_panel.mappingG.SetValue(v)
 
     @property
-    def mapping_B(self) -> bool: return self.settings_panel.mappingB.Value
+    def mapping_B(self) -> bool: return self.settings_panel.mappingB.GetValue()
 
     @mapping_B.setter
-    def mapping_B(self, v: bool): self.settings_panel.mappingB.Value = v
+    def mapping_B(self, v: bool): self.settings_panel.mappingB.SetValue(v)
 
     @property
-    def mapping_A(self) -> bool: return self.settings_panel.mappingA.Value
+    def mapping_A(self) -> bool: return self.settings_panel.mappingA.GetValue()
 
     @mapping_A.setter
-    def mapping_A(self, v: bool): self.settings_panel.mappingA.Value = v
+    def mapping_A(self, v: bool): self.settings_panel.mappingA.SetValue(v)
 
     @property
-    def XOR_encryption(self) -> bool: return self.settings_panel.XOREncryption.Value
+    def XOR_encryption(self) -> bool: return self.settings_panel.XOREncryption.GetValue()
 
     @XOR_encryption.setter
-    def XOR_encryption(self, v: bool): self.settings_panel.XOREncryption.Value = v
+    def XOR_encryption(self, v: bool): self.settings_panel.XOREncryption.SetValue(v)
 
     @property
-    def XOR_R(self) -> bool: return self.settings_panel.XORR.Value
+    def XOR_R(self) -> bool: return self.settings_panel.XORR.GetValue()
 
     @XOR_R.setter
-    def XOR_R(self, v: bool): self.settings_panel.XORR.Value = v
+    def XOR_R(self, v: bool): self.settings_panel.XORR.SetValue(v)
 
     @property
-    def XOR_G(self) -> bool: return self.settings_panel.XORG.Value
+    def XOR_G(self) -> bool: return self.settings_panel.XORG.GetValue()
 
     @XOR_G.setter
-    def XOR_G(self, v: bool): self.settings_panel.XORG.Value = v
+    def XOR_G(self, v: bool): self.settings_panel.XORG.SetValue(v)
 
     @property
-    def XOR_B(self) -> bool: return self.settings_panel.XORB.Value
+    def XOR_B(self) -> bool: return self.settings_panel.XORB.GetValue()
 
     @XOR_B.setter
-    def XOR_B(self, v: bool): self.settings_panel.XORB.Value = v
+    def XOR_B(self, v: bool): self.settings_panel.XORB.SetValue(v)
 
     @property
-    def XOR_A(self) -> bool: return self.settings_panel.XORA.Value
+    def XOR_A(self) -> bool: return self.settings_panel.XORA.GetValue()
 
     @XOR_A.setter
-    def XOR_A(self, v: bool): self.settings_panel.XORA.Value = v
+    def XOR_A(self, v: bool): self.settings_panel.XORA.SetValue(v)
 
     @property
-    def noise_XOR(self) -> bool: return self.settings_panel.noiseXor.Value
+    def noise_XOR(self) -> bool: return self.settings_panel.noiseXor.GetValue()
 
     @noise_XOR.setter
-    def noise_XOR(self, v: bool): self.settings_panel.noiseXor.Value = v
+    def noise_XOR(self, v: bool): self.settings_panel.noiseXor.SetValue(v)
 
     @property
-    def noise_factor(self) -> int: return self.settings_panel.noiseFactor.Value
+    def noise_factor(self) -> int: return self.settings_panel.noiseFactor.GetValue()
 
     @noise_factor.setter
-    def noise_factor(self, v: int): self.settings_panel.noiseFactor.Value = v
+    def noise_factor(self, v: int): self.settings_panel.noiseFactor.SetValue(v)
 
     @property
-    def noise_factor_info(self) -> str: return self.settings_panel.noiseFactorNum.Label
+    def noise_factor_info(self) -> str: return self.settings_panel.noiseFactorNum.GetLabelText()
 
     @noise_factor_info.setter
-    def noise_factor_info(self, v): self.settings_panel.noiseFactorNum.Label = v
+    def noise_factor_info(self, v): self.settings_panel.noiseFactorNum.SetLabelText(v)
 
     @property
     def mapping_channels(self) -> 'Channels':

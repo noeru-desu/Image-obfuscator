@@ -2,12 +2,12 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:43:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 13:31:39
+LastEditTime : 2022-06-22 09:32:15
 Description  : 
 """
 from typing import TYPE_CHECKING
 
-from image_encryptor.modes.base import BaseModeInterface
+from image_encryptor.modes.base import BaseModeInterface, Channels
 from image_encryptor.modes.encrypt.controller import EncryptModeController
 from image_encryptor.modes.encrypt.main import normal_gen, normal_gen_quietly
 from image_encryptor.modes.encrypt.settings import Settings
@@ -32,7 +32,7 @@ class ModeInterface(BaseModeInterface):
         self.settings_panel = frame.mode_manager.add_settings_panel(self.settings_panel_cls)
         self.settings_controller: 'EncryptModeController' = EncryptModeController(frame, self.settings_panel)
         self.settings_cls = Settings
-        self.default_settings = Settings(frame.controller, self.settings_controller, (25, 25, True, True, '', False, 'rgb', False, 128, None))
+        self.default_settings = Settings(frame.controller, self.settings_controller, (25, 25, True, True, Channels((False, False, False, False)), False, Channels((True, True, True, False)), False, 128, 'none'))
 
     def proc_image(self, *args):
         return normal_gen(*args)

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 19:29:28
+LastEditTime : 2022-06-22 10:57:43
 Description  : 图像项目
 """
 from abc import ABC
@@ -431,7 +431,14 @@ class ImageItem(Item):
         if self.cache.loading_encryption_attributes_error is None:
             self.encrypted_image = True
             mode = self.frame.mode_manager.modes[encryption_parameters['corresponding_decryption_mode']]
-            self.cache.encryption_parameters = ImageEncryptionAttributes(mode, mode.instantiate_encryption_parameters_cls(self.frame.controller, encryption_parameters['data']))
+            self.cache.encryption_parameters = ImageEncryptionAttributes(
+                mode, mode.instantiate_encryption_parameters_cls(
+                    self.frame.controller,
+                    mode.encryption_parameters_cls.deserialize_encrypted_parameters(encryption_parameters['data'])
+                    if isinstance(encryption_parameters['data'], str)
+                    else encryption_parameters['data']
+                )
+            )
             self.proc_mode = mode
         else:
             self.encrypted_image = False

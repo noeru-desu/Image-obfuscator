@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-04 12:23:50
+LastEditTime : 2022-06-21 20:21:45
 Description  : 界面控制相关
 """
 from os.path import splitext
@@ -58,44 +58,44 @@ class Controller(object):
             self.visible_proc_settings_panel = v
 
     @property
-    def loading_progress_info(self) -> str: return self.frame.loadingProgressInfo.Label
+    def loading_progress_info(self) -> str: return self.frame.loadingProgressInfo.GetLabelText()
 
     @loading_progress_info.setter
-    def loading_progress_info(self, v: str): self.frame.loadingProgressInfo.Label = v
+    def loading_progress_info(self, v: str): self.frame.loadingProgressInfo.SetLabelText(v)
 
     @property
-    def loading_progress(self) -> int: return self.frame.loadingProgress.Value
+    def loading_progress(self) -> int: return self.frame.loadingProgress.GetValue()
 
     @loading_progress.setter
-    def loading_progress(self, v: int): self.frame.loadingProgress.Value = v
+    def loading_progress(self, v: int): self.frame.loadingProgress.SetValue(v)
 
     @property
-    def image_info(self) -> str: return self.frame.imageInfo.Label
+    def image_info(self) -> str: return self.frame.imageInfo.GetLabelText()
 
     @image_info.setter
     def image_info(self, v: str):
         try:
-            self.frame.imageInfo.Label = v
+            self.frame.imageInfo.SetLabelText(v)
         except RuntimeError:
             return
 
     @property
-    def imported_bitmap(self) -> 'Bitmap': return self.frame.importedBitmap.Bitmap
+    def imported_bitmap(self) -> 'Bitmap': return self.frame.importedBitmap.GetBitmap()
 
     @imported_bitmap.setter
     def imported_bitmap(self, v: 'Bitmap'):
-        self.frame.importedBitmap.Bitmap = v
+        self.frame.importedBitmap.SetBitmap(v)
         self.frame.importedBitmapPanel.Layout()
 
     @property
     def preview_size(self) -> tuple[int, int]:
-        return self.frame.importedBitmapSizerPanel.Size
+        return self.frame.importedBitmapSizerPanel.GetSize()
 
     @property
     def preview_plane_size(self) -> tuple[int, int]:
         if self.frame.displayedPreview.Selection != 2:
-            return self.frame.imagePanel.Size
-        image_panel_width, image_panel_height = self.frame.imagePanel.Size
+            return self.frame.imagePanel.GetSize()
+        image_panel_width, image_panel_height = self.frame.imagePanel.GetSize()
         if self.preview_layout == 0:
             return image_panel_width, image_panel_height // 2
         else:
@@ -110,15 +110,15 @@ class Controller(object):
         if addr == self.imported_image_id:  # 防止重复的Image->Bitmap转换
             return
         self.imported_image_id = addr
-        self.frame.importedBitmap.Bitmap = Bitmap.FromBufferRGBA(*v.size, v.tobytes())
+        self.frame.importedBitmap.SetBitmap(Bitmap.FromBufferRGBA(*v.size, v.tobytes()))
         self.frame.importedBitmapPanel.Layout()
 
     @property
-    def previewed_bitmap(self) -> 'Bitmap': return self.frame.previewedBitmap.Bitmap
+    def previewed_bitmap(self) -> 'Bitmap': return self.frame.previewedBitmap.GetBitmap()
 
     @previewed_bitmap.setter
     def previewed_bitmap(self, v: 'Bitmap'):
-        self.frame.previewedBitmap.Bitmap = v
+        self.frame.previewedBitmap.SetBitmap(v)
         self.frame.previewedBitmapPanel.Layout()
 
     @property
@@ -126,16 +126,26 @@ class Controller(object):
 
     @previewed_image.setter
     def previewed_image(self, v: 'WrappedImage'):
-        self.frame.previewedBitmap.Bitmap = v.wxBitmap
+        self.frame.previewedBitmap.SetBitmap(v.wxBitmap)
         self.frame.previewedBitmapPanel.Layout()
 
     @property
+    def displayed_preview(self) -> int:
+        return self.frame.displayedPreview.GetSelection()
+
+    @displayed_preview.setter
+    def displayed_preview(self, v: int):
+        self.frame.displayedPreview.SetSelection(v)
+        self.frame.change_displayed_preview(self.frame.displayedPreview)
+
+    @property
     def preview_layout(self) -> int:
-        return self.frame.previewLayout.Selection
+        return self.frame.previewLayout.GetSelection()
 
     @preview_layout.setter
     def preview_layout(self, v: int):
-        self.frame.previewLayout.Selection = v
+        self.frame.previewLayout.SetSelection(v)
+        self.frame.change_preview_layout(...)
 
     @property
     def proc_mode(self) -> int: raise NotImplementedError()
@@ -144,142 +154,144 @@ class Controller(object):
     def proc_mode(self, v): raise NotImplementedError()
 
     @property
-    def proc_mode_id(self) -> int: return self.frame.procMode.Selection
+    def proc_mode_id(self) -> int: return self.frame.procMode.GetSelection()
 
     @proc_mode_id.setter
-    def proc_mode_id(self, v: int): self.frame.procMode.Selection = v
+    def proc_mode_id(self, v: int): self.frame.procMode.SetSelection(v)
 
     @property
-    def proc_mode_interface(self) -> 'BaseModeInterface': return self.frame.mode_manager.modes[self.frame.procMode.Selection]
+    def proc_mode_interface(self) -> 'BaseModeInterface': return self.frame.mode_manager.modes[self.frame.procMode.GetSelection()]
 
     @proc_mode_interface.setter
-    def proc_mode_interface(self, v: 'BaseModeInterface'): self.frame.procMode.Selection = v.mode_id
+    def proc_mode_interface(self, v: 'BaseModeInterface'): self.frame.procMode.SetSelection(v.mode_id)
 
     @property
-    def proc_mode_qualname(self) -> 'str': return self.frame.mode_manager.modes[self.frame.procMode.Selection].mode_qualname
+    def proc_mode_qualname(self) -> 'str': return self.frame.mode_manager.modes[self.frame.procMode.GetSelection()].mode_qualname
 
     @proc_mode_qualname.setter
-    def proc_mode_qualname(self, v: 'str'): self.frame.procMode.Selection = self.frame.mode_manager.modes[v].mode_id
+    def proc_mode_qualname(self, v: 'str'): self.frame.procMode.SetSelection(self.frame.mode_manager.modes[v].mode_id)
 
     @property
-    def password(self) -> str: return self.frame.passwordCtrl.Value
+    def password(self) -> str: return self.frame.passwordCtrl.GetValue()
 
     @password.setter
-    def password(self, v: str): self.frame.passwordCtrl.Value = v
+    def password(self, v: str): self.frame.passwordCtrl.SetValue(v)
 
     @property
-    def preview_mode(self) -> int: return self.frame.previewMode.Selection
+    def preview_mode(self) -> int: return self.frame.previewMode.GetSelection()
 
     @preview_mode.setter
-    def preview_mode(self, v: int): self.frame.previewMode.Selection = v
+    def preview_mode(self, v: int):
+        self.frame.previewMode.SetSelection(v)
+        self.frame.preview_mode_change(...)
 
     @property
-    def preview_source(self) -> int: return self.frame.previewSource.Selection
+    def preview_source(self) -> int: return self.frame.previewSource.GetSelection()
 
     @preview_source.setter
-    def preview_source(self, v: int): self.frame.previewSource.Selection = v
+    def preview_source(self, v: int): self.frame.previewSource.SetSelection(v)
 
     @property
-    def saving_progress(self) -> int: return self.frame.savingProgress.Value
+    def saving_progress(self) -> int: return self.frame.savingProgress.GetValue()
 
     @saving_progress.setter
-    def saving_progress(self, v): self.frame.savingProgress.Value = v
+    def saving_progress(self, v): self.frame.savingProgress.SetValue(v)
 
     @property
-    def preview_progress_info(self) -> str: return self.frame.previewProgressInfo.Label
+    def preview_progress_info(self) -> str: return self.frame.previewProgressInfo.GetLabelText()
 
     @preview_progress_info.setter
-    def preview_progress_info(self, v): self.frame.previewProgressInfo.Label = v
+    def preview_progress_info(self, v): self.frame.previewProgressInfo.SetLabelText(v)
 
     @property
-    def preview_progress(self) -> int: return self.frame.previewProgress.Value
+    def preview_progress(self) -> int: return self.frame.previewProgress.GetValue()
 
     @preview_progress.setter
-    def preview_progress(self, v): self.frame.previewProgress.Value = v
+    def preview_progress(self, v): self.frame.previewProgress.SetValue(v)
 
     @property
-    def resampling_filter_id(self) -> int: return self.frame.resamplingFilter.Selection
+    def resampling_filter_id(self) -> int: return self.frame.resamplingFilter.GetSelection()
 
     @resampling_filter_id.setter
-    def resampling_filter_id(self, v: int): self.frame.resamplingFilter.Selection = v
+    def resampling_filter_id(self, v: int): self.frame.resamplingFilter.SetSelection(v)
 
     @property
-    def resampling_filter_name(self) -> str: return self.frame.resamplingFilter.StringSelection
+    def resampling_filter_name(self) -> str: return self.frame.resamplingFilter.GetStringSelection()
 
     @resampling_filter_name.setter
-    def resampling_filter_name(self, v: str): self.frame.resamplingFilter.StringSelection = v
+    def resampling_filter_name(self, v: str): self.frame.resamplingFilter.SetStringSelection(v)
 
     @property
-    def max_image_pixels(self) -> int: return self.frame.maxImagePixels.Value
+    def max_image_pixels(self) -> int: return self.frame.maxImagePixels.GetValue()
 
     @max_image_pixels.setter
-    def max_image_pixels(self, v): self.frame.maxImagePixels.Value = v
+    def max_image_pixels(self, v): self.frame.maxImagePixels.SetValue(v)
 
     @property
-    def stop_loading_btn_text(self) -> str: return self.frame.stopLoadingBtn.Label
+    def stop_loading_btn_text(self) -> str: return self.frame.stopLoadingBtn.GetLabelText()
 
     @stop_loading_btn_text.setter
-    def stop_loading_btn_text(self, v): self.frame.stopLoadingBtn.Label = v
+    def stop_loading_btn_text(self, v): self.frame.stopLoadingBtn.SetLabelText(v)
 
     @property
-    def reloading_btn_text(self) -> str: return self.frame.reloadingBtn.Label
+    def reloading_btn_text(self) -> str: return self.frame.reloadingBtn.GetLabelText()
 
     @reloading_btn_text.setter
-    def reloading_btn_text(self, v): self.frame.reloadingBtn.Label = v
+    def reloading_btn_text(self, v): self.frame.reloadingBtn.SetLabelText(v)
 
     @property
-    def saving_quality_info(self) -> str: return self.frame.qualityInfo.Label
+    def saving_quality_info(self) -> str: return self.frame.qualityInfo.GetLabelText()
 
     @saving_quality_info.setter
-    def saving_quality_info(self, v): self.frame.qualityInfo.Label = v
+    def saving_quality_info(self, v): self.frame.qualityInfo.SetLabelText(v)
 
     @property
-    def saving_quality(self) -> int: return self.frame.savingQuality.Value
+    def saving_quality(self) -> int: return self.frame.savingQuality.GetValue()
 
     @saving_quality.setter
-    def saving_quality(self, v: int): self.frame.savingQuality.Value = v
+    def saving_quality(self, v: int): self.frame.savingQuality.SetValue(v)
 
     @property
-    def saving_subsampling_info(self) -> str: return self.frame.subsamplingInfo.Label
+    def saving_subsampling_info(self) -> str: return self.frame.subsamplingInfo.GetLabelText()
 
     @saving_subsampling_info.setter
-    def saving_subsampling_info(self, v): self.frame.subsamplingInfo.Label = v
+    def saving_subsampling_info(self, v): self.frame.subsamplingInfo.SetLabelText(v)
 
     @property
-    def saving_subsampling_level(self) -> int: return self.frame.subsamplingLevel.Value
+    def saving_subsampling_level(self) -> int: return self.frame.subsamplingLevel.GetValue()
 
     @saving_subsampling_level.setter
-    def saving_subsampling_level(self, v: int): self.frame.subsamplingLevel.Value = v
+    def saving_subsampling_level(self, v: int): self.frame.subsamplingLevel.SetValue(v)
 
     @property
-    def saving_path(self) -> str: return self.frame.selectSavingPath.Path
+    def saving_path(self) -> str: return self.frame.selectSavingPath.GetPath()
 
     @saving_path.setter
-    def saving_path(self, v: str): self.frame.selectSavingPath.Path = v
+    def saving_path(self, v: str): self.frame.selectSavingPath.SetPath(v)
 
     @property
-    def saving_format(self) -> str: return self.frame.savingFormat.Value
+    def saving_format(self) -> str: return self.frame.savingFormat.GetValue()
 
     @saving_format.setter
-    def saving_format(self, v: str): self.frame.savingFormat.Value = v
+    def saving_format(self, v: str): self.frame.savingFormat.SetValue(v)
 
     @property
-    def saving_format_index(self) -> int: return EXTENSION_KEYS.index(self.frame.savingFormat.Value)
+    def saving_format_index(self) -> int: return EXTENSION_KEYS.index(self.frame.savingFormat.GetValue())
 
     @saving_format_index.setter
-    def saving_format_index(self, v: int): self.frame.savingFormat.Selection = v
+    def saving_format_index(self, v: int): self.frame.savingFormat.SetSelection(v)
 
     @property
-    def saving_progress_info(self) -> str: return self.frame.savingProgressInfo.Label
+    def saving_progress_info(self) -> str: return self.frame.savingProgressInfo.GetLabelText()
 
     @saving_progress_info.setter
-    def saving_progress_info(self, v: str): self.frame.savingProgressInfo.Label = v
+    def saving_progress_info(self, v: str): self.frame.savingProgressInfo.SetLabelText(v)
 
     @property
-    def saving_progress(self) -> int: return self.frame.savingProgress.Value
+    def saving_progress(self) -> int: return self.frame.savingProgress.GetValue()
 
     @saving_progress.setter
-    def saving_progress(self, v: int): self.frame.savingProgress.Value = v
+    def saving_progress(self, v: int): self.frame.savingProgress.SetValue(v)
 
     @property
     def redundant_cache_length(self) -> int:
@@ -292,10 +304,10 @@ class Controller(object):
         Returns:
             int: 冗余缓存最大长度
         """
-        return self.frame.redundantCacheLength.Value
+        return self.frame.redundantCacheLength.GetValue()
 
     @redundant_cache_length.setter
-    def redundant_cache_length(self, v: int): self.frame.redundantCacheLength.Value = v
+    def redundant_cache_length(self, v: int): self.frame.redundantCacheLength.SetValue(v)
 
     @property
     def low_memory_mode(self) -> bool:
@@ -306,10 +318,10 @@ class Controller(object):
         Returns:
             bool: 是否开启
         """
-        return self.frame.lowMemoryMode.Value
+        return self.frame.lowMemoryMode.GetValue()
 
     @low_memory_mode.setter
-    def low_memory_mode(self, v: bool): self.frame.lowMemoryMode.Value = v
+    def low_memory_mode(self, v: bool): self.frame.lowMemoryMode.SetValue(v)
 
     @property
     def disable_cache(self) -> bool:
@@ -318,10 +330,34 @@ class Controller(object):
         Returns:
             bool: 是否禁用
         """
-        return self.frame.disableCache.Value
+        return self.frame.disableCache.GetValue()
 
     @disable_cache.setter
-    def disable_cache(self, v: bool): self.frame.disableCache.Value = v
+    def disable_cache(self, v: bool): self.frame.disableCache.SetValue(v)
+
+    @property
+    def record_interface_settings(self) -> bool:
+        """启动参数: 禁用处理结果缓存
+
+        Returns:
+            bool: 是否禁用
+        """
+        return self.frame.recordInterfaceSettings.GetValue()
+
+    @record_interface_settings.setter
+    def record_interface_settings(self, v: bool): self.frame.recordInterfaceSettings.SetValue(v)
+
+    @property
+    def record_password_dict(self) -> bool:
+        """启动参数: 禁用处理结果缓存
+
+        Returns:
+            bool: 是否禁用
+        """
+        return self.frame.recordPasswordDict.GetValue()
+
+    @record_password_dict.setter
+    def record_password_dict(self, v: bool): self.frame.recordPasswordDict.SetValue(v)
 
     @property
     def saving_settings(self) -> 'SavingSettings':
@@ -440,7 +476,7 @@ class ProgressBar(object):
 
     def __init__(self, gauge: 'Gauge', total_steps: int = 1):
         assert total_steps > 0, f'total_steps must be greater than 0 (currently {total_steps})'
-        gauge.Value = 0
+        gauge.SetValue(0)
         self.gauge = gauge
         self.gauge_range: int = gauge.Range
         self.total_steps = total_steps
@@ -466,17 +502,18 @@ class ProgressBar(object):
         if value > self.max_value:
             return
         self.value = value
-        self.gauge.Value = int(value * self._coefficient) + self.basic_progress
+        self.gauge.SetValue(int(value * self._coefficient) + self.basic_progress)
 
     def add(self):
         self.update(self.value + 1)
 
     def finish(self):
-        self.gauge.Value = self.basic_progress = self.step_size * self.step
+        self.basic_progress = self.step_size * self.step
+        self.gauge.SetValue(self.basic_progress)
         self.finished_step = True
 
     def over(self):
-        self.gauge.Value = self.gauge_range
+        self.gauge.SetValue(self.gauge_range)
 
 
 class SegmentTrigger(object):

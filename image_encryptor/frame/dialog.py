@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-08 19:28:59
+LastEditTime : 2022-06-21 19:21:07
 Description  : 对话框相关
 """
 from typing import TYPE_CHECKING, Optional
@@ -194,14 +194,14 @@ class PasswordDialog(PD):
         self._until_correct = until_correct
         self.correct_password: str = None
         self.SetReturnCode(ID_CANCEL)
-        self.fileNameText.LabelText = file_name
+        self.fileNameText.SetLabelText(file_name)
         self.mainPanel.Layout()
 
     def user_confirm(self, event):
-        password = self.passwordTextCtrl.Value
+        password = self.passwordTextCtrl.GetValue()
         if not password:
             if self._until_correct:
-                self.tipText.LabelText = '密码为空! 取消输入密码请点击[取消]'
+                self.tipText.SetLabelText('密码为空! 取消输入密码请点击[取消]')
                 self.mainPanel.Layout()
             else:
                 self.user_cancel(event)
@@ -211,13 +211,13 @@ class PasswordDialog(PD):
                 self.correct_password = password
                 self.EndModal(ID_OK)
             elif self._until_correct:
-                self.tipText.LabelText = '密码错误! 请重新输入'
+                self.tipText.SetLabelText('密码错误! 请重新输入')
                 self.mainPanel.Layout()
                 self.passwordTextCtrl.Clear()
             else:
                 self.user_cancel(event)
         elif self._until_correct:
-            self.tipText.LabelText = '密码不符合要求, 请重新输入'
+            self.tipText.SetLabelText=('密码不符合要求, 请重新输入')
             self.mainPanel.Layout()
             self.passwordTextCtrl.Clear()
         else:

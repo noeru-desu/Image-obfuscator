@@ -2,10 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-04 18:39:50
+LastEditTime : 2022-06-21 20:00:52
 Description  : 事件处理
 """
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 from PIL.ImageGrab import grabclipboard
 from wx import VERTICAL, HORIZONTAL, CallAfter
@@ -16,15 +16,14 @@ from image_encryptor.frame.main_frame import MainFrame as BasicMainFrame
 from image_encryptor.modules.decorator import catch_exc_for_frame_method
 
 if TYPE_CHECKING:
-    from wx import CommandEvent, Event, SizeEvent, SpinEvent, TreeEvent, TreeItemId
-    from image_encryptor.modules.argparse import Parameters
+    from wx import CommandEvent, Event, SizeEvent, SpinEvent, TreeEvent, TreeItemId, RadioBox
 
 
 class MainFrame(BasicMainFrame):
     __slots__ = ('deleted_item', 'resized', 'first_choice')
 
-    def __init__(self, parent, startup_parameters: 'Parameters', run_path: str = ...):
-        super().__init__(parent, startup_parameters, run_path)
+    def __init__(self, parent, run_path: str = ...):
+        super().__init__(parent, run_path)
         self.deleted_item = False
         self.resized = False
         self.first_choice = True
@@ -42,7 +41,7 @@ class MainFrame(BasicMainFrame):
         self.resized = True
         event.Skip()
 
-    def change_displayed_preview(self, event: 'CommandEvent'):
+    def change_displayed_preview(self, event: Union['CommandEvent', 'RadioBox']):
         match event.Selection:
             case 0:
                 self.importedBitmapPanel.Show()
@@ -272,7 +271,7 @@ class MainFrame(BasicMainFrame):
         if self.controller.saving_format in LOSSY_FORMATS:
             self.dialog.warning(
                 '''当前保存格式为有损压缩格式, 这将导致加密后保存的图像在后续解密时出现不可预估的 噪点/分界线/颜色异常 等损坏
-损坏程度与加密方法和下方的有损格式保存设置相关''', '不可逆处理警告'
+损坏程度与加密方法和下方的有损格式保存设置相关''', '有损保存风险警告'
             )
 
     @catch_exc_for_frame_method
@@ -321,6 +320,18 @@ class MainFrame(BasicMainFrame):
     def toggle_disable_cache(self, event: 'CommandEvent'):
         self.startup_parameters.disable_cache = event.IsChecked()
 
+    def toggle_record_interface_settings(self, event: 'CommandEvent'):
+        self.startup_parameters.record_interface_settings = event.IsChecked()
+
+    def toggle_record_password_dict(self, event: 'CommandEvent'):
+        self.startup_parameters.record_password_dict = event.IsChecked()
+
     def exit(self, event):
+        self.Hide()
+        if not self.startup_parameters.test:
+            if self.startup_parameters.record_interface_settings:
+                self.config.save_frame_settings()
+            if self.startup_parameters.record_password_dict:
+                self.config.save_password_dict()
         self.logger.info('窗口退出')
         self.Destroy()

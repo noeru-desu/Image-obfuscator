@@ -2,16 +2,17 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-31 21:00:45
+LastEditTime : 2022-06-22 11:29:56
 Description  : 
 """
+from base64 import b85encode
+from pickle import dumps as pickle_dumps
 from typing import TYPE_CHECKING, Iterable, Any
 
 from image_encryptor.constants import EA_VERSION
-from image_encryptor.modes.base import BaseSettings
+from image_encryptor.modes.base import BaseSettings, Channels
 from image_encryptor.modes.decrypt.settings import EncryptionParametersData
 from image_encryptor.modules.password_verifier import PasswordDict
-from image_encryptor.modes.base import Channels
 
 if TYPE_CHECKING:
     from image_encryptor.frame.controller import Controller as MainController
@@ -65,9 +66,10 @@ class SettingsData(BaseSettings):
         """
         has_password = self.password != 'none'
         password = self.password if has_password else 100
-        return EncryptionParametersData((self.cutting_col, self.cutting_row, orig_width, orig_height, self.shuffle_chunks,
-                                        self.flip_chunks, self.mapping_channels, self.XOR_channels if self.XOR_encryption else Channels((False, False, False, False)),
-                                        self.noise_XOR, self.noise_factor, has_password,
+        return EncryptionParametersData((self.cutting_row, self.cutting_col, orig_width, orig_height, self.shuffle_chunks,
+                                        self.flip_chunks, self.mapping_channels,
+                                        self.XOR_channels if self.XOR_encryption else Channels((False, False, False, False)),
+                                        self.XOR_encryption, self.noise_XOR, self.noise_factor, has_password,
                                         PasswordDict.get_validation_field_base85(password) if has_password else 0, EA_VERSION,
                                         True, self.password))
 
@@ -78,15 +80,9 @@ class SettingsData(BaseSettings):
     def copy(self):
         return SettingsData(self.properties_tuple)
 
-    def encryption_parameters_dict(self, orig_width: int, orig_height: int):
-        has_password = self.password != 'none'
-        parameters_dict = {k: getattr(self, k) for k in self.SETTING_NAMES[:-1]}
-        parameters_dict['orig_width'] = orig_width
-        parameters_dict['orig_height'] = orig_height
-        parameters_dict['has_password'] = has_password
-        parameters_dict['password_base85'] = PasswordDict.get_validation_field_base85(self.password) if has_password else 0
-        parameters_dict['version'] = EA_VERSION
-        return parameters_dict
+    def serialize_encryption_parameters(self, orig_width: int, orig_height: int):
+        encryption_parameters_data = self.encryption_parameters_data(orig_width, orig_height)
+        return b85encode(pickle_dumps(tuple(getattr(encryption_parameters_data, i) for i in EncryptionParametersData.SETTING_NAMES[:-2]))).decode('utf-8')
 
 
 class Settings(SettingsData):

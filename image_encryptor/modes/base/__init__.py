@@ -2,15 +2,16 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 13:43:27
+LastEditTime : 2022-06-22 12:00:18
 Description  : 基类
 """
 from abc import ABC
+from warnings import warn
 from itertools import compress
 
 from image_encryptor.modules.decorator import catch_exc_and_return
 
-from typing import TYPE_CHECKING, Callable, Optional, Iterable, Any, Union, Type, Iterator
+from typing import TYPE_CHECKING, Callable, Optional, Iterable, Any, Union, Type, Iterator, final
 
 if TYPE_CHECKING:
     from typing import Iterator
@@ -60,9 +61,13 @@ class Channels(object):
         return self._channels_id
 
 
+class LengthMismatchWarning(UserWarning):
+    pass
+
+
 class BaseSettings(ABC):
     __slots__ = ()
-    SETTING_NAMES: Iterable[str]
+    SETTING_NAMES: tuple[str]
 
     def __init__(self, main_controller: 'MainController', mode_controller: 'ModeController', settings: Optional[Iterable[Any]] = None) -> None: ...
 
@@ -73,13 +78,15 @@ class BaseSettings(ABC):
         if isinstance(i, str):
             return getattr(self, i)
 
-    def inherit_tuple(self, settings: Iterable[Any]):
+    def inherit_tuple(self, settings: Iterable[Any], check_length=True):
         """将可迭代对象(一般是由`self.properties_tuple`生成的元组)中的数据同步到自身
 
         Args:
             settings (Iterable[Any]): 可迭代对象(一般是由`(self.properties_tuple)`生成的元组)
+            check_length (bool): 是否检查`settings`参数与`SETTING_NAMES`属性的长度是否对应. 默认为`True`. 当检查出长度不一致时触发`LengthMismatchWarning`警告
         """
-        assert len(self.SETTING_NAMES) == len(settings), f'Wrong settings arguments length, currently {len(settings)} (expected {len(self.SETTING_NAMES)})'
+        if __debug__ and check_length and len(self.SETTING_NAMES) != len(settings):
+            warn(f'Wrong settings arguments length, currently {len(settings)} (expected {len(self.SETTING_NAMES)})', LengthMismatchWarning)
         for n, v in zip(self.SETTING_NAMES, settings):
             self.__setattr__(n, v)
 
@@ -113,6 +120,21 @@ class BaseSettings(ABC):
         """
         return hash(self.properties_tuple)
 
+    @property
+    def properties_dict(self) -> dict:
+        """返回`self.SETTING_NAMES`中每个属性名与其值的字典.
+
+        Returns:
+            dict: {属性名: 属性值, ...}
+        """
+        return {k: getattr(self, k) for k in self.SETTING_NAMES}
+
+    @properties_dict.setter
+    def properties_dict(self, v: dict):
+        for k, _v in v.items():
+            if k in self.SETTING_NAMES:
+                setattr(self, k, _v)
+
     def copy(self) -> 'BaseSettings':
         """返回当前实例的浅拷贝
 
@@ -124,7 +146,11 @@ class BaseSettings(ABC):
     def backtrack_interface(self):
         pass
 
-    def encryption_parameters_dict(self, orig_width: int, orig_height: int):
+    def serialize_encryption_parameters(self, orig_width: int, orig_height: int) -> str:
+        raise NotImplementedError()
+
+    @classmethod
+    def deserialize_encrypted_parameters(cls, data: str) -> Any:
         raise NotImplementedError()
 
 
@@ -146,6 +172,12 @@ class EmptySettings(BaseSettings):
 
     @property
     def properties_tuple(self): return ()
+
+    @property
+    def properties_dict(self) -> None: return None
+
+    @properties_dict.setter
+    def properties_dict(self, v: Any): pass
 
     def copy(self): return self
 
@@ -212,6 +244,7 @@ class BaseModeInterface(ABC):
     def instantiate_encryption_parameters_cls(self, main_controller, data):
         return EmptySettings() if self.encryption_parameters_cls is None else self.encryption_parameters_cls(main_controller, self.settings_controller, data)
 
+    @final
     def check_metadata(self):
         ok = True
         if hasattr(self, 'mode_id'):

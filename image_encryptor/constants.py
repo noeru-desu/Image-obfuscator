@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-04 19:04:26
+LastEditTime : 2022-06-22 11:57:06
 Description  : 常量
 """
 from platform import machine, platform
@@ -34,8 +34,8 @@ BETA = 3
 ALPHA = 4
 VERSION_TYPE = ALPHA
 VERSION_NUMBER = '2.0.0'
-SUB_VERSION_NUMBER = 'alpha.5'
-VERSION_BATCH = '20220604-1'
+SUB_VERSION_NUMBER = 'alpha.6'
+VERSION_BATCH = '20220622-1'
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
@@ -67,6 +67,9 @@ EAERR_DECODE_FAILED = '加载图像加密参数时出现问题, 请确保尝试�
 EAERR_INCOMPATIBLE = '该版本不支持0.1.0-BETA版加密器加密的图像'
 EAERR_NOT_SUPPORT = '选择的图像文件由更高版本的加密器加密, 请使用最新版的加密器进行解密'
 
+FRAME_SETTINGS_MAIN_VERSION = 1
+FRAME_SETTINGS_SUB_VERSION = 0
+
 LIGHT_RED = Colour(255, 30, 30)
 
 VERSION_INFO = (
@@ -87,16 +90,3 @@ class DialogReturnCodes(object):
     no = ID_NO
     cancel = ID_CANCEL
     help = ID_HELP
-
-
-_CONVERSIONS = {
-    'Channels': lambda o: o.tuple
-}
-
-
-def json_encoder_default(o: object):
-    name = o.__class__.__name__
-    if name in _CONVERSIONS:
-        return _CONVERSIONS[name](o)
-    else:
-        raise TypeError(type(o))

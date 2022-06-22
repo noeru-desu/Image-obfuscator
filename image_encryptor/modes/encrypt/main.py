@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 16:00:19
+LastEditTime : 2022-06-22 11:38:22
 Description  : 加密模式
 """
 from json import dumps
@@ -11,7 +11,6 @@ from os.path import isdir, join, splitext
 from typing import TYPE_CHECKING, Any, Callable, Union, Type
 
 from PIL import Image
-from image_encryptor.constants import json_encoder_default
 
 from image_encryptor.frame.controller import ProgressBar, SavingSettings
 from image_encryptor.modules.image_encrypt import ImageEncrypt
@@ -119,7 +118,7 @@ def normal_save(frame: 'MainFrame', source: 'Image.Image', settings: 'Settings',
     _save_image(
         image, frame.image_item.path_data, settings.saving_path, settings.saving_format,
         settings.saving_quality, settings.saving_subsampling_level,
-        settings.encryption_parameters_data(*original_size).encryption_parameters_dict
+        settings.encryption_parameters_data(*original_size).encryption_parameters_data
     )
     bar.finish()
     bar.over()
@@ -140,7 +139,7 @@ def batch(image_data, path_data: 'PathData', settings, saving_format, auto_folde
     _save_image(
         array_to_image(*image), path_data, saving_settings.path, saving_settings.format,
         saving_settings.quality, saving_settings.subsampling_level,
-        settings.encryption_parameters_data(*original_size).encryption_parameters_dict,
+        settings.encryption_parameters_data(*original_size).encryption_parameters_data,
         auto_folder
     )
 
@@ -173,7 +172,7 @@ def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'Pa
     image.save(output_path, quality=quality, subsampling=subsampling)
 
     with open(output_path, "a") as f:
-        f.write('\n{}'.format(dumps(encryption_parameters_data, default=json_encoder_default, separators=(',', ':'))))
+        f.write('\n{}'.format(dumps(encryption_parameters_data, separators=(',', ':'))))
 
 
 save_image = catch_exc_and_return(_save_image)

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-30 21:09:32
+LastEditTime : 2022-06-22 11:51:27
 Description  : 对低版本加密的图像的加密信息进行转换, 向下兼容
 """
 from base64 import b64decode, b85encode
@@ -86,7 +86,7 @@ def v_8_to_9(data):
     }
 
 
-version_conversion: list[Callable[[dict], dict]] = (
+version_conversion: tuple[Callable[[dict], dict]] = (
     None, v_1_to_2, v_2_to_3, v_3_to_4, v_4_to_5, v_5_to_8, v_5_to_8, v_5_to_8, v_8_to_9
 )
 
@@ -148,7 +148,7 @@ def read_last_line(file, endswith: bytes = None):
     return last_line
 
 
-def gen_encryption_attributes(corresponding_decryption_mode: str, data: dict):
+def gen_encryption_attributes(corresponding_decryption_mode: str, data: str):
     return {
         'corresponding_decryption_mode': corresponding_decryption_mode,
         'data': data,
