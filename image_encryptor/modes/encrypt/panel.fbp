@@ -474,7 +474,7 @@
                             <property name="proportion">0</property>
                             <object class="wxStaticBoxSizer" expanded="1">
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">使用异或加密</property>
+                                <property name="label">色彩通道映射</property>
                                 <property name="minimum_size"></property>
                                 <property name="name">mappingSizer</property>
                                 <property name="orient">wxHORIZONTAL</property>

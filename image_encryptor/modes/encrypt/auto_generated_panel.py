@@ -61,7 +61,7 @@ class ProcSettingsPanel (wx.Panel):
         self.flipChunks.SetValue(True)
         bSizer2.Add(self.flipChunks, 0, wx.ALL, 5)
 
-        mappingSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"使用异或加密"), wx.HORIZONTAL)
+        mappingSizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"色彩通道映射"), wx.HORIZONTAL)
 
         self.mappingR = wx.CheckBox(mappingSizer.GetStaticBox(), wx.ID_ANY, u"R", wx.DefaultPosition, wx.DefaultSize, 0)
         mappingSizer.Add(self.mappingR, 0, 0, 0)
