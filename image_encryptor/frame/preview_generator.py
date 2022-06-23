@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 15:11:44
+LastEditTime : 2022-06-23 14:48:41
 Description  : 图像生成功能
 """
 from typing import TYPE_CHECKING
@@ -23,16 +23,14 @@ class PreviewGenerator(object):
         self.preview_thread = SingleThreadExecutor('preview-thread', 1)
 
     def generate_preview(self):
-        self.frame.controller.standardized_password_ctrl()
         with self.preview_thread.thread.lock:
             if not self.preview_thread.idle:
                 self.preview_thread.interrupt_task()
+        self.frame.controller.standardized_password_ctrl()
         image_item = self.frame.image_item
-        mode_interface = self.frame.controller.proc_mode_interface
-        if mode_interface.requires_encryption_parameters:
-            settings = image_item.cache.encryption_parameters.settings
-        else:
-            settings = self.frame.settings.all
+        image_item.sync_options_from_interface()
+        mode_interface = image_item.proc_mode
+        settings = image_item.available_settings
         if mode_interface.decryption_mode or self.frame.controller.preview_source == ORIG_IMAGE:
             self.preview_thread.add_task(mode_interface.proc_image, (
                 self.frame, image_item.cache.loaded_image, True, PillowImage,
@@ -45,8 +43,9 @@ class PreviewGenerator(object):
             ), cb=self._generate_preview_call_back)
 
     def _generate_preview_call_back(self, result):
-        data, error = result
-        if error is not None:
-            self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
-            return
-        self.frame.controller.display_and_cache_processed_preview(data)
+        if __debug__:
+            result, error = result
+            if error is not None:
+                self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
+                return
+        self.frame.controller.display_and_cache_processed_preview(result)

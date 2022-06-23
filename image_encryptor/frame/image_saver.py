@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-22 11:38:57
+LastEditTime : 2022-06-23 14:48:25
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -64,8 +64,9 @@ class ImageSaver(object):
             return
         self.show_saving_progress_plane(False)
         self.frame.controller.standardized_password_ctrl()
-        mode_interface = self.frame.controller.proc_mode_interface
-        settings = image_item.cache.encryption_parameters.settings if mode_interface.requires_encryption_parameters else self.frame.settings.all
+        image_item.sync_options_from_interface()
+        mode_interface = image_item.proc_mode
+        settings = image_item.available_settings
         cache = image_item.cache.previews.get_scalable_cache(self.frame.settings.gen_encryption_settings_hash(settings))
         if cache is None:
             self.saving_thread.add_task(
@@ -78,7 +79,7 @@ class ImageSaver(object):
             self.saving_thread.add_task(
                 self._saving_cache_task,
                 (cache, mode_interface, image_item, settings, self.frame.settings.saving_settings),
-                cb=self._save_selected_image_from_cache_call_back
+                cb=self.hide_saving_progress_plane
             )
 
     def save_selected_folder(self):
@@ -139,8 +140,7 @@ class ImageSaver(object):
         if self.frame.imageTreeCtrl.Selection.IsOk():   # 检查是否选择了某一文件
             image_data = self.frame.tree_manager.selected_item_data
             if isinstance(image_data, ImageItem):                  # 是否选择的是文件夹，如果不是，则同步gui内容至对应image_item实例
-                image_data.proc_mode = self.frame.controller.proc_mode_interface
-                image_data.settings = self.frame.settings.all
+                image_data.sync_options_from_interface()
         else:
             self.frame.apply_settings_to_all()      # 如果没有选择任何文件，则将当前gui内容同步到所有image_item实例
 
@@ -196,20 +196,24 @@ class ImageSaver(object):
 
     def _saving_task(self, mode_interface: 'BaseModeInterface', image_item: 'ImageItem', settings: 'BaseSettings', saving_settings: 'SavingSettings', relative_saving_path: str = '', quiet=False):
         loaded_image = image_item.cache.loaded_image
-        image, error = (mode_interface.proc_image_quietly(
+        result = (mode_interface.proc_image_quietly(
             self.frame, loaded_image, True, PillowImage, settings
         ) if quiet else mode_interface.proc_image(
             self.frame, loaded_image, True, PillowImage, settings,
             self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress
         ))
-        if error is not None:
-            return image, error
+        if __debug__:
+            image, error = result
+            if error is not None:
+                return result
+        else:
+            image = result
         self._post_save_processing(
-            mode_interface,
-            settings.serialize_encryption_parameters(*loaded_image.size) if mode_interface.add_encryption_parameters_in_file else None,
-            self._save_image(image, mode_interface, image_item.path_data, saving_settings, relative_saving_path, quiet)
-        )
-        return image, None
+                    mode_interface,
+                    settings.serialize_encryption_parameters(*loaded_image.size) if mode_interface.add_encryption_parameters_in_file else None,
+                    self._save_image(image, mode_interface, image_item.path_data, saving_settings, relative_saving_path, quiet)
+                )
+        return result
 
     def _saving_cache_task(self, image: 'Image', mode_interface: 'BaseModeInterface', image_item: 'ImageItem', settings: 'BaseSettings', saving_settings: 'SavingSettings', relative_saving_path: str = '', quiet=False):
         self._post_save_processing(
@@ -217,7 +221,6 @@ class ImageSaver(object):
             settings.serialize_encryption_parameters(*image_item.cache.loaded_image.size) if mode_interface.add_encryption_parameters_in_file else None,
             self._save_image(image, mode_interface, image_item.path_data, saving_settings, relative_saving_path, quiet)
         )
-        return image, None
 
     def _save_image(self, image: 'Image', mode_interface: 'BaseModeInterface', image_path_data: 'PathData', saving_settings: 'SavingSettings', relative_saving_path: str = '', quiet=False):
         name, _ = splitext(image_path_data.file_name)
@@ -279,18 +282,12 @@ class ImageSaver(object):
     def _save_selected_image_call_back(self, result):
         """保存选中的图像完成后的回调函数"""
         self.hide_saving_progress_plane()
-        data, error = result
-        if error is not None:
-            self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
-        else:
-            self.frame.controller.display_and_cache_processed_preview(data)     # 顺便刷新一下预览图
-
-    def _save_selected_image_from_cache_call_back(self, result):
-        """保存选中的图像完成后的回调函数"""
-        self.hide_saving_progress_plane()
-        data, error = result
-        if error is not None:
-            self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
+        if __debug__:
+            result, error = result
+            if error is not None:
+                self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
+                return
+        self.frame.controller.display_and_cache_processed_preview(result)     # 顺便刷新一下预览图
 
     def _bulk_save_from_cache_callback(self, result):
         """批量保存回调函数"""
@@ -307,9 +304,10 @@ class ImageSaver(object):
     def _bulk_save_callback(self, result):
         """批量保存回调函数"""
         with self.lock:     # 线程锁，防止进度累加错误
-            data, error = result
-            if error is not None:
-                self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
+            if __debug__:
+                data, error = result
+                if error is not None:
+                    self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
             self.bar.add()
             self.frame.controller.saving_progress_info = f"{self.bar.value}/{self.task_num} - {format(self.bar.value / self.task_num * 100, '.2f')}%"
             if self.bar.value == self.task_num:

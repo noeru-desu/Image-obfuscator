@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-22 12:00:18
+LastEditTime : 2022-06-23 14:59:16
 Description  : 基类
 """
 from abc import ABC
@@ -78,7 +78,7 @@ class BaseSettings(ABC):
         if isinstance(i, str):
             return getattr(self, i)
 
-    def inherit_tuple(self, settings: Iterable[Any], check_length=True):
+    def sync_from_tuple(self, settings: Iterable[Any], check_length=True):
         """将可迭代对象(一般是由`self.properties_tuple`生成的元组)中的数据同步到自身
 
         Args:
@@ -121,7 +121,7 @@ class BaseSettings(ABC):
         return hash(self.properties_tuple)
 
     @property
-    def properties_dict(self) -> dict:
+    def properties_dict(self) -> Optional[dict]:
         """返回`self.SETTING_NAMES`中每个属性名与其值的字典.
 
         Returns:
@@ -146,6 +146,9 @@ class BaseSettings(ABC):
     def backtrack_interface(self):
         pass
 
+    def sync_from_interface(self):
+        raise NotImplementedError()
+
     def serialize_encryption_parameters(self, orig_width: int, orig_height: int) -> str:
         raise NotImplementedError()
 
@@ -155,6 +158,7 @@ class BaseSettings(ABC):
 
 
 class EmptySettings(BaseSettings):
+    """空的设置实例, 用于占位, 实例为单例"""
     SETTING_NAMES = ()
     _instance: Optional['EmptySettings'] = None
 
@@ -165,7 +169,9 @@ class EmptySettings(BaseSettings):
 
     def __init__(self) -> None: pass
 
-    def inherit_tuple(self, v): pass
+    def sync_from_tuple(self, v): pass
+
+    def sync_from_interface(self): pass
 
     @property
     def properties(self): return ()
@@ -217,8 +223,9 @@ class BaseModeInterface(ABC):
     supports_multiprocessing = False
 
     def __new__(cls, frame: 'MainFrame', mode_id: int):
-        cls.proc_image = catch_exc_and_return(cls.proc_image)
-        cls.proc_image_quietly = catch_exc_and_return(cls.proc_image_quietly)
+        if __debug__:
+            cls.proc_image = catch_exc_and_return(cls.proc_image)
+            cls.proc_image_quietly = catch_exc_and_return(cls.proc_image_quietly)
         # TODO [需要SharedMemory支持] cls.proc_image_independently = catch_exc_and_return(lambda image_data, original)
         return super().__new__(cls)
 

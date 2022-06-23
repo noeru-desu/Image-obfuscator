@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-22 11:56:17
+LastEditTime : 2022-06-23 14:26:42
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -239,4 +239,4 @@ class MainFrame(MF):
         proc_mode = self.controller.proc_mode_interface
         for i in self.tree_manager.all_image_item_data:
             i.proc_mode = proc_mode
-            i.settings = proc_mode.instantiate_settings_cls(self.controller, properties_tuple)
+            i.settings.sync_from_tuple(properties_tuple)

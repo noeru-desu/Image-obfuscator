@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-17 06:35:00
+LastEditTime : 2022-06-23 11:03:53
 Description  : 一些小东西
 """
 from collections import deque
@@ -11,7 +11,10 @@ from os import walk
 from os.path import normpath
 from threading import Lock, Semaphore
 from types import FunctionType
-from typing import Iterable, Any, Iterator, Union
+from typing import Iterable, Any, Iterator, Union, TypeVar
+
+
+T = TypeVar('T')
 
 
 def walk_file(path, topdown=False, filter=None) -> tuple[int, list[tuple[list, list]]]:
@@ -72,6 +75,11 @@ def isclassmethod(func: FunctionType) -> bool:
         func (FunctionType)
     """
     return func.__qualname__ != func.__name__ or 'self' in signature(func).parameters
+
+
+def add_to(iter: Iterable[T], lst: list[T]):
+    for i, v in enumerate(iter):
+        lst[i] += v
 
 
 class FakeBar:

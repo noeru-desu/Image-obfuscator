@@ -30,7 +30,7 @@ class EncryptionParametersData(BaseSettings):
             parameters: 加密参数字典或加密参数元组(一般由`self.properties_tuple`生成)
         """
         if isinstance(parameters, tuple):
-            self.inherit_tuple(parameters, False)
+            self.sync_from_tuple(parameters, False)
         else:
             self._inherit_dict_settings(parameters)
         self.dynamic_auth: bool = self.version >= 6

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-22 11:29:56
+LastEditTime : 2022-06-23 14:32:56
 Description  : 
 """
 from base64 import b85encode
@@ -31,9 +31,9 @@ class SettingsData(BaseSettings):
         Args:
             settings (Iterable[Any]): 可迭代对象(一般是由`(self.properties_tuple)`生成的元组)
         """
-        self.inherit_tuple(settings)
+        self.sync_from_tuple(settings)
         # if isinstance(settings, tuple):
-        #     self.inherit_tuple(settings)
+        #     self.sync_from_tuple(settings)
         # elif isinstance(settings, dict):
         #     self._inherit_dict_settings(settings)
 
@@ -98,11 +98,11 @@ class Settings(SettingsData):
         self.main_controller = main_controller
         self.mode_controller = mode_controller
         if settings is None:
-            self._init()
+            self.sync_from_interface()
         else:
             super().__init__(settings)
 
-    def _init(self):
+    def sync_from_interface(self):
         self.cutting_row = self.mode_controller.cutting_row
         self.cutting_col = self.mode_controller.cutting_col
         self.shuffle_chunks = self.mode_controller.shuffle_chunks

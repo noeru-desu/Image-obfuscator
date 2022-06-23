@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-21 20:00:52
+LastEditTime : 2022-06-23 14:32:47
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING, Optional, Union
@@ -183,7 +183,7 @@ class MainFrame(BasicMainFrame):
             image_data: 'ImageItem' = self.imageTreeCtrl.GetItemData(image_item)
             if isinstance(image_data, ImageItem):
                 image_data.proc_mode = self.controller.proc_mode_interface
-                image_data.settings = image_data.proc_mode.instantiate_settings_cls(self.controller)
+                image_data.settings.sync_from_interface()
                 image_data.unselect()
         elif self.deleted_item:
             self.deleted_item = False
@@ -290,7 +290,7 @@ class MainFrame(BasicMainFrame):
         if self.image_item is None:
             return
         self.controller.proc_mode = self.mode_manager.default_mode
-        self.image_item.settings = self.settings.default.copy()
+        self.image_item.settings.sync_from_tuple(self.settings.default.properties)
         self.image_item.settings.backtrack_interface()
         self.refresh_preview()
 

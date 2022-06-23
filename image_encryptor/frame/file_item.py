@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-22 10:57:43
+LastEditTime : 2022-06-23 14:58:51
 Description  : 图像项目
 """
 from abc import ABC
@@ -16,6 +16,7 @@ from wx import BLACK, Bitmap, CallAfter
 from image_encryptor.constants import LIGHT_RED, PIL_RESAMPLING_FILTERS
 from image_encryptor.modules.image import cal_best_size, open_image
 from image_encryptor.modules.version_adapter import load_encryption_attributes
+from image_encryptor.utils.misc_utils import add_to
 
 if TYPE_CHECKING:
     from PIL.Image import Image
@@ -314,9 +315,9 @@ class PathData(object):
 
 
 class ImageItem(Item):
-    """每个载入的图像的存储实例"""
+    """存储每个载入的图像的相关信息"""
     __slots__ = (
-        'cache', 'path_data', 'loaded_image_path', 'settings', 'item_id', 'selected',
+        'cache', 'path_data', 'loaded_image_path', '_settings', 'item_id', 'selected',
         'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error', 'proc_mode'
     )
 
@@ -336,7 +337,7 @@ class ImageItem(Item):
         self.path_data = path_data
         self.proc_mode = frame.mode_manager.default_mode
         self.loaded_image_path = path_data.file_name if no_file else path_data.full_path
-        self.settings = frame.settings.default.copy() if settings is Ellipsis else settings
+        self._settings: dict[int, 'BaseSettings'] = {self.proc_mode.mode_id: frame.settings.default.copy() if settings is Ellipsis else settings}
 
         self.item_id: TreeItemId = ...
         self.parent: Optional['FolderItem'] = None
@@ -352,6 +353,29 @@ class ImageItem(Item):
             self.cache.loading_encryption_attributes_error = f'来自剪贴板的图像[{self.path_data.file_name}]不支持解密操作'
         else:
             self.cache.loading_encryption_attributes_error = None
+
+    @property
+    def settings(self) -> 'BaseSettings':
+        """当前`proc_mode`对应模式的设置实例\n
+        如果需要对此属性进行赋值, 请确保赋值前`proc_mode`属性已正确设置
+
+        Returns:
+            BaseSettings
+        """
+        mode_id = self.proc_mode.mode_id
+        if mode_id in self._settings:
+            return self._settings[self.proc_mode.mode_id]
+        self._settings[self.proc_mode.mode_id] = settings = self.proc_mode.default_settings.copy()
+        return settings
+
+    @settings.setter
+    def settings(self, v: 'BaseSettings'):
+        assert not self.proc_mode.requires_encryption_parameters, 'Please use "cache.encryption_parameters.settings" or "available_settings".'
+        self._settings[self.proc_mode.mode_id] = v
+
+    def sync_options_from_interface(self):
+        self.proc_mode = self.frame.controller.proc_mode_interface
+        self.settings.sync_from_interface()
 
     def unselect(self):
         """取消选中时的相关操作"""
@@ -436,7 +460,7 @@ class ImageItem(Item):
                     self.frame.controller,
                     mode.encryption_parameters_cls.deserialize_encrypted_parameters(encryption_parameters['data'])
                     if isinstance(encryption_parameters['data'], str)
-                    else encryption_parameters['data']
+                    else encryption_parameters['data']      # 兼容旧版加密参数
                 )
             )
             self.proc_mode = mode
@@ -455,7 +479,7 @@ class ImageItem(Item):
 
     @property
     def available_settings(self):
-        if self.encrypted_image and self.proc_mode.mode_id == self.cache.encryption_parameters.decryption_mode.mode_id:
+        if self.encrypted_image and self.proc_mode.requires_encryption_parameters and self.proc_mode.mode_id == self.cache.encryption_parameters.decryption_mode.mode_id:
             return self.cache.encryption_parameters.settings
         else:
             return self.settings
@@ -481,7 +505,7 @@ class ImageItem(Item):
             self.reload_done()
             return 0, 0
         if self.frame.tree_manager.stop_reloading_signal:
-            return 0, 1
+            return 0, 0
         loaded_image, error = open_image(self.loaded_image_path)
         if error is not None:
             if dialog:
@@ -543,18 +567,15 @@ class FolderItem(Item):
     def reload_item(self, dialog=True, refresh_preview=False):
         if self.frame.tree_manager.stop_reloading_signal:
             return 0, 0
-        fail_num = 0
-        success_num = 0
+        nums = [0, 0]
         for data in self.children.values():
             if self.frame.tree_manager.stop_reloading_signal:
                 break
-            add_success_num, add_fail_num = data.reload_item(False, False)
-            success_num += add_success_num
-            fail_num += add_fail_num
+            add_to(data.reload_item(False, False), nums)
         if dialog:
-            self.frame.dialog.async_info(f'重载成功: {success_num}个, 失败: {fail_num}个')
+            self.frame.dialog.async_info(f'重载成功: {nums[0]}个, 失败: {nums[1]}个')
             self.reload_done()
-        return success_num, fail_num
+        return nums
 
     def all_included_items(self, sub_folder: bool = True) -> Generator[tuple[None, None, ImageItem], None, None]:
         for i in self.children.values():

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-21 20:21:45
+LastEditTime : 2022-06-23 11:26:56
 Description  : 界面控制相关
 """
 from os.path import splitext
@@ -384,7 +384,7 @@ class Controller(object):
                                                         )
 
     def clear_preview(self):
-        """取消显示所有缓存"""
+        """取消显示所有预览图"""
         self.frame.importedBitmap.Bitmap = self.frame.previewedBitmap.Bitmap = Bitmap()
 
     def standardized_password_ctrl(self):

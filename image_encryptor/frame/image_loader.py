@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 15:49:36
+LastEditTime : 2022-06-23 07:07:28
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
@@ -71,11 +71,12 @@ class ImageLoader(object):
 
     def _loading_callback(self, result):
         """文件加载任务回调"""
-        select, err = result
-        if err is not None:
-            self.frame.dialog.async_error(err)
-        if select is not None:
-            CallAfter(self.frame.imageTreeCtrl.SelectItem, select)
+        if __debug__:
+            result, err = result
+            if err is not None:
+                self.frame.dialog.async_error(err)
+        if result is not None:
+            CallAfter(self.frame.imageTreeCtrl.SelectItem, result)
         self.frame.dialog.dialog_thread.unpause()
         self.frame.processingOptions.Enable()
         self.frame.loadingPanel.Enable()
