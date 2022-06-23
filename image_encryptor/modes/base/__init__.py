@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-23 14:59:16
+LastEditTime : 2022-06-23 19:59:00
 Description  : 基类
 """
 from abc import ABC
@@ -253,7 +253,12 @@ class BaseModeInterface(ABC):
 
     @final
     def check_metadata(self):
+        if self.mode_qualname is NotImplemented:
+            name = self.__class__.__qualname__
+        else:
+            name = self.mode_qualname
         ok = True
+        self.frame.logger.info(f'正在检查{name}的元数据')
         if hasattr(self, 'mode_id'):
             self.frame.logger.warning('mode_id属性将会被自动设置, 手动设置值无效')
         if self.mode_qualname is NotImplemented:
