@@ -454,7 +454,15 @@ class ImageItem(Item):
         encryption_parameters, self.cache.loading_encryption_attributes_error = load_encryption_attributes(self.loaded_image_path)
         if self.cache.loading_encryption_attributes_error is None:
             self.encrypted_image = True
-            mode = self.frame.mode_manager.modes[encryption_parameters['corresponding_decryption_mode']]
+            mode = self.frame.mode_manager.modes.get(encryption_parameters['corresponding_decryption_mode'], None)
+            if mode is None:
+                self.frame.dialog.warning(
+                    f'该图像对应的解密模式({encryption_parameters["corresponding_decryption_mode"]})不存在, 无法解密',
+                    '指定的解密模式不存在'
+                )
+                self.encrypted_image = False
+                self.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
+                return
             self.cache.encryption_parameters = ImageEncryptionAttributes(
                 mode, mode.instantiate_encryption_parameters_cls(
                     self.frame.controller,
