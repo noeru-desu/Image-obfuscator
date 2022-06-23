@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-23 14:58:51
+LastEditTime : 2022-06-23 20:10:33
 Description  : 图像项目
 """
 from abc import ABC
@@ -362,6 +362,7 @@ class ImageItem(Item):
         Returns:
             BaseSettings
         """
+        assert not self.proc_mode.requires_encryption_parameters, 'Please use "cache.encryption_parameters.settings" or "available_settings".'
         mode_id = self.proc_mode.mode_id
         if mode_id in self._settings:
             return self._settings[self.proc_mode.mode_id]
@@ -375,7 +376,8 @@ class ImageItem(Item):
 
     def sync_options_from_interface(self):
         self.proc_mode = self.frame.controller.proc_mode_interface
-        self.settings.sync_from_interface()
+        if not self.proc_mode.requires_encryption_parameters:
+            self.settings.sync_from_interface()
 
     def unselect(self):
         """取消选中时的相关操作"""
