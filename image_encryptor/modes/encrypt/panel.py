@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-05-28 18:35:11
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-21 19:21:10
+LastEditTime : 2022-06-25 20:11:49
 Description  : 
 """
 from typing import TYPE_CHECKING
@@ -28,14 +28,14 @@ class ProcSettingsPanel(BaseProcSettingsPanel):
 
     def toggle_factor_slider_switch(self, event: 'CommandEvent'):
         self.noiseFactor.Enable(event.IsChecked())
-        self.refresh_preview(event)
+        self.settings_changed(event)
 
     def toggle_xor_panel_switch(self, event: 'CommandEvent'):
         self.xorPanel.Enable(event.IsChecked())
-        self.refresh_preview(event)
+        self.settings_changed(event)
 
     def update_noise_factor_num(self, event: 'CommandEvent' = None):
         self.noiseFactorNum.SetLabelText(str(self.noiseFactor.GetValue()))
 
-    def refresh_preview(self, event):
-        self.TopLevelParent.refresh_preview(event)
+    def settings_changed(self, event):
+        self.TopLevelParent.settings_changed(event)

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-23 11:26:56
+LastEditTime : 2022-06-25 21:06:17
 Description  : 界面控制相关
 """
 from os.path import splitext
@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from image_encryptor.modules.image import WrappedImage
     from image_encryptor.modes.base import BaseModeInterface
 
+from image_encryptor.utils.debugging_utils import in_try
 
 class ItemNotFoundError(Exception):
     pass
@@ -28,7 +29,10 @@ class ItemNotFoundError(Exception):
 
 class Controller(object):
     "控件/控制器"
-    __slots__ = ('frame', 'previous_saving_format', 'previous_proc_mode', 'imported_image_id', 'visible_proc_settings_panel')
+    __slots__ = (
+        'frame', 'previous_saving_format', 'previous_proc_mode', 'imported_image_id', 'visible_proc_settings_panel',
+        'password_ctrl_hash'
+    )
 
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
@@ -36,6 +40,7 @@ class Controller(object):
         self.previous_proc_mode: 'BaseModeInterface' = ...
         self.imported_image_id = 0
         self.visible_proc_settings_panel: Optional['Panel'] = None
+        self.password_ctrl_hash = hash(self.frame.passwordCtrl)
 
     # ----------
     # properties
@@ -135,7 +140,7 @@ class Controller(object):
 
     @displayed_preview.setter
     def displayed_preview(self, v: int):
-        self.frame.displayedPreview.SetSelection(v)
+        self.frame.displayedPreview.Select(v)
         self.frame.change_displayed_preview(self.frame.displayedPreview)
 
     @property
@@ -144,7 +149,7 @@ class Controller(object):
 
     @preview_layout.setter
     def preview_layout(self, v: int):
-        self.frame.previewLayout.SetSelection(v)
+        self.frame.previewLayout.Select(v)
         self.frame.change_preview_layout(...)
 
     @property
@@ -157,19 +162,19 @@ class Controller(object):
     def proc_mode_id(self) -> int: return self.frame.procMode.GetSelection()
 
     @proc_mode_id.setter
-    def proc_mode_id(self, v: int): self.frame.procMode.SetSelection(v)
+    def proc_mode_id(self, v: int): self.frame.procMode.Select(v)
 
     @property
     def proc_mode_interface(self) -> 'BaseModeInterface': return self.frame.mode_manager.modes[self.frame.procMode.GetSelection()]
 
     @proc_mode_interface.setter
-    def proc_mode_interface(self, v: 'BaseModeInterface'): self.frame.procMode.SetSelection(v.mode_id)
+    def proc_mode_interface(self, v: 'BaseModeInterface'): self.frame.procMode.Select(v.mode_id)
 
     @property
     def proc_mode_qualname(self) -> 'str': return self.frame.mode_manager.modes[self.frame.procMode.GetSelection()].mode_qualname
 
     @proc_mode_qualname.setter
-    def proc_mode_qualname(self, v: 'str'): self.frame.procMode.SetSelection(self.frame.mode_manager.modes[v].mode_id)
+    def proc_mode_qualname(self, v: 'str'): self.frame.procMode.Select(self.frame.mode_manager.modes[v].mode_id)
 
     @property
     def password(self) -> str: return self.frame.passwordCtrl.GetValue()
@@ -182,14 +187,14 @@ class Controller(object):
 
     @preview_mode.setter
     def preview_mode(self, v: int):
-        self.frame.previewMode.SetSelection(v)
+        self.frame.previewMode.Select(v)
         self.frame.preview_mode_change(...)
 
     @property
     def preview_source(self) -> int: return self.frame.previewSource.GetSelection()
 
     @preview_source.setter
-    def preview_source(self, v: int): self.frame.previewSource.SetSelection(v)
+    def preview_source(self, v: int): self.frame.previewSource.Select(v)
 
     @property
     def saving_progress(self) -> int: return self.frame.savingProgress.GetValue()
@@ -213,7 +218,7 @@ class Controller(object):
     def resampling_filter_id(self) -> int: return self.frame.resamplingFilter.GetSelection()
 
     @resampling_filter_id.setter
-    def resampling_filter_id(self, v: int): self.frame.resamplingFilter.SetSelection(v)
+    def resampling_filter_id(self, v: int): self.frame.resamplingFilter.Select(v)
 
     @property
     def resampling_filter_name(self) -> str: return self.frame.resamplingFilter.GetStringSelection()
@@ -279,7 +284,7 @@ class Controller(object):
     def saving_format_index(self) -> int: return EXTENSION_KEYS.index(self.frame.savingFormat.GetValue())
 
     @saving_format_index.setter
-    def saving_format_index(self, v: int): self.frame.savingFormat.SetSelection(v)
+    def saving_format_index(self, v: int): self.frame.savingFormat.Select(v)
 
     @property
     def saving_progress_info(self) -> str: return self.frame.savingProgressInfo.GetLabelText()
@@ -390,31 +395,44 @@ class Controller(object):
     def standardized_password_ctrl(self):
         if not self.frame.update_password_dict():
             self.password = 'none'
+            image_item = self.frame.image_item
+            if image_item is not None and image_item.proc_mode.enable_password and image_item.proc_mode.settings_cls is not None:
+                image_item.settings.sync_from_mapping(self.frame.passwordCtrl)
 
-    def display_and_cache_processed_preview(self, image: 'WrappedImage'):
+    def display_and_cache_processed_preview(self, image: 'WrappedImage', cache_hash: int = ...):
         """显示并缓存处理结果
 
         如果`image`参数传入的实例支持缩放操作，则添加到可缩放缓存，反之则添加到普通缓存
 
         Args:
             image (WrappedImage): 需要显示并缓存的WrappedImage的子类实例
+            cache_hash (int): 指定该预览图的`cache_hash`. 默认由`self.frame.image_item`中的信息生成
         """
         if image.scalable:
-            self.frame.image_item.cache.previews.add_scalable_cache(self.frame.settings.encryption_settings_hash, image)
+            if cache_hash is Ellipsis:
+                cache_hash = self.frame.image_item.scalable_cache_hash
+            self.frame.image_item.cache.previews.add_scalable_cache(cache_hash, image)
             self.previewed_bitmap = image.gen_wxBitmap(self.preview_size, self.resampling_filter_id)
         else:
+            if cache_hash is Ellipsis:
+                cache_hash = self.frame.image_item.normal_cache_hash
             bitmap = image.wxBitmap
-            self.frame.image_item.cache.previews.add_normal_cache(self.frame.settings.encryption_settings_hash_with_size, bitmap)
+            self.frame.image_item.cache.previews.add_normal_cache(cache_hash, bitmap)
             self.previewed_bitmap = bitmap
+
+    def change_mode_plane(self, proc_mode: 'BaseModeInterface'):
+        self.proc_settings_panel = proc_mode.settings_panel
+        self.frame.procSettingsPanelContainer.Enable(proc_mode.enable_settings_panel)
+        self.frame.passwordCtrl.Enable(proc_mode.enable_password)
+        if not proc_mode.enable_password:
+            self.password = 'none'
 
     def backtrack_interface(self, settings_instance: 'BaseSettings', proc_mode: 'BaseModeInterface' = ...):
         if proc_mode is Ellipsis:
             mode_interface = self.proc_mode_interface = self.frame.image_item.proc_mode
         else:
             mode_interface = self.proc_mode_interface = proc_mode
-        self.proc_settings_panel = mode_interface.settings_panel
-        self.frame.procSettingsPanelContainer.Enable(mode_interface.enable_settings_panel)
-        self.frame.passwordCtrl.Enable(mode_interface.enable_password)
+        self.change_mode_plane(mode_interface)
         settings_instance.backtrack_interface()
 
 
@@ -425,30 +443,32 @@ class SettingsManager(object):
         self.controller = controller
         self.default = controller.default_proc_mode.default_settings
 
-    @property
-    def encryption_settings(self):
-        """当前所有加密设置的元组, 一般为生成encryption_settings_hash时使用"""
-        return self.controller.proc_mode_interface.encryption_settings_tuple
-
+    '''
     @property
     def encryption_settings_hash(self):
         """当前加密设置的hash"""
-        return hash((self.controller.proc_mode_id, self.encryption_settings))
+        return hash((
+            self.controller.proc_mode_id, 
+            self.controller.proc_mode_interface.encryption_settings_tuple
+        ))
 
     @property
     def encryption_settings_hash_with_size(self):
         """在encryption_settings_hash的基础上添加resampling_filter_id/preview_source/preview_size"""
-        return hash((self.controller.proc_mode_id, self.encryption_settings, self.controller.resampling_filter_id, self.controller.preview_source, *self.controller.preview_size))
+        return hash((self.controller.proc_mode_id, self.controller.proc_mode_interface.encryption_settings_tuple, self.controller.resampling_filter_id, self.controller.preview_source, *self.controller.preview_size))
 
-    def gen_encryption_settings_hash(self, settings: 'BaseSettings'):
-        return hash((self.controller.proc_mode_id, settings.properties_tuple))
+    def gen_encryption_settings_hash(self, settings: 'BaseSettings', encryption_parameters: 'BaseSettings'):
+        return hash((self.controller.proc_mode_id, settings.properties_tuple, encryption_parameters.properties_tuple))
 
-    def gen_encryption_settings_hash_with_size(self, settings: 'BaseSettings'):
-        return hash((self.controller.proc_mode_id, settings.properties_tuple, self.controller.resampling_filter_id, self.controller.preview_source, *self.controller.preview_size))
+    def gen_encryption_settings_hash_with_size(self, settings: 'BaseSettings', encryption_parameters: 'BaseSettings'):
+        return hash((self.controller.proc_mode_id, settings.properties_tuple, encryption_parameters.properties_tuple, self.controller.resampling_filter_id, self.controller.preview_source, *self.controller.preview_size))
+    '''
 
     @property
-    def all(self) -> 'BaseSettings':
-        """以当前的所有加密设置实例化Settings类"""
+    def current_settings(self) -> 'BaseSettings':
+        """以当前的所有加密设置实例化Settings类\n
+        向图像实例同步设置时请使用`settings.sync_from_interface()`或`image_item.sync_options_from_interface()`
+        """
         return self.controller.proc_mode_interface.instantiate_settings_cls(self.controller)
 
     @property

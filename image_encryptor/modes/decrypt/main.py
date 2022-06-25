@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 15:58:52
+LastEditTime : 2022-06-24 12:15:28
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -20,81 +20,82 @@ from image_encryptor.modules.decorator import catch_exc_and_return
 if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.file_item import PathData
+    from image_encryptor.modes.base import EmptySettings
     from image_encryptor.modes.decrypt.settings import EncryptionParameters, EncryptionParametersData
     from image_encryptor.modules.image import WrappedImage, ImageData
     from wx import Gauge
 
 
-def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], encryption_data: 'EncryptionParameters', label_text_setter: Callable, gauge: 'Gauge') -> 'WrappedImage':
-    password = encryption_data.get_password()
+def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'EmptySettings', encryption_parameters: 'EncryptionParameters', label_text_setter: Callable, gauge: 'Gauge') -> 'WrappedImage':
+    password = encryption_parameters.get_password()
     if password is None:
         frame.dialog.async_warning('密码字典中不存在此图像的密码')
         return WrappedPillowImage(source, cacheable=False)
     step_count = 0
-    if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
+    if encryption_parameters.shuffle_chunks or encryption_parameters.flip_chunks or encryption_parameters.mapping_channels:
         step_count += 2
-    if encryption_data.XOR_channels:
+    if encryption_parameters.XOR_channels:
         step_count += 1
     if step_count < 1:
         return WrappedPillowImage(source)
 
     bar = ProgressBar(gauge, step_count)
-    image_decrypt = ImageDecrypt(source, encryption_data.cutting_row, encryption_data.cutting_col, password, encryption_data.version)
+    image_decrypt = ImageDecrypt(source, encryption_parameters.cutting_row, encryption_parameters.cutting_col, password, encryption_parameters.version)
     label_text_setter('开始处理')
 
-    if encryption_data.XOR_encryption:
+    if encryption_parameters.XOR_encryption:
         label_text_setter('正在异或解密')
         bar.next_step(1)
-        image = image_decrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
+        image = image_decrypt.xor_pixels(encryption_parameters.XOR_channels, encryption_parameters.noise_XOR, encryption_parameters.noise_factor)
 
-    if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
+    if encryption_parameters.shuffle_chunks or encryption_parameters.flip_chunks or encryption_parameters.mapping_channels:
         bar.next_step(image_decrypt.base.block_num)
         label_text_setter('正在分割加密图像')
-        image_decrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels, bar)
+        image_decrypt.init_block_data(encryption_parameters.shuffle_chunks, encryption_parameters.flip_chunks, encryption_parameters.mapping_channels, bar)
 
         label_text_setter('正在重组')
 
         bar.next_step(image_decrypt.base.block_num)
         image = image_decrypt.generate_image(bar)
 
-    if encryption_data.version >= 7:
-        arr = crop_array(image[0], encryption_data.orig_height, encryption_data.orig_width)
-        image = return_type(arr, (encryption_data.orig_width, encryption_data.orig_height))
+    if encryption_parameters.version >= 7:
+        arr = crop_array(image[0], encryption_parameters.orig_height, encryption_parameters.orig_width)
+        image = return_type(arr, (encryption_parameters.orig_width, encryption_parameters.orig_height))
     else:
-        image = WrappedPillowImage(image.crop((0, 0, encryption_data.orig_width, encryption_data.orig_height)))
+        image = WrappedPillowImage(image.crop((0, 0, encryption_parameters.orig_width, encryption_parameters.orig_height)))
 
     bar.over()
     label_text_setter('完成')
     return image
 
 
-def normal_gen_quietly(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], encryption_data: 'EncryptionParameters') -> 'WrappedImage':
-    password = encryption_data.get_password()
+def normal_gen_quietly(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'EmptySettings', encryption_parameters: 'EncryptionParameters') -> 'WrappedImage':
+    password = encryption_parameters.get_password()
     if password is None:
         frame.dialog.async_warning('密码字典中不存在此图像的密码')
         return WrappedPillowImage(source, cacheable=False)
     step_count = 0
-    if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
+    if encryption_parameters.shuffle_chunks or encryption_parameters.flip_chunks or encryption_parameters.mapping_channels:
         step_count += 2
-    if encryption_data.XOR_channels:
+    if encryption_parameters.XOR_channels:
         step_count += 1
     if step_count < 1:
         return WrappedPillowImage(source)
 
-    image_decrypt = ImageDecrypt(source, encryption_data.cutting_row, encryption_data.cutting_col, password, encryption_data.version)
+    image_decrypt = ImageDecrypt(source, encryption_parameters.cutting_row, encryption_parameters.cutting_col, password, encryption_parameters.version)
 
-    if encryption_data.XOR_encryption:
-        image = image_decrypt.xor_pixels(encryption_data.XOR_channels, encryption_data.noise_XOR, encryption_data.noise_factor)
+    if encryption_parameters.XOR_encryption:
+        image = image_decrypt.xor_pixels(encryption_parameters.XOR_channels, encryption_parameters.noise_XOR, encryption_parameters.noise_factor)
 
-    if encryption_data.shuffle_chunks or encryption_data.flip_chunks or encryption_data.mapping_channels:
-        image_decrypt.init_block_data(encryption_data.shuffle_chunks, encryption_data.flip_chunks, encryption_data.mapping_channels,)
+    if encryption_parameters.shuffle_chunks or encryption_parameters.flip_chunks or encryption_parameters.mapping_channels:
+        image_decrypt.init_block_data(encryption_parameters.shuffle_chunks, encryption_parameters.flip_chunks, encryption_parameters.mapping_channels,)
         image = image_decrypt.generate_image()
 
-    if encryption_data.version >= 7:
-        arr = crop_array(image[0], encryption_data.orig_height, encryption_data.orig_width)
-        image = return_type(arr, (encryption_data.orig_width, encryption_data.orig_height))
+    if encryption_parameters.version >= 7:
+        arr = crop_array(image[0], encryption_parameters.orig_height, encryption_parameters.orig_width)
+        image = return_type(arr, (encryption_parameters.orig_width, encryption_parameters.orig_height))
     else:
-        image = WrappedPillowImage(image.crop((0, 0, encryption_data.orig_width, encryption_data.orig_height)))
+        image = WrappedPillowImage(image.crop((0, 0, encryption_parameters.orig_width, encryption_parameters.orig_height)))
 
     return image
 

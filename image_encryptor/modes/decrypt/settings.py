@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:39:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-22 11:24:31
+LastEditTime : 2022-06-25 20:42:05
 Description  : 设置选项
 """
 from base64 import b85decode
@@ -32,11 +32,11 @@ class EncryptionParametersData(BaseSettings):
         if isinstance(parameters, tuple):
             self.sync_from_tuple(parameters, False)
         else:
-            self._inherit_dict_settings(parameters)
+            self.sync_from_dict(parameters)
         self.dynamic_auth: bool = self.version >= 6
         self.password: str = None
 
-    def _inherit_dict_settings(self, parameters_dict: dict[str, Any]):
+    def sync_from_dict(self, parameters_dict: dict[str, Any]):
         self.cutting_row: int = parameters_dict['cutting_row']
         self.cutting_col: int = parameters_dict['cutting_col']
         self.orig_width: int = parameters_dict['orig_width']

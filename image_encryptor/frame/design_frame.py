@@ -285,22 +285,22 @@ class MainFrame (wx.Frame):
 
         previewModeChoices = [u"不显示", u"手动刷新", u"自动刷新"]
         self.previewMode = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"预览图", wx.DefaultPosition, wx.DefaultSize, previewModeChoices, 1, wx.RA_SPECIFY_COLS)
-        self.previewMode.SetSelection(2)
+        self.previewMode.Select(2)
         bSizer40.Add(self.previewMode, 0, wx.ALL | wx.EXPAND, 3)
 
         displayedPreviewChoices = [u"仅导入图像", u"仅处理结果", u"同时显示"]
         self.displayedPreview = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"显示预览图", wx.DefaultPosition, wx.DefaultSize, displayedPreviewChoices, 1, wx.RA_SPECIFY_COLS)
-        self.displayedPreview.SetSelection(2)
+        self.displayedPreview.Select(2)
         bSizer40.Add(self.displayedPreview, 0, wx.ALL | wx.EXPAND, 3)
 
         previewLayoutChoices = [u"竖向", u"横向"]
         self.previewLayout = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"预览图排版", wx.DefaultPosition, wx.DefaultSize, previewLayoutChoices, 1, wx.RA_SPECIFY_COLS)
-        self.previewLayout.SetSelection(0)
+        self.previewLayout.Select(0)
         bSizer40.Add(self.previewLayout, 0, wx.ALL | wx.EXPAND, 3)
 
         previewSourceChoices = [u"预览图", u"原图"]
         self.previewSource = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"加密时使用图源", wx.DefaultPosition, wx.DefaultSize, previewSourceChoices, 1, wx.RA_SPECIFY_COLS)
-        self.previewSource.SetSelection(0)
+        self.previewSource.Select(0)
         self.previewSource.SetToolTip(u"生成\"处理结果-预览图\"时使用的图源\n选择\"预览图\"可获得更好的性能，但结果会有所偏差\n选择\"原图\"将不会出现偏差，但性能低于\"预览图\"选项")
 
         bSizer40.Add(self.previewSource, 0, wx.ALL | wx.EXPAND, 3)
@@ -331,7 +331,7 @@ class MainFrame (wx.Frame):
 
         resamplingFilterChoices = [u"最邻近", u"单线性", u"双线性", u"Hamming", u"双三次", u"Lanczos"]
         self.resamplingFilter = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"重采样方式", wx.DefaultPosition, wx.DefaultSize, resamplingFilterChoices, 1, 0)
-        self.resamplingFilter.SetSelection(4)
+        self.resamplingFilter.Select(4)
         self.resamplingFilter.SetToolTip(u"缩放预览图使用的重采样方式，自上而下质量依次递增，性能依次递减，默认为双三次(Bicubic)")
 
         bSizer401.Add(self.resamplingFilter, 0, wx.ALL, 3)
@@ -361,7 +361,7 @@ class MainFrame (wx.Frame):
 
         savingFormatChoices = [u"bmp", u"gif", u"png", u"ico", u"tif", u"tiff", u"jpg", u"jpeg", u"pdf", u"psd", u"tga", u"webp"]
         self.savingFormat = wx.ComboBox(self.savingOptions, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, savingFormatChoices, wx.TE_PROCESS_ENTER)
-        self.savingFormat.SetSelection(2)
+        self.savingFormat.Select(2)
         self.savingFormat.SetToolTip(u"如果下拉框中不存在所需的保存格式，可直接输入后缀名，将自动进行检查。支持的保存格式如下\n")
 
         bSizer265.Add(self.savingFormat, 0, wx.ALIGN_CENTER | wx.ALL, 4)
@@ -626,7 +626,7 @@ class MainFrame (wx.Frame):
         self.collapseAllBtn.Bind(wx.EVT_BUTTON, self.collapse_all_item)
         self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.switched_image)
         self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGING, self.switching_image)
-        self.procMode.Bind(wx.EVT_LISTBOX, self.processing_mode_change)
+        self.procMode.Bind(wx.EVT_LISTBOX, self.processing_mode_changed)
         self.passwordCtrl.Bind(wx.EVT_TEXT_ENTER, self.update_password_dict)
         self.m_button31.Bind(wx.EVT_BUTTON, self.apply_to_all)
         self.m_button311.Bind(wx.EVT_BUTTON, self.set_settings_as_default)
@@ -696,7 +696,7 @@ class MainFrame (wx.Frame):
     def switching_image(self, event):
         event.Skip()
 
-    def processing_mode_change(self, event):
+    def processing_mode_changed(self, event):
         event.Skip()
 
     def update_password_dict(self, event):

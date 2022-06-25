@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-23 07:07:28
+LastEditTime : 2022-06-24 11:59:31
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
@@ -99,8 +99,8 @@ class ImageLoader(object):
         self.clipboard_count += 1
         name = f'clipboard-{self.clipboard_count}'
         image_item = ImageItem(self.frame, image.convert('RGBA'), PathData('', '', name), no_file=True, keep_cache_loaded_image=cache)
-        if image_item.proc_mode.requires_encryption_parameters:
-            image_item.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
+        # if image_item.proc_mode.requires_encryption_parameters:
+        #     image_item.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
         item_id = self.frame.tree_manager.add_file(image_item, '', '', name)
         self.frame.stop_loading_func.init()
         return item_id
@@ -144,9 +144,9 @@ class ImageLoader(object):
                 self.frame, None if self.frame.startup_parameters.low_memory else loaded_image, PathData(path, '', name)
             )
             item_id = self.frame.tree_manager.add_file(image_item, path_chosen)
-            image_item.load_encryption_parameters()
-            if (not image_item.encrypted_image) and image_item.proc_mode.requires_encryption_parameters:
-                image_item.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
+            image_item.load_encryption_attributes()
+            # if (not image_item.encrypted_image) and image_item.proc_mode.requires_encryption_parameters:
+            #     image_item.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
         else:
             self._output_image_loading_failure_info(error)
             item_id = None
@@ -195,9 +195,9 @@ class ImageLoader(object):
                         PathData(path_chosen, r, n), settings_instantiator(self.frame.controller, settings_tuple)
                     )
                     self.frame.tree_manager.add_file(image_item, path_chosen, r, n, False)
-                    image_item.load_encryption_parameters()
-                    if (not image_item.encrypted_image) and image_item.proc_mode.requires_encryption_parameters:
-                        image_item.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
+                    image_item.load_encryption_attributes()
+                    # if (not image_item.encrypted_image) and image_item.proc_mode.requires_encryption_parameters:
+                    #     image_item.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
                     self.add_loading_progress()
                     loaded_num += 1
                 else:

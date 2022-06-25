@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-23 14:26:42
+LastEditTime : 2022-06-25 20:51:56
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -31,6 +31,7 @@ from image_encryptor.frame.mode_manager import ModeManager
 from image_encryptor.frame.preview_generator import PreviewGenerator
 from image_encryptor.frame.tree_manager import TreeManager
 from image_encryptor.frame.config import ConfigManager
+from image_encryptor.modes.base import EmptySettings
 from image_encryptor.modules.argparse import Arguments, Parameters
 from image_encryptor.modules.decorator import catch_exc_for_frame_method
 from image_encryptor.modules.password_verifier import PasswordDict
@@ -83,6 +84,8 @@ class MainFrame(MF):
         # 各项实现或组件
         self.dialog = Dialog(self)
         self.controller = Controller(self)
+        EmptySettings.main_controller = self.controller
+        EmptySettings.check_settings_mapping()
         self.mode_manager = ModeManager(self)
         self.mode_manager.load_builtin_modes()
         self.settings = SettingsManager(self.controller)
@@ -235,8 +238,10 @@ class MainFrame(MF):
     @catch_exc_for_frame_method
     def apply_settings_to_all(self):
         """将当前加密设置应用到全部"""
-        properties_tuple = self.settings.all.properties_tuple
         proc_mode = self.controller.proc_mode_interface
+        if proc_mode.requires_encryption_parameters:
+            return
+        properties_tuple = self.settings.current_settings.properties_tuple
         for i in self.tree_manager.all_image_item_data:
             i.proc_mode = proc_mode
             i.settings.sync_from_tuple(properties_tuple)

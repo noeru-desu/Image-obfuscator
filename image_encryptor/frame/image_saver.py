@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-23 14:48:25
+LastEditTime : 2022-06-25 21:12:56
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -12,8 +12,7 @@ from os.path import isdir, splitext, join
 from threading import Lock
 from typing import TYPE_CHECKING
 
-from wx import (CHK_CHECKED, CHK_UNCHECKED, CHK_UNDETERMINED, DIRP_CHANGE_DIR,
-                DIRP_DIR_MUST_EXIST, DirDialog)
+from wx import DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, DirDialog
 
 from image_encryptor.constants import DialogReturnCodes
 from image_encryptor.frame.controller import ProgressBar
@@ -64,15 +63,15 @@ class ImageSaver(object):
             return
         self.show_saving_progress_plane(False)
         self.frame.controller.standardized_password_ctrl()
-        image_item.sync_options_from_interface()
         mode_interface = image_item.proc_mode
-        settings = image_item.available_settings
-        cache = image_item.cache.previews.get_scalable_cache(self.frame.settings.gen_encryption_settings_hash(settings))
+        settings = image_item.settings
+        cache_hash = image_item.scalable_cache_hash
+        cache = image_item.cache.previews.get_scalable_cache(cache_hash)
         if cache is None:
             self.saving_thread.add_task(
                 self._saving_task,
-                (mode_interface, image_item, settings, self.frame.settings.saving_settings),
-                cb=self._save_selected_image_call_back
+                (mode_interface, image_item, settings, image_item.encryption_attributes.settings, self.frame.settings.saving_settings),
+                cb=self._save_selected_image_call_back, cb_args=(cache_hash,)
             )
         else:   # 如果存在原始图像处理结果缓存则直接保存缓存
             self.frame.savingProgress.SetValue(50)
@@ -104,14 +103,14 @@ class ImageSaver(object):
         self.lock.acquire()                                 # 锁住线程锁，防止在任务添加期间执行回调函数，而导致进度识别错误
 
         for top, name, image_item in folder_item.walk() if use_folder else folder_item.all_included_items():
-            image_item.standardized_proc_mode()
-            settings = image_item.encryption_parameters.settings if image_item.proc_mode.requires_encryption_parameters else image_item.settings
-            cache = image_item.cache.previews.get_scalable_cache(hash((image_item.proc_mode.mode_id, settings.properties_tuple)))
+            # image_item.standardized_proc_mode()
+            settings = image_item.settings
+            cache = image_item.cache.previews.get_scalable_cache(image_item.scalable_cache_hash)
             relative_saving_path = top if use_folder else ''
             if cache is None:
                 self.saving_thread.add_task(
                     self._saving_task,
-                    (image_item.proc_mode, image_item, settings, saving_settings, relative_saving_path, True),
+                    (image_item.proc_mode, image_item, settings, image_item.encryption_attributes.settings, saving_settings, relative_saving_path, True),
                     cb=self._bulk_save_callback
                 )
             else:   # 如果存在原始图像处理结果缓存则直接保存缓存
@@ -137,11 +136,7 @@ class ImageSaver(object):
         if self._check():                               # 相关检查
             return
         self.show_saving_progress_plane(True)
-        if self.frame.imageTreeCtrl.Selection.IsOk():   # 检查是否选择了某一文件
-            image_data = self.frame.tree_manager.selected_item_data
-            if isinstance(image_data, ImageItem):                  # 是否选择的是文件夹，如果不是，则同步gui内容至对应image_item实例
-                image_data.sync_options_from_interface()
-        else:
+        if not self.frame.imageTreeCtrl.Selection.IsOk():
             self.frame.apply_settings_to_all()      # 如果没有选择任何文件，则将当前gui内容同步到所有image_item实例
 
         match self.frame.dialog.confirmation_frame('是否创建与文件树层级相同的文件夹进行文件保存', cancel='取消保存操作'):
@@ -160,14 +155,13 @@ class ImageSaver(object):
         self.lock.acquire()                                 # 锁住线程锁，防止在任务添加期间执行回调函数，而导致进度识别错误
 
         for image_item in self.frame.tree_manager.all_image_item_data:
-            image_item.standardized_proc_mode()
-            settings = image_item.encryption_parameters.settings if image_item.proc_mode.requires_encryption_parameters else image_item.settings
-            cache = image_item.cache.previews.get_scalable_cache(hash((image_item.proc_mode.mode_id, settings.properties_tuple)))
+            settings = image_item.settings
+            cache = image_item.cache.previews.get_scalable_cache(image_item.scalable_cache_hash)
             relative_saving_path = image_item.path_data.relative_saving_dir if use_folder else ''
             if cache is None:
                 self.saving_thread.add_task(
                     self._saving_task,
-                    (image_item.proc_mode, image_item, settings, saving_settings, relative_saving_path, True),
+                    (image_item.proc_mode, image_item, settings, image_item.encryption_attributes.settings, saving_settings, relative_saving_path, True),
                     cb=self._bulk_save_callback
                 )
             else:   # 如果存在原始图像处理结果缓存则直接保存缓存
@@ -194,12 +188,12 @@ class ImageSaver(object):
         self.saving_thread.interrupt_task()
         # self.frame.process_pool.cancel_task('bulk_save')
 
-    def _saving_task(self, mode_interface: 'BaseModeInterface', image_item: 'ImageItem', settings: 'BaseSettings', saving_settings: 'SavingSettings', relative_saving_path: str = '', quiet=False):
+    def _saving_task(self, mode_interface: 'BaseModeInterface', image_item: 'ImageItem', settings: 'BaseSettings', encryption_attributes: 'BaseSettings', saving_settings: 'SavingSettings', relative_saving_path: str = '', quiet=False):
         loaded_image = image_item.cache.loaded_image
         result = (mode_interface.proc_image_quietly(
-            self.frame, loaded_image, True, PillowImage, settings
+            self.frame, loaded_image, True, PillowImage, settings, encryption_attributes
         ) if quiet else mode_interface.proc_image(
-            self.frame, loaded_image, True, PillowImage, settings,
+            self.frame, loaded_image, True, PillowImage, settings, encryption_attributes,
             self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress
         ))
         if __debug__:
@@ -279,7 +273,7 @@ class ImageSaver(object):
             self.frame.controller.saving_path = dialog.GetPath()
             return DO_NOT_USE_FOLDER
 
-    def _save_selected_image_call_back(self, result):
+    def _save_selected_image_call_back(self, result, cache_hash):
         """保存选中的图像完成后的回调函数"""
         self.hide_saving_progress_plane()
         if __debug__:
@@ -287,7 +281,7 @@ class ImageSaver(object):
             if error is not None:
                 self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
                 return
-        self.frame.controller.display_and_cache_processed_preview(result)     # 顺便刷新一下预览图
+        self.frame.controller.display_and_cache_processed_preview(result, cache_hash)     # 顺便刷新一下预览图
 
     def _bulk_save_from_cache_callback(self, result):
         """批量保存回调函数"""
@@ -370,7 +364,7 @@ class ImageSaver(object):
         self.frame.processingOptions.Disable()
         self.frame.savingOptions.Layout()
 
-    def hide_saving_progress_plane(self):
+    def hide_saving_progress_plane(self, _=None):
         if not self.progress_plane_displayed:
             return
         self.progress_plane_displayed = False

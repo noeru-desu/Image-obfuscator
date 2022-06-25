@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:22:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 13:38:30
+LastEditTime : 2022-06-25 21:08:21
 Description  : 
 """
 from typing import TYPE_CHECKING
@@ -23,6 +23,7 @@ class ModeInterface(BaseModeInterface):
         'encryption_parameters_cls', 'enable_settings_panel', 'settings_panel', 'settings_controller'
     )
     settings_panel_cls = ProcSettingsPanel
+    enable_password = True
     file_name_suffix = ('-encrypted', '-decrypted')
 
     def __init__(self, frame: 'MainFrame', mode_id: int):
@@ -45,7 +46,7 @@ class ModeInterface(BaseModeInterface):
     @property
     def encryption_settings_tuple(self):
         """当前所有加密设置的元组, 一般为生成encryption_settings_hash时使用"""
-        return (
+        return (), (
             self.settings_controller.cutting_row, self.settings_controller.cutting_col,
             self.settings_controller.shuffle_chunks, self.settings_controller.flip_chunks,
             self.settings_controller.mapping_channels, self.settings_controller.XOR_encryption,

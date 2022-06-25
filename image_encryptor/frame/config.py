@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-06-07 06:20:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-21 20:36:16
+LastEditTime : 2022-06-24 10:39:19
 Description  : 
 """
 from pickle import dump as pickle_dump, load as pickle_load
@@ -48,7 +48,7 @@ class ConfigManager(object):
                 default_mode_settings = self.frame.settings.default
         else:
             default_proc_mode = self.frame.controller.proc_mode_interface
-            default_mode_settings = self.frame.settings.all
+            default_mode_settings = self.frame.settings.current_settings
         return {
             'config_version': (1, 0),
             'default_proc_mode': default_proc_mode.mode_qualname,

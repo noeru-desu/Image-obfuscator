@@ -196,8 +196,8 @@
                                         <property name="window_extra_style"></property>
                                         <property name="window_name"></property>
                                         <property name="window_style"></property>
-                                        <event name="OnSpinCtrl">refresh_preview</event>
-                                        <event name="OnTextEnter">refresh_preview</event>
+                                        <event name="OnSpinCtrl">settings_changed</event>
+                                        <event name="OnTextEnter">settings_changed</event>
                                     </object>
                                 </object>
                             </object>
@@ -332,8 +332,8 @@
                                         <property name="window_extra_style"></property>
                                         <property name="window_name"></property>
                                         <property name="window_style"></property>
-                                        <event name="OnSpinCtrl">refresh_preview</event>
-                                        <event name="OnTextEnter">refresh_preview</event>
+                                        <event name="OnSpinCtrl">settings_changed</event>
+                                        <event name="OnTextEnter">settings_changed</event>
                                     </object>
                                 </object>
                             </object>
@@ -400,7 +400,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
-                                <event name="OnCheckBox">refresh_preview</event>
+                                <event name="OnCheckBox">settings_changed</event>
                             </object>
                         </object>
                         <object class="sizeritem" expanded="1">
@@ -465,7 +465,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
-                                <event name="OnCheckBox">refresh_preview</event>
+                                <event name="OnCheckBox">settings_changed</event>
                             </object>
                         </object>
                         <object class="sizeritem" expanded="1">
@@ -542,7 +542,7 @@
                                         <property name="window_extra_style"></property>
                                         <property name="window_name"></property>
                                         <property name="window_style"></property>
-                                        <event name="OnCheckBox">refresh_preview</event>
+                                        <event name="OnCheckBox">settings_changed</event>
                                     </object>
                                 </object>
                                 <object class="sizeritem" expanded="1">
@@ -607,7 +607,7 @@
                                         <property name="window_extra_style"></property>
                                         <property name="window_name"></property>
                                         <property name="window_style"></property>
-                                        <event name="OnCheckBox">refresh_preview</event>
+                                        <event name="OnCheckBox">settings_changed</event>
                                     </object>
                                 </object>
                                 <object class="sizeritem" expanded="1">
@@ -672,7 +672,7 @@
                                         <property name="window_extra_style"></property>
                                         <property name="window_name"></property>
                                         <property name="window_style"></property>
-                                        <event name="OnCheckBox">refresh_preview</event>
+                                        <event name="OnCheckBox">settings_changed</event>
                                     </object>
                                 </object>
                                 <object class="sizeritem" expanded="1">
@@ -737,7 +737,7 @@
                                         <property name="window_extra_style"></property>
                                         <property name="window_name"></property>
                                         <property name="window_style"></property>
-                                        <event name="OnCheckBox">refresh_preview</event>
+                                        <event name="OnCheckBox">settings_changed</event>
                                     </object>
                                 </object>
                             </object>
@@ -952,7 +952,7 @@
                                                     <property name="window_extra_style"></property>
                                                     <property name="window_name"></property>
                                                     <property name="window_style"></property>
-                                                    <event name="OnCheckBox">refresh_preview</event>
+                                                    <event name="OnCheckBox">settings_changed</event>
                                                 </object>
                                             </object>
                                             <object class="sizeritem" expanded="1">
@@ -1017,7 +1017,7 @@
                                                     <property name="window_extra_style"></property>
                                                     <property name="window_name"></property>
                                                     <property name="window_style"></property>
-                                                    <event name="OnCheckBox">refresh_preview</event>
+                                                    <event name="OnCheckBox">settings_changed</event>
                                                 </object>
                                             </object>
                                             <object class="sizeritem" expanded="1">
@@ -1082,7 +1082,7 @@
                                                     <property name="window_extra_style"></property>
                                                     <property name="window_name"></property>
                                                     <property name="window_style"></property>
-                                                    <event name="OnCheckBox">refresh_preview</event>
+                                                    <event name="OnCheckBox">settings_changed</event>
                                                 </object>
                                             </object>
                                             <object class="sizeritem" expanded="1">
@@ -1147,7 +1147,7 @@
                                                     <property name="window_extra_style"></property>
                                                     <property name="window_name"></property>
                                                     <property name="window_style"></property>
-                                                    <event name="OnCheckBox">refresh_preview</event>
+                                                    <event name="OnCheckBox">settings_changed</event>
                                                 </object>
                                             </object>
                                         </object>
@@ -1423,7 +1423,7 @@
                                                     <property name="window_name"></property>
                                                     <property name="window_style"></property>
                                                     <event name="OnScroll">update_noise_factor_num</event>
-                                                    <event name="OnScrollChanged">refresh_preview</event>
+                                                    <event name="OnScrollChanged">settings_changed</event>
                                                 </object>
                                             </object>
                                         </object>

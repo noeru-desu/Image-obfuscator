@@ -2,9 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-23 14:32:47
+LastEditTime : 2022-06-25 21:04:50
 Description  : 事件处理
 """
+from timeit import timeit
 from typing import TYPE_CHECKING, Optional, Union
 
 from PIL.ImageGrab import grabclipboard
@@ -64,6 +65,13 @@ class MainFrame(BasicMainFrame):
     def manually_refresh(self, event):
         if self.controller.preview_mode != DO_NOT_REFRESH:
             self.force_refresh_preview()
+
+    @catch_exc_for_frame_method
+    def settings_changed(self, event: 'Event'):
+        if self.image_item is None:
+            return
+        self.image_item.settings.sync_from_event(event)
+        self.refresh_preview()
 
     @catch_exc_for_frame_method
     def refresh_preview(self, event: Optional['Event'] = None):
@@ -126,6 +134,8 @@ class MainFrame(BasicMainFrame):
                 return True
             self.controller.password = ''
             return False
+        if self.image_item is not None and self.image_item.proc_mode.enable_password and self.image_item.proc_mode.settings_cls is not None:
+            self.image_item.settings.sync_from_mapping(self.passwordCtrl)
         return True
 
     @catch_exc_for_frame_method
@@ -146,22 +156,29 @@ class MainFrame(BasicMainFrame):
         self.image_saver.bulk_save()
 
     @catch_exc_for_frame_method
-    def processing_mode_change(self, event):
+    def processing_mode_changed(self, event: 'CommandEvent' = ...):
         selected_mode = self.controller.proc_mode_interface
-        if self.image_item is None and selected_mode.requires_encryption_parameters:
-            self.controller.proc_mode_interface = self.controller.previous_proc_mode
+        if self.image_item is None:
+            if selected_mode.requires_encryption_parameters:
+                self.controller.proc_mode_interface = self.controller.previous_proc_mode
+                return
+            self.controller.previous_proc_mode = selected_mode
+            self.controller.change_mode_plane(selected_mode)
             return
-        elif selected_mode.requires_encryption_parameters:
-            self.image_item.display_encryption_parameters()
-            if self.image_item.cache.loading_encryption_attributes_error is not None:
+        if selected_mode.requires_encryption_parameters:
+            if self.image_item.is_correct_decryption_mode(selected_mode):
+                self.image_item.display_encryption_attributes()
+            elif self.image_item.cache.loading_encryption_attributes_error is not None:
                 self.controller.proc_mode_interface = self.controller.previous_proc_mode
                 self.dialog.async_warning(self.image_item.cache.loading_encryption_attributes_error)
                 return
-        else:
-            self.controller.proc_settings_panel = selected_mode.settings_panel
-            self.controller.frame.procSettingsPanelContainer.Enable(selected_mode.enable_settings_panel)
-            self.controller.frame.passwordCtrl.Enable(selected_mode.enable_password)
-        self.controller.previous_proc_mode = self.controller.proc_mode_interface
+            else:
+                self.controller.proc_mode_interface = self.controller.previous_proc_mode
+                self.dialog.async_warning('此模式无法解密选中的图像')
+                return
+        self.image_item.proc_mode = selected_mode
+        self.controller.backtrack_interface(self.image_item.settings, selected_mode)
+        self.controller.previous_proc_mode = selected_mode
         self.refresh_preview(event)
 
     @catch_exc_for_frame_method
@@ -182,8 +199,6 @@ class MainFrame(BasicMainFrame):
         if image_item.IsOk() and not self.first_choice:
             image_data: 'ImageItem' = self.imageTreeCtrl.GetItemData(image_item)
             if isinstance(image_data, ImageItem):
-                image_data.proc_mode = self.controller.proc_mode_interface
-                image_data.settings.sync_from_interface()
                 image_data.unselect()
         elif self.deleted_item:
             self.deleted_item = False
@@ -206,12 +221,10 @@ class MainFrame(BasicMainFrame):
             self.controller.previous_proc_mode = image_data.proc_mode
             self.controller.gen_image_info(image_data)
             self.processingOptions.Enable()
-            self.controller.proc_settings_panel = image_data.proc_mode.settings_panel
-            image_data.standardized_proc_mode()
+            # image_data.standardized_proc_mode()
             if image_data.proc_mode.requires_encryption_parameters:
-                self.controller.backtrack_interface(image_data.encryption_parameters)
-            else:
-                self.controller.backtrack_interface(image_data.settings)
+                self.controller.backtrack_interface(image_data.encryption_attributes.settings)
+            self.controller.backtrack_interface(image_data.settings)
 
             if self.previewMode.Selection == AUTO_REFRESH:
                 self.refresh_preview(event)
@@ -249,8 +262,12 @@ class MainFrame(BasicMainFrame):
 
     @catch_exc_for_frame_method
     def set_settings_as_default(self, event=None):
+        proc_mode = self.controller.proc_mode_interface
+        if proc_mode.requires_encryption_parameters:
+            self.dialog.warning('请勿将解密模式设置为默认模式')
+            return
         self.mode_manager.default_mode = self.controller.proc_mode_interface
-        self.settings.default = self.settings.all
+        self.settings.default = self.settings.current_settings
 
     @catch_exc_for_frame_method
     def stop_loading_event(self, event):
@@ -283,15 +300,15 @@ class MainFrame(BasicMainFrame):
 
     @catch_exc_for_frame_method
     def apply_to_all(self, event):
+        if self.controller.proc_mode_interface.requires_encryption_parameters:
+            self.dialog.warning('请勿将解密模式设置为默认模式')
+            return
         self.apply_settings_to_all()
 
     @catch_exc_for_frame_method
     def revert_to_default(self, event):
-        if self.image_item is None:
-            return
-        self.controller.proc_mode = self.mode_manager.default_mode
-        self.image_item.settings.sync_from_tuple(self.settings.default.properties)
-        self.image_item.settings.backtrack_interface()
+        self.controller.backtrack_interface(self.settings.default, self.mode_manager.default_mode)
+        self.image_item.sync_options_from_interface()
         self.refresh_preview()
 
     def expand_all_item(self, event):

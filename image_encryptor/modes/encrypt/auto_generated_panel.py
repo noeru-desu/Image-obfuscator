@@ -144,30 +144,30 @@ class ProcSettingsPanel (wx.Panel):
         bSizer1.Fit(self)
 
         # Connect Events
-        self.cuttingRow.Bind(wx.EVT_SPINCTRL, self.refresh_preview)
-        self.cuttingRow.Bind(wx.EVT_TEXT_ENTER, self.refresh_preview)
-        self.cuttingCol.Bind(wx.EVT_SPINCTRL, self.refresh_preview)
-        self.cuttingCol.Bind(wx.EVT_TEXT_ENTER, self.refresh_preview)
-        self.shuffleChunks.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.flipChunks.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.mappingR.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.mappingG.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.mappingB.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.mappingA.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
+        self.cuttingRow.Bind(wx.EVT_SPINCTRL, self.settings_changed)
+        self.cuttingRow.Bind(wx.EVT_TEXT_ENTER, self.settings_changed)
+        self.cuttingCol.Bind(wx.EVT_SPINCTRL, self.settings_changed)
+        self.cuttingCol.Bind(wx.EVT_TEXT_ENTER, self.settings_changed)
+        self.shuffleChunks.Bind(wx.EVT_CHECKBOX, self.settings_changed)
+        self.flipChunks.Bind(wx.EVT_CHECKBOX, self.settings_changed)
+        self.mappingR.Bind(wx.EVT_CHECKBOX, self.settings_changed)
+        self.mappingG.Bind(wx.EVT_CHECKBOX, self.settings_changed)
+        self.mappingB.Bind(wx.EVT_CHECKBOX, self.settings_changed)
+        self.mappingA.Bind(wx.EVT_CHECKBOX, self.settings_changed)
         self.XOREncryption.Bind(wx.EVT_CHECKBOX, self.toggle_xor_panel_switch)
-        self.XORR.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.XORG.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.XORB.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
-        self.XORA.Bind(wx.EVT_CHECKBOX, self.refresh_preview)
+        self.XORR.Bind(wx.EVT_CHECKBOX, self.settings_changed)
+        self.XORG.Bind(wx.EVT_CHECKBOX, self.settings_changed)
+        self.XORB.Bind(wx.EVT_CHECKBOX, self.settings_changed)
+        self.XORA.Bind(wx.EVT_CHECKBOX, self.settings_changed)
         self.noiseXor.Bind(wx.EVT_CHECKBOX, self.toggle_factor_slider_switch)
         self.noiseFactor.Bind(wx.EVT_SCROLL, self.update_noise_factor_num)
-        self.noiseFactor.Bind(wx.EVT_SCROLL_CHANGED, self.refresh_preview)
+        self.noiseFactor.Bind(wx.EVT_SCROLL_CHANGED, self.settings_changed)
 
     def __del__(self):
         pass
 
     # Virtual event handlers, override them in your derived class
-    def refresh_preview(self, event):
+    def settings_changed(self, event):
         event.Skip()
 
     def toggle_xor_panel_switch(self, event):

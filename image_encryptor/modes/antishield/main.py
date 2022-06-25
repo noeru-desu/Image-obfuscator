@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 15:59:56
+LastEditTime : 2022-06-24 12:12:53
 Description  : 主要针对QQ群的图像反阻止发送功能
 """
 from os import makedirs
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from image_encryptor.modules.image import PillowImage, ImageData
 
 
-def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'EmptySettings', label_text_setter: Callable, gauge: 'Gauge') -> 'WrappedPillowImage':
+def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'EmptySettings', encryption_parameters: 'EmptySettings', label_text_setter: Callable, gauge: 'Gauge') -> 'WrappedPillowImage':
     label_text_setter('开始处理')
 
     image = WrappedPillowImage(AntiShield(source).generate_image(), original)
@@ -34,7 +34,7 @@ def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return
     return image
 
 
-def normal_gen_quietly(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'EmptySettings') -> 'WrappedPillowImage':
+def normal_gen_quietly(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'EmptySettings', encryption_parameters: 'EmptySettings') -> 'WrappedPillowImage':
     return WrappedPillowImage(AntiShield(source).generate_image(), original)
 
 

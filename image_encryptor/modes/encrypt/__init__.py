@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:43:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-22 09:32:15
+LastEditTime : 2022-06-25 21:08:35
 Description  : 
 """
 from typing import TYPE_CHECKING
@@ -25,6 +25,7 @@ class ModeInterface(BaseModeInterface):
     add_encryption_parameters_in_file = True
     corresponding_decryption_mode = 'builtin.decrypt.v1'
     settings_panel_cls = ProcSettingsPanel
+    enable_password = True
     file_name_suffix = ('-decrypted', '-encrypted')
 
     def __init__(self, frame: 'MainFrame', mode_id: int):
@@ -49,4 +50,4 @@ class ModeInterface(BaseModeInterface):
             self.settings_controller.mapping_channels, self.settings_controller.XOR_encryption,
             self.settings_controller.XOR_channels, self.settings_controller.noise_XOR,
             self.settings_controller.noise_factor, self.frame.controller.password
-        )
+        ), ()

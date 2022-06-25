@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-23 19:59:00
+LastEditTime : 2022-06-25 21:06:41
 Description  : 基类
 """
 from abc import ABC
@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Callable, Optional, Iterable, Any, Union, Type
 if TYPE_CHECKING:
     from typing import Iterator
     from PIL.Image import Image
-    from wx import Panel, Gauge
+    from wx import Panel, Gauge, Event
     from image_encryptor.frame.controller import Controller as MainController
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.modules.image import PillowImage, ImageData, WrappedImage
@@ -66,8 +66,9 @@ class LengthMismatchWarning(UserWarning):
 
 
 class BaseSettings(ABC):
-    __slots__ = ()
+    __slots__ = ('SETTINGS_MAPPING')
     SETTING_NAMES: tuple[str]
+    SETTINGS_MAPPING: dict[int, tuple[str, Callable]]
 
     def __init__(self, main_controller: 'MainController', mode_controller: 'ModeController', settings: Optional[Iterable[Any]] = None) -> None: ...
 
@@ -77,6 +78,23 @@ class BaseSettings(ABC):
     def __getitem__(self, i: Any):
         if isinstance(i, str):
             return getattr(self, i)
+
+    def check_settings_mapping(self):
+        if not hasattr(self, 'SETTINGS_MAPPING'):
+            self.SETTINGS_MAPPING = self.gen_settings_mapping()
+
+    def gen_settings_mapping(self): raise NotImplementedError()
+
+    def get_password_ctrl_mapping(self, main_controller: 'MainController', attr: str):
+        return main_controller.password_ctrl_hash, (attr, lambda ctrl: ctrl.GetValue())
+
+    def sync_from_event(self, event: 'Event'):
+        attr, setter = self.SETTINGS_MAPPING[hash(event.GetEventObject())]
+        setattr(self, attr, setter(event))
+
+    def sync_from_mapping(self, _object: int):
+        attr, setter = self.SETTINGS_MAPPING[hash(_object)]
+        setattr(self, attr, setter(_object))
 
     def sync_from_tuple(self, settings: Iterable[Any], check_length=True):
         """将可迭代对象(一般是由`self.properties_tuple`生成的元组)中的数据同步到自身
@@ -157,17 +175,21 @@ class BaseSettings(ABC):
         raise NotImplementedError()
 
 
-class EmptySettings(BaseSettings):
+class EmptySettingsType(BaseSettings):
     """空的设置实例, 用于占位, 实例为单例"""
-    SETTING_NAMES = ()
-    _instance: Optional['EmptySettings'] = None
+    __slots__ = SETTING_NAMES = ('main_controller',)
+    _instance: Optional['EmptySettingsType'] = None
+    main_controller: 'MainController'
 
-    def __new__(cls: type['EmptySettings']):
+    def __new__(cls: type['EmptySettingsType'], main_controller):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self) -> None: pass
+    def __init__(self, main_controller) -> None: pass
+
+    def gen_settings_mapping(self):
+        return {self.main_controller.password_ctrl_hash: lambda: None}
 
     def sync_from_tuple(self, v): pass
 
@@ -188,6 +210,9 @@ class EmptySettings(BaseSettings):
     def copy(self): return self
 
 
+EmptySettings = EmptySettingsType(...)
+
+
 class ModeController(object):
     __slots__ = ()
     """用于单一模式的控制器"""
@@ -200,12 +225,12 @@ class BaseModeInterface(ABC):
 
     default_mode: bool = False           # 是否为默认模式
     decryption_mode: bool = False   # 是否属于解密模式
-    mode_id: int        # 模式ID
+    mode_id: int        # 模式ID, 将被自动设置
     mode_name: str = NotImplemented      # 模式的显示名称
     mode_qualname: str = NotImplemented  # 模式唯一名称 (如`builtin.mode_a`)
 
     settings_cls: Optional[Type['BaseSettings']] = None  # 该模式需使用的设置类
-    default_settings: 'BaseSettings' = EmptySettings()
+    default_settings: 'BaseSettings' = EmptySettings
 
     requires_encryption_parameters: bool = False        # 是否需要读取文件末尾的加密参数
     encryption_parameters_cls: Optional[Type['BaseSettings']] = None  # 读取加密参数后实例化的参数类
@@ -214,11 +239,12 @@ class BaseModeInterface(ABC):
 
     settings_controller: Optional['ModeController'] = None     # 面板控制器类
     enable_settings_panel: bool = True  # 是否启用设置面板
-    enable_password: bool = True        # 是否使用密码输入框
-    settings_panel: Optional['Panel']
-    settings_panel_cls: Optional[Type['Panel']] = None    # 该模式的设置面板(`wx.Panel`子类)
+    enable_password: bool = False       # 是否使用密码输入框
+    settings_panel: Optional['Panel']                       # 该模式的设置面板实例, 如需手动实例化,
+                                                            # 请在ModeInterface.__init__中使用frame.mode_manager.add_settings_panel()进行实例化
+    settings_panel_cls: Optional[Type['Panel']] = None      # 该模式的设置面板(`wx.Panel`子类)
 
-    file_name_suffix: Optional[tuple[str, str]] = None    # 添加到文件名末尾的后缀信息(非格式后缀)
+    file_name_suffix: Optional[tuple[str, str]] = None      # 添加到文件名末尾的后缀信息(非格式后缀)
 
     supports_multiprocessing = False
 
@@ -236,20 +262,20 @@ class BaseModeInterface(ABC):
     def encryption_settings_tuple(self):
         return None
 
-    def proc_image(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings', label_text_setter: Callable, gauge: 'Gauge') -> tuple[Optional['WrappedImage'], Optional[str]]:
+    def proc_image(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings', encryption_parameters: 'BaseSettings', label_text_setter: Callable, gauge: 'Gauge') -> tuple[Optional['WrappedImage'], Optional[str]]:
         raise NotImplementedError()
 
-    def proc_image_quietly(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings'):
+    def proc_image_quietly(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings', encryption_parameters: 'BaseSettings'):
         raise NotImplementedError()
 
-    def proc_image_independently(self, source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings') -> tuple[Optional['WrappedImage'], Optional[str]]:
+    def proc_image_multiprocessing(self, source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings') -> tuple[Optional['WrappedImage'], Optional[str]]:
         raise NotImplementedError()
 
     def instantiate_settings_cls(self, main_controller, data: Optional[Any] = None):
-        return EmptySettings() if self.settings_cls is None else self.settings_cls(main_controller, self.settings_controller, data)
+        return EmptySettings if self.settings_cls is None else self.settings_cls(main_controller, self.settings_controller, data)
 
     def instantiate_encryption_parameters_cls(self, main_controller, data):
-        return EmptySettings() if self.encryption_parameters_cls is None else self.encryption_parameters_cls(main_controller, self.settings_controller, data)
+        return EmptySettings if self.encryption_parameters_cls is None else self.encryption_parameters_cls(main_controller, self.settings_controller, data)
 
     @final
     def check_metadata(self):

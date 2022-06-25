@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-23 14:32:56
+LastEditTime : 2022-06-25 20:27:49
 Description  : 
 """
 from base64 import b85encode
@@ -101,6 +101,28 @@ class Settings(SettingsData):
             self.sync_from_interface()
         else:
             super().__init__(settings)
+        self.check_settings_mapping()
+
+    def gen_settings_mapping(self):
+        mode_controller = self.mode_controller
+        settings_panel = self.mode_controller.settings_panel
+        mapping_channels = ('mapping_channels', lambda event: mode_controller.mapping_channels)
+        XOR_channels = ('XOR_channels', lambda event: mode_controller.XOR_channels)
+        password_ctrl_hash, password_ctrl_setter = self.get_password_ctrl_mapping(self.main_controller, 'password')
+        return {
+            hash(settings_panel.cuttingRow): ('cutting_row', lambda event: mode_controller.cutting_row),
+            hash(settings_panel.cuttingCol): ('cutting_col', lambda event: mode_controller.cutting_col),
+            hash(settings_panel.shuffleChunks): ('shuffle_chunks', lambda event: mode_controller.shuffle_chunks),
+            hash(settings_panel.flipChunks): ('flip_chunks', lambda event: mode_controller.flip_chunks),
+            hash(settings_panel.mappingR): mapping_channels, hash(settings_panel.mappingG): mapping_channels,
+            hash(settings_panel.mappingB): mapping_channels, hash(settings_panel.mappingA): mapping_channels,
+            hash(settings_panel.XOREncryption): ('XOR_encryption', lambda event: mode_controller.XOR_encryption),
+            hash(settings_panel.XORR): XOR_channels, hash(settings_panel.XORG): XOR_channels,
+            hash(settings_panel.XORB): XOR_channels, hash(settings_panel.XORA): XOR_channels,
+            hash(settings_panel.noiseXor): ('noise_XOR', lambda event: mode_controller.noise_XOR),
+            hash(settings_panel.noiseFactor): ('noise_factor', lambda event: mode_controller.noise_factor),
+            password_ctrl_hash: password_ctrl_setter
+        }
 
     def sync_from_interface(self):
         self.cutting_row = self.mode_controller.cutting_row

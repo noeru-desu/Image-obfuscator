@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 12:11:48
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 13:40:14
+LastEditTime : 2022-06-25 21:09:43
 Description  : 
 """
 from typing import TYPE_CHECKING
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class ModeInterface(BaseModeInterface):
-    __slots__ = ('frame', 'mode_name', 'mode_qualname', 'enable_settings_panel', 'enable_password')
+    __slots__ = ('frame', 'mode_name', 'mode_qualname', 'enable_settings_panel')
     file_name_suffix = ('', '-antishield')
 
     def __init__(self, frame: 'MainFrame', mode_id: int):
@@ -23,7 +23,6 @@ class ModeInterface(BaseModeInterface):
         self.mode_name = '反屏蔽模式'
         self.mode_qualname = 'builtin.antishield.v1'
         self.enable_settings_panel = False
-        self.enable_password = False
 
     def proc_image(self, *args):
         return normal_gen(*args)
