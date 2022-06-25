@@ -50,7 +50,7 @@ jobs:
       - name: Download Pillow-SIMD
         uses: carlosperate/download-file-action@v1
         with:
-          file-url: 'https://download.lfd.uci.edu/pythonlibs/a4hvik9m/Pillow_SIMD-9.0.0.post0-cp310-cp310-win_amd64.whl'
+          file-url: 'https://download.lfd.uci.edu/pythonlibs/archived/Pillow_SIMD-9.0.0.post0-cp310-cp310-win_amd64.whl'
       - name: Cache pip
         uses: actions/cache@v2
         with:
