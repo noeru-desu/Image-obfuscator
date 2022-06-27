@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-26 10:28:27
+LastEditTime : 2022-06-27 19:02:12
 Description  : 图像项目
 """
 from abc import ABC
@@ -266,7 +266,7 @@ class ImageItemCache(object):
         self._loaded_image = v
 
     @property
-    def encryption_attributes(self) -> Optional['ImageEncryptionAttributes']:
+    def encryption_attributes(self) -> 'ImageEncryptionAttributes':
         """被加密图像的加密参数
 
         如果缓存中不存在, 将重新从文件中加载加密参数
@@ -274,7 +274,7 @@ class ImageItemCache(object):
         Returns:
             BaseSettings
         """
-        if self._item.encrypted_image is None:
+        if self._encryption_attributes is None:
             self._item.load_encryption_attributes()
         return self._encryption_attributes
 
@@ -461,7 +461,7 @@ class ImageItem(Item):
         """如果当前图像包含加密参数, 则在界面中显示加密参数\n
         如果尚未检测是否包含加密参数, 则进行检测并加载后再进行上述操作
         """
-        if self.encrypted_image is None:
+        if self.cache._encryption_attributes is None:
             self.load_encryption_attributes()
         if self.encrypted_image:
             self.frame.controller.backtrack_interface(self.cache.encryption_attributes.settings, self.cache.encryption_attributes.decryption_mode)
@@ -475,7 +475,6 @@ class ImageItem(Item):
             return
         encryption_attributes, self.cache.loading_encryption_attributes_error = load_encryption_attributes(self.loaded_image_path)
         if self.cache.loading_encryption_attributes_error is None:
-            self.encrypted_image = True
             mode = self.frame.mode_manager.modes.get(encryption_attributes['corresponding_decryption_mode'], None)
             if mode is None:
                 self.frame.dialog.warning(
@@ -492,8 +491,10 @@ class ImageItem(Item):
                     else encryption_attributes['data']      # 兼容旧版加密参数
                 )
             )
+            self.encrypted_image = True
             self.proc_mode = mode
         else:
+            self.cache._encryption_attributes = EmptyEncryptionAttributes
             self.encrypted_image = False
             self.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
 
@@ -515,7 +516,7 @@ class ImageItem(Item):
     @property
     def encryption_attributes(self) -> 'ImageEncryptionAttributes':
         """当图像包含加密参数时返回`self.cache.encryption_attributes`, 否则返回`EmptyEncryptionAttributes`"""
-        return self.cache.encryption_attributes if self.encrypted_image else EmptyEncryptionAttributes
+        return self.cache.encryption_attributes
 
     @property
     def scalable_cache_hash(self):
