@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-27 09:13:36
+LastEditTime : 2022-06-27 19:05:18
 Description  : 常量
 """
 from platform import machine, platform
@@ -35,7 +35,8 @@ ALPHA = 4
 VERSION_TYPE = BETA
 VERSION_NUMBER = '2.0.0'
 SUB_VERSION_NUMBER = 'beta.3'
-VERSION_BATCH = '20220627-1'
+BUILD_VERSION_NUMBER = '2'
+VERSION_BATCH = '20220627-2'
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
@@ -79,7 +80,7 @@ VERSION_INFO = (
     f' - Pillow {pillow_ver}',
     f' - Numpy {numpy_ver}',
     f' - Nutika {nuitka_ver()}',
-    f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})',
+    f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER}+build.{BUILD_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})',
     f'Open source at {OPEN_SOURCE_URL}'
 )
 

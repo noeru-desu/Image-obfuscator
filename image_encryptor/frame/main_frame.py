@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-26 09:48:51
+LastEditTime : 2022-06-27 19:04:31
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -17,7 +17,7 @@ from wx import (ACCEL_CTRL, ACCEL_NORMAL, WXK_DELETE, WXK_F5, AcceleratorEntry,
                 AcceleratorTable, App, CallAfter)
 from wx.core import EmptyString
 
-from image_encryptor.constants import (BRANCH, EXTENSION_KEYS_STRING,
+from image_encryptor.constants import (BRANCH, BUILD_VERSION_NUMBER, EXTENSION_KEYS_STRING,
                                        SUB_VERSION_NUMBER, VERSION_INFO,
                                        VERSION_NUMBER, VERSION_TYPE)
 from image_encryptor.frame.controller import (Controller, SegmentTrigger,
@@ -71,7 +71,7 @@ class MainFrame(MF):
         # gen_slots_str(n_args - o_args)
         self.Disable()
         if VERSION_TYPE > 0:
-            self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER} (branch: {BRANCH}) {"[Not optimized]" if __debug__ else ""}')
+            self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER}+build.{BUILD_VERSION_NUMBER} (branch: {BRANCH}) {"[Not optimized]" if __debug__ else ""}')
         else:
             self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER} {"[Not optimized]" if __debug__ else ""}')
         self.logger = Logger('image-encryptor')
