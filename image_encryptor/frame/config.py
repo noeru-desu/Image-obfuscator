@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-06-07 06:20:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-24 10:39:19
+LastEditTime : 2022-06-26 09:55:24
 Description  : 
 """
 from pickle import dump as pickle_dump, load as pickle_load
@@ -100,7 +100,7 @@ class ConfigManager(object):
             return
         if frame_settings.default_proc_mode in self.frame.mode_manager.modes:
             default_mode = self.frame.mode_manager.default_mode = self.frame.mode_manager.modes[frame_settings.default_proc_mode]
-            default_settings = default_mode.instantiate_settings_cls(self.frame.controller)
+            default_settings = default_mode.instantiate_settings_cls()
             default_settings.properties_dict = frame_settings.default_mode_settings
             self.frame.settings.default = default_settings
             self.frame.controller.backtrack_interface(default_settings, default_mode)

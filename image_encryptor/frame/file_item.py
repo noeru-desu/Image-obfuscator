@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-25 21:27:18
+LastEditTime : 2022-06-26 10:28:27
 Description  : 图像项目
 """
 from abc import ABC
@@ -487,7 +487,6 @@ class ImageItem(Item):
                 return
             self.cache._encryption_attributes = ImageEncryptionAttributes(
                 mode, mode.instantiate_encryption_parameters_cls(
-                    self.frame.controller,
                     mode.encryption_parameters_cls.deserialize_encrypted_parameters(encryption_attributes['data'])
                     if isinstance(encryption_attributes['data'], str)
                     else encryption_attributes['data']      # 兼容旧版加密参数

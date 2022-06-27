@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-25 21:06:17
+LastEditTime : 2022-06-27 08:40:08
 Description  : 界面控制相关
 """
 from os.path import splitext
@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Callable, Iterable, Optional
 from wx import Bitmap
 
 from image_encryptor.constants import EXTENSION_KEYS
-from image_encryptor.modes.base import BaseSettings
+from image_encryptor.modes.base import BaseSettings, EmptySettings
 
 if TYPE_CHECKING:
     from PIL.Image import Image
@@ -420,10 +420,11 @@ class Controller(object):
             self.frame.image_item.cache.previews.add_normal_cache(cache_hash, bitmap)
             self.previewed_bitmap = bitmap
 
-    def change_mode_plane(self, proc_mode: 'BaseModeInterface'):
+    def change_mode_plane(self, proc_mode: 'BaseModeInterface', settings_instance: 'BaseSettings'):
         self.proc_settings_panel = proc_mode.settings_panel
-        self.frame.procSettingsPanelContainer.Enable(proc_mode.enable_settings_panel)
-        self.frame.passwordCtrl.Enable(proc_mode.enable_password)
+        if settings_instance is not EmptySettings:
+            self.frame.procSettingsPanelContainer.Enable(settings_instance.enable_settings_panel)
+            self.frame.passwordCtrl.Enable(settings_instance.enable_password)
         if not proc_mode.enable_password:
             self.password = 'none'
 
@@ -432,23 +433,30 @@ class Controller(object):
             mode_interface = self.proc_mode_interface = self.frame.image_item.proc_mode
         else:
             mode_interface = self.proc_mode_interface = proc_mode
-        self.change_mode_plane(mode_interface)
+        self.change_mode_plane(mode_interface, settings_instance)
         settings_instance.backtrack_interface()
 
 
 class SettingsManager(object):
-    __slots__ = ('controller', 'default')
+    __slots__ = ('controller',)
 
     def __init__(self, controller: 'Controller'):
         self.controller = controller
-        self.default = controller.default_proc_mode.default_settings
+
+    @property
+    def default(self) -> 'BaseSettings':
+        return self.controller.frame.mode_manager.default_mode.default_settings
+
+    @default.setter
+    def default(self, v: 'BaseSettings'):
+        self.controller.frame.mode_manager.default_mode.default_settings = v
 
     '''
     @property
     def encryption_settings_hash(self):
         """当前加密设置的hash"""
         return hash((
-            self.controller.proc_mode_id, 
+            self.controller.proc_mode_id,
             self.controller.proc_mode_interface.encryption_settings_tuple
         ))
 
@@ -469,7 +477,7 @@ class SettingsManager(object):
         """以当前的所有加密设置实例化Settings类\n
         向图像实例同步设置时请使用`settings.sync_from_interface()`或`image_item.sync_options_from_interface()`
         """
-        return self.controller.proc_mode_interface.instantiate_settings_cls(self.controller)
+        return self.controller.proc_mode_interface.instantiate_settings_cls()
 
     @property
     def saving_settings(self) -> 'SavingSettings':

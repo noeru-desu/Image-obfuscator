@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-25 21:04:50
+LastEditTime : 2022-06-27 08:49:49
 Description  : 事件处理
 """
 from timeit import timeit
@@ -69,9 +69,13 @@ class MainFrame(BasicMainFrame):
     @catch_exc_for_frame_method
     def settings_changed(self, event: 'Event'):
         if self.image_item is None:
+            self.controller.proc_mode_interface.default_settings.sync_from_event(event)
             return
-        self.image_item.settings.sync_from_event(event)
-        self.refresh_preview()
+        if self.image_item.proc_mode.settings_cls is not None:
+            self.image_item.settings.sync_from_event(event)
+        if self.image_item.proc_mode.encryption_parameters_cls is not None:
+            self.image_item.encryption_attributes.settings.sync_from_event(event)
+        self.refresh_preview(event)
 
     @catch_exc_for_frame_method
     def refresh_preview(self, event: Optional['Event'] = None):
@@ -127,15 +131,15 @@ class MainFrame(BasicMainFrame):
         """
         if self.controller.password == '':
             return False
-        if event is not None:
-            self.refresh_preview(event)
         if self.controller.password != 'none' and self.controller.password not in self.password_dict.values():
             if self.add_password_dict(self.controller.password):
+                if event is not None:
+                    self.settings_changed(event)
                 return True
             self.controller.password = ''
             return False
-        if self.image_item is not None and self.image_item.proc_mode.enable_password and self.image_item.proc_mode.settings_cls is not None:
-            self.image_item.settings.sync_from_mapping(self.passwordCtrl)
+        if event is not None:
+            self.settings_changed(event)
         return True
 
     @catch_exc_for_frame_method
@@ -162,8 +166,8 @@ class MainFrame(BasicMainFrame):
             if selected_mode.requires_encryption_parameters:
                 self.controller.proc_mode_interface = self.controller.previous_proc_mode
                 return
-            self.controller.previous_proc_mode = selected_mode
-            self.controller.change_mode_plane(selected_mode)
+            self.controller.previous_proc_mode = self.mode_manager.default_mode = selected_mode
+            self.controller.backtrack_interface(selected_mode.default_settings, selected_mode)
             return
         if selected_mode.requires_encryption_parameters:
             if self.image_item.is_correct_decryption_mode(selected_mode):
@@ -266,8 +270,9 @@ class MainFrame(BasicMainFrame):
         if proc_mode.requires_encryption_parameters:
             self.dialog.warning('请勿将解密模式设置为默认模式')
             return
-        self.mode_manager.default_mode = self.controller.proc_mode_interface
-        self.settings.default = self.settings.current_settings
+        if self.image_item is not None:
+            self.mode_manager.default_mode = self.image_item.proc_mode
+            self.settings.default = self.image_item.settings.copy()
 
     @catch_exc_for_frame_method
     def stop_loading_event(self, event):
@@ -301,7 +306,7 @@ class MainFrame(BasicMainFrame):
     @catch_exc_for_frame_method
     def apply_to_all(self, event):
         if self.controller.proc_mode_interface.requires_encryption_parameters:
-            self.dialog.warning('请勿将解密模式设置为默认模式')
+            self.dialog.warning('请勿将解密模式应用到全部')
             return
         self.apply_settings_to_all()
 

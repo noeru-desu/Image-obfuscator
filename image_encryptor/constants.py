@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-25 21:16:44
+LastEditTime : 2022-06-27 09:13:36
 Description  : 常量
 """
 from platform import machine, platform
@@ -34,8 +34,8 @@ BETA = 3
 ALPHA = 4
 VERSION_TYPE = BETA
 VERSION_NUMBER = '2.0.0'
-SUB_VERSION_NUMBER = 'beta.2'
-VERSION_BATCH = '20220625-1'
+SUB_VERSION_NUMBER = 'beta.3'
+VERSION_BATCH = '20220627-1'
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'

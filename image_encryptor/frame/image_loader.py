@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-24 11:59:31
+LastEditTime : 2022-06-26 10:30:40
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
@@ -62,8 +62,6 @@ class ImageLoader(object):
 
     def load(self, target: Iterable['PathLike[str]'] | 'PathLike[str]' | Image.Image):
         Image.MAX_IMAGE_PIXELS = self.frame.controller.max_image_pixels if self.frame.controller.max_image_pixels != 0 else None
-        if not self.frame.tree_manager.file_dict:
-            self.frame.set_settings_as_default()  # 当没有加载任何图像时，将当前的设置设为默认设置
         if isinstance(target, Image.Image):
             self.loading_thread.add_task(self._load_image_object, (target,), cb=self._loading_callback)
         else:
@@ -192,7 +190,7 @@ class ImageLoader(object):
                 if error is None:
                     image_item = ImageItem(
                         self.frame, None if self.frame.startup_parameters.low_memory else loaded_image,
-                        PathData(path_chosen, r, n), settings_instantiator(self.frame.controller, settings_tuple)
+                        PathData(path_chosen, r, n), settings_instantiator(settings_tuple)
                     )
                     self.frame.tree_manager.add_file(image_item, path_chosen, r, n, False)
                     image_item.load_encryption_attributes()

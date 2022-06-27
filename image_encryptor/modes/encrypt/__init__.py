@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:43:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-25 21:08:35
+LastEditTime : 2022-06-27 08:09:16
 Description  : 
 """
 from typing import TYPE_CHECKING
@@ -33,7 +33,8 @@ class ModeInterface(BaseModeInterface):
         self.settings_panel = frame.mode_manager.add_settings_panel(self.settings_panel_cls)
         self.settings_controller: 'EncryptModeController' = EncryptModeController(frame, self.settings_panel)
         self.settings_cls = Settings
-        self.default_settings = Settings(frame.controller, self.settings_controller, (25, 25, True, True, Channels((False, False, False, False)), False, Channels((True, True, True, False)), False, 128, 'none'))
+        super().__init__(frame, mode_id)
+        self.default_settings = Settings((25, 25, True, True, Channels((False, False, False, False)), False, Channels((True, True, True, False)), False, 128, 'none'))
 
     def proc_image(self, *args):
         return normal_gen(*args)

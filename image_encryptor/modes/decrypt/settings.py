@@ -2,17 +2,16 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:39:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-25 20:42:05
+LastEditTime : 2022-06-27 08:43:14
 Description  : 设置选项
 """
 from base64 import b85decode
 from pickle import loads as pickle_loads
-from typing import TYPE_CHECKING, Iterable, Any, Union
+from typing import TYPE_CHECKING, Iterable, Any
 
 from image_encryptor.modes.base import BaseSettings, Channels
 
 if TYPE_CHECKING:
-    from image_encryptor.frame.controller import Controller as MainController
     from image_encryptor.modes.encrypt.controller import EncryptModeController
 
 
@@ -68,46 +67,47 @@ class EncryptionParametersData(BaseSettings):
 
 
 class EncryptionParameters(EncryptionParametersData):
-    __slots__ = ('main_controller', 'mode_controller')
+    __slots__ = ()
+    MODE_CONTROLLER: 'EncryptModeController'
+    PASSWORD_PROPERTY_NAME = 'password'
 
-    def __init__(self, main_controller: 'MainController', mode_controller: 'EncryptModeController', parameters: dict[str, Any] | Iterable[Any]):
-        self.main_controller = main_controller
-        self.mode_controller = mode_controller
+    def __init__(self, parameters: dict[str, Any] | Iterable[Any]):
         super().__init__(parameters)
+        super(EncryptionParametersData, self).__init__()
+        self.set_enable_password(self.has_password)
 
     def get_password(self):
         if not self.has_password:
             return 100
-        if self.password is not None:
-            return self.password
-        self.password = self.main_controller.frame.password_dict.get_password(self.password_base85)
-        return None if self.password is None else self.password
+        self.password = self.MAIN_CONTROLLER.frame.password_dict.get_password(self.password_base85)
+        if self.password is None:
+            return None
+        return self.password
 
     def backtrack_interface(self):
         """将加密参数显示到界面"""
-        self.mode_controller.cutting_row = self.cutting_row
-        self.mode_controller.cutting_col = self.cutting_col
-        self.mode_controller.shuffle_chunks = self.shuffle_chunks
-        self.mode_controller.mapping_channels = self.mapping_channels
-        self.mode_controller.flip_chunks = self.flip_chunks
-        self.mode_controller.noise_XOR = self.noise_XOR
-        self.mode_controller.noise_factor = self.noise_factor
-        self.mode_controller.noise_factor_info = str(self.noise_factor)
-        self.mode_controller.XOR_encryption = self.XOR_encryption
-        self.mode_controller.XOR_channels = self.XOR_channels
+        self.MODE_CONTROLLER.cutting_row = self.cutting_row
+        self.MODE_CONTROLLER.cutting_col = self.cutting_col
+        self.MODE_CONTROLLER.shuffle_chunks = self.shuffle_chunks
+        self.MODE_CONTROLLER.mapping_channels = self.mapping_channels
+        self.MODE_CONTROLLER.flip_chunks = self.flip_chunks
+        self.MODE_CONTROLLER.noise_XOR = self.noise_XOR
+        self.MODE_CONTROLLER.noise_factor = self.noise_factor
+        self.MODE_CONTROLLER.noise_factor_info = str(self.noise_factor)
+        self.MODE_CONTROLLER.XOR_encryption = self.XOR_encryption
+        self.MODE_CONTROLLER.XOR_channels = self.XOR_channels
         if self.has_password:
             while self.password is None:
-                self.password = self.main_controller.frame.password_dict.get_password(self.password_base85)
+                self.password = self.MAIN_CONTROLLER.frame.password_dict.get_password(self.password_base85)
                 if self.password is not None:
                     break
-                self.password = self.main_controller.frame.dialog.password_dialog(self.main_controller.frame.image_item.path_data.file_name, self.password_base85, True)
+                self.password = self.MAIN_CONTROLLER.frame.dialog.password_dialog(self.MAIN_CONTROLLER.frame.image_item.path_data.file_name, self.password_base85, True)
                 if self.password is not None:
                     break
-                self.main_controller.password = ''
-                self.main_controller.frame.passwordCtrl.Enable()
+                self.MAIN_CONTROLLER.password = ''
+                self.set_enable_password(True)
                 return
-            self.main_controller.frame.passwordCtrl.Disable()
-            self.main_controller.password = self.password
+            self.set_enable_password(False)
+            self.MAIN_CONTROLLER.password = self.password
         else:
-            self.main_controller.frame.passwordCtrl.Disable()
-            self.main_controller.password = 'none'
+            self.MAIN_CONTROLLER.password = 'none'

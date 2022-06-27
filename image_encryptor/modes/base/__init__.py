@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-25 21:06:41
+LastEditTime : 2022-06-27 08:43:38
 Description  : 基类
 """
 from abc import ABC
@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Callable, Optional, Iterable, Any, Union, Type
 if TYPE_CHECKING:
     from typing import Iterator
     from PIL.Image import Image
-    from wx import Panel, Gauge, Event
+    from wx import Panel, Gauge, Event, Object
     from image_encryptor.frame.controller import Controller as MainController
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.modules.image import PillowImage, ImageData, WrappedImage
@@ -65,12 +65,51 @@ class LengthMismatchWarning(UserWarning):
     pass
 
 
-class BaseSettings(ABC):
-    __slots__ = ('SETTINGS_MAPPING')
-    SETTING_NAMES: tuple[str]
-    SETTINGS_MAPPING: dict[int, tuple[str, Callable]]
+class SettingsMapping(dict):
+    __slots__ = ('settings',)
 
-    def __init__(self, main_controller: 'MainController', mode_controller: 'ModeController', settings: Optional[Iterable[Any]] = None) -> None: ...
+    def __init__(self, settings: 'BaseSettings', kwargs: dict[int, tuple[str, Callable]], password_property_name: Optional[str] = None):
+        super().__init__(kwargs)
+        self.settings = settings
+        if password_property_name is not None:
+            MAIN_CONTROLLER = self.settings.MAIN_CONTROLLER
+            self[MAIN_CONTROLLER.password_ctrl_hash] = (password_property_name, lambda event: MAIN_CONTROLLER.password)
+        if __debug__:
+            self.check_mapping()
+
+    def check_mapping(self):
+        for k, v in self.items():
+            assert isinstance(k, int), f'The keys of SettingsMapping must be int, currently {type(k)}'
+            attr = v[0]
+            assert hasattr(self.settings, attr), f"'{type(self.settings)}' object has no attribute '{attr}'"
+
+    def sync_from_object_to_settings(self, _object: 'Object'):
+        _hash = hash(_object)
+        if _hash in self:
+            attr, setter = self[_hash]
+            setattr(self.settings, attr, setter(_object))
+
+    def sync_from_event_to_settings(self, event: 'Event'):
+        _hash = hash(event.GetEventObject())
+        if _hash in self:
+            attr, setter = self[_hash]
+            setattr(self.settings, attr, setter(event))
+
+
+class BaseSettings(ABC):
+    __slots__ = ('SETTINGS_MAPPING', 'enable_password', 'enable_settings_panel')
+    SETTING_NAMES: tuple[str]
+    SETTINGS_MAPPING_DICT: 'dict[int, tuple[str, Callable[[Union[Event, Object]], None]]]'
+    PASSWORD_PROPERTY_NAME: Optional[str] = None
+    MAIN_CONTROLLER: 'MainController'
+    MODE_CONTROLLER: Optional['ModeController']
+    MODE_INTERFACE: 'BaseModeInterface'
+    SETTINGS_MAPPING: 'SettingsMapping'     # 每次实例化时都将生成新的SettingsMapping
+
+    def __init__(self, settings: Optional[Iterable[Any]] = None) -> None:
+        self.SETTINGS_MAPPING = SettingsMapping(self, self.SETTINGS_MAPPING_DICT, self.PASSWORD_PROPERTY_NAME)
+        self.enable_password = self.MODE_INTERFACE.enable_password
+        self.enable_settings_panel = self.MODE_INTERFACE.enable_settings_panel
 
     def __repr__(self) -> str:
         return ', '.join(f'{i}: {getattr(self, i)}' for i in self.SETTING_NAMES)
@@ -79,22 +118,30 @@ class BaseSettings(ABC):
         if isinstance(i, str):
             return getattr(self, i)
 
-    def check_settings_mapping(self):
-        if not hasattr(self, 'SETTINGS_MAPPING'):
-            self.SETTINGS_MAPPING = self.gen_settings_mapping()
+    @classmethod
+    def set_constants(cls, main_controller: 'MainController', mode_interface: 'BaseModeInterface'):
+        cls.MODE_INTERFACE = mode_interface
+        cls.MAIN_CONTROLLER = main_controller
+        cls.MODE_CONTROLLER = mode_interface.settings_controller
+        cls.SETTINGS_MAPPING_DICT = cls.gen_settings_mapping_kwargs()
 
-    def gen_settings_mapping(self): raise NotImplementedError()
+    @classmethod
+    def gen_settings_mapping_kwargs(cls):
+        return {}
 
-    def get_password_ctrl_mapping(self, main_controller: 'MainController', attr: str):
-        return main_controller.password_ctrl_hash, (attr, lambda ctrl: ctrl.GetValue())
+    def set_enable_password(self, v: bool):
+        self.enable_password = v
+        self.MAIN_CONTROLLER.frame.passwordCtrl.Enable(v)
+
+    def set_enable_settings_panel(self, v: bool):
+        self.enable_settings_panel = v
+        self.MAIN_CONTROLLER.frame.passwordCtrl.Enable(v)
 
     def sync_from_event(self, event: 'Event'):
-        attr, setter = self.SETTINGS_MAPPING[hash(event.GetEventObject())]
-        setattr(self, attr, setter(event))
+        self.SETTINGS_MAPPING.sync_from_event_to_settings(event)
 
-    def sync_from_mapping(self, _object: int):
-        attr, setter = self.SETTINGS_MAPPING[hash(_object)]
-        setattr(self, attr, setter(_object))
+    def sync_from_mapping(self, _object: 'Object'):
+        self.SETTINGS_MAPPING.sync_from_object_to_settings(_object)
 
     def sync_from_tuple(self, settings: Iterable[Any], check_length=True):
         """将可迭代对象(一般是由`self.properties_tuple`生成的元组)中的数据同步到自身
@@ -159,7 +206,7 @@ class BaseSettings(ABC):
         Returns:
             Type[Self]: 当前实例的浅拷贝
         """
-        raise NotImplementedError()
+        return self.__class__(self.properties_tuple)
 
     def backtrack_interface(self):
         pass
@@ -177,19 +224,23 @@ class BaseSettings(ABC):
 
 class EmptySettingsType(BaseSettings):
     """空的设置实例, 用于占位, 实例为单例"""
-    __slots__ = SETTING_NAMES = ('main_controller',)
+    __slots__ = SETTING_NAMES = ('_',)
     _instance: Optional['EmptySettingsType'] = None
-    main_controller: 'MainController'
 
     def __new__(cls: type['EmptySettingsType'], main_controller):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, main_controller) -> None: pass
+    def __init__(self, main_controller) -> None:
+        self._ = None
 
-    def gen_settings_mapping(self):
-        return {self.main_controller.password_ctrl_hash: lambda: None}
+    def set_constants(self, main_controller: 'MainController'):
+        cls = self.__class__
+        cls.MAIN_CONTROLLER = main_controller
+        cls.SETTINGS_MAPPING = SettingsMapping(self, {}, '_')
+
+    def on_init(self): ...
 
     def sync_from_tuple(self, v): pass
 
@@ -256,7 +307,11 @@ class BaseModeInterface(ABC):
         return super().__new__(cls)
 
     def __init__(self, frame: 'MainFrame', mode_id: int):
-        raise NotImplementedError()
+        if self.settings_controller is not None:
+            if self.settings_cls is not None:
+                self.settings_cls.set_constants(frame.controller, self)
+            if self.encryption_parameters_cls is not None:
+                self.encryption_parameters_cls.set_constants(frame.controller, self)
 
     @property
     def encryption_settings_tuple(self):
@@ -271,11 +326,11 @@ class BaseModeInterface(ABC):
     def proc_image_multiprocessing(self, source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings') -> tuple[Optional['WrappedImage'], Optional[str]]:
         raise NotImplementedError()
 
-    def instantiate_settings_cls(self, main_controller, data: Optional[Any] = None):
-        return EmptySettings if self.settings_cls is None else self.settings_cls(main_controller, self.settings_controller, data)
+    def instantiate_settings_cls(self, data: Optional[Any] = None):
+        return EmptySettings if self.settings_cls is None else self.settings_cls(data)
 
-    def instantiate_encryption_parameters_cls(self, main_controller, data):
-        return EmptySettings if self.encryption_parameters_cls is None else self.encryption_parameters_cls(main_controller, self.settings_controller, data)
+    def instantiate_encryption_parameters_cls(self, data):
+        return EmptySettings if self.encryption_parameters_cls is None else self.encryption_parameters_cls(data)
 
     @final
     def check_metadata(self):

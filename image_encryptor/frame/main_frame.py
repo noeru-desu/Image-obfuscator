@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-25 20:51:56
+LastEditTime : 2022-06-26 09:48:51
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -84,8 +84,7 @@ class MainFrame(MF):
         # 各项实现或组件
         self.dialog = Dialog(self)
         self.controller = Controller(self)
-        EmptySettings.main_controller = self.controller
-        EmptySettings.check_settings_mapping()
+        EmptySettings.set_constants(self.controller)
         self.mode_manager = ModeManager(self)
         self.mode_manager.load_builtin_modes()
         self.settings = SettingsManager(self.controller)

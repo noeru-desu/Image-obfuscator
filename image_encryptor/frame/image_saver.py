@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-25 21:12:56
+LastEditTime : 2022-06-27 08:59:31
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -286,9 +286,6 @@ class ImageSaver(object):
     def _bulk_save_from_cache_callback(self, result):
         """批量保存回调函数"""
         with self.lock:     # 线程锁，防止进度累加错误
-            data, error = result
-            if error is not None:
-                self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
             self.bar.add()
             self.frame.controller.saving_progress_info = f"{self.bar.value}/{self.task_num} - {format(self.bar.value / self.task_num * 100, '.2f')}%"
             if self.bar.value == self.task_num:

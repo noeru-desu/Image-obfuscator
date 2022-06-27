@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:22:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-25 21:08:21
+LastEditTime : 2022-06-26 09:45:35
 Description  : 
 """
 from typing import TYPE_CHECKING
@@ -36,6 +36,7 @@ class ModeInterface(BaseModeInterface):
         self.enable_settings_panel = False
         self.settings_panel = frame.mode_manager.add_settings_panel(self.settings_panel_cls)
         self.settings_controller: 'EncryptModeController' = EncryptModeController(frame, self.settings_panel)
+        super().__init__(frame, mode_id)
 
     def proc_image(self, *args):
         return normal_gen(*args)

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 12:11:48
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-25 21:09:43
+LastEditTime : 2022-06-26 09:45:55
 Description  : 
 """
 from typing import TYPE_CHECKING
@@ -23,6 +23,7 @@ class ModeInterface(BaseModeInterface):
         self.mode_name = '反屏蔽模式'
         self.mode_qualname = 'builtin.antishield.v1'
         self.enable_settings_panel = False
+        super().__init__(frame, mode_id)
 
     def proc_image(self, *args):
         return normal_gen(*args)
