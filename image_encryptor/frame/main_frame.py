@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-27 19:04:31
+LastEditTime : 2022-06-28 10:42:10
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -17,9 +17,9 @@ from wx import (ACCEL_CTRL, ACCEL_NORMAL, WXK_DELETE, WXK_F5, AcceleratorEntry,
                 AcceleratorTable, App, CallAfter)
 from wx.core import EmptyString
 
-from image_encryptor.constants import (BRANCH, BUILD_VERSION_NUMBER, EXTENSION_KEYS_STRING,
-                                       SUB_VERSION_NUMBER, VERSION_INFO,
-                                       VERSION_NUMBER, VERSION_TYPE)
+from image_encryptor.constants import (EXTENSION_KEYS_STRING, FULL_VERSION_STRING,
+                                       SHORT_VERSION_STRING,
+                                       VERSION_INFO, VERSION_TYPE)
 from image_encryptor.frame.controller import (Controller, SegmentTrigger,
                                             SettingsManager)
 from image_encryptor.frame.design_frame import MainFrame as MF
@@ -71,9 +71,9 @@ class MainFrame(MF):
         # gen_slots_str(n_args - o_args)
         self.Disable()
         if VERSION_TYPE > 0:
-            self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER}+build.{BUILD_VERSION_NUMBER} (branch: {BRANCH}) {"[Not optimized]" if __debug__ else ""}')
+            self.SetTitle(f'Image Encryptor GUI {FULL_VERSION_STRING}')
         else:
-            self.SetTitle(f'Image Encryptor GUI {VERSION_NUMBER} {"[Not optimized]" if __debug__ else ""}')
+            self.SetTitle(f'Image Encryptor GUI {SHORT_VERSION_STRING}')
         self.logger = Logger('image-encryptor')
         for i in VERSION_INFO:
             self.logger.info(i)

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-27 19:05:18
+LastEditTime : 2022-07-02 11:57:56
 Description  : 常量
 """
 from platform import machine, platform
@@ -24,6 +24,7 @@ try:
     from nuitka.Version import getNuitkaVersion as nuitka_ver
 except ImportError:
     nuitka_ver = lambda: '[未安装]'
+COMPILED = not __file__.endswith('.py')
 
 Pillow_init()
 
@@ -33,10 +34,10 @@ DEV = 2
 BETA = 3
 ALPHA = 4
 VERSION_TYPE = BETA
-VERSION_NUMBER = '2.0.0'
-SUB_VERSION_NUMBER = 'beta.3'
-BUILD_VERSION_NUMBER = '2'
-VERSION_BATCH = '20220627-2'
+VERSION = '2.0.0'
+PRE_RELEASE_VERSION = 'beta.3'
+BATCH = '20220702a'
+BUILD_METADATA = BATCH # 'build.2'
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
@@ -65,13 +66,15 @@ EA_VERSION = 9
 EAERR_NO_DATA = '选择的图像中没有数据'
 EAERR_NO_ATTRIBUTES = '选择的图像不包含加密参数, 请确保尝试解密的图像为加密后的原图'
 EAERR_DECODE_FAILED = '加载图像加密参数时出现问题, 请确保尝试解密的图像为加密后的原图'
-EAERR_INCOMPATIBLE = '该版本不支持0.1.0-BETA版加密器加密的图像'
+EAERR_INCOMPATIBLE = '该版本不支持解密0.1.0-BETA版加密器加密的图像'
 EAERR_NOT_SUPPORT = '选择的图像文件由更高版本的加密器加密, 请使用最新版的加密器进行解密'
 
 FRAME_SETTINGS_MAIN_VERSION = 1
 FRAME_SETTINGS_SUB_VERSION = 0
 
 LIGHT_RED = Colour(255, 30, 30)
+
+_BUILD_METADATA = BUILD_METADATA if COMPILED else BATCH
 
 VERSION_INFO = (
     f'{machine()}-{platform()}',
@@ -80,9 +83,12 @@ VERSION_INFO = (
     f' - Pillow {pillow_ver}',
     f' - Numpy {numpy_ver}',
     f' - Nutika {nuitka_ver()}',
-    f'You are using Image encryptor GUI {VERSION_NUMBER}-{SUB_VERSION_NUMBER}+build.{BUILD_VERSION_NUMBER} (branch: {BRANCH}) (batch: {VERSION_BATCH})',
+    f'You are using Image encryptor GUI {VERSION}-{PRE_RELEASE_VERSION}+{_BUILD_METADATA} (branch: {BRANCH})',
     f'Open source at {OPEN_SOURCE_URL}'
 )
+
+FULL_VERSION_STRING = f'{VERSION}-{PRE_RELEASE_VERSION}+{_BUILD_METADATA} (branch: {BRANCH}) {"[Not optimized]" if __debug__ else ""}'
+SHORT_VERSION_STRING = f'{VERSION} {"[Not optimized]" if __debug__ else ""}'
 
 
 class DialogReturnCodes(object):
