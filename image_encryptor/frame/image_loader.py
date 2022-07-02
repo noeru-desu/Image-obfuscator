@@ -2,10 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-26 10:30:40
+LastEditTime : 2022-07-02 11:55:50
 Description  : 文件载入功能
 """
-from os.path import isdir, isfile, join, split
+from os.path import isdir, isfile, join, split, splitext
 from typing import TYPE_CHECKING, Iterable, overload
 
 from PIL import Image
@@ -151,6 +151,11 @@ class ImageLoader(object):
         self.frame.stop_loading_func.init()
         return item_id
 
+    @staticmethod
+    def sortable_file_name(file: str):
+        name = splitext(file)[0]
+        return int(name) if name.isalnum() else name
+
     def _load_dir(self, path_chosen):
         """加载文件夹"""
         self.show_loading_progress_plane()
@@ -175,6 +180,7 @@ class ImageLoader(object):
         load_failures = 0
 
         for r, fl in files:
+            fl.sort(key=self.sortable_file_name)
             for n in fl:
 
                 if self.stop_loading_signal:
