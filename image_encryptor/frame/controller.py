@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-27 08:40:08
+LastEditTime : 2022-07-23 19:37:49
 Description  : 界面控制相关
 """
 from os.path import splitext
@@ -19,9 +19,7 @@ if TYPE_CHECKING:
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.tree_manager import ImageItem
     from image_encryptor.modules.image import WrappedImage
-    from image_encryptor.modes.base import BaseModeInterface
-
-from image_encryptor.utils.debugging_utils import in_try
+    from image_encryptor.types import ModeInterface, ItemSettings, ImageCacheHash
 
 class ItemNotFoundError(Exception):
     pass
@@ -37,7 +35,7 @@ class Controller(object):
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
         self.previous_saving_format = 'png'
-        self.previous_proc_mode: 'BaseModeInterface' = ...
+        self.previous_proc_mode: 'ModeInterface' = ...
         self.imported_image_id = 0
         self.visible_proc_settings_panel: Optional['Panel'] = None
         self.password_ctrl_hash = hash(self.frame.passwordCtrl)
@@ -165,10 +163,10 @@ class Controller(object):
     def proc_mode_id(self, v: int): self.frame.procMode.Select(v)
 
     @property
-    def proc_mode_interface(self) -> 'BaseModeInterface': return self.frame.mode_manager.modes[self.frame.procMode.GetSelection()]
+    def proc_mode_interface(self) -> 'ModeInterface': return self.frame.mode_manager.modes[self.frame.procMode.GetSelection()]
 
     @proc_mode_interface.setter
-    def proc_mode_interface(self, v: 'BaseModeInterface'): self.frame.procMode.Select(v.mode_id)
+    def proc_mode_interface(self, v: 'ModeInterface'): self.frame.procMode.Select(v.mode_id)
 
     @property
     def proc_mode_qualname(self) -> 'str': return self.frame.mode_manager.modes[self.frame.procMode.GetSelection()].mode_qualname
@@ -342,10 +340,10 @@ class Controller(object):
 
     @property
     def record_interface_settings(self) -> bool:
-        """启动参数: 禁用处理结果缓存
+        """启动参数: 记录界面设置
 
         Returns:
-            bool: 是否禁用
+            bool: 是否记录
         """
         return self.frame.recordInterfaceSettings.GetValue()
 
@@ -354,15 +352,27 @@ class Controller(object):
 
     @property
     def record_password_dict(self) -> bool:
-        """启动参数: 禁用处理结果缓存
+        """启动参数: 记录密码字典
 
         Returns:
-            bool: 是否禁用
+            bool: 是否记录
         """
         return self.frame.recordPasswordDict.GetValue()
 
     @record_password_dict.setter
     def record_password_dict(self, v: bool): self.frame.recordPasswordDict.SetValue(v)
+
+    @property
+    def final_layout_widgets(self) -> bool:
+        """启动参数: 记录密码字典
+
+        Returns:
+            bool: 是否记录
+        """
+        return self.frame.finalLayoutWidgets.GetValue()
+
+    @final_layout_widgets.setter
+    def final_layout_widgets(self, v: bool): self.frame.finalLayoutWidgets.SetValue(v)
 
     @property
     def saving_settings(self) -> 'SavingSettings':
@@ -399,7 +409,7 @@ class Controller(object):
             if image_item is not None and image_item.proc_mode.enable_password and image_item.proc_mode.settings_cls is not None:
                 image_item.settings.sync_from_mapping(self.frame.passwordCtrl)
 
-    def display_and_cache_processed_preview(self, image: 'WrappedImage', cache_hash: int = ...):
+    def display_and_cache_processed_preview(self, image: 'WrappedImage', cache_hash: 'ImageCacheHash' = ...):
         """显示并缓存处理结果
 
         如果`image`参数传入的实例支持缩放操作，则添加到可缩放缓存，反之则添加到普通缓存
@@ -420,7 +430,7 @@ class Controller(object):
             self.frame.image_item.cache.previews.add_normal_cache(cache_hash, bitmap)
             self.previewed_bitmap = bitmap
 
-    def change_mode_plane(self, proc_mode: 'BaseModeInterface', settings_instance: 'BaseSettings'):
+    def change_mode_plane(self, proc_mode: 'ModeInterface', settings_instance: 'ItemSettings'):
         self.proc_settings_panel = proc_mode.settings_panel
         if settings_instance is not EmptySettings:
             self.frame.procSettingsPanelContainer.Enable(settings_instance.enable_settings_panel)
@@ -428,28 +438,13 @@ class Controller(object):
         if not proc_mode.enable_password:
             self.password = 'none'
 
-    def backtrack_interface(self, settings_instance: 'BaseSettings', proc_mode: 'BaseModeInterface' = ...):
+    def backtrack_interface(self, settings_instance: 'ItemSettings', proc_mode: 'ModeInterface' = ...):
         if proc_mode is Ellipsis:
             mode_interface = self.proc_mode_interface = self.frame.image_item.proc_mode
         else:
             mode_interface = self.proc_mode_interface = proc_mode
         self.change_mode_plane(mode_interface, settings_instance)
         settings_instance.backtrack_interface()
-
-
-class SettingsManager(object):
-    __slots__ = ('controller',)
-
-    def __init__(self, controller: 'Controller'):
-        self.controller = controller
-
-    @property
-    def default(self) -> 'BaseSettings':
-        return self.controller.frame.mode_manager.default_mode.default_settings
-
-    @default.setter
-    def default(self, v: 'BaseSettings'):
-        self.controller.frame.mode_manager.default_mode.default_settings = v
 
     '''
     @property
@@ -465,24 +460,24 @@ class SettingsManager(object):
         """在encryption_settings_hash的基础上添加resampling_filter_id/preview_source/preview_size"""
         return hash((self.controller.proc_mode_id, self.controller.proc_mode_interface.encryption_settings_tuple, self.controller.resampling_filter_id, self.controller.preview_source, *self.controller.preview_size))
 
-    def gen_encryption_settings_hash(self, settings: 'BaseSettings', encryption_parameters: 'BaseSettings'):
+    def gen_encryption_settings_hash(self, settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters'):
         return hash((self.controller.proc_mode_id, settings.properties_tuple, encryption_parameters.properties_tuple))
 
-    def gen_encryption_settings_hash_with_size(self, settings: 'BaseSettings', encryption_parameters: 'BaseSettings'):
+    def gen_encryption_settings_hash_with_size(self, settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters'):
         return hash((self.controller.proc_mode_id, settings.properties_tuple, encryption_parameters.properties_tuple, self.controller.resampling_filter_id, self.controller.preview_source, *self.controller.preview_size))
     '''
 
     @property
-    def current_settings(self) -> 'BaseSettings':
+    def current_settings(self) -> 'ItemSettings':
         """以当前的所有加密设置实例化Settings类\n
         向图像实例同步设置时请使用`settings.sync_from_interface()`或`image_item.sync_options_from_interface()`
         """
-        return self.controller.proc_mode_interface.instantiate_settings_cls()
+        return self.proc_mode_interface.instantiate_settings_cls()
 
     @property
     def saving_settings(self) -> 'SavingSettings':
         """以当前的所有保存设置实例化SavingSettings类"""
-        return self.controller.saving_settings
+        return SavingSettings(self.saving_path, self.saving_format_index, self.saving_format, self.saving_quality, self.saving_subsampling_level)
 
 
 class SavingSettings(BaseSettings):

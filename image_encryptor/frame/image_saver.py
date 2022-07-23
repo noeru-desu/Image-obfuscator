@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-27 08:59:31
+LastEditTime : 2022-07-15 18:19:22
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from image_encryptor.frame.controller import SavingSettings
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.frame.file_item import PathData
-    from image_encryptor.modes.base import BaseModeInterface, BaseSettings
+    from image_encryptor.types import ModeInterface, ItemSettings, ItemEncryptionParameters
 
 USE_FOLDER = 5
 DO_NOT_USE_FOLDER = 6
@@ -70,14 +70,14 @@ class ImageSaver(object):
         if cache is None:
             self.saving_thread.add_task(
                 self._saving_task,
-                (mode_interface, image_item, settings, image_item.encryption_attributes.settings, self.frame.settings.saving_settings),
+                (mode_interface, image_item, settings, image_item.encryption_attributes.settings, self.frame.controller.saving_settings),
                 cb=self._save_selected_image_call_back, cb_args=(cache_hash,)
             )
         else:   # 如果存在原始图像处理结果缓存则直接保存缓存
             self.frame.savingProgress.SetValue(50)
             self.saving_thread.add_task(
                 self._saving_cache_task,
-                (cache, mode_interface, image_item, settings, self.frame.settings.saving_settings),
+                (cache, mode_interface, image_item, settings, self.frame.controller.saving_settings),
                 cb=self.hide_saving_progress_plane
             )
 
@@ -99,7 +99,7 @@ class ImageSaver(object):
 
         self.bar = ProgressBar(self.frame.savingProgress)
         self.task_num = 0
-        saving_settings = self.frame.settings.saving_settings
+        saving_settings = self.frame.controller.saving_settings
         self.lock.acquire()                                 # 锁住线程锁，防止在任务添加期间执行回调函数，而导致进度识别错误
 
         for top, name, image_item in folder_item.walk() if use_folder else folder_item.all_included_items():
@@ -151,7 +151,7 @@ class ImageSaver(object):
         # self._gen_filter()
         self.bar = ProgressBar(self.frame.savingProgress)
         self.task_num = 0
-        saving_settings = self.frame.settings.saving_settings
+        saving_settings = self.frame.controller.saving_settings
         self.lock.acquire()                                 # 锁住线程锁，防止在任务添加期间执行回调函数，而导致进度识别错误
 
         for image_item in self.frame.tree_manager.all_image_item_data:
@@ -188,12 +188,12 @@ class ImageSaver(object):
         self.saving_thread.interrupt_task()
         # self.frame.process_pool.cancel_task('bulk_save')
 
-    def _saving_task(self, mode_interface: 'BaseModeInterface', image_item: 'ImageItem', settings: 'BaseSettings', encryption_attributes: 'BaseSettings', saving_settings: 'SavingSettings', relative_saving_path: str = '', quiet=False):
+    def _saving_task(self, mode_interface: 'ModeInterface', image_item: 'ImageItem', settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters', saving_settings: 'SavingSettings', relative_saving_path: str = '', quiet=False):
         loaded_image = image_item.cache.loaded_image
         result = (mode_interface.proc_image_quietly(
-            self.frame, loaded_image, True, PillowImage, settings, encryption_attributes
+            self.frame, loaded_image, True, PillowImage, settings, encryption_parameters
         ) if quiet else mode_interface.proc_image(
-            self.frame, loaded_image, True, PillowImage, settings, encryption_attributes,
+            self.frame, loaded_image, True, PillowImage, settings, encryption_parameters,
             self.frame.savingProgressInfo.SetLabelText, self.frame.savingProgress
         ))
         if __debug__:
@@ -209,14 +209,14 @@ class ImageSaver(object):
                 )
         return result
 
-    def _saving_cache_task(self, image: 'Image', mode_interface: 'BaseModeInterface', image_item: 'ImageItem', settings: 'BaseSettings', saving_settings: 'SavingSettings', relative_saving_path: str = '', quiet=False):
+    def _saving_cache_task(self, image: 'Image', mode_interface: 'ModeInterface', image_item: 'ImageItem', settings: 'ItemSettings', saving_settings: 'SavingSettings', relative_saving_path: str = '', quiet=False):
         self._post_save_processing(
             mode_interface,
             settings.serialize_encryption_parameters(*image_item.cache.loaded_image.size) if mode_interface.add_encryption_parameters_in_file else None,
             self._save_image(image, mode_interface, image_item.path_data, saving_settings, relative_saving_path, quiet)
         )
 
-    def _save_image(self, image: 'Image', mode_interface: 'BaseModeInterface', image_path_data: 'PathData', saving_settings: 'SavingSettings', relative_saving_path: str = '', quiet=False):
+    def _save_image(self, image: 'Image', mode_interface: 'ModeInterface', image_path_data: 'PathData', saving_settings: 'SavingSettings', relative_saving_path: str = '', quiet=False):
         name, _ = splitext(image_path_data.file_name)
         if mode_interface.file_name_suffix is not None:
             name = f"{name.removesuffix(mode_interface.file_name_suffix[0])}{mode_interface.file_name_suffix[1]}.{saving_settings.format}"
@@ -233,7 +233,7 @@ class ImageSaver(object):
         image.save(output_path, quality=saving_settings.quality, subsampling=saving_settings.subsampling_level)
         return output_path
 
-    def _post_save_processing(self, mode_interface: 'BaseModeInterface', data, output_path: str):
+    def _post_save_processing(self, mode_interface: 'ModeInterface', data, output_path: str):
         if mode_interface.add_encryption_parameters_in_file:
             serialize_encryption_parameters = gen_encryption_attributes(mode_interface.corresponding_decryption_mode, data)
             with open(output_path, "a") as f:

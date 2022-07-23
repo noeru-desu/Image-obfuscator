@@ -2,13 +2,14 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 13:53:27
+LastEditTime : 2022-07-23 13:55:58
 Description  : 图像加密模块
 """
 from copy import copy
 from itertools import product
 from math import ceil
 from random import Random
+from threading import Lock
 from typing import TYPE_CHECKING, MutableSequence, Union
 
 from numpy import ascontiguousarray, empty, uint8, zeros
@@ -140,12 +141,12 @@ class BaseImageEncryptV2(object):
         w, h = self.image.size
         if noise:
             noise_array = random_noise(h, w, len(channels), self._shuffle.seed, noise_factor)
-            for index, channel in enumerate(channels.channels_id):
+            for index, channel in enumerate(channels.channels_num):
                 pixel_array[:, :, channel] ^= noise_array[:, :, index]
         else:
             random.seed(self._shuffle.seed)
             xor_num = random.randrange(256)
-            for channel in channels.channels_id:
+            for channel in channels.channels_num:
                 pixel_array[:, :, channel] ^= xor_num
         self.image = array_to_image(pixel_array, (w, h))
         return self.image
@@ -295,12 +296,12 @@ class BaseImageEncryptV3(object):
         size = self.image_array.shape[:-1]
         if noise:
             noise_array = random_noise(*size, len(channels), self._shuffle.seed, noise_factor)
-            for index, channel in enumerate(channels.channels_id):
+            for index, channel in enumerate(channels.channels_num):
                 self.image_array[:, :, channel] ^= noise_array[:, :, index]
         else:
             random.seed(self._shuffle.seed)
             xor_num = random.randrange(256)
-            for channel in channels.channels_id:
+            for channel in channels.channels_num:
                 self.image_array[:, :, channel] ^= xor_num
         return self.image_array, size[::-1]
 
@@ -364,8 +365,9 @@ class AntiShield(object):
 
 
 class Shuffle(object):
-    """有序序列打乱功能, 使用时请注意线程安全"""
+    """有序序列打乱功能(线程安全)"""
     __slots__ = ('seed',)
+    _lock = Lock()
 
     def __init__(self, seed) -> None:
         self.seed = seed
@@ -379,17 +381,19 @@ class Shuffle(object):
         return self.reverse_on_self(new_x)
 
     def obverse_on_self(self, x: MutableSequence):
-        random.seed(self.seed)
-        random.shuffle(x)
+        with self._lock:
+            random.seed(self.seed)
+            random.shuffle(x)
         return x
 
     def reverse_on_self(self, x: MutableSequence):
-        random.seed(self.seed)
-        randbelow = random._randbelow
-        index_tuple = range(1, len(x))
-        randbelow_list = [randbelow(i + 1) for i in reversed(index_tuple)]
-        randbelow_list.reverse()
-        for i, j in zip(index_tuple, randbelow_list):
-            # pick an element in x[:i+1] with which to exchange x[i]
-            x[i], x[j] = x[j], x[i]
+        with self._lock:
+            random.seed(self.seed)
+            randbelow = random._randbelow
+            index_tuple = range(1, len(x))
+            randbelow_list = [randbelow(i + 1) for i in reversed(index_tuple)]
+            randbelow_list.reverse()
+            for i, j in zip(index_tuple, randbelow_list):
+                # pick an element in x[:i+1] with which to exchange x[i]
+                x[i], x[j] = x[j], x[i]
         return x

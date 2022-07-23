@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-27 08:14:40
+LastEditTime : 2022-07-23 14:25:27
 Description  : 
 """
 from base64 import b85encode
@@ -151,3 +151,4 @@ class Settings(SettingsData):
         self.MODE_CONTROLLER.noise_factor = self.noise_factor
         self.MODE_CONTROLLER.noise_factor_info = str(self.noise_factor)
         self.MODE_CONTROLLER.settings_panel.xorPanel.Enable(self.XOR_encryption)
+        self.MODE_CONTROLLER.settings_panel.noiseFactor.Enable(self.XOR_encryption and self.noise_XOR)

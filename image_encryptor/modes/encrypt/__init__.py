@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:43:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-27 08:09:16
+LastEditTime : 2022-07-23 19:51:39
 Description  : 
 """
 from typing import TYPE_CHECKING
@@ -41,14 +41,3 @@ class ModeInterface(BaseModeInterface):
 
     def proc_image_quietly(self, *args):
         return normal_gen_quietly(*args)
-
-    @property
-    def encryption_settings_tuple(self):
-        """当前所有加密设置的元组, 一般为生成encryption_settings_hash时使用"""
-        return (
-            self.settings_controller.cutting_row, self.settings_controller.cutting_col,
-            self.settings_controller.shuffle_chunks, self.settings_controller.flip_chunks,
-            self.settings_controller.mapping_channels, self.settings_controller.XOR_encryption,
-            self.settings_controller.XOR_channels, self.settings_controller.noise_XOR,
-            self.settings_controller.noise_factor, self.frame.controller.password
-        ), ()

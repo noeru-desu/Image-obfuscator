@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-27 08:49:49
+LastEditTime : 2022-07-23 19:35:23
 Description  : 事件处理
 """
 from timeit import timeit
@@ -34,13 +34,16 @@ class MainFrame(BasicMainFrame):
             self.set_preview_plane_size()
             self.refresh_preview(event)
             self.resized = False
+            if self.startup_parameters.final_layout_widgets:
+                self.Layout()
 
     def on_maximize(self, event):
         CallAfter(self.refresh_preview, event)
 
     def on_size(self, event: 'SizeEvent'):
         self.resized = True
-        event.Skip()
+        if not self.startup_parameters.final_layout_widgets:
+            event.Skip()
 
     def change_displayed_preview(self, event: Union['CommandEvent', 'RadioBox']):
         match event.Selection:
@@ -272,7 +275,7 @@ class MainFrame(BasicMainFrame):
             return
         if self.image_item is not None:
             self.mode_manager.default_mode = self.image_item.proc_mode
-            self.settings.default = self.image_item.settings.copy()
+            self.mode_manager.default_settings = self.image_item.settings.copy()
 
     @catch_exc_for_frame_method
     def stop_loading_event(self, event):
@@ -305,6 +308,8 @@ class MainFrame(BasicMainFrame):
 
     @catch_exc_for_frame_method
     def apply_to_all(self, event):
+        if not self.tree_manager.file_dict:
+            return
         if self.controller.proc_mode_interface.requires_encryption_parameters:
             self.dialog.warning('请勿将解密模式应用到全部')
             return
@@ -312,9 +317,10 @@ class MainFrame(BasicMainFrame):
 
     @catch_exc_for_frame_method
     def revert_to_default(self, event):
-        self.controller.backtrack_interface(self.settings.default, self.mode_manager.default_mode)
-        self.image_item.sync_options_from_interface()
-        self.refresh_preview()
+        self.controller.backtrack_interface(self.mode_manager.default_settings, self.mode_manager.default_mode)
+        if self.image_item is not None:
+            self.image_item.sync_options_from_interface()
+            self.refresh_preview()
 
     def expand_all_item(self, event):
         self.imageTreeCtrl.ExpandAll()
@@ -347,6 +353,9 @@ class MainFrame(BasicMainFrame):
 
     def toggle_record_password_dict(self, event: 'CommandEvent'):
         self.startup_parameters.record_password_dict = event.IsChecked()
+
+    def toggle_final_layout_widgets(self, event: 'CommandEvent'):
+        self.startup_parameters.final_layout_widgets = event.IsChecked()
 
     def exit(self, event):
         self.Hide()

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-02 11:55:50
+LastEditTime : 2022-07-15 18:18:47
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split, splitext
@@ -174,7 +174,7 @@ class ImageLoader(object):
             self.finish_loading_progress()
             return
         self.init_loading_progress(file_num, True)
-        settings_tuple = self.frame.settings.default.properties_tuple
+        settings_tuple = self.frame.mode_manager.default_settings.properties_tuple
         settings_instantiator = self.frame.mode_manager.default_mode.instantiate_settings_cls
         loaded_num = 0
         load_failures = 0

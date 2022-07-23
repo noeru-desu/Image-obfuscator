@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-06-07 06:20:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-26 09:55:24
+LastEditTime : 2022-07-15 17:59:55
 Description  : 
 """
 from pickle import dump as pickle_dump, load as pickle_load
@@ -26,7 +26,7 @@ class ConfigManager(object):
 
     def __init__(self, frame: 'MainFrame') -> None:
         self.frame = frame
-        self.data_path = join(getenv('LOCALAPPDATA'), 'ImageEncryptor')
+        self.data_path = join(getenv('LOCALAPPDATA', 'pickles'), 'ImageEncryptor')
         self.frame_settings_path = join(self.data_path, 'frame_settings.pickle')
         self.password_dict_path = join(self.data_path, 'password_dict.pickle')
         if not exists(self.data_path):
@@ -45,10 +45,10 @@ class ConfigManager(object):
             if self.frame.mode_manager.default_mode.requires_encryption_parameters:
                 default_mode_settings = default_proc_mode.default_settings
             else:
-                default_mode_settings = self.frame.settings.default
+                default_mode_settings = self.frame.mode_manager.default_settings
         else:
             default_proc_mode = self.frame.controller.proc_mode_interface
-            default_mode_settings = self.frame.settings.current_settings
+            default_mode_settings = self.frame.controller.current_settings
         return {
             'config_version': (1, 0),
             'default_proc_mode': default_proc_mode.mode_qualname,
@@ -102,7 +102,7 @@ class ConfigManager(object):
             default_mode = self.frame.mode_manager.default_mode = self.frame.mode_manager.modes[frame_settings.default_proc_mode]
             default_settings = default_mode.instantiate_settings_cls()
             default_settings.properties_dict = frame_settings.default_mode_settings
-            self.frame.settings.default = default_settings
+            self.frame.mode_manager.default_settings = default_settings
             self.frame.controller.backtrack_interface(default_settings, default_mode)
         self.frame.startup_parameters.parameters_dict = frame_settings.startup_parameters
         self.frame.controller.preview_mode = frame_settings.preview_mode

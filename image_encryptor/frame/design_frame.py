@@ -18,18 +18,18 @@ import wx.xrc
 class MainFrame (wx.Frame):
     __slots__ = (
         'XorFilter', 'collapseAllBtn', 'decryptionFilter', 'delBtn', 'disableCache', 'displayedPreview', 'encryptionFilter',
-        'expandAllBtn', 'flipFilter', 'imageInfo', 'imagePanel', 'imageTreeCtrl', 'imageTreePanel', 'imageTreeSearchCtrl',
-        'importedBitmap', 'importedBitmapPanel', 'importedBitmapSizerPanel', 'loadingClipboardBtn', 'loadingFileBtn',
-        'loadingPanel', 'loadingProgress', 'loadingProgressInfo', 'loadingProgressPanel', 'lowMemoryMode', 'm_button31',
-        'm_button311', 'm_button312', 'm_button6', 'm_button8', 'm_panel25', 'm_staticText12', 'm_staticText14', 'm_staticText34',
-        'm_staticText81', 'm_staticText82', 'm_staticText82111', 'm_staticText8212', 'm_staticline31', 'm_staticline4',
-        'manuallyRefreshBtn', 'mappingFilter', 'maxImagePixels', 'otherOptions', 'passwordCtrl', 'passwordFilter', 'previewLayout',
-        'previewMode', 'previewOptions', 'previewProgress', 'previewProgressInfo', 'previewSource', 'previewedBitmap',
-        'previewedBitmapPanel', 'previewedBitmapSizerPanel', 'procMode', 'procSettingsPanelContainer', 'processingOptions',
-        'qqFilter', 'qualityInfo', 'recordInterfaceSettings', 'recordPasswordDict', 'redundantCacheLength', 'reloadingBtn',
-        'resamplingFilter', 'savingBtn', 'savingBtnPanel', 'savingFilters', 'savingFormat', 'savingOptions', 'savingProgress',
-        'savingProgressInfo', 'savingProgressPanel', 'savingQuality', 'selectSavingPath', 'settingsPanel', 'shuffleFilter',
-        'stopLoadingBtn', 'stopSavingBtn', 'subsamplingInfo', 'subsamplingLevel'
+        'expandAllBtn', 'finalLayoutWidgets', 'flipFilter', 'imageInfo', 'imagePanel', 'imageTreeCtrl', 'imageTreePanel',
+        'imageTreeSearchCtrl', 'importedBitmap', 'importedBitmapPanel', 'importedBitmapSizerPanel', 'loadingClipboardBtn',
+        'loadingFileBtn', 'loadingPanel', 'loadingProgress', 'loadingProgressInfo', 'loadingProgressPanel', 'lowMemoryMode',
+        'm_button31', 'm_button311', 'm_button312', 'm_button6', 'm_button8', 'm_panel25', 'm_staticText12', 'm_staticText14',
+        'm_staticText34', 'm_staticText81', 'm_staticText82', 'm_staticText82111', 'm_staticText8212', 'm_staticline31',
+        'm_staticline4', 'manuallyRefreshBtn', 'mappingFilter', 'maxImagePixels', 'otherOptions', 'passwordCtrl', 'passwordFilter',
+        'previewLayout', 'previewMode', 'previewOptions', 'previewProgress', 'previewProgressInfo', 'previewSource',
+        'previewedBitmap', 'previewedBitmapPanel', 'previewedBitmapSizerPanel', 'procMode', 'procSettingsPanelContainer',
+        'processingOptions', 'qqFilter', 'qualityInfo', 'recordInterfaceSettings', 'recordPasswordDict', 'redundantCacheLength',
+        'reloadingBtn', 'resamplingFilter', 'savingBtn', 'savingBtnPanel', 'savingFilters', 'savingFormat', 'savingOptions',
+        'savingProgress', 'savingProgressInfo', 'savingProgressPanel', 'savingQuality', 'selectSavingPath', 'settingsPanel',
+        'shuffleFilter', 'stopLoadingBtn', 'stopSavingBtn', 'subsamplingInfo', 'subsamplingLevel'
     )
 
     def __init__(self, parent):
@@ -285,22 +285,22 @@ class MainFrame (wx.Frame):
 
         previewModeChoices = [u"不显示", u"手动刷新", u"自动刷新"]
         self.previewMode = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"预览图", wx.DefaultPosition, wx.DefaultSize, previewModeChoices, 1, wx.RA_SPECIFY_COLS)
-        self.previewMode.Select(2)
+        self.previewMode.SetSelection(2)
         bSizer40.Add(self.previewMode, 0, wx.ALL | wx.EXPAND, 3)
 
         displayedPreviewChoices = [u"仅导入图像", u"仅处理结果", u"同时显示"]
         self.displayedPreview = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"显示预览图", wx.DefaultPosition, wx.DefaultSize, displayedPreviewChoices, 1, wx.RA_SPECIFY_COLS)
-        self.displayedPreview.Select(2)
+        self.displayedPreview.SetSelection(2)
         bSizer40.Add(self.displayedPreview, 0, wx.ALL | wx.EXPAND, 3)
 
         previewLayoutChoices = [u"竖向", u"横向"]
         self.previewLayout = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"预览图排版", wx.DefaultPosition, wx.DefaultSize, previewLayoutChoices, 1, wx.RA_SPECIFY_COLS)
-        self.previewLayout.Select(0)
+        self.previewLayout.SetSelection(0)
         bSizer40.Add(self.previewLayout, 0, wx.ALL | wx.EXPAND, 3)
 
         previewSourceChoices = [u"预览图", u"原图"]
         self.previewSource = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"加密时使用图源", wx.DefaultPosition, wx.DefaultSize, previewSourceChoices, 1, wx.RA_SPECIFY_COLS)
-        self.previewSource.Select(0)
+        self.previewSource.SetSelection(0)
         self.previewSource.SetToolTip(u"生成\"处理结果-预览图\"时使用的图源\n选择\"预览图\"可获得更好的性能，但结果会有所偏差\n选择\"原图\"将不会出现偏差，但性能低于\"预览图\"选项")
 
         bSizer40.Add(self.previewSource, 0, wx.ALL | wx.EXPAND, 3)
@@ -331,7 +331,7 @@ class MainFrame (wx.Frame):
 
         resamplingFilterChoices = [u"最邻近", u"单线性", u"双线性", u"Hamming", u"双三次", u"Lanczos"]
         self.resamplingFilter = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"重采样方式", wx.DefaultPosition, wx.DefaultSize, resamplingFilterChoices, 1, 0)
-        self.resamplingFilter.Select(4)
+        self.resamplingFilter.SetSelection(4)
         self.resamplingFilter.SetToolTip(u"缩放预览图使用的重采样方式，自上而下质量依次递增，性能依次递减，默认为双三次(Bicubic)")
 
         bSizer401.Add(self.resamplingFilter, 0, wx.ALL, 3)
@@ -361,7 +361,7 @@ class MainFrame (wx.Frame):
 
         savingFormatChoices = [u"bmp", u"gif", u"png", u"ico", u"tif", u"tiff", u"jpg", u"jpeg", u"pdf", u"psd", u"tga", u"webp"]
         self.savingFormat = wx.ComboBox(self.savingOptions, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, savingFormatChoices, wx.TE_PROCESS_ENTER)
-        self.savingFormat.Select(2)
+        self.savingFormat.SetSelection(2)
         self.savingFormat.SetToolTip(u"如果下拉框中不存在所需的保存格式，可直接输入后缀名，将自动进行检查。支持的保存格式如下\n")
 
         bSizer265.Add(self.savingFormat, 0, wx.ALIGN_CENTER | wx.ALL, 4)
@@ -552,7 +552,9 @@ class MainFrame (wx.Frame):
         self.m_panel25 = wx.Panel(self.otherOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.m_panel25.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行")
 
-        sbSizer17 = wx.StaticBoxSizer(wx.StaticBox(self.m_panel25, wx.ID_ANY, u"启动参数"), wx.VERTICAL)
+        sbSizer17 = wx.StaticBoxSizer(wx.StaticBox(self.m_panel25, wx.ID_ANY, u"启动参数"), wx.HORIZONTAL)
+
+        bSizer45 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer75 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -568,29 +570,40 @@ class MainFrame (wx.Frame):
 
         bSizer75.Add(self.redundantCacheLength, 0, wx.ALL | wx.EXPAND, 0)
 
-        sbSizer17.Add(bSizer75, 0, wx.EXPAND, 5)
+        bSizer45.Add(bSizer75, 0, wx.EXPAND, 5)
 
         self.lowMemoryMode = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"低内存占用模式", wx.DefaultPosition, wx.DefaultSize, 0)
         self.lowMemoryMode.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n低内存占用模式: 取消选中时，不缓存原始图像数据(在需要时重新加载)、不缓存图像处理结果(在需要时重新生成)")
 
-        sbSizer17.Add(self.lowMemoryMode, 0, wx.ALL, 5)
-
-        self.disableCache = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"禁止使用缓存", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.disableCache.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n禁止使用缓存: 与低内存占用模式不同，开启此选项后仍会保存缓存，但会在请求处理结果缓存时忽略缓存")
-
-        sbSizer17.Add(self.disableCache, 0, wx.ALL, 5)
+        bSizer45.Add(self.lowMemoryMode, 0, wx.ALL, 5)
 
         self.recordInterfaceSettings = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"记录界面设置", wx.DefaultPosition, wx.DefaultSize, 0)
         self.recordInterfaceSettings.SetValue(True)
         self.recordInterfaceSettings.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n记录界面设置: 在退出时记录界面设置, 并在下次启动时回溯界面")
 
-        sbSizer17.Add(self.recordInterfaceSettings, 0, wx.ALL, 5)
+        bSizer45.Add(self.recordInterfaceSettings, 0, wx.ALL, 5)
 
         self.recordPasswordDict = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"记录密码字典", wx.DefaultPosition, wx.DefaultSize, 0)
         self.recordPasswordDict.SetValue(True)
         self.recordPasswordDict.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n记录密码字典: 在退出时保存密码字典, 并在下次启动时重新载入")
 
-        sbSizer17.Add(self.recordPasswordDict, 0, wx.ALL, 5)
+        bSizer45.Add(self.recordPasswordDict, 0, wx.ALL, 5)
+
+        self.disableCache = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"禁止使用缓存", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.disableCache.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n禁止使用缓存: 与低内存占用模式不同，开启此选项后仍会保存缓存，但会在请求处理结果缓存时忽略缓存")
+
+        bSizer45.Add(self.disableCache, 0, wx.ALL, 5)
+
+        sbSizer17.Add(bSizer45, 0, wx.EXPAND, 5)
+
+        bSizer46 = wx.BoxSizer(wx.VERTICAL)
+
+        self.finalLayoutWidgets = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"不实时刷新部件大小", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.finalLayoutWidgets.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n不实时刷新部件大小: 在拖动更改窗口大小时不实时刷新部件大小，而是在拖动结束后刷新")
+
+        bSizer46.Add(self.finalLayoutWidgets, 0, wx.ALL, 5)
+
+        sbSizer17.Add(bSizer46, 0, wx.EXPAND, 5)
 
         self.m_panel25.SetSizer(sbSizer17)
         self.m_panel25.Layout()
@@ -646,9 +659,10 @@ class MainFrame (wx.Frame):
         self.stopSavingBtn.Bind(wx.EVT_BUTTON, self.stop_saving_event)
         self.redundantCacheLength.Bind(wx.EVT_TEXT_ENTER, self.change_redundant_cache_length)
         self.lowMemoryMode.Bind(wx.EVT_CHECKBOX, self.toggle_low_memory_usage_mode)
-        self.disableCache.Bind(wx.EVT_CHECKBOX, self.toggle_disable_cache)
         self.recordInterfaceSettings.Bind(wx.EVT_CHECKBOX, self.toggle_record_interface_settings)
         self.recordPasswordDict.Bind(wx.EVT_CHECKBOX, self.toggle_record_password_dict)
+        self.disableCache.Bind(wx.EVT_CHECKBOX, self.toggle_disable_cache)
+        self.finalLayoutWidgets.Bind(wx.EVT_CHECKBOX, self.toggle_final_layout_widgets)
 
     def __del__(self):
         pass
@@ -753,13 +767,16 @@ class MainFrame (wx.Frame):
     def toggle_low_memory_usage_mode(self, event):
         event.Skip()
 
-    def toggle_disable_cache(self, event):
-        event.Skip()
-
     def toggle_record_interface_settings(self, event):
         event.Skip()
 
     def toggle_record_password_dict(self, event):
+        event.Skip()
+
+    def toggle_disable_cache(self, event):
+        event.Skip()
+
+    def toggle_final_layout_widgets(self, event):
         event.Skip()
 
 

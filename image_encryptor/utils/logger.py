@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-29 08:14:46
+LastEditTime : 2022-07-15 17:45:10
 Description  : logger
 """
 if __debug__:
@@ -40,7 +40,7 @@ if __debug__:
                 info_format = '[%(asctime)s]'
                 datefmt = '%H:%M:%S'
             return ColoredFormatter(
-                info_format + ' [%(log_color)s%(levelname)s%(reset)s] %(message_log_color)s%(message)s%(reset)s',
+                f'{info_format} [%(log_color)s%(levelname)s%(reset)s] %(message_log_color)s%(message)s%(reset)s',
                 log_colors={
                     'DEBUG': 'blue',
                     'INFO': 'green',

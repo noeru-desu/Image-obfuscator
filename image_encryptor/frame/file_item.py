@@ -2,14 +2,14 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-27 19:02:12
+LastEditTime : 2022-07-23 19:50:46
 Description  : 图像项目
 """
 from abc import ABC
 from collections import OrderedDict
 from gc import collect
 from os.path import isfile, join, split
-from typing import TYPE_CHECKING, Any, Generator, Hashable, Optional, Union
+from typing import TYPE_CHECKING, Any, Generator, Hashable, NoReturn, Optional, Union
 
 from wx import BLACK, Bitmap, CallAfter
 
@@ -17,13 +17,13 @@ from image_encryptor.constants import LIGHT_RED, PIL_RESAMPLING_FILTERS
 from image_encryptor.modes.base import EmptySettings
 from image_encryptor.modules.image import cal_best_size, open_image
 from image_encryptor.modules.version_adapter import load_encryption_attributes
-from image_encryptor.utils.misc_utils import add_to
+from image_encryptor.utils.misc_utils import add_to, no_return_func
 
 if TYPE_CHECKING:
     from PIL.Image import Image
     from wx import TreeItemId
     from image_encryptor.frame.events import MainFrame
-    from image_encryptor.modes.base import BaseSettings, BaseModeInterface
+    from image_encryptor.types import ModeInterface, ItemSettings, NormalImageCacheHash, ScalableImageCacheHash, ImageCacheHash
     from image_encryptor.modules.argparse import Parameters
     from image_encryptor.modules.image import WrappedImage
 
@@ -68,8 +68,8 @@ class PreviewCache(object):
 
     def __init__(self, startup_parameters: 'Parameters') -> None:
         self.startup_parameters = startup_parameters
-        self.normal_cache: OrderedDict[int, Bitmap] = OrderedDict()
-        self.scalable_cache: OrderedDict[int, WrappedImage] = OrderedDict()
+        self.normal_cache: OrderedDict['NormalImageCacheHash', Bitmap] = OrderedDict()
+        self.scalable_cache: OrderedDict['ScalableImageCacheHash', WrappedImage] = OrderedDict()
 
     def clear_redundant_cache(self) -> None:
         """清理冗余缓存, 即从普通缓存与可缩放缓存中删除除最新缓存外的其他缓存"""
@@ -80,7 +80,7 @@ class PreviewCache(object):
             for i in tuple(self.scalable_cache)[:-1]:
                 del self.scalable_cache[i]
 
-    def add_cache(self, cache_hash: Hashable, image: Union['WrappedImage', 'Bitmap']) -> None:
+    def add_cache(self, cache_hash: 'ImageCacheHash', image: Union['WrappedImage', 'Bitmap']) -> None:
         """添加缓存(自动识别缓存类型)
 
         Args:
@@ -94,7 +94,7 @@ class PreviewCache(object):
         else:
             self.add_normal_cache(cache_hash, image.wxBitmap)
 
-    def add_normal_cache(self, cache_hash: Hashable, bitmap: 'Bitmap' = None) -> None:
+    def add_normal_cache(self, cache_hash: 'NormalImageCacheHash', bitmap: 'Bitmap' = None) -> None:
         """添加普通缓存
 
         如果`cache_hash`已存在于缓存中, 将会把缓存位置放到最后, 并且`bitmap`参数可以为`None`\n
@@ -115,7 +115,7 @@ class PreviewCache(object):
             self.normal_cache.popitem(False)
         self.normal_cache[cache_hash] = bitmap
 
-    def add_scalable_cache(self, cache_hash: Hashable, image: 'WrappedImage' = None) -> None:
+    def add_scalable_cache(self, cache_hash: 'ScalableImageCacheHash', image: 'WrappedImage' = None) -> None:
         """添加可缩放缓存
 
         如果`cache_hash`已存在于缓存中, 将会把缓存位置放到最后, 并且`image`参数可以为`None`\n
@@ -136,7 +136,7 @@ class PreviewCache(object):
             self.scalable_cache.popitem(False)
         self.scalable_cache[cache_hash] = image
 
-    def get_cache(self, cache_hash: Hashable) -> Optional[Union['WrappedImage', 'Bitmap']]:
+    def get_cache(self, cache_hash: 'ImageCacheHash') -> Optional[Union['WrappedImage', 'Bitmap']]:
         """获取缓存(优先搜索普通缓存)
 
         如果`cache_hash`不存在于缓存中, 将返回`None`
@@ -156,7 +156,7 @@ class PreviewCache(object):
             self.add_scalable_cache(cache_hash)
             return self.scalable_cache[cache_hash]
 
-    def get_normal_cache(self, cache_hash: Hashable) -> Optional['Bitmap']:
+    def get_normal_cache(self, cache_hash: 'NormalImageCacheHash') -> Optional['Bitmap']:
         """获取普通缓存
 
         如果`cache_hash`不存在于缓存中, 将返回`None`
@@ -173,7 +173,7 @@ class PreviewCache(object):
             self.add_normal_cache(cache_hash)
             return self.normal_cache[cache_hash]
 
-    def get_scalable_cache(self, cache_hash: int) -> Optional['WrappedImage']:
+    def get_scalable_cache(self, cache_hash: 'ScalableImageCacheHash') -> Optional['WrappedImage']:
         """获取可缩放缓存
 
         如果`cache_hash`不存在于缓存中, 将返回`None`
@@ -205,7 +205,7 @@ class PreviewCache(object):
 class ImageEncryptionAttributes(object):
     __slots__ = ('decryption_mode', 'settings')
 
-    def __init__(self, decryption_mode: 'BaseModeInterface', settings: 'BaseSettings') -> None:
+    def __init__(self, decryption_mode: 'ModeInterface', settings: 'ItemSettings') -> None:
         self.decryption_mode = decryption_mode
         self.settings = settings
 
@@ -325,7 +325,7 @@ class ImageItem(Item):
         'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error', '_proc_mode'
     )
 
-    def __init__(self, frame: 'MainFrame', loaded_image: Optional['Image'], path_data: 'PathData', settings: 'BaseSettings' = ..., no_file=False, keep_cache_loaded_image=False):
+    def __init__(self, frame: 'MainFrame', loaded_image: Optional['Image'], path_data: 'PathData', settings: 'ItemSettings' = ..., no_file=False, keep_cache_loaded_image=False):
         """
         Args:
             frame (MainFrame): `MainFrame`实例
@@ -341,7 +341,7 @@ class ImageItem(Item):
         self.path_data = path_data
         self._proc_mode = frame.mode_manager.default_mode
         self.loaded_image_path = path_data.file_name if no_file else path_data.full_path
-        self._settings_dict: dict[int, 'BaseSettings'] = {self.proc_mode.mode_id: frame.settings.default.copy() if settings is Ellipsis else settings}
+        self._settings_dict: dict[int, 'ItemSettings'] = {self.proc_mode.mode_id: frame.mode_manager.default_settings.copy() if settings is Ellipsis else settings}
         self._settings = self._settings_dict[self.proc_mode.mode_id]
 
         self.item_id: TreeItemId = ...
@@ -364,7 +364,7 @@ class ImageItem(Item):
         return self._proc_mode
 
     @proc_mode.setter
-    def proc_mode(self, v: 'BaseModeInterface'):
+    def proc_mode(self, v: 'ModeInterface'):
         if v.mode_id == self._proc_mode.mode_id:
             return
         self._proc_mode = v
@@ -375,7 +375,7 @@ class ImageItem(Item):
             self._settings_dict[mode_id] = self._settings = v.default_settings.copy()
 
     @property
-    def settings(self) -> 'BaseSettings':
+    def settings(self) -> 'ItemSettings':
         """当前`proc_mode`对应模式的设置实例\n
         如果需要对此属性进行赋值, 请确保赋值前`proc_mode`属性已正确设置
 
@@ -386,7 +386,7 @@ class ImageItem(Item):
         return self._settings
 
     @settings.setter
-    def settings(self, v: 'BaseSettings'):
+    def settings(self, v: 'ItemSettings'):
         # assert not self.proc_mode.enable_settings_panel, 'Please use "cache.encryption_attributes.settings" or "available_settings".'
         self._settings_dict[self._proc_mode.mode_id] = self._settings = v
 
@@ -508,7 +508,7 @@ class ImageItem(Item):
                 self.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
                 self.settings = self.frame.mode_manager.default_no_encryption_parameters_required_mode.default_settings
 
-    def is_correct_decryption_mode(self, mode: 'BaseModeInterface'):
+    def is_correct_decryption_mode(self, mode: 'ModeInterface'):
         if self.encrypted_image:
             decryption_mode = self.cache.encryption_attributes.decryption_mode
             return decryption_mode.requires_encryption_parameters and mode.mode_id == decryption_mode.mode_id
@@ -519,19 +519,19 @@ class ImageItem(Item):
         return self.cache.encryption_attributes
 
     @property
-    def scalable_cache_hash(self):
+    def scalable_cache_hash(self) -> 'ScalableImageCacheHash':
         return hash((
             self.proc_mode.mode_id, self._settings.properties_tuple,
             self.encryption_attributes.settings.properties_tuple
         ))
 
     @property
-    def normal_cache_hash(self):
+    def normal_cache_hash(self) -> 'NormalImageCacheHash':
         return hash((
             self.proc_mode.mode_id, self._settings.properties_tuple,
             self.encryption_attributes.settings.properties_tuple, self.frame.controller.resampling_filter_id,
             self.frame.controller.preview_source, *self.frame.controller.preview_size
-        )),
+        ))
 
     def del_item(self, item_id: 'TreeItemId', del_item=True):
         if del_item:

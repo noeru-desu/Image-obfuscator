@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-28 10:42:10
+LastEditTime : 2022-07-23 19:39:26
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -11,7 +11,7 @@ from functools import cached_property
 from inspect import isroutine
 from multiprocessing import cpu_count
 from os import getcwd
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from wx import (ACCEL_CTRL, ACCEL_NORMAL, WXK_DELETE, WXK_F5, AcceleratorEntry,
                 AcceleratorTable, App, CallAfter)
@@ -20,8 +20,7 @@ from wx.core import EmptyString
 from image_encryptor.constants import (EXTENSION_KEYS_STRING, FULL_VERSION_STRING,
                                        SHORT_VERSION_STRING,
                                        VERSION_INFO, VERSION_TYPE)
-from image_encryptor.frame.controller import (Controller, SegmentTrigger,
-                                            SettingsManager)
+from image_encryptor.frame.controller import Controller, SegmentTrigger
 from image_encryptor.frame.design_frame import MainFrame as MF
 from image_encryptor.frame.dialog import Dialog
 from image_encryptor.frame.drag_importer import DragLoadingFile, DragSavingPath
@@ -53,7 +52,7 @@ class MainFrame(MF):
     """
     __slots__ = (
         'startup_parameters', 'logger', 'controller', 'settings', 'dialog', 'universal_thread_pool',
-        'password_dict', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator', 'folder_item'
+        'password_dict', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator', 'folder_item',
         'image_saver', 'stop_loading_func', 'stop_reloading_func', 'image_item', 'run_path','mode_manager',
         'config'
     )
@@ -77,8 +76,8 @@ class MainFrame(MF):
         self.logger = Logger('image-encryptor')
         for i in VERSION_INFO:
             self.logger.info(i)
-        self.image_item: 'ImageItem' = None
-        self.folder_item: 'FolderItem' = None
+        self.image_item: Optional['ImageItem'] = None
+        self.folder_item: Optional['FolderItem'] = None
         self.startup_parameters = Parameters()
 
         # 各项实现或组件
@@ -87,7 +86,6 @@ class MainFrame(MF):
         EmptySettings.set_constants(self.controller)
         self.mode_manager = ModeManager(self)
         self.mode_manager.load_builtin_modes()
-        self.settings = SettingsManager(self.controller)
         self.password_dict = PasswordDict()
         self.config = ConfigManager(self)
         if self.startup_parameters.record_interface_settings:
@@ -143,6 +141,8 @@ class MainFrame(MF):
     @cached_property
     def get_frame_items(self):
         for i in set(dir(self)) - set(dir(MF)):
+            if not hasattr(self, i):
+                continue
             target = getattr(self, i)
             if not isroutine(target) and hasattr(target, 'SetBackgroundColour'):
                 yield target
@@ -162,7 +162,7 @@ class MainFrame(MF):
             run_path (str, optional): 运行路径. 默认为`os.getcwd()`.
         """
         app = App(useBestVisual=True)
-        cls(None, path).Enable()
+        frame = cls(None, path).Enable()
 
         app.MainLoop()
 
@@ -240,7 +240,7 @@ class MainFrame(MF):
         proc_mode = self.controller.proc_mode_interface
         if proc_mode.requires_encryption_parameters:
             return
-        properties_tuple = self.settings.current_settings.properties_tuple
+        properties_tuple = self.controller.current_settings.properties_tuple
         for i in self.tree_manager.all_image_item_data:
             i.proc_mode = proc_mode
             i.settings.sync_from_tuple(properties_tuple)

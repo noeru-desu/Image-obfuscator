@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:48:20
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 15:48:06
+LastEditTime : 2022-07-15 17:54:53
 Description  : 模式管理器
 """
 from typing import TYPE_CHECKING, Type
@@ -16,7 +16,7 @@ from image_encryptor.modes.decrypt import ModeInterface as DecryptModeInterface
 if TYPE_CHECKING:
     from wx import Panel
     from image_encryptor.frame.events import MainFrame
-    from image_encryptor.modes.base import BaseModeInterface
+    from image_encryptor.types import ModeInterface, ItemSettings
 
 
 class ModeManager(object):
@@ -25,8 +25,8 @@ class ModeManager(object):
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
         self.mode_id_count = 0
-        self.modes: dict[int, 'BaseModeInterface'] = {}
-        self.default_mode: 'BaseModeInterface' = None
+        self.modes: dict[int, 'ModeInterface'] = {}
+        self.default_mode: 'ModeInterface' = None
         self.settings_panels: dict[int, 'Panel'] = {}
         self.proc_settings_bsizer = BoxSizer(VERTICAL)
         self.frame.procSettingsPanelContainer.SetSizer(self.proc_settings_bsizer)
@@ -43,7 +43,7 @@ class ModeManager(object):
         self.frame.controller.proc_settings_panel = self.default_mode.settings_panel
         self.frame.procMode.Select(self.default_mode.mode_id)
 
-    def add_mode(self, mode_interface_cls: Type['BaseModeInterface']):
+    def add_mode(self, mode_interface_cls: Type['ModeInterface']):
         interface = mode_interface_cls(self.frame, self.mode_id_count)
         if __debug__ and not interface.check_metadata():
             return
@@ -76,3 +76,11 @@ class ModeManager(object):
     @property
     def default_no_encryption_parameters_required_mode(self):
         return self.modes[0] if self.default_mode.requires_encryption_parameters else self.default_mode
+
+    @property
+    def default_settings(self) -> 'ItemSettings':
+        return self.default_mode.default_settings
+
+    @default_settings.setter
+    def default_settings(self, v: 'ItemSettings'):
+        self.default_mode.default_settings = v

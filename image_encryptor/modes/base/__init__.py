@@ -2,30 +2,37 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-27 08:43:38
+LastEditTime : 2022-07-23 19:52:06
 Description  : 基类
 """
 from abc import ABC
-from warnings import warn
 from itertools import compress
+from typing import (TYPE_CHECKING, Any, Callable, Iterable, Iterator, NoReturn, Optional,
+                    Type, Union, final)
+from warnings import warn
 
 from image_encryptor.modules.decorator import catch_exc_and_return
-
-from typing import TYPE_CHECKING, Callable, Optional, Iterable, Any, Union, Type, Iterator, final
+from image_encryptor.utils.misc_utils import no_return_func
 
 if TYPE_CHECKING:
-    from typing import Iterator
     from PIL.Image import Image
-    from wx import Panel, Gauge, Event, Object
+    from wx import Event, Gauge, Object, Panel
     from image_encryptor.frame.controller import Controller as MainController
     from image_encryptor.frame.events import MainFrame
-    from image_encryptor.modules.image import PillowImage, ImageData, WrappedImage
+    from image_encryptor.modules.image import (ImageData, PillowImage,
+                                               WrappedImage)
+    from image_encryptor.types import (ItemSettings, ItemSettingsMappingDict,
+                                       ModeInterface, Properties,
+                                       PropertiesDict, PropertiesGenerator,
+                                       PropertiesTuple, PropertiesTupleHash,
+                                       ChannelsHash, ChannelsNum, ChannelsTuple,
+                                       ModeSettingsPanel, ItemEncryptionParameters)
 
 
 class Channels(object):
-    __slots__ = ('tuple', '_hash', 'len', 'bool', '_channels_id')
+    __slots__ = ('tuple', '_hash', 'len', 'bool', '_channels_num')
 
-    def __hash__(self) -> int:
+    def __hash__(self) -> 'ChannelsHash':
         return self.hash
 
     def __iter__(self) -> Iterator:
@@ -41,24 +48,24 @@ class Channels(object):
             self.bool = any(self.tuple)
         return self.bool
 
-    def __init__(self, __tuple: tuple) -> None:
+    def __init__(self, __tuple: 'ChannelsTuple') -> None:
         self.tuple = __tuple
-        self._hash: int = ...
+        self._hash: 'ChannelsHash' = ...
         self.len: int = ...
         self.bool: bool = ...
-        self._channels_id: tuple[int, int, int ,int] = ...
+        self._channels_num: 'ChannelsNum' = ...
 
     @property
-    def hash(self):
+    def hash(self) -> 'ChannelsHash':
         if self._hash is Ellipsis:
             self._hash = hash(self.tuple)
         return self._hash
 
     @property
-    def channels_id(self):
-        if self._channels_id is Ellipsis:
-            self._channels_id = tuple(compress((0, 1, 2, 3), self.tuple))
-        return self._channels_id
+    def channels_num(self) -> 'ChannelsNum':
+        if self._channels_num is Ellipsis:
+            self._channels_num = tuple(compress((0, 1, 2, 3), self.tuple))
+        return self._channels_num
 
 
 class LengthMismatchWarning(UserWarning):
@@ -68,7 +75,7 @@ class LengthMismatchWarning(UserWarning):
 class SettingsMapping(dict):
     __slots__ = ('settings',)
 
-    def __init__(self, settings: 'BaseSettings', kwargs: dict[int, tuple[str, Callable]], password_property_name: Optional[str] = None):
+    def __init__(self, settings: 'ItemSettings', kwargs: dict[int, tuple[str, Callable]], password_property_name: Optional[str] = None):
         super().__init__(kwargs)
         self.settings = settings
         if password_property_name is not None:
@@ -99,11 +106,11 @@ class SettingsMapping(dict):
 class BaseSettings(ABC):
     __slots__ = ('SETTINGS_MAPPING', 'enable_password', 'enable_settings_panel')
     SETTING_NAMES: tuple[str]
-    SETTINGS_MAPPING_DICT: 'dict[int, tuple[str, Callable[[Union[Event, Object]], None]]]'
+    SETTINGS_MAPPING_DICT: 'ItemSettingsMappingDict'
     PASSWORD_PROPERTY_NAME: Optional[str] = None
     MAIN_CONTROLLER: 'MainController'
     MODE_CONTROLLER: Optional['ModeController']
-    MODE_INTERFACE: 'BaseModeInterface'
+    MODE_INTERFACE: 'ModeInterface'
     SETTINGS_MAPPING: 'SettingsMapping'     # 每次实例化时都将生成新的SettingsMapping
 
     def __init__(self, settings: Optional[Iterable[Any]] = None) -> None:
@@ -119,7 +126,7 @@ class BaseSettings(ABC):
             return getattr(self, i)
 
     @classmethod
-    def set_constants(cls, main_controller: 'MainController', mode_interface: 'BaseModeInterface'):
+    def set_constants(cls, main_controller: 'MainController', mode_interface: 'ModeInterface'):
         cls.MODE_INTERFACE = mode_interface
         cls.MAIN_CONTROLLER = main_controller
         cls.MODE_CONTROLLER = mode_interface.settings_controller
@@ -143,7 +150,7 @@ class BaseSettings(ABC):
     def sync_from_mapping(self, _object: 'Object'):
         self.SETTINGS_MAPPING.sync_from_object_to_settings(_object)
 
-    def sync_from_tuple(self, settings: Iterable[Any], check_length=True):
+    def sync_from_tuple(self, settings: 'Properties', check_length=True):
         """将可迭代对象(一般是由`self.properties_tuple`生成的元组)中的数据同步到自身
 
         Args:
@@ -156,7 +163,7 @@ class BaseSettings(ABC):
             self.__setattr__(n, v)
 
     @property
-    def properties(self):
+    def properties(self) -> 'PropertiesGenerator':
         """返回`self.SETTING_NAMES`中每个属性名的值的生成器.\n
         此方法返回值必须与`ModeInterface.encryption_settings_tuple`相同,
         即`SETTING_NAMES`对应内容的类型/顺序与`encryption_settings_tuple`相同
@@ -167,7 +174,7 @@ class BaseSettings(ABC):
         return (getattr(self, i) for i in self.SETTING_NAMES)
 
     @property
-    def properties_tuple(self):
+    def properties_tuple(self) -> 'PropertiesTuple':
         """将`self.properties`转换为元组
 
         Returns:
@@ -176,9 +183,9 @@ class BaseSettings(ABC):
         return tuple(self.properties)
 
     @property
-    def properties_hash(self):
+    def properties_hash(self) -> 'PropertiesTupleHash':
         """`self.properties_tuple`的hash值\n
-        注意: 此hash不包含`proc_mode_id`, 用于预览图缓存的hash请使用`SettingsManager`中的方法生成
+        注意: 此hash不包含`proc_mode_id`, 用于预览图缓存的hash请使用`Item`中的方法生成
 
         Returns:
             int: hash结果
@@ -186,7 +193,7 @@ class BaseSettings(ABC):
         return hash(self.properties_tuple)
 
     @property
-    def properties_dict(self) -> Optional[dict]:
+    def properties_dict(self) -> Optional['PropertiesDict']:
         """返回`self.SETTING_NAMES`中每个属性名与其值的字典.
 
         Returns:
@@ -195,12 +202,12 @@ class BaseSettings(ABC):
         return {k: getattr(self, k) for k in self.SETTING_NAMES}
 
     @properties_dict.setter
-    def properties_dict(self, v: dict):
+    def properties_dict(self, v: 'PropertiesDict'):
         for k, _v in v.items():
             if k in self.SETTING_NAMES:
                 setattr(self, k, _v)
 
-    def copy(self) -> 'BaseSettings':
+    def copy(self) -> 'ItemSettings':
         """返回当前实例的浅拷贝
 
         Returns:
@@ -240,8 +247,6 @@ class EmptySettingsType(BaseSettings):
         cls.MAIN_CONTROLLER = main_controller
         cls.SETTINGS_MAPPING = SettingsMapping(self, {}, '_')
 
-    def on_init(self): ...
-
     def sync_from_tuple(self, v): pass
 
     def sync_from_interface(self): pass
@@ -269,6 +274,14 @@ class ModeController(object):
     """用于单一模式的控制器"""
 
 
+class BaseModeSettingsPanel(object):
+    MAIN_FRAME: 'MainFrame'
+
+    @classmethod
+    def set_constants(cls, inst: 'MainFrame'):
+        cls.MAIN_FRAME = inst
+
+
 class BaseModeInterface(ABC):
     __slots__ = ('mode_id', 'settings_panel')
 
@@ -280,20 +293,20 @@ class BaseModeInterface(ABC):
     mode_name: str = NotImplemented      # 模式的显示名称
     mode_qualname: str = NotImplemented  # 模式唯一名称 (如`builtin.mode_a`)
 
-    settings_cls: Optional[Type['BaseSettings']] = None  # 该模式需使用的设置类
-    default_settings: 'BaseSettings' = EmptySettings
+    settings_cls: Optional[Type['ItemSettings']] = None  # 该模式需使用的设置类
+    default_settings: 'ItemSettings' = EmptySettings
 
     requires_encryption_parameters: bool = False        # 是否需要读取文件末尾的加密参数
-    encryption_parameters_cls: Optional[Type['BaseSettings']] = None  # 读取加密参数后实例化的参数类
+    encryption_parameters_cls: Optional[Type['ItemEncryptionParameters']] = None  # 读取加密参数后实例化的参数类
     corresponding_decryption_mode: Optional[str] = None # 对应的解密模式的唯一名称
     add_encryption_parameters_in_file: bool = False     # 是否需要添加加密参数到文件结尾
 
     settings_controller: Optional['ModeController'] = None     # 面板控制器类
     enable_settings_panel: bool = True  # 是否启用设置面板
     enable_password: bool = False       # 是否使用密码输入框
-    settings_panel: Optional['Panel']                       # 该模式的设置面板实例, 如需手动实例化,
+    settings_panel: Optional['ModeSettingsPanel']                       # 该模式的设置面板实例, 如需手动实例化,
                                                             # 请在ModeInterface.__init__中使用frame.mode_manager.add_settings_panel()进行实例化
-    settings_panel_cls: Optional[Type['Panel']] = None      # 该模式的设置面板(`wx.Panel`子类)
+    settings_panel_cls: Optional[Type['ModeSettingsPanel']] = None      # 该模式的设置面板(`wx.Panel`子类)
 
     file_name_suffix: Optional[tuple[str, str]] = None      # 添加到文件名末尾的后缀信息(非格式后缀)
 
@@ -312,24 +325,22 @@ class BaseModeInterface(ABC):
                 self.settings_cls.set_constants(frame.controller, self)
             if self.encryption_parameters_cls is not None:
                 self.encryption_parameters_cls.set_constants(frame.controller, self)
+        if self.settings_panel_cls is not None:
+            self.settings_panel_cls.set_constants(frame)
 
-    @property
-    def encryption_settings_tuple(self):
-        return None
-
-    def proc_image(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings', encryption_parameters: 'BaseSettings', label_text_setter: Callable, gauge: 'Gauge') -> tuple[Optional['WrappedImage'], Optional[str]]:
+    def proc_image(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters', label_text_setter: Callable, gauge: 'Gauge') -> tuple[Optional['WrappedImage'], Optional[str]]:
         raise NotImplementedError()
 
-    def proc_image_quietly(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings', encryption_parameters: 'BaseSettings'):
+    def proc_image_quietly(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters'):
         raise NotImplementedError()
 
-    def proc_image_multiprocessing(self, source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'BaseSettings') -> tuple[Optional['WrappedImage'], Optional[str]]:
+    def proc_image_multiprocessing(self, source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'ItemSettings') -> tuple[Optional['WrappedImage'], Optional[str]]:
         raise NotImplementedError()
 
-    def instantiate_settings_cls(self, data: Optional[Any] = None):
+    def instantiate_settings_cls(self, data: Optional[Any] = None) -> Union[EmptySettingsType, 'ItemSettings']:
         return EmptySettings if self.settings_cls is None else self.settings_cls(data)
 
-    def instantiate_encryption_parameters_cls(self, data):
+    def instantiate_encryption_parameters_cls(self, data) -> Union[EmptySettingsType, 'ItemEncryptionParameters']:
         return EmptySettings if self.encryption_parameters_cls is None else self.encryption_parameters_cls(data)
 
     @final

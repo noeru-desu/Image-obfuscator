@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-23 11:03:53
+LastEditTime : 2022-07-15 18:10:55
 Description  : 一些小东西
 """
 from collections import deque
@@ -11,7 +11,7 @@ from os import walk
 from os.path import normpath
 from threading import Lock, Semaphore
 from types import FunctionType
-from typing import Iterable, Any, Iterator, Union, TypeVar
+from typing import Callable, Iterable, Any, Iterator, NoReturn, Union, TypeVar
 
 
 T = TypeVar('T')
@@ -80,6 +80,12 @@ def isclassmethod(func: FunctionType) -> bool:
 def add_to(iter: Iterable[T], lst: list[T]):
     for i, v in enumerate(iter):
         lst[i] += v
+
+
+def no_return_func(error) -> Callable[[Any], NoReturn]:
+    def func(*_, **__) -> NoReturn:
+        raise error
+    return func
 
 
 class FakeBar:
@@ -181,3 +187,12 @@ class Deque(object):
             self._deque.clear()
             if self._blocking:
                 self._semaphore = Semaphore(0)
+
+
+class Singleton(type):
+    inst: 'Singleton'
+
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        if not hasattr(self, 'inst'):
+            self.inst = super().__call__(*args, **kwds)
+        return self.inst
