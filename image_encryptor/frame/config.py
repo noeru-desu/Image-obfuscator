@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-06-07 06:20:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-15 17:59:55
+LastEditTime : 2022-07-24 10:18:53
 Description  : 
 """
 from pickle import dump as pickle_dump, load as pickle_load
@@ -50,7 +50,7 @@ class ConfigManager(object):
             default_proc_mode = self.frame.controller.proc_mode_interface
             default_mode_settings = self.frame.controller.current_settings
         return {
-            'config_version': (1, 0),
+            'config_version': (FRAME_SETTINGS_MAIN_VERSION, FRAME_SETTINGS_SUB_VERSION),
             'default_proc_mode': default_proc_mode.mode_qualname,
             'default_mode_settings': default_mode_settings.properties_dict,
             'startup_parameters': self.frame.startup_parameters.parameters_dict,

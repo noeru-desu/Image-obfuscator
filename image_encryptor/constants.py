@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-23 19:46:09
+LastEditTime : 2022-07-24 10:19:06
 Description  : 常量
 """
 from platform import machine, platform
@@ -36,8 +36,8 @@ ALPHA = 4
 VERSION_TYPE = BETA
 VERSION = '2.0.0'
 PRE_RELEASE_VERSION = 'beta.3'
-BATCH = '20220723a'
-BUILD_METADATA = 'build.3' # 'build.3' / BATCH
+BATCH = '20220724a'
+BUILD_METADATA = BATCH # 'build.4' / BATCH
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
@@ -70,7 +70,7 @@ EAERR_INCOMPATIBLE = '该版本不支持解密0.1.0-BETA版加密器加密的图
 EAERR_NOT_SUPPORT = '选择的图像文件由更高版本的加密器加密, 请使用最新版的加密器进行解密'
 
 FRAME_SETTINGS_MAIN_VERSION = 1
-FRAME_SETTINGS_SUB_VERSION = 0
+FRAME_SETTINGS_SUB_VERSION = 1
 
 LIGHT_RED = Colour(255, 30, 30)
 
