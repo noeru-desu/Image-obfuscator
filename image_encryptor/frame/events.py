@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-23 19:35:23
+LastEditTime : 2022-07-24 10:14:13
 Description  : 事件处理
 """
 from timeit import timeit
@@ -31,11 +31,11 @@ class MainFrame(BasicMainFrame):
 
     def on_move_end(self, event):
         if self.resized:
+            if self.startup_parameters.final_layout_widgets:
+                self.Layout()
             self.set_preview_plane_size()
             self.refresh_preview(event)
             self.resized = False
-            if self.startup_parameters.final_layout_widgets:
-                self.Layout()
 
     def on_maximize(self, event):
         CallAfter(self.refresh_preview, event)
