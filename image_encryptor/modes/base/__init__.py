@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-23 19:52:06
+LastEditTime : 2022-07-25 20:04:17
 Description  : 基类
 """
 from abc import ABC
@@ -283,7 +283,7 @@ class BaseModeSettingsPanel(object):
 
 
 class BaseModeInterface(ABC):
-    __slots__ = ('mode_id', 'settings_panel')
+    __slots__ = ('mode_id', 'settings_panel', 'default_settings')
 
     frame: 'MainFrame'
 
@@ -294,7 +294,7 @@ class BaseModeInterface(ABC):
     mode_qualname: str = NotImplemented  # 模式唯一名称 (如`builtin.mode_a`)
 
     settings_cls: Optional[Type['ItemSettings']] = None  # 该模式需使用的设置类
-    default_settings: 'ItemSettings' = EmptySettings
+    default_settings: 'ItemSettings'
 
     requires_encryption_parameters: bool = False        # 是否需要读取文件末尾的加密参数
     encryption_parameters_cls: Optional[Type['ItemEncryptionParameters']] = None  # 读取加密参数后实例化的参数类
@@ -327,6 +327,7 @@ class BaseModeInterface(ABC):
                 self.encryption_parameters_cls.set_constants(frame.controller, self)
         if self.settings_panel_cls is not None:
             self.settings_panel_cls.set_constants(frame)
+        self.default_settings = EmptySettings
 
     def proc_image(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters', label_text_setter: Callable, gauge: 'Gauge') -> tuple[Optional['WrappedImage'], Optional[str]]:
         raise NotImplementedError()
