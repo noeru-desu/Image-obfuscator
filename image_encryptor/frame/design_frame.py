@@ -293,9 +293,9 @@ class MainFrame (wx.Frame):
         self.displayedPreview.SetSelection(2)
         bSizer40.Add(self.displayedPreview, 0, wx.ALL | wx.EXPAND, 3)
 
-        previewLayoutChoices = [u"竖向", u"横向"]
+        previewLayoutChoices = [u"竖向", u"横向", u"自动"]
         self.previewLayout = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"预览图排版", wx.DefaultPosition, wx.DefaultSize, previewLayoutChoices, 1, wx.RA_SPECIFY_COLS)
-        self.previewLayout.SetSelection(0)
+        self.previewLayout.SetSelection(2)
         bSizer40.Add(self.previewLayout, 0, wx.ALL | wx.EXPAND, 3)
 
         previewSourceChoices = [u"预览图", u"原图"]

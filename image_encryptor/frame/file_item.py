@@ -2,22 +2,22 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-23 19:50:46
+LastEditTime : 2022-07-25 08:20:05
 Description  : 图像项目
 """
 from abc import ABC
 from collections import OrderedDict
 from gc import collect
 from os.path import isfile, join, split
-from typing import TYPE_CHECKING, Any, Generator, Hashable, NoReturn, Optional, Union
+from typing import TYPE_CHECKING, Any, Generator, Optional, Union
 
-from wx import BLACK, Bitmap, CallAfter
+from wx import BLACK, VERTICAL, HORIZONTAL, Bitmap, CallAfter
 
 from image_encryptor.constants import LIGHT_RED, PIL_RESAMPLING_FILTERS
 from image_encryptor.modes.base import EmptySettings
 from image_encryptor.modules.image import cal_best_size, open_image
 from image_encryptor.modules.version_adapter import load_encryption_attributes
-from image_encryptor.utils.misc_utils import add_to, no_return_func
+from image_encryptor.utils.misc_utils import add_to
 
 if TYPE_CHECKING:
     from PIL.Image import Image
@@ -29,8 +29,8 @@ if TYPE_CHECKING:
 
 
 class Item(ABC):
-    __slots__ = ('frame', 'parent', 'parent_id')
-    frame: 'MainFrame'
+    __slots__ = ('parent', 'parent_id')
+    frame: 'MainFrame' = ...
     parent: Optional['FolderItem']
     parent_id: Optional['TreeItemId']
 
@@ -64,10 +64,10 @@ class Item(ABC):
 
 class PreviewCache(object):
     """预览图(处理结果)缓存"""
-    __slots__ = ('scalable_cache', 'normal_cache', 'startup_parameters')
+    __slots__ = ('scalable_cache', 'normal_cache')
+    startup_parameters: 'Parameters' = ...
 
-    def __init__(self, startup_parameters: 'Parameters') -> None:
-        self.startup_parameters = startup_parameters
+    def __init__(self) -> None:
         self.normal_cache: OrderedDict['NormalImageCacheHash', Bitmap] = OrderedDict()
         self.scalable_cache: OrderedDict['ScalableImageCacheHash', WrappedImage] = OrderedDict()
 
@@ -229,7 +229,7 @@ class ImageItemCache(object):
         self._item = item
         self.initial_preview: Image = None
         self.preview_size: tuple[int, int] = None
-        self.previews = PreviewCache(item.frame.startup_parameters)
+        self.previews = PreviewCache()
         self.loading_encryption_attributes_error: Optional[str] = None
         self._encryption_attributes: Optional['ImageEncryptionAttributes'] = None
         self._loaded_image = loaded_image
@@ -322,10 +322,11 @@ class ImageItem(Item):
     """存储每个载入的图像的相关信息"""
     __slots__ = (
         'cache', 'path_data', 'loaded_image_path', '_settings_dict', '_settings', 'item_id', 'selected',
-        'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error', '_proc_mode'
+        'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error', '_proc_mode',
+        'best_layout'
     )
 
-    def __init__(self, frame: 'MainFrame', loaded_image: Optional['Image'], path_data: 'PathData', settings: 'ItemSettings' = ..., no_file=False, keep_cache_loaded_image=False):
+    def __init__(self, loaded_image: Optional['Image'], path_data: 'PathData', settings: 'ItemSettings' = ..., no_file=False, keep_cache_loaded_image=False):
         """
         Args:
             frame (MainFrame): `MainFrame`实例
@@ -335,19 +336,20 @@ class ImageItem(Item):
             no_file (bool, optional): 是否没有原始文件. `默认为False`
             keep_cache_loaded_image (bool, optional): 是否在低内存占用模式下保留原始图像数据缓存(一般用于从剪切板加载的图像). 默认为`False`
         """
-        self.frame = frame
         self.cache = ImageItemCache(self, loaded_image)
 
         self.path_data = path_data
-        self._proc_mode = frame.mode_manager.default_mode
+        self._proc_mode = self.frame.mode_manager.default_mode
         self.loaded_image_path = path_data.file_name if no_file else path_data.full_path
-        self._settings_dict: dict[int, 'ItemSettings'] = {self.proc_mode.mode_id: frame.mode_manager.default_settings.copy() if settings is Ellipsis else settings}
+        self._settings_dict: dict[int, 'ItemSettings'] = {self.proc_mode.mode_id: self.frame.mode_manager.default_settings.copy() if settings is Ellipsis else settings}
         self._settings = self._settings_dict[self.proc_mode.mode_id]
 
         self.item_id: TreeItemId = ...
         self.parent: Optional['FolderItem'] = None
         self.parent_id: Optional['TreeItemId'] = None
         self.selected = False
+        loaded_image_w, loaded_image_h = loaded_image.size
+        self.best_layout = VERTICAL if loaded_image_w >= loaded_image_h else HORIZONTAL
         self.no_file = no_file
         self.keep_cache_loaded_image = keep_cache_loaded_image
         self.loading_image_data_error = None
@@ -563,6 +565,8 @@ class ImageItem(Item):
         self.cache.loaded_image = loaded_image
         self.cache.clear_cache()
         self.load_encryption_attributes()
+        loaded_image_w, loaded_image_h = loaded_image.size
+        self.best_layout = VERTICAL if loaded_image_w >= loaded_image_h else HORIZONTAL
         if dialog:
             self.frame.dialog.async_info(f'{self.path_data.file_name}重载成功')
             self.reload_done()
@@ -581,13 +585,12 @@ class ImageItem(Item):
 class FolderItem(Item):
     __slots__ = ('path', 'name', 'children', 'parent_dir')
 
-    def __init__(self, frame: 'MainFrame', path: str):
+    def __init__(self, path: str):
         """
         Args:
             frame (MainFrame): `MainFrame`实例
             path (str): 文件夹路径
         """
-        self.frame = frame
         self.path = path
         self.parent_dir, self.name = split(path)
         self.children: dict[TreeItemId, Union['FolderItem', 'ImageItem']] = {}

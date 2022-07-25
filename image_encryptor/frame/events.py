@@ -2,14 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-24 10:14:13
+LastEditTime : 2022-07-24 11:36:42
 Description  : 事件处理
 """
-from timeit import timeit
 from typing import TYPE_CHECKING, Optional, Union
 
 from PIL.ImageGrab import grabclipboard
-from wx import VERTICAL, HORIZONTAL, CallAfter
+from wx import VERTICAL, CallAfter
 
 from image_encryptor.constants import DO_NOT_REFRESH, AUTO_REFRESH, EXTENSION_KEYS, EXTENSION_KEYS_STRING, LOSSY_FORMATS
 from image_encryptor.frame.file_item import FolderItem, ImageItem
@@ -60,8 +59,13 @@ class MainFrame(BasicMainFrame):
         self.refresh_preview(event)
 
     def change_preview_layout(self, event):
-        self.imagePanel.Sizer.SetOrientation(VERTICAL if self.controller.preview_layout == 0 else HORIZONTAL)
-        self.set_preview_plane_size()
+        if self.controller.preview_layout > 1:
+            if self.image_item is not None:
+                self.set_preview_layout(self.image_item.best_layout)
+            else:
+                self.set_preview_layout(VERTICAL)
+        else:
+            self.set_preview_layout(self.controller.preview_layout_flag)
         self.refresh_preview(event)
 
     @catch_exc_for_frame_method
@@ -233,6 +237,8 @@ class MainFrame(BasicMainFrame):
                 self.controller.backtrack_interface(image_data.encryption_attributes.settings)
             self.controller.backtrack_interface(image_data.settings)
 
+            if self.controller.preview_layout == 2:
+                self.set_preview_layout(image_data.best_layout)
             if self.previewMode.Selection == AUTO_REFRESH:
                 self.refresh_preview(event)
         elif isinstance(image_data, FolderItem):

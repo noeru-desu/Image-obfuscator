@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-23 19:39:26
+LastEditTime : 2022-07-25 08:34:35
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -11,9 +11,9 @@ from functools import cached_property
 from inspect import isroutine
 from multiprocessing import cpu_count
 from os import getcwd
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
-from wx import (ACCEL_CTRL, ACCEL_NORMAL, WXK_DELETE, WXK_F5, AcceleratorEntry,
+from wx import (ACCEL_CTRL, ACCEL_NORMAL, WXK_DELETE, WXK_F5, VERTICAL, HORIZONTAL, AcceleratorEntry,
                 AcceleratorTable, App, CallAfter)
 from wx.core import EmptyString
 
@@ -24,6 +24,7 @@ from image_encryptor.frame.controller import Controller, SegmentTrigger
 from image_encryptor.frame.design_frame import MainFrame as MF
 from image_encryptor.frame.dialog import Dialog
 from image_encryptor.frame.drag_importer import DragLoadingFile, DragSavingPath
+from image_encryptor.frame.file_item import Item, PreviewCache
 from image_encryptor.frame.image_loader import ImageLoader
 from image_encryptor.frame.image_saver import ImageSaver
 from image_encryptor.frame.mode_manager import ModeManager
@@ -80,7 +81,11 @@ class MainFrame(MF):
         self.folder_item: Optional['FolderItem'] = None
         self.startup_parameters = Parameters()
 
-        # 各项实现或组件
+        # 设置部分类的常量
+        Item.frame = self
+        PreviewCache.startup_parameters = self.startup_parameters
+
+        # 实例化各功能实现
         self.dialog = Dialog(self)
         self.controller = Controller(self)
         EmptySettings.set_constants(self.controller)
@@ -165,6 +170,10 @@ class MainFrame(MF):
         frame = cls(None, path).Enable()
 
         app.MainLoop()
+
+    def set_preview_layout(self, sizer_orientation: Union['VERTICAL', 'HORIZONTAL']):
+        self.imagePanel.Sizer.SetOrientation(sizer_orientation)
+        self.set_preview_plane_size()
 
     def set_preview_plane_size(self):
         size = self.controller.preview_plane_size

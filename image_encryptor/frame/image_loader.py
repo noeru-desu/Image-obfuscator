@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-15 18:18:47
+LastEditTime : 2022-07-25 08:18:40
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split, splitext
@@ -96,7 +96,7 @@ class ImageLoader(object):
                     return
         self.clipboard_count += 1
         name = f'clipboard-{self.clipboard_count}'
-        image_item = ImageItem(self.frame, image.convert('RGBA'), PathData('', '', name), no_file=True, keep_cache_loaded_image=cache)
+        image_item = ImageItem(image.convert('RGBA'), PathData('', '', name), no_file=True, keep_cache_loaded_image=cache)
         # if image_item.proc_mode.requires_encryption_parameters:
         #     image_item.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
         item_id = self.frame.tree_manager.add_file(image_item, '', '', name)
@@ -139,7 +139,7 @@ class ImageLoader(object):
         if error is None:
             path, name = split(path_chosen)
             image_item = ImageItem(
-                self.frame, None if self.frame.startup_parameters.low_memory else loaded_image, PathData(path, '', name)
+                None if self.frame.startup_parameters.low_memory else loaded_image, PathData(path, '', name)
             )
             item_id = self.frame.tree_manager.add_file(image_item, path_chosen)
             image_item.load_encryption_attributes()
@@ -195,7 +195,7 @@ class ImageLoader(object):
                 loaded_image, error = open_image(absolute_path)
                 if error is None:
                     image_item = ImageItem(
-                        self.frame, None if self.frame.startup_parameters.low_memory else loaded_image,
+                        None if self.frame.startup_parameters.low_memory else loaded_image,
                         PathData(path_chosen, r, n), settings_instantiator(settings_tuple)
                     )
                     self.frame.tree_manager.add_file(image_item, path_chosen, r, n, False)

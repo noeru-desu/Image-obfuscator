@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 14:50:04
+LastEditTime : 2022-07-25 08:19:29
 Description  : 节点树控制
 """
 from contextlib import suppress
@@ -61,7 +61,7 @@ class TreeManager(object):
             root = self.dir_dict[root_path]
         else:
             self.frame.logger.info(f'根文件夹添加至文件树: {root_path}')
-            self.root_dir_dict[root_path] = root = self.tree_ctrl.AppendItem(self.root, root_path, 0, data=FolderItem(self.frame, root_path))
+            self.root_dir_dict[root_path] = root = self.tree_ctrl.AppendItem(self.root, root_path, 0, data=FolderItem(root_path))
         if not relative_path:
             return root
         dir_list = relative_path.split(sep)
@@ -75,7 +75,7 @@ class TreeManager(object):
                 self.frame.logger.info(f'文件夹添加至文件树: {r_path}')
                 parent_data: 'FolderItem' = self.tree_ctrl.GetItemData(root)
                 parent_id = root
-                data = FolderItem(self.frame, path)
+                data = FolderItem(path)
                 self.dir_dict[path] = root = self.tree_ctrl.AppendItem(root, name, 0, data=data)
                 parent_data.children[root] = data
                 data.parent = parent_data

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-24 10:19:06
+LastEditTime : 2022-07-25 08:29:38
 Description  : 常量
 """
 from platform import machine, platform
@@ -17,14 +17,15 @@ from PIL.Image import new
 from wx import (ID_CANCEL, ID_HELP, ID_NO, ID_OK, ID_YES,
                 IMAGE_QUALITY_BICUBIC, IMAGE_QUALITY_BILINEAR,
                 IMAGE_QUALITY_BOX_AVERAGE, IMAGE_QUALITY_HIGH,
-                IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_NORMAL, Colour)
+                IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_NORMAL,
+                VERTICAL, HORIZONTAL, Colour)
 from wx import version as wx_ver
 
 try:
     from nuitka.Version import getNuitkaVersion as nuitka_ver
 except ImportError:
     nuitka_ver = lambda: '[未安装]'
-COMPILED = not __file__.endswith('.py')
+COMPILED = True
 
 Pillow_init()
 
@@ -35,9 +36,9 @@ BETA = 3
 ALPHA = 4
 VERSION_TYPE = BETA
 VERSION = '2.0.0'
-PRE_RELEASE_VERSION = 'beta.3'
-BATCH = '20220724a'
-BUILD_METADATA = BATCH # 'build.4' / BATCH
+PRE_RELEASE_VERSION = 'beta.4'
+BATCH = '20220725a'
+BUILD_METADATA = 'build.1' # 'build.4' / BATCH
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
@@ -97,3 +98,8 @@ class DialogReturnCodes(object):
     no = ID_NO
     cancel = ID_CANCEL
     help = ID_HELP
+
+
+class Orientations(object):
+    vertical = VERTICAL
+    horizontal = HORIZONTAL

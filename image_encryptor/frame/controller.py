@@ -2,15 +2,15 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-23 19:37:49
+LastEditTime : 2022-07-25 08:16:01
 Description  : 界面控制相关
 """
 from os.path import splitext
-from typing import TYPE_CHECKING, Callable, Iterable, Optional
+from typing import TYPE_CHECKING, Callable, Iterable, Optional, Union
 
-from wx import Bitmap
+from wx import VERTICAL, HORIZONTAL, Bitmap
 
-from image_encryptor.constants import EXTENSION_KEYS
+from image_encryptor.constants import EXTENSION_KEYS, Orientations
 from image_encryptor.modes.base import BaseSettings, EmptySettings
 
 if TYPE_CHECKING:
@@ -20,6 +20,9 @@ if TYPE_CHECKING:
     from image_encryptor.frame.tree_manager import ImageItem
     from image_encryptor.modules.image import WrappedImage
     from image_encryptor.types import ModeInterface, ItemSettings, ImageCacheHash
+
+orientations = (VERTICAL, HORIZONTAL, None)
+
 
 class ItemNotFoundError(Exception):
     pass
@@ -99,10 +102,19 @@ class Controller(object):
         if self.frame.displayedPreview.Selection != 2:
             return self.frame.imagePanel.GetSize()
         image_panel_width, image_panel_height = self.frame.imagePanel.GetSize()
-        if self.preview_layout == 0:
-            return image_panel_width, image_panel_height // 2
+        preview_layout = self.preview_layout
+        if preview_layout == 2:
+            if self.frame.image_item is None:
+                return image_panel_width, image_panel_height // 2
+            preview_layout = self.frame.image_item.best_layout
         else:
-            return image_panel_width // 2, image_panel_height
+            preview_layout = orientations[preview_layout]
+        match preview_layout:
+            case Orientations.vertical:
+                return image_panel_width, image_panel_height // 2
+            case Orientations.horizontal:
+                return image_panel_width // 2, image_panel_height
+        raise ValueError()
 
     @property
     def imported_image(self) -> 'Image': raise NotImplementedError()
@@ -149,6 +161,14 @@ class Controller(object):
     def preview_layout(self, v: int):
         self.frame.previewLayout.Select(v)
         self.frame.change_preview_layout(...)
+
+    @property
+    def preview_layout_flag(self) -> Optional[Union['VERTICAL', 'HORIZONTAL']]:
+        return orientations[self.frame.previewLayout.GetSelection()]
+
+    @preview_layout_flag.setter
+    def preview_layout_flag(self, v):
+        raise NotImplementedError()
 
     @property
     def proc_mode(self) -> int: raise NotImplementedError()
