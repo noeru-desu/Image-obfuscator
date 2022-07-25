@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-06-07 06:20:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-25 08:15:52
+LastEditTime : 2022-07-25 20:19:18
 Description  : 
 """
 from pickle import dump as pickle_dump, load as pickle_load
@@ -10,6 +10,7 @@ from contextlib import suppress
 from collections import namedtuple
 from os import getenv, mkdir
 from os.path import join, exists, isfile
+from traceback import format_exc
 from typing import TYPE_CHECKING
 
 from image_encryptor.constants import FRAME_SETTINGS_MAIN_VERSION, FRAME_SETTINGS_SUB_VERSION
@@ -89,29 +90,36 @@ class ConfigManager(object):
                 data_dict = self.default_frame_settings.copy()
                 data_dict.update(pickle_load(f))
                 if data_dict['config_version'][0] != FRAME_SETTINGS_MAIN_VERSION:
+                    self.frame.logger.info('配置文件版本过高, 跳过加载')
                     return
                 elif data_dict['config_version'][1] > FRAME_SETTINGS_SUB_VERSION:
                     frame_settings = self.FrameConfig(**{k: v for k, v in data_dict.items() if k in self.default_frame_settings.keys()})
                 else:
                     frame_settings = self.FrameConfig(**data_dict)
             except Exception:
+                self.frame.logger.warning('读取配置文件时出现错误\n{}'.format(format_exc().rstrip('\r\n')))
+                self.frame.logger.warning('可能是因为配置文件版本过高而导致, 并不影响使用')
                 return
         if not frame_settings.startup_parameters.get('record_interface_settings', True):
             return
-        if frame_settings.default_proc_mode in self.frame.mode_manager.modes:
-            default_mode = self.frame.mode_manager.default_mode = self.frame.mode_manager.modes[frame_settings.default_proc_mode]
-            default_settings = default_mode.instantiate_settings_cls()
-            default_settings.properties_dict = frame_settings.default_mode_settings
-            self.frame.mode_manager.default_settings = default_settings
-            self.frame.controller.backtrack_interface(default_settings, default_mode)
-        self.frame.startup_parameters.parameters_dict = frame_settings.startup_parameters
-        self.frame.controller.preview_mode = frame_settings.preview_mode
-        self.frame.controller.displayed_preview = frame_settings.displayed_preview
-        self.frame.controller.preview_layout = frame_settings.preview_layout
-        self.frame.controller.preview_source = frame_settings.preview_source
-        self.frame.controller.resampling_filter_id = frame_settings.resampling_filter
-        self.frame.controller.saving_path = frame_settings.saving_path
-        self.frame.controller.saving_format = frame_settings.saving_format
-        self.frame.controller.saving_quality = frame_settings.saving_quality
-        self.frame.controller.saving_subsampling_level = frame_settings.saving_subsampling_level
-        self.frame.controller.max_image_pixels = frame_settings.max_image_pixels
+        try:
+            if frame_settings.default_proc_mode in self.frame.mode_manager.modes:
+                default_mode = self.frame.mode_manager.default_mode = self.frame.mode_manager.modes[frame_settings.default_proc_mode]
+                default_settings = default_mode.instantiate_settings_cls()
+                default_settings.properties_dict = frame_settings.default_mode_settings
+                self.frame.mode_manager.default_settings = default_settings
+                self.frame.controller.backtrack_interface(default_settings, default_mode)
+            self.frame.startup_parameters.parameters_dict = frame_settings.startup_parameters
+            self.frame.controller.preview_mode = frame_settings.preview_mode
+            self.frame.controller.displayed_preview = frame_settings.displayed_preview
+            self.frame.controller.preview_layout = frame_settings.preview_layout
+            self.frame.controller.preview_source = frame_settings.preview_source
+            self.frame.controller.resampling_filter_id = frame_settings.resampling_filter
+            self.frame.controller.saving_path = frame_settings.saving_path
+            self.frame.controller.saving_format = frame_settings.saving_format
+            self.frame.controller.saving_quality = frame_settings.saving_quality
+            self.frame.controller.saving_subsampling_level = frame_settings.saving_subsampling_level
+            self.frame.controller.max_image_pixels = frame_settings.max_image_pixels
+        except Exception:
+            self.frame.logger.warning('应用配置文件时出现错误\n{}'.format(format_exc().rstrip('\r\n')))
+            self.frame.logger.warning('可能是因为配置文件版本过高而导致, 并不影响使用')
