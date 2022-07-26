@@ -33,16 +33,14 @@ GUI版本为`ImageEncryptor.py`
 
 ## 从源代码构建可执行文件
 
-使用Pyinstaller构建时没有注意事项。
-
-使用Nuitka构建时请添加`--include-package=PIL`参数，否则Pillow库只能进行常见图像格式的编解码(当然如果不介意的话也不要紧)。
+可使用`Pyinstaller`或`Nuitka`将程序构建为可执行文件
 
 ## Github Actions 自动构建
 
-Actions页面的CI中可下载自动构建的可执行文件包
+Actions页面的CI中可下载自动构建的可执行文件压缩包
 
-只有发布时的构建才会使用`-OO`参数来优化字节码和禁用部分装饰器
+__只有发布时的构建才会禁用控制台并使用`-OO`参数来进行性能优化__
 
->目前CI仅测试程序能否正常启动，没有测试各项功能是否存在问题
+__目前CI仅测试程序能否正常启动，没有测试各项功能是否存在问题__
 
 压缩包命名格式为：`适用系统`-`Python编译器`-`C编译器`-`MSVC版本`-build.`Github Actions运行ID`
