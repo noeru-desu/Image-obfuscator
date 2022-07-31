@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-25 08:16:01
+LastEditTime : 2022-07-30 08:37:58
 Description  : 界面控制相关
 """
 from os.path import splitext
@@ -98,8 +98,12 @@ class Controller(object):
         return self.frame.importedBitmapSizerPanel.GetSize()
 
     @property
+    def image_panel_size(self) -> tuple[int, int]:
+        return self.frame.imagePanel.GetSize()
+
+    @property
     def preview_plane_size(self) -> tuple[int, int]:
-        if self.frame.displayedPreview.Selection != 2:
+        if self.displayed_preview != 2:
             return self.frame.imagePanel.GetSize()
         image_panel_width, image_panel_height = self.frame.imagePanel.GetSize()
         preview_layout = self.preview_layout

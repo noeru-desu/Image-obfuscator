@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-15 18:19:22
+LastEditTime : 2022-07-31 19:50:45
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -45,7 +45,7 @@ class ImageSaver(object):
             frame (MainFrame): `MainFrame`实例
         """
         self.frame = frame
-        self.frame.process_pool.create_tag('bulk_save', False, False)   # 注册线程池标签
+        # self.frame.process_pool.create_tag('bulk_save', False, False)   # 注册线程池标签
         self.saving_thread = SingleThreadExecutor('saving-thread')
         self.lock = Lock()
         self.progress_plane_displayed = False
@@ -235,9 +235,9 @@ class ImageSaver(object):
 
     def _post_save_processing(self, mode_interface: 'ModeInterface', data, output_path: str):
         if mode_interface.add_encryption_parameters_in_file:
-            serialize_encryption_parameters = gen_encryption_attributes(mode_interface.corresponding_decryption_mode, data)
+            serialized_encryption_parameters = gen_encryption_attributes(mode_interface.corresponding_decryption_mode, data)
             with open(output_path, "a") as f:
-                f.write('\n{}'.format(dumps(serialize_encryption_parameters, separators=(',', ':'))))
+                f.write('\n{}'.format(dumps(serialized_encryption_parameters, separators=(',', ':'))))
 
     def _check_dir(self, image_item: 'ImageItem'):
         """文件夹相关检查"""
@@ -338,7 +338,7 @@ class ImageSaver(object):
                 return True
             else:
                 self.frame.controller.saving_path = path
-        if self.progress_plane_displayed or self.frame.process_pool.check_tag('bulk_save'):
+        if self.progress_plane_displayed: # or self.frame.process_pool.check_tag('bulk_save'):
             self.frame.dialog.error('请等待当前的保存任务完成', '无法执行保存操作')
             return True
         return False

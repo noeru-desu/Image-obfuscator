@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-25 08:20:05
+LastEditTime : 2022-07-30 08:58:18
 Description  : 图像项目
 """
 from abc import ABC
@@ -15,7 +15,7 @@ from wx import BLACK, VERTICAL, HORIZONTAL, Bitmap, CallAfter
 
 from image_encryptor.constants import LIGHT_RED, PIL_RESAMPLING_FILTERS
 from image_encryptor.modes.base import EmptySettings
-from image_encryptor.modules.image import cal_best_size, open_image
+from image_encryptor.modules.image import cal_best_size, cal_best_scale, open_image
 from image_encryptor.modules.version_adapter import load_encryption_attributes
 from image_encryptor.utils.misc_utils import add_to
 
@@ -155,6 +155,7 @@ class PreviewCache(object):
         if cache_hash in self.scalable_cache:
             self.add_scalable_cache(cache_hash)
             return self.scalable_cache[cache_hash]
+        return None
 
     def get_normal_cache(self, cache_hash: 'NormalImageCacheHash') -> Optional['Bitmap']:
         """获取普通缓存
@@ -172,6 +173,7 @@ class PreviewCache(object):
         if cache_hash in self.normal_cache:
             self.add_normal_cache(cache_hash)
             return self.normal_cache[cache_hash]
+        return None
 
     def get_scalable_cache(self, cache_hash: 'ScalableImageCacheHash') -> Optional['WrappedImage']:
         """获取可缩放缓存
@@ -189,6 +191,7 @@ class PreviewCache(object):
         if cache_hash in self.scalable_cache:
             self.add_scalable_cache(cache_hash)
             return self.scalable_cache[cache_hash]
+        return None
 
     def clear(self):
         """清空缓存"""
@@ -348,8 +351,7 @@ class ImageItem(Item):
         self.parent: Optional['FolderItem'] = None
         self.parent_id: Optional['TreeItemId'] = None
         self.selected = False
-        loaded_image_w, loaded_image_h = loaded_image.size
-        self.best_layout = VERTICAL if loaded_image_w >= loaded_image_h else HORIZONTAL
+        self.cal_best_layout()
         self.no_file = no_file
         self.keep_cache_loaded_image = keep_cache_loaded_image
         self.loading_image_data_error = None
@@ -396,6 +398,13 @@ class ImageItem(Item):
         self.proc_mode = self.frame.controller.proc_mode_interface
         if self.proc_mode.enable_settings_panel:
             self.settings.sync_from_interface()
+
+    def cal_best_layout(self):
+        image_panel_w, image_panel_h = self.frame.controller.image_panel_size
+        v_scale = cal_best_scale(*self.cache.loaded_image.size, image_panel_w, image_panel_h // 2)
+        h_scale = cal_best_scale(*self.cache.loaded_image.size, image_panel_w // 2, image_panel_h)
+        self.best_layout = VERTICAL if v_scale >= h_scale else HORIZONTAL
+        return self.best_layout
 
     def unselect(self):
         """取消选中时的相关操作"""
@@ -565,8 +574,7 @@ class ImageItem(Item):
         self.cache.loaded_image = loaded_image
         self.cache.clear_cache()
         self.load_encryption_attributes()
-        loaded_image_w, loaded_image_h = loaded_image.size
-        self.best_layout = VERTICAL if loaded_image_w >= loaded_image_h else HORIZONTAL
+        self.cal_best_layout()
         if dialog:
             self.frame.dialog.async_info(f'{self.path_data.file_name}重载成功')
             self.reload_done()

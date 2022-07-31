@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-27 20:27:55
+LastEditTime : 2022-07-30 19:46:20
 Description  : 图像相关工具
 """
 from abc import ABC
@@ -120,6 +120,18 @@ def open_image(file) -> tuple['PIL_Image.Image', Optional[str]]:
     return image, None
 
 
+def cal_best_scale(orig_width: int, orig_height: int, visible_width: int, visible_height: int) -> float:
+    """
+    :description: 根据两组宽高计算最佳大小
+    :param orig_width: 原始图像宽度
+    :param orig_height: 原始图像高度
+    :param width: 可以使用的最大宽度
+    :param height: 可以使用的最大高度
+    :return: 宽高的最佳缩放比例
+    """
+    return min(visible_width / orig_width, visible_height / orig_height)
+
+
 def cal_best_size(orig_width: int, orig_height: int, visible_width: int, visible_height: int) -> tuple[int, int]:
     """
     :description: 根据两组宽高计算最佳大小
@@ -127,7 +139,7 @@ def cal_best_size(orig_width: int, orig_height: int, visible_width: int, visible
     :param orig_height: 原始图像高度
     :param width: 可以使用的最大宽度
     :param height: 可以使用的最大高度
-    :return: 按比例缩放后的宽最佳大小
+    :return: 按比例缩放后的最佳大小
     """
     scale = min(visible_width / orig_width, visible_height / orig_height)
     return int(orig_width * scale), int(orig_height * scale)

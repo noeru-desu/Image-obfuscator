@@ -2,21 +2,20 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-25 20:04:17
+LastEditTime : 2022-07-28 11:19:28
 Description  : 基类
 """
 from abc import ABC
 from itertools import compress
-from typing import (TYPE_CHECKING, Any, Callable, Iterable, Iterator, NoReturn, Optional,
+from typing import (TYPE_CHECKING, Any, Callable, Iterable, Iterator, Optional,
                     Type, Union, final)
 from warnings import warn
 
 from image_encryptor.modules.decorator import catch_exc_and_return
-from image_encryptor.utils.misc_utils import no_return_func
 
 if TYPE_CHECKING:
     from PIL.Image import Image
-    from wx import Event, Gauge, Object, Panel
+    from wx import Event, Gauge, Object
     from image_encryptor.frame.controller import Controller as MainController
     from image_encryptor.frame.events import MainFrame
     from image_encryptor.modules.image import (ImageData, PillowImage,

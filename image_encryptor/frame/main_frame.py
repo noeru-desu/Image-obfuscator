@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-25 08:34:35
+LastEditTime : 2022-07-31 19:34:14
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -62,7 +62,6 @@ class MainFrame(MF):
         """
         Args:
             parent (Window): 父窗口, 可为`None`
-            startup_parameters (Parameters): 启动参数实例
             run_path (str, optional): 运行路径. 默认为`os.getcwd()`.
         """
         # o_args = set(dir(self))
