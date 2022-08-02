@@ -2,12 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-02 11:39:25
+LastEditTime : 2022-08-02 12:40:10
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split, splitext
 from typing import TYPE_CHECKING, Iterable, overload
-from zipfile import is_zipfile
+# from zipfile import is_zipfile
 
 from PIL import Image
 from wx import ID_YES, YES_NO, CallAfter
