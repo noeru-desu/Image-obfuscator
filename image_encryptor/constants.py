@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-31 19:54:22
+LastEditTime : 2022-08-02 12:30:51
 Description  : 常量
 """
 from platform import machine, platform
@@ -59,10 +59,16 @@ ORIG_IMAGE = 1
 
 BLACK_IMAGE = new('RGBA', (1, 1))
 
+# OpenImage
 OIERR_NOT_EXIST = '文件不存在'
-OIERR_UNSUPPORTED_FORMAT = '无法打开或识别图像格式, 或输入了不受支持的格式'
+OIERR_UNSUPPORTED_FORMAT = '{}是无法打开/识别或不受支持的图像格式, 已跳过加载此文件'
 OIERR_EXCEED_LIMIT = '图像像素量超过允许最大像素量'
+OIERR_OS_ERROR = '''OSError: {}
+常见错误原因:
+Permission denied - 权限不足
+Truncated File Read - 无法忽略的图像截断(图像损坏或格式错误/格式版本不受支持)'''
 
+# EncryptionAttributes
 EA_VERSION = 9
 EAERR_NO_DATA = '选择的图像中没有数据'
 EAERR_NO_ATTRIBUTES = '选择的图像不包含加密参数, 请确保尝试解密的图像为加密后的原图'

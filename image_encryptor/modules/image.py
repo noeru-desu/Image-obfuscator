@@ -2,14 +2,16 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-30 19:46:20
+LastEditTime : 2022-08-02 12:31:51
 Description  : 图像相关工具
 """
 from abc import ABC
+from posixpath import splitext
 # from functools import cache
 # from itertools import permutations, combinations
 from random import randrange
 from random import seed as random_seed
+# from traceback import print_exc
 # from re import sub
 from typing import TYPE_CHECKING, Optional
 
@@ -22,7 +24,7 @@ from wx import Bitmap
 from wx import Image as wx_Image
 
 from image_encryptor.constants import (BLACK_IMAGE, OIERR_EXCEED_LIMIT,
-                                       OIERR_NOT_EXIST,
+                                       OIERR_NOT_EXIST, OIERR_OS_ERROR,
                                        OIERR_UNSUPPORTED_FORMAT,
                                        PIL_RESAMPLING_FILTERS,
                                        WX_RESAMPLING_FILTERS)
@@ -113,9 +115,12 @@ def open_image(file) -> tuple['PIL_Image.Image', Optional[str]]:
     except FileNotFoundError:
         return BLACK_IMAGE, OIERR_NOT_EXIST
     except UnidentifiedImageError:
-        return BLACK_IMAGE, OIERR_UNSUPPORTED_FORMAT
+        return BLACK_IMAGE, OIERR_UNSUPPORTED_FORMAT.format(splitext(file)[1])
     except PIL_Image.DecompressionBombWarning:
         return BLACK_IMAGE, OIERR_EXCEED_LIMIT
+    except OSError as e:
+        # print_exc()
+        return BLACK_IMAGE, OIERR_OS_ERROR.format(e.args[0] if e.strerror is None else e.strerror)
     except Exception as e:
         return BLACK_IMAGE, repr(e)
     return image, None

@@ -2,11 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-25 08:18:40
+LastEditTime : 2022-08-02 11:39:25
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split, splitext
 from typing import TYPE_CHECKING, Iterable, overload
+from zipfile import is_zipfile
 
 from PIL import Image
 from wx import ID_YES, YES_NO, CallAfter
@@ -125,6 +126,8 @@ class ImageLoader(object):
                     item_id = _item_id
                     continue
             if isfile(i):
+                # if is_zipfile(i):
+                #     unzip_file_and_cache
                 _item_id = self._load_file(i)
                 if _item_id is not None:
                     item_id = _item_id
@@ -146,7 +149,7 @@ class ImageLoader(object):
             # if (not image_item.encrypted_image) and image_item.proc_mode.requires_encryption_parameters:
             #     image_item.proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
         else:
-            self._output_image_loading_failure_info(error)
+            self._output_image_loading_failure_info(error, file_name=split(path_chosen)[1])
             item_id = None
         self.frame.stop_loading_func.init()
         return item_id
