@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-29 20:38:00
+LastEditTime : 2022-08-01 20:55:22
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING, Optional, Union
@@ -33,7 +33,7 @@ class MainFrame(BasicMainFrame):
             if self.startup_parameters.final_layout_widgets:
                 self.Layout()
             if self.image_item is not None and self.controller.preview_layout == 2 and self.controller.displayed_preview == 2:
-                self.set_preview_layout(self.image_item.cal_best_layout())
+                self.set_preview_layout(self.image_item.best_layout)
             else:
                 self.set_preview_plane_size()
             self.refresh_preview(event)
@@ -45,7 +45,7 @@ class MainFrame(BasicMainFrame):
     def _after_maximize(self, event):
         if self.image_item is not None:
             if self.controller.preview_layout == 2 and self.controller.displayed_preview == 2:
-                self.set_preview_layout(self.image_item.cal_best_layout())
+                self.set_preview_layout(self.image_item.best_layout)
             else:
                 self.set_preview_plane_size()
         self.refresh_preview(event)
@@ -69,7 +69,7 @@ class MainFrame(BasicMainFrame):
                 self.importedBitmapPanel.Show()
                 self.previewedBitmapPanel.Show()
                 if self.image_item is not None and self.controller.preview_layout == 2:
-                    self.set_preview_layout(self.image_item.cal_best_layout())
+                    self.set_preview_layout(self.image_item.best_layout)
                 else:
                     self.set_preview_plane_size()
         self.refresh_preview(event)
@@ -77,7 +77,7 @@ class MainFrame(BasicMainFrame):
     def change_preview_layout(self, event):
         if self.controller.preview_layout == 2 and self.controller.displayed_preview == 2:
             if self.image_item is not None:
-                self.set_preview_layout(self.image_item.cal_best_layout())
+                self.set_preview_layout(self.image_item.best_layout)
             else:
                 self.set_preview_layout(VERTICAL)
         else:
@@ -254,7 +254,7 @@ class MainFrame(BasicMainFrame):
             self.controller.backtrack_interface(image_data.settings)
 
             if self.controller.preview_layout == 2 and self.controller.displayed_preview == 2:
-                self.set_preview_layout(image_data.cal_best_layout())
+                self.set_preview_layout(image_data.best_layout)
             if self.previewMode.Selection == AUTO_REFRESH:
                 self.refresh_preview(event)
         elif isinstance(image_data, FolderItem):

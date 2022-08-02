@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-30 08:58:18
+LastEditTime : 2022-08-01 20:57:33
 Description  : 图像项目
 """
 from abc import ABC
@@ -221,7 +221,10 @@ EmptyEncryptionAttributes = ImageEncryptionAttributes(None, EmptySettings)
 
 class ImageItemCache(object):
     """图像项目缓存控制器"""
-    __slots__ = ('_item', 'initial_preview', 'previews', 'preview_size', '_encryption_attributes', '_loaded_image', 'loading_encryption_attributes_error')
+    __slots__ = (
+        '_item', 'initial_preview', 'previews', 'preview_size', '_encryption_attributes', '_loaded_image',
+        'loading_encryption_attributes_error', '_best_layout', 'loaded_image_size', '_image_panel_size_for_best_layout'
+    )
 
     def __init__(self, item: 'ImageItem', loaded_image: 'Image' = None):
         """
@@ -236,6 +239,9 @@ class ImageItemCache(object):
         self.loading_encryption_attributes_error: Optional[str] = None
         self._encryption_attributes: Optional['ImageEncryptionAttributes'] = None
         self._loaded_image = loaded_image
+        self.loaded_image_size = self.loaded_image.size if loaded_image is None else loaded_image.size
+        self._image_panel_size_for_best_layout = None
+        self._best_layout = VERTICAL
 
     @property
     def loaded_image(self) -> 'Image':
@@ -285,6 +291,20 @@ class ImageItemCache(object):
     def encryption_attributes(self, v):
         self._encryption_attributes = v
 
+    @property
+    def best_layout(self):
+        image_panel_size = self._item.frame.controller.image_panel_size
+        if image_panel_size != self._image_panel_size_for_best_layout:
+            image_panel_w, image_panel_h = self._image_panel_size_for_best_layout = image_panel_size
+            v_scale = cal_best_scale(*self.loaded_image_size, image_panel_w, image_panel_h // 2)
+            h_scale = cal_best_scale(*self.loaded_image_size, image_panel_w // 2, image_panel_h)
+            self._best_layout = VERTICAL if v_scale >= h_scale else HORIZONTAL
+        return self._best_layout
+
+    def refresh_cache(self):
+        self.clear_cache()
+        self.loaded_image_size = self.loaded_image.size
+
     def clear_cache(self):
         """清除缓存"""
         self.initial_preview = None
@@ -325,8 +345,7 @@ class ImageItem(Item):
     """存储每个载入的图像的相关信息"""
     __slots__ = (
         'cache', 'path_data', 'loaded_image_path', '_settings_dict', '_settings', 'item_id', 'selected',
-        'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error', '_proc_mode',
-        'best_layout'
+        'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error', '_proc_mode'
     )
 
     def __init__(self, loaded_image: Optional['Image'], path_data: 'PathData', settings: 'ItemSettings' = ..., no_file=False, keep_cache_loaded_image=False):
@@ -351,7 +370,6 @@ class ImageItem(Item):
         self.parent: Optional['FolderItem'] = None
         self.parent_id: Optional['TreeItemId'] = None
         self.selected = False
-        self.cal_best_layout()
         self.no_file = no_file
         self.keep_cache_loaded_image = keep_cache_loaded_image
         self.loading_image_data_error = None
@@ -399,12 +417,9 @@ class ImageItem(Item):
         if self.proc_mode.enable_settings_panel:
             self.settings.sync_from_interface()
 
-    def cal_best_layout(self):
-        image_panel_w, image_panel_h = self.frame.controller.image_panel_size
-        v_scale = cal_best_scale(*self.cache.loaded_image.size, image_panel_w, image_panel_h // 2)
-        h_scale = cal_best_scale(*self.cache.loaded_image.size, image_panel_w // 2, image_panel_h)
-        self.best_layout = VERTICAL if v_scale >= h_scale else HORIZONTAL
-        return self.best_layout
+    @property
+    def best_layout(self):
+        return self.cache.best_layout
 
     def unselect(self):
         """取消选中时的相关操作"""
@@ -572,9 +587,8 @@ class ImageItem(Item):
         else:
             self.frame.imageTreeCtrl.SetItemTextColour(self.item_id, BLACK)
         self.cache.loaded_image = loaded_image
-        self.cache.clear_cache()
+        self.cache.refresh_cache()
         self.load_encryption_attributes()
-        self.cal_best_layout()
         if dialog:
             self.frame.dialog.async_info(f'{self.path_data.file_name}重载成功')
             self.reload_done()
