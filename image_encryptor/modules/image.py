@@ -17,7 +17,7 @@ from numpy import ascontiguousarray, squeeze, uint8, zeros
 from numpy.random import randint
 from numpy.random import seed as np_random_seed
 from PIL import Image as PIL_Image
-from PIL import UnidentifiedImageError
+from PIL import UnidentifiedImageError, ImageFile
 from wx import Bitmap
 from wx import Image as wx_Image
 
@@ -30,6 +30,7 @@ from image_encryptor.constants import (BLACK_IMAGE, OIERR_EXCEED_LIMIT,
 if TYPE_CHECKING:
     from numpy import ndarray
 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 '''
 @cache# Optional[Iterable]
