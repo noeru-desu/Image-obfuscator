@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Callable, Union, Type
 
 from PIL import Image
 
-from image_encryptor.frame.controller import ProgressBar, SavingSettings
+from image_encryptor.frame.controller import ProgressBar, SaveSettings
 from image_encryptor.modules.image_encrypt import ImageEncrypt
 from image_encryptor.modules.image import (PillowImage, WrappedPillowImage,
                                            array_to_image)
@@ -117,8 +117,8 @@ def normal_save(frame: 'MainFrame', source: 'Image.Image', settings: 'Settings',
     bar.next_step(1)
     label_text_setter('完成，正在保存文件')
     _save_image(
-        image, frame.image_item.path_data, settings.saving_path, settings.saving_format,
-        settings.saving_quality, settings.saving_subsampling_level,
+        image, frame.image_item.path_data, settings.save_path, settings.save_format,
+        settings.save_quality, settings.save_subsampling_level,
         settings.encryption_parameters_data(*original_size).encryption_parameters_data
     )
     bar.finish()
@@ -127,19 +127,19 @@ def normal_save(frame: 'MainFrame', source: 'Image.Image', settings: 'Settings',
     return image
 
 
-def batch(image_data, path_data: 'PathData', settings, saving_format, auto_folder: bool):
+def batch(image_data, path_data: 'PathData', settings, save_format, auto_folder: bool):
     settings = SettingsData(settings)
     if not (settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels or settings.XOR_encryption):
         return
     image = Image.frombytes(*image_data)
-    saving_settings = SavingSettings(*saving_format)
+    save_settings = SaveSettings(*save_format)
     original_size = image.size
 
     image = process(image, settings, settings.available_password)
 
     _save_image(
-        array_to_image(*image), path_data, saving_settings.path, saving_settings.format,
-        saving_settings.quality, saving_settings.subsampling_level,
+        array_to_image(*image), path_data, save_settings.path, save_settings.format,
+        save_settings.quality, save_settings.subsampling_level,
         settings.encryption_parameters_data(*original_size).encryption_parameters_data,
         auto_folder
     )
@@ -157,17 +157,17 @@ def process(image: 'Image.Image', settings: 'SettingsData', password: Any):
     return image
 
 
-def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'PathData', saving_path: str, saving_format: str, quality: int, subsampling: int, encryption_parameters_data: dict, auto_folder=False):
+def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'PathData', save_path: str, save_format: str, quality: int, subsampling: int, encryption_parameters_data: dict, auto_folder=False):
     name, _ = splitext(image_path_data.file_name)
-    name = f"{name.replace('-decrypted', '')}-encrypted.{saving_format}"
+    name = f"{name.replace('-decrypted', '')}-encrypted.{save_format}"
     if auto_folder:
-        save_dir = join(saving_path, image_path_data.relative_saving_dir)
+        save_dir = join(save_path, image_path_data.relative_save_dir)
         if not isdir(save_dir):
             makedirs(save_dir)
     else:
-        save_dir = saving_path
+        save_dir = save_path
     output_path = join(save_dir, name)
-    if saving_format.lower() in {'jpg', 'jpeg'}:
+    if save_format.lower() in {'jpg', 'jpeg'}:
         image.convert('RGB')
 
     image.save(output_path, quality=quality, subsampling=subsampling)

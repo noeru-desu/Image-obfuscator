@@ -33,7 +33,7 @@ class DragLoadingFile(FileDropTarget):
             return True
 
 
-class DragSavingPath(FileDropTarget):
+class DragSavePath(FileDropTarget):
     __slots__ = ('frame',)
 
     def __init__(self, frame: 'MainFrame'):
@@ -48,7 +48,7 @@ class DragSavingPath(FileDropTarget):
                 return True
             elif len(filenames) > 1:
                 self.frame.dialog.async_warning(f'共拖放了{len(filenames)}个文件夹，仅接受第一个文件夹({filenames[0]})')
-            self.frame.controller.saving_path = filenames[0]
+            self.frame.controller.save_path = filenames[0]
         except RuntimeError:
             return False
         except Exception:

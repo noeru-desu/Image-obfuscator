@@ -9,6 +9,8 @@
 
 import wx
 import wx.xrc
+import wx.adv
+import wx.stc
 
 ###########################################################################
 # Class MainFrame
@@ -17,19 +19,20 @@ import wx.xrc
 
 class MainFrame (wx.Frame):
     __slots__ = (
-        'XorFilter', 'collapseAllBtn', 'decryptionFilter', 'delBtn', 'disableCache', 'displayedPreview', 'encryptionFilter',
-        'expandAllBtn', 'finalLayoutWidgets', 'flipFilter', 'imageInfo', 'imagePanel', 'imageTreeCtrl', 'imageTreePanel',
-        'imageTreeSearchCtrl', 'importedBitmap', 'importedBitmapPanel', 'importedBitmapSizerPanel', 'loadingClipboardBtn',
-        'loadingFileBtn', 'loadingPanel', 'loadingProgress', 'loadingProgressInfo', 'loadingProgressPanel', 'lowMemoryMode',
-        'm_button31', 'm_button311', 'm_button312', 'm_button6', 'm_button8', 'm_panel25', 'm_staticText12', 'm_staticText14',
-        'm_staticText34', 'm_staticText81', 'm_staticText82', 'm_staticText82111', 'm_staticText8212', 'm_staticline31',
-        'm_staticline4', 'manuallyRefreshBtn', 'mappingFilter', 'maxImagePixels', 'otherOptions', 'passwordCtrl', 'passwordFilter',
-        'previewLayout', 'previewMode', 'previewOptions', 'previewProgress', 'previewProgressInfo', 'previewSource',
-        'previewedBitmap', 'previewedBitmapPanel', 'previewedBitmapSizerPanel', 'procMode', 'procSettingsPanelContainer',
-        'processingOptions', 'qqFilter', 'qualityInfo', 'recordInterfaceSettings', 'recordPasswordDict', 'redundantCacheLength',
-        'reloadingBtn', 'resamplingFilter', 'savingBtn', 'savingBtnPanel', 'savingFilters', 'savingFormat', 'savingOptions',
-        'savingProgress', 'savingProgressInfo', 'savingProgressPanel', 'savingQuality', 'selectSavingPath', 'settingsPanel',
-        'shuffleFilter', 'stopLoadingBtn', 'stopSavingBtn', 'subsamplingInfo', 'subsamplingLevel'
+        'advancedSaveSettingsPanel', 'collapseAllBtn', 'delBtn', 'disableCache', 'displayedPreview', 'expandAllBtn',
+        'finalLayoutWidgets', 'imageInfo', 'imagePanel', 'imageTreeCtrl', 'imageTreePanel', 'imageTreeSearchCtrl',
+        'importedBitmap', 'importedBitmapPanel', 'importedBitmapSizerPanel', 'loadingClipboardBtn', 'loadingFileBtn',
+        'loadingPanel', 'loadingProgress', 'loadingProgressInfo', 'loadingProgressPanel', 'lowMemoryMode', 'm_button18',
+        'm_button23', 'm_button31', 'm_button311', 'm_button312', 'm_button6', 'm_button8', 'm_panel25', 'm_staticText12',
+        'm_staticText14', 'm_staticText29', 'm_staticText34', 'm_staticText81', 'm_staticText82', 'm_staticText82111',
+        'm_staticText821111', 'm_staticText8212', 'm_staticline31', 'm_staticline4', 'manuallyRefreshBtn', 'maxImagePixels',
+        'otherOptions', 'passwordCtrl', 'previewLayout', 'previewMode', 'previewOptions', 'previewProgress', 'previewProgressInfo',
+        'previewSource', 'previewedBitmap', 'previewedBitmapPanel', 'previewedBitmapSizerPanel', 'procMode',
+        'procSettingsPanelContainer', 'processingOptions', 'qualityInfo', 'recordInterfaceSettings', 'recordPasswordDict',
+        'redundantCacheLength', 'reloadingBtn', 'resamplingFilter', 'saveBtn', 'saveBtnPanel', 'saveCompression', 'saveExif',
+        'saveFormat', 'saveKwdsJson', 'saveLossless', 'saveOptimize', 'saveOptions', 'saveProgress', 'saveProgressInfo',
+        'saveProgressPanel', 'saveQuality', 'selectSavePath', 'settingsPanel', 'stopLoadingBtn', 'stopSaveBtn', 'subsamplingInfo',
+        'subsamplingLevel'
     )
 
     def __init__(self, parent):
@@ -342,42 +345,107 @@ class MainFrame (wx.Frame):
         self.previewOptions.Layout()
         bSizer401.Fit(self.previewOptions)
         self.settingsPanel.AddPage(self.previewOptions, u"预览图相关设置", False)
-        self.savingOptions = wx.Panel(self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.saveOptions = wx.Panel(self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer264 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer23 = wx.BoxSizer(wx.HORIZONTAL)
 
-        bSizer191 = wx.BoxSizer(wx.VERTICAL)
-
         bSizer265 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText81 = wx.StaticText(self.savingOptions, wx.ID_ANY, u"保存位置", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText81 = wx.StaticText(self.saveOptions, wx.ID_ANY, u"保存位置", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText81.Wrap(-1)
 
         bSizer265.Add(self.m_staticText81, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
-        self.selectSavingPath = wx.DirPickerCtrl(self.savingOptions, wx.ID_ANY, wx.EmptyString, u"选择保存位置", wx.DefaultPosition, wx.DefaultSize, wx.DIRP_DEFAULT_STYLE | wx.DIRP_DIR_MUST_EXIST)
-        bSizer265.Add(self.selectSavingPath, 1, wx.ALL | wx.EXPAND, 2)
+        self.selectSavePath = wx.DirPickerCtrl(self.saveOptions, wx.ID_ANY, wx.EmptyString, u"选择保存位置", wx.DefaultPosition, wx.DefaultSize, wx.DIRP_DEFAULT_STYLE | wx.DIRP_DIR_MUST_EXIST)
+        bSizer265.Add(self.selectSavePath, 1, wx.ALL | wx.EXPAND, 2)
 
-        savingFormatChoices = [u"bmp", u"gif", u"png", u"ico", u"tif", u"tiff", u"jpg", u"jpeg", u"pdf", u"psd", u"tga", u"webp"]
-        self.savingFormat = wx.ComboBox(self.savingOptions, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, savingFormatChoices, wx.TE_PROCESS_ENTER)
-        self.savingFormat.SetSelection(2)
-        self.savingFormat.SetToolTip(u"如果下拉框中不存在所需的保存格式，可直接输入后缀名，将自动进行检查。支持的保存格式如下\n")
+        saveFormatChoices = [u"bmp", u"gif", u"png", u"ico", u"tif", u"tiff", u"jpg", u"jpeg", u"pdf", u"psd", u"tga", u"webp"]
+        self.saveFormat = wx.ComboBox(self.saveOptions, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, saveFormatChoices, wx.TE_PROCESS_ENTER)
+        self.saveFormat.SetSelection(2)
+        self.saveFormat.SetToolTip(u"如果下拉框中不存在所需的保存格式，可直接输入后缀名，将自动进行检查。支持的保存格式如下\n")
 
-        bSizer265.Add(self.savingFormat, 0, wx.ALIGN_CENTER | wx.ALL, 4)
+        bSizer265.Add(self.saveFormat, 0, wx.ALIGN_CENTER | wx.ALL, 4)
 
-        bSizer191.Add(bSizer265, 1, wx.EXPAND, 0)
+        bSizer23.Add(bSizer265, 0, 0, 0)
 
-        sbSizer61 = wx.StaticBoxSizer(wx.StaticBox(self.savingOptions, wx.ID_ANY, u"高级设置(有损格式保存相关，如jpg)"), wx.HORIZONTAL)
+        self.saveBtnPanel = wx.Panel(self.saveOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        bSizer20 = wx.BoxSizer(wx.HORIZONTAL)
 
-        bSizer44 = wx.BoxSizer(wx.VERTICAL)
+        self.saveBtn = wx.Button(self.saveBtnPanel, wx.ID_ANY, u"保存当前选中的图像/文件夹", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer20.Add(self.saveBtn, 0, wx.ALL, 5)
+
+        self.m_button8 = wx.Button(self.saveBtnPanel, wx.ID_ANY, u"保存全部图像", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer20.Add(self.m_button8, 0, wx.ALL, 5)
+
+        self.saveBtnPanel.SetSizer(bSizer20)
+        self.saveBtnPanel.Layout()
+        bSizer20.Fit(self.saveBtnPanel)
+        bSizer23.Add(self.saveBtnPanel, 1, 0, 0)
+
+        self.saveProgressPanel = wx.Panel(self.saveOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.saveProgressPanel.Hide()
+
+        bSizer231 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.stopSaveBtn = wx.Button(self.saveProgressPanel, wx.ID_ANY, u"取消所有保存任务", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer231.Add(self.stopSaveBtn, 0, wx.ALL, 5)
+
+        self.saveProgress = wx.Gauge(self.saveProgressPanel, wx.ID_ANY, 200, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL)
+        self.saveProgress.SetValue(0)
+        bSizer231.Add(self.saveProgress, 2, wx.ALIGN_CENTER | wx.ALL, 5)
+
+        self.saveProgressInfo = wx.StaticText(self.saveProgressPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.saveProgressInfo.Wrap(-1)
+
+        bSizer231.Add(self.saveProgressInfo, 1, wx.ALIGN_CENTER | wx.ALIGN_LEFT | wx.ALL, 5)
+
+        self.saveProgressPanel.SetSizer(bSizer231)
+        self.saveProgressPanel.Layout()
+        bSizer231.Fit(self.saveProgressPanel)
+        bSizer23.Add(self.saveProgressPanel, 0, 0, 1)
+
+        bSizer264.Add(bSizer23, 0, wx.EXPAND, 5)
+
+        self.advancedSaveSettingsPanel = wx.Panel(self.saveOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.advancedSaveSettingsPanel.SetToolTip(u"传递给PIL.Image.save的额外参数\n不是所有参数都会被使用，不同格式会使用不同个数/类别的参数\n所有可用参数请查看：https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html")
+
+        sbSizer61 = wx.StaticBoxSizer(wx.StaticBox(self.advancedSaveSettingsPanel, wx.ID_ANY, u"高级保存设置(保存不同格式时会按需使用)"), wx.VERTICAL)
+
+        bSizer47 = wx.BoxSizer(wx.HORIZONTAL)
+
+        bSizer49 = wx.BoxSizer(wx.VERTICAL)
+
+        self.saveOptimize = wx.CheckBox(sbSizer61.GetStaticBox(), wx.ID_ANY, u"优化文件大小", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.saveOptimize.SetToolTip(u"部分格式启用后将保持图像质量无损并一定程度减小文件大小，但是会增加保存耗时")
+
+        bSizer49.Add(self.saveOptimize, 0, wx.ALL, 3)
+
+        self.saveExif = wx.CheckBox(sbSizer61.GetStaticBox(), wx.ID_ANY, u"保留Exif信息", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.saveExif.SetToolTip(u"部分图像在保存时将从添原始图像中添加Exif信息")
+
+        bSizer49.Add(self.saveExif, 0, wx.ALL, 3)
+
+        bSizer47.Add(bSizer49, 0, wx.EXPAND, 5)
+
+        bSizer491 = wx.BoxSizer(wx.VERTICAL)
+
+        self.saveLossless = wx.CheckBox(sbSizer61.GetStaticBox(), wx.ID_ANY, u"无损Webp", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.saveLossless.SetToolTip(u"部分格式启用后将保持图像质量无损并一定程度减小文件大小，但是会增加保存耗时")
+        self.saveLossless.SetHelpText(u"保存webp时无损保存")
+
+        bSizer491.Add(self.saveLossless, 0, wx.ALL, 3)
+
+        bSizer47.Add(bSizer491, 1, wx.EXPAND, 5)
+
+        bSizer441 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer451 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.m_staticText8212 = wx.StaticText(sbSizer61.GetStaticBox(), wx.ID_ANY, u"保存质量:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText8212.Wrap(-1)
 
-        self.m_staticText8212.SetToolTip(u"(1-100)保存为有损格式时，值越大保存的文件越大，质量越好")
+        self.m_staticText8212.SetToolTip(u"保存部分有损格式时，值越大保存的文件越大，质量越好")
 
         bSizer451.Add(self.m_staticText8212, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
@@ -386,21 +454,21 @@ class MainFrame (wx.Frame):
 
         bSizer451.Add(self.qualityInfo, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
-        bSizer44.Add(bSizer451, 0, wx.ALIGN_CENTER, 0)
+        bSizer441.Add(bSizer451, 0, wx.ALIGN_CENTER, 0)
 
-        self.savingQuality = wx.Slider(sbSizer61.GetStaticBox(), wx.ID_ANY, 98, 1, 100, wx.DefaultPosition, wx.Size(-1, 25), wx.SL_BOTH | wx.SL_HORIZONTAL)
-        bSizer44.Add(self.savingQuality, 0, wx.ALL | wx.EXPAND, 0)
+        self.saveQuality = wx.Slider(sbSizer61.GetStaticBox(), wx.ID_ANY, 98, 1, 100, wx.DefaultPosition, wx.Size(-1, 25), wx.SL_BOTH | wx.SL_HORIZONTAL)
+        bSizer441.Add(self.saveQuality, 0, wx.ALL | wx.EXPAND, 0)
 
-        sbSizer61.Add(bSizer44, 1, wx.EXPAND, 5)
+        bSizer47.Add(bSizer441, 0, 0, 5)
 
-        bSizer45 = wx.BoxSizer(wx.VERTICAL)
+        bSizer452 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer461 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.m_staticText82111 = wx.StaticText(sbSizer61.GetStaticBox(), wx.ID_ANY, u"色度抽样等级:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText82111.Wrap(-1)
 
-        self.m_staticText82111.SetToolTip(u"(0-2) 0表示不使用，等级越高，保存有损格式时获得的文件大小越小，但会导致图像出现噪点，使图像解密后失真")
+        self.m_staticText82111.SetToolTip(u"保存部分有损格式时，0表示不使用，等级越高，保存有损格式时获得的文件大小越小，但会导致图像出现噪点，使图像解密后失真")
 
         bSizer461.Add(self.m_staticText82111, 0, wx.ALL, 2)
 
@@ -409,129 +477,68 @@ class MainFrame (wx.Frame):
 
         bSizer461.Add(self.subsamplingInfo, 0, wx.ALL, 2)
 
-        bSizer45.Add(bSizer461, 0, wx.ALIGN_CENTER, 0)
+        bSizer452.Add(bSizer461, 0, wx.ALIGN_CENTER, 0)
 
         self.subsamplingLevel = wx.Slider(sbSizer61.GetStaticBox(), wx.ID_ANY, 0, 0, 2, wx.DefaultPosition, wx.Size(-1, 25), wx.SL_BOTH | wx.SL_HORIZONTAL)
-        bSizer45.Add(self.subsamplingLevel, 0, wx.ALL | wx.EXPAND, 0)
+        bSizer452.Add(self.subsamplingLevel, 0, wx.ALL | wx.EXPAND, 0)
 
-        sbSizer61.Add(bSizer45, 1, wx.EXPAND, 5)
+        bSizer47.Add(bSizer452, 0, 0, 5)
 
-        bSizer191.Add(sbSizer61, 1, wx.ALL | wx.EXPAND, 3)
+        bSizer4521 = wx.BoxSizer(wx.VERTICAL)
 
-        bSizer23.Add(bSizer191, 0, wx.EXPAND, 5)
+        self.m_staticText821111 = wx.StaticText(sbSizer61.GetStaticBox(), wx.ID_ANY, u"压缩算法", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText821111.Wrap(-1)
 
-        self.savingFilters = wx.Panel(self.savingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.savingFilters.Hide()
+        self.m_staticText821111.SetToolTip(u"保存部分格式时使用的图像有损或无损压缩算法(tiff开头的算法只能用于tiff类文件)")
 
-        bSizer311 = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer4521.Add(self.m_staticText821111, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 2)
 
-        sbSizer4 = wx.StaticBoxSizer(wx.StaticBox(self.savingFilters, wx.ID_ANY, u"[过滤器]模式"), wx.VERTICAL)
+        saveCompressionChoices = [u"none", u"group3", u"group4", u"jpeg", u"lzma", u"packbits", u"tiff_adobe_deflate", u"tiff_ccitt", u"tiff_lzw", u"tiff_raw_16", u"tiff_sgilog", u"tiff_sgilog24", u"tiff_thunderscan", u"webp", u"zstd"]
+        self.saveCompression = wx.Choice(sbSizer61.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, saveCompressionChoices, 0)
+        self.saveCompression.SetSelection(0)
+        self.saveCompression.SetToolTip(u"保存部分格式时使用的图像有损或无损压缩算法(tiff开头的算法只能用于tiff类文件)")
 
-        self.encryptionFilter = wx.CheckBox(sbSizer4.GetStaticBox(), wx.ID_ANY, u"加密模式", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.encryptionFilter.SetValue(True)
-        sbSizer4.Add(self.encryptionFilter, 0, wx.ALL, 5)
+        bSizer4521.Add(self.saveCompression, 0, 0, 5)
 
-        sbSizer4.Add((0, 0), 1, wx.EXPAND, 5)
+        bSizer47.Add(bSizer4521, 0, wx.EXPAND, 5)
 
-        self.decryptionFilter = wx.CheckBox(sbSizer4.GetStaticBox(), wx.ID_ANY, u"解密模式", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.decryptionFilter.SetValue(True)
-        sbSizer4.Add(self.decryptionFilter, 0, wx.ALL, 5)
+        sbSizer61.Add(bSizer47, 0, 0, 0)
 
-        sbSizer4.Add((0, 0), 1, wx.EXPAND, 5)
+        bSizer48 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.qqFilter = wx.CheckBox(sbSizer4.GetStaticBox(), wx.ID_ANY, u"QQ反屏蔽", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.qqFilter.SetValue(True)
-        sbSizer4.Add(self.qqFilter, 0, wx.ALL, 5)
+        self.m_staticText29 = wx.StaticText(sbSizer61.GetStaticBox(), wx.ID_ANY, u"其他参数(具有最高优先级)", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText29.Wrap(-1)
 
-        bSizer311.Add(sbSizer4, 0, wx.ALL | wx.EXPAND, 2)
+        self.m_staticText29.SetToolTip(u"自定义键值对以使用支持的任意保存参数(若与上方的交互式参数重复，重复部分将始终使用自定义参数)")
 
-        sbSizer41 = wx.StaticBoxSizer(wx.StaticBox(self.savingFilters, wx.ID_ANY, u"[过滤器]操作"), wx.HORIZONTAL)
+        bSizer48.Add(self.m_staticText29, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 3)
 
-        bSizer35 = wx.BoxSizer(wx.VERTICAL)
+        self.m_button18 = wx.Button(sbSizer61.GetStaticBox(), wx.ID_ANY, u"编辑", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button18.SetToolTip(u"自定义键值对以使用支持的任意保存参数(若与上方的交互式参数重复，重复部分将始终使用自定义参数)")
 
-        self.passwordFilter = wx.CheckBox(sbSizer41.GetStaticBox(), wx.ID_ANY, u"使用密码", wx.DefaultPosition, wx.DefaultSize, wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER)
-        self.passwordFilter.SetValue(True)
-        bSizer35.Add(self.passwordFilter, 0, wx.ALL, 5)
+        bSizer48.Add(self.m_button18, 0, 0, 5)
 
-        bSizer35.Add((0, 0), 1, wx.EXPAND, 5)
+        self.saveKwdsJson = wx.TextCtrl(sbSizer61.GetStaticBox(), wx.ID_ANY, u"{\n  \n}", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_NO_VSCROLL | wx.TE_READONLY)
+        self.saveKwdsJson.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
+        self.saveKwdsJson.SetToolTip(u"自定义键值对以使用支持的任意保存参数(若与上方的交互式参数重复，重复部分将始终使用自定义参数)")
 
-        self.shuffleFilter = wx.CheckBox(sbSizer41.GetStaticBox(), wx.ID_ANY, u"顺序打乱", wx.DefaultPosition, wx.DefaultSize, wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER)
-        self.shuffleFilter.SetValue(True)
-        bSizer35.Add(self.shuffleFilter, 0, wx.ALL, 5)
+        bSizer48.Add(self.saveKwdsJson, 1, 0, 5)
 
-        bSizer35.Add((0, 0), 1, wx.EXPAND, 5)
+        sbSizer61.Add(bSizer48, 0, wx.EXPAND, 5)
 
-        self.flipFilter = wx.CheckBox(sbSizer41.GetStaticBox(), wx.ID_ANY, u"随机翻转", wx.DefaultPosition, wx.DefaultSize, wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER)
-        self.flipFilter.SetValue(True)
-        bSizer35.Add(self.flipFilter, 0, wx.ALL, 5)
+        self.advancedSaveSettingsPanel.SetSizer(sbSizer61)
+        self.advancedSaveSettingsPanel.Layout()
+        sbSizer61.Fit(self.advancedSaveSettingsPanel)
+        bSizer264.Add(self.advancedSaveSettingsPanel, 1, wx.EXPAND | wx.ALL, 5)
 
-        sbSizer41.Add(bSizer35, 0, wx.EXPAND, 5)
-
-        bSizer351 = wx.BoxSizer(wx.VERTICAL)
-
-        self.mappingFilter = wx.CheckBox(sbSizer41.GetStaticBox(), wx.ID_ANY, u"通道映射", wx.DefaultPosition, wx.DefaultSize, wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER)
-        self.mappingFilter.SetValue(True)
-        bSizer351.Add(self.mappingFilter, 0, wx.ALL, 5)
-
-        bSizer351.Add((0, 0), 1, wx.EXPAND, 5)
-
-        self.XorFilter = wx.CheckBox(sbSizer41.GetStaticBox(), wx.ID_ANY, u"异或加密", wx.DefaultPosition, wx.DefaultSize, wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER)
-        self.XorFilter.SetValue(True)
-        bSizer351.Add(self.XorFilter, 0, wx.ALL, 5)
-
-        sbSizer41.Add(bSizer351, 0, wx.EXPAND, 5)
-
-        bSizer311.Add(sbSizer41, 0, wx.ALL | wx.EXPAND, 2)
-
-        self.savingFilters.SetSizer(bSizer311)
-        self.savingFilters.Layout()
-        bSizer311.Fit(self.savingFilters)
-        bSizer23.Add(self.savingFilters, 0, wx.EXPAND | wx.ALL, 5)
-
-        bSizer264.Add(bSizer23, 1, wx.EXPAND, 5)
-
-        self.savingBtnPanel = wx.Panel(self.savingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        bSizer20 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_button8 = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存全部图像", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer20.Add(self.m_button8, 0, wx.ALL, 5)
-
-        self.savingBtn = wx.Button(self.savingBtnPanel, wx.ID_ANY, u"保存当前选中的图像/文件夹", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer20.Add(self.savingBtn, 0, wx.ALL, 5)
-
-        self.savingBtnPanel.SetSizer(bSizer20)
-        self.savingBtnPanel.Layout()
-        bSizer20.Fit(self.savingBtnPanel)
-        bSizer264.Add(self.savingBtnPanel, 0, wx.EXPAND | wx.ALL, 0)
-
-        self.savingProgressPanel = wx.Panel(self.savingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.savingProgressPanel.Hide()
-
-        bSizer231 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.stopSavingBtn = wx.Button(self.savingProgressPanel, wx.ID_ANY, u"取消所有保存任务", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer231.Add(self.stopSavingBtn, 0, wx.ALL, 5)
-
-        self.savingProgress = wx.Gauge(self.savingProgressPanel, wx.ID_ANY, 200, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL)
-        self.savingProgress.SetValue(0)
-        bSizer231.Add(self.savingProgress, 2, wx.ALIGN_CENTER | wx.ALL, 5)
-
-        self.savingProgressInfo = wx.StaticText(self.savingProgressPanel, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
-        self.savingProgressInfo.Wrap(-1)
-
-        bSizer231.Add(self.savingProgressInfo, 1, wx.ALIGN_CENTER | wx.ALIGN_LEFT | wx.ALL, 5)
-
-        self.savingProgressPanel.SetSizer(bSizer231)
-        self.savingProgressPanel.Layout()
-        bSizer231.Fit(self.savingProgressPanel)
-        bSizer264.Add(self.savingProgressPanel, 0, wx.EXPAND | wx.ALL, 0)
-
-        self.savingOptions.SetSizer(bSizer264)
-        self.savingOptions.Layout()
-        bSizer264.Fit(self.savingOptions)
-        self.settingsPanel.AddPage(self.savingOptions, u"保存图像", False)
+        self.saveOptions.SetSizer(bSizer264)
+        self.saveOptions.Layout()
+        bSizer264.Fit(self.saveOptions)
+        self.settingsPanel.AddPage(self.saveOptions, u"保存图像", False)
         self.otherOptions = wx.Panel(self.settingsPanel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         bSizer74 = wx.BoxSizer(wx.HORIZONTAL)
+
+        bSizer47 = wx.BoxSizer(wx.VERTICAL)
 
         sbSizer6 = wx.StaticBoxSizer(wx.StaticBox(self.otherOptions, wx.ID_ANY, u"高级导入设置"), wx.HORIZONTAL)
 
@@ -547,7 +554,20 @@ class MainFrame (wx.Frame):
 
         sbSizer6.Add(self.maxImagePixels, 1, wx.ALL, 0)
 
-        bSizer74.Add(sbSizer6, 0, wx.ALL, 5)
+        bSizer47.Add(sbSizer6, 0, wx.ALL | wx.EXPAND, 5)
+
+        sbSizer7 = wx.StaticBoxSizer(wx.StaticBox(self.otherOptions, wx.ID_ANY, u"其他操作"), wx.VERTICAL)
+
+        bSizer481 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_button23 = wx.Button(sbSizer7.GetStaticBox(), wx.ID_ANY, u"打开配置保存文件夹", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer481.Add(self.m_button23, 0, wx.ALIGN_CENTER_VERTICAL, 5)
+
+        sbSizer7.Add(bSizer481, 0, wx.EXPAND, 5)
+
+        bSizer47.Add(sbSizer7, 1, wx.ALL | wx.EXPAND, 5)
+
+        bSizer74.Add(bSizer47, 0, wx.EXPAND, 5)
 
         self.m_panel25 = wx.Panel(self.otherOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.m_panel25.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行")
@@ -650,13 +670,15 @@ class MainFrame (wx.Frame):
         self.previewSource.Bind(wx.EVT_RADIOBOX, self.force_refresh_preview)
         self.manuallyRefreshBtn.Bind(wx.EVT_BUTTON, self.manually_refresh)
         self.resamplingFilter.Bind(wx.EVT_RADIOBOX, self.force_refresh_preview)
-        self.savingFormat.Bind(wx.EVT_COMBOBOX, self.record_saving_format)
-        self.savingFormat.Bind(wx.EVT_TEXT_ENTER, self.check_saving_format)
-        self.savingQuality.Bind(wx.EVT_SCROLL, self.update_quality_num)
-        self.subsamplingLevel.Bind(wx.EVT_SCROLL, self.update_subsampling_num)
+        self.saveFormat.Bind(wx.EVT_COMBOBOX, self.record_save_format)
+        self.saveFormat.Bind(wx.EVT_TEXT_ENTER, self.check_save_format)
         self.m_button8.Bind(wx.EVT_BUTTON, self.bulk_save)
-        self.savingBtn.Bind(wx.EVT_BUTTON, self.save_selected_image)
-        self.stopSavingBtn.Bind(wx.EVT_BUTTON, self.stop_saving_event)
+        self.saveBtn.Bind(wx.EVT_BUTTON, self.save_selected_image)
+        self.stopSaveBtn.Bind(wx.EVT_BUTTON, self.stop_save_event)
+        self.saveQuality.Bind(wx.EVT_SCROLL, self.update_quality_num)
+        self.subsamplingLevel.Bind(wx.EVT_SCROLL, self.update_subsampling_num)
+        self.m_button18.Bind(wx.EVT_BUTTON, self.edit_save_args_json)
+        self.m_button23.Bind(wx.EVT_BUTTON, self.open_config_folder)
         self.redundantCacheLength.Bind(wx.EVT_TEXT_ENTER, self.change_redundant_cache_length)
         self.lowMemoryMode.Bind(wx.EVT_CHECKBOX, self.toggle_low_memory_usage_mode)
         self.recordInterfaceSettings.Bind(wx.EVT_CHECKBOX, self.toggle_record_interface_settings)
@@ -740,16 +762,10 @@ class MainFrame (wx.Frame):
     def manually_refresh(self, event):
         event.Skip()
 
-    def record_saving_format(self, event):
+    def record_save_format(self, event):
         event.Skip()
 
-    def check_saving_format(self, event):
-        event.Skip()
-
-    def update_quality_num(self, event):
-        event.Skip()
-
-    def update_subsampling_num(self, event):
+    def check_save_format(self, event):
         event.Skip()
 
     def bulk_save(self, event):
@@ -758,7 +774,19 @@ class MainFrame (wx.Frame):
     def save_selected_image(self, event):
         event.Skip()
 
-    def stop_saving_event(self, event):
+    def stop_save_event(self, event):
+        event.Skip()
+
+    def update_quality_num(self, event):
+        event.Skip()
+
+    def update_subsampling_num(self, event):
+        event.Skip()
+
+    def edit_save_args_json(self, event):
+        event.Skip()
+
+    def open_config_folder(self, event):
         event.Skip()
 
     def change_redundant_cache_length(self, event):
@@ -898,4 +926,127 @@ class PasswordDialog (wx.Dialog):
         event.Skip()
 
     def user_cancel(self, event):
+        event.Skip()
+
+
+###########################################################################
+# Class JsonEditorDialog
+###########################################################################
+
+class JsonEditorDialog (wx.Dialog):
+    __slots__ = (
+        'extraInfoText', 'extraLink', 'font', 'm_button19', 'm_button20', 'm_button21', 'm_button22', 'textEditor', 'titleText'
+    )
+
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"Json编辑器", pos=wx.DefaultPosition, size=wx.Size(702, 450), style=wx.DEFAULT_DIALOG_STYLE | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER)
+
+        self.SetSizeHints(wx.Size(400, 450), wx.DefaultSize)
+
+        bSizer49 = wx.BoxSizer(wx.HORIZONTAL)
+
+        bSizer50 = wx.BoxSizer(wx.VERTICAL)
+
+        self.titleText = wx.StaticText(self, wx.ID_ANY, u"编辑文本", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.titleText.Wrap(-1)
+
+        self.titleText.SetMaxSize(wx.Size(200, -1))
+
+        bSizer50.Add(self.titleText, 0, wx.ALL, 5)
+
+        self.extraLink = wx.adv.HyperlinkCtrl(self, wx.ID_ANY, wx.EmptyString, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.adv.HL_DEFAULT_STYLE)
+        bSizer50.Add(self.extraLink, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+
+        self.extraInfoText = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.extraInfoText.Wrap(-1)
+
+        self.extraInfoText.SetMaxSize(wx.Size(200, -1))
+
+        bSizer50.Add(self.extraInfoText, 1, wx.ALL, 5)
+
+        self.m_button19 = wx.Button(self, wx.ID_ANY, u"检查Json格式", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer50.Add(self.m_button19, 0, wx.ALL | wx.EXPAND, 5)
+
+        self.m_button20 = wx.Button(self, wx.ID_ANY, u"自动格式化Json格式", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer50.Add(self.m_button20, 0, wx.ALL | wx.EXPAND, 5)
+
+        self.m_button21 = wx.Button(self, wx.ID_ANY, u"应用当前Json文本", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer50.Add(self.m_button21, 0, wx.ALL | wx.EXPAND, 5)
+
+        self.m_button22 = wx.Button(self, wx.ID_ANY, u"清空Json文本", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer50.Add(self.m_button22, 0, wx.ALL | wx.EXPAND, 5)
+
+        bSizer49.Add(bSizer50, 0, wx.EXPAND, 5)
+
+        self.textEditor = wx.stc.StyledTextCtrl(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.textEditor.SetUseTabs(True)
+        self.textEditor.SetTabWidth(2)
+        self.textEditor.SetIndent(2)
+        self.textEditor.SetTabIndents(True)
+        self.textEditor.SetBackSpaceUnIndents(True)
+        self.textEditor.SetViewEOL(False)
+        self.textEditor.SetViewWhiteSpace(True)
+        self.textEditor.SetMarginWidth(2, 0)
+        self.textEditor.SetIndentationGuides(True)
+        self.textEditor.SetReadOnly(False)
+        self.textEditor.SetMarginType(1, wx.stc.STC_MARGIN_SYMBOL)
+        self.textEditor.SetMarginMask(1, wx.stc.STC_MASK_FOLDERS)
+        self.textEditor.SetMarginWidth(1, 16)
+        self.textEditor.SetMarginSensitive(1, True)
+        self.textEditor.SetProperty("fold", "1")
+        self.textEditor.SetFoldFlags(wx.stc.STC_FOLDFLAG_LINEBEFORE_CONTRACTED | wx.stc.STC_FOLDFLAG_LINEAFTER_CONTRACTED)
+        self.textEditor.SetMarginType(0, wx.stc.STC_MARGIN_NUMBER)
+        self.textEditor.SetMarginWidth(0, self.textEditor.TextWidth(wx.stc.STC_STYLE_LINENUMBER, "_99999"))
+        self.font = wx.Font(14, wx.FONTFAMILY_MODERN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Consolas")
+        self.textEditor.StyleSetFont(wx.stc.STC_STYLE_DEFAULT, self.font)
+        self.textEditor.MarkerDefine(wx.stc.STC_MARKNUM_FOLDER, wx.stc.STC_MARK_BOXPLUS)
+        self.textEditor.MarkerSetBackground(wx.stc.STC_MARKNUM_FOLDER, wx.BLACK)
+        self.textEditor.MarkerSetForeground(wx.stc.STC_MARKNUM_FOLDER, wx.WHITE)
+        self.textEditor.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPEN, wx.stc.STC_MARK_BOXMINUS)
+        self.textEditor.MarkerSetBackground(wx.stc.STC_MARKNUM_FOLDEROPEN, wx.BLACK)
+        self.textEditor.MarkerSetForeground(wx.stc.STC_MARKNUM_FOLDEROPEN, wx.WHITE)
+        self.textEditor.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERSUB, wx.stc.STC_MARK_EMPTY)
+        self.textEditor.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEREND, wx.stc.STC_MARK_BOXPLUS)
+        self.textEditor.MarkerSetBackground(wx.stc.STC_MARKNUM_FOLDEREND, wx.BLACK)
+        self.textEditor.MarkerSetForeground(wx.stc.STC_MARKNUM_FOLDEREND, wx.WHITE)
+        self.textEditor.MarkerDefine(wx.stc.STC_MARKNUM_FOLDEROPENMID, wx.stc.STC_MARK_BOXMINUS)
+        self.textEditor.MarkerSetBackground(wx.stc.STC_MARKNUM_FOLDEROPENMID, wx.BLACK)
+        self.textEditor.MarkerSetForeground(wx.stc.STC_MARKNUM_FOLDEROPENMID, wx.WHITE)
+        self.textEditor.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERMIDTAIL, wx.stc.STC_MARK_EMPTY)
+        self.textEditor.MarkerDefine(wx.stc.STC_MARKNUM_FOLDERTAIL, wx.stc.STC_MARK_EMPTY)
+        self.textEditor.SetSelBackground(True, wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT))
+        self.textEditor.SetSelForeground(True, wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT))
+        self.textEditor.SetFont(wx.Font(14, wx.FONTFAMILY_MODERN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Consolas"))
+
+        bSizer49.Add(self.textEditor, 1, wx.EXPAND | wx.ALL, 5)
+
+        self.SetSizer(bSizer49)
+        self.Layout()
+
+        self.Centre(wx.BOTH)
+
+        # Connect Events
+        self.Bind(wx.EVT_CLOSE, self.close_dialog)
+        self.m_button19.Bind(wx.EVT_BUTTON, self.check_json_format)
+        self.m_button20.Bind(wx.EVT_BUTTON, self.format_json)
+        self.m_button21.Bind(wx.EVT_BUTTON, self.apply_json)
+        self.m_button22.Bind(wx.EVT_BUTTON, self.clear_json)
+
+    def __del__(self):
+        pass
+
+    # Virtual event handlers, override them in your derived class
+    def close_dialog(self, event):
+        event.Skip()
+
+    def check_json_format(self, event):
+        event.Skip()
+
+    def format_json(self, event):
+        event.Skip()
+
+    def apply_json(self, event):
+        event.Skip()
+
+    def clear_json(self, event):
         event.Skip()

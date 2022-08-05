@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Callable, Union, Type
 
 from PIL import Image
 
-from image_encryptor.frame.controller import SavingSettings
+from image_encryptor.frame.controller import SaveSettings
 from image_encryptor.modules.image_encrypt import AntiShield
 from image_encryptor.modules.image import WrappedPillowImage
 from image_encryptor.modules.decorator import catch_exc_and_return
@@ -46,35 +46,35 @@ def normal_save(frame: 'MainFrame', source: 'Image.Image', original: bool, retur
     gauge.SetValue(50)
     label_text_setter('完成, 正在保存文件')
     _save_image(
-        image, frame.image_item.path_data, frame.controller.saving_path, frame.controller.saving_format,
-        frame.controller.saving_quality, frame.controller.saving_subsampling_level
+        image, frame.image_item.path_data, frame.controller.save_path, frame.controller.save_format,
+        frame.controller.save_quality, frame.controller.save_subsampling_level
     )
     gauge.SetValue(100)
     label_text_setter('完成')
     return image
 
 
-def batch(image_data, path_data: 'PathData', saving_settings, auto_folder):
-    saving_settings = SavingSettings(saving_settings)
+def batch(image_data, path_data: 'PathData', save_settings, auto_folder):
+    save_settings = SaveSettings(save_settings)
 
     image = AntiShield(Image.frombytes(*image_data)).generate_image()
 
     _save_image(
-        image, path_data, saving_settings.path, saving_settings.format,
-        saving_settings.quality, saving_settings.subsampling_level, auto_folder
+        image, path_data, save_settings.path, save_settings.format,
+        save_settings.quality, save_settings.subsampling_level, auto_folder
     )
 
 
-def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'PathData', saving_path: str, saving_format: str, quality: int, subsampling: int, auto_folder=False):
+def _save_image(image: Union['Image.Image', 'PillowImage'], image_path_data: 'PathData', save_path: str, save_format: str, quality: int, subsampling: int, auto_folder=False):
     name, _ = splitext(image_path_data.file_name)
-    name = f"{name}-anti-shielded.{saving_format}"
+    name = f"{name}-anti-shielded.{save_format}"
     if auto_folder:
-        save_dir = join(saving_path, image_path_data.relative_saving_dir)
+        save_dir = join(save_path, image_path_data.relative_save_dir)
         if not isdir(save_dir):
             makedirs(save_dir)
     else:
-        save_dir = saving_path
-    if saving_format.lower() in {'jpg', 'jpeg'}:
+        save_dir = save_path
+    if save_format.lower() in {'jpg', 'jpeg'}:
         image.convert('RGB')
 
     image.save(join(save_dir, name), quality=quality, subsampling=subsampling)

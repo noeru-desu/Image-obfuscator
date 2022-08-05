@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-01 20:55:22
+LastEditTime : 2022-08-05 09:39:07
 Description  : 事件处理
 """
 from typing import TYPE_CHECKING, Optional, Union
 
 from PIL.ImageGrab import grabclipboard
-from wx import VERTICAL, CallAfter
+from wx import VERTICAL, ID_OK, CallAfter
 
 from image_encryptor.constants import DO_NOT_REFRESH, AUTO_REFRESH, EXTENSION_KEYS, EXTENSION_KEYS_STRING, LOSSY_FORMATS
 from image_encryptor.frame.file_item import FolderItem, ImageItem
@@ -263,7 +263,7 @@ class MainFrame(BasicMainFrame):
             self.processingOptions.Disable()
             self.controller.clear_preview()
         else:
-            self.savingProgressPanel.Disable()
+            self.saveProgressPanel.Disable()
             self.controller.gen_image_info()
 
     @catch_exc_for_frame_method
@@ -304,29 +304,29 @@ class MainFrame(BasicMainFrame):
         self.stop_loading_func.call()
 
     @catch_exc_for_frame_method
-    def check_saving_format(self, event):
-        self.controller.saving_format = self.controller.saving_format.lower()
-        if self.controller.saving_format in EXTENSION_KEYS:
-            self.record_saving_format()
+    def check_save_format(self, event):
+        self.controller.save_format = self.controller.save_format.lower()
+        if self.controller.save_format in EXTENSION_KEYS:
+            self.record_save_format()
         else:
-            self.dialog.async_warning('不支持的格式: {}, 仅支持以下格式: \n{}'.format(self.controller.saving_format, EXTENSION_KEYS_STRING), '保存格式错误')
-            self.controller.saving_format = self.controller.previous_saving_format
+            self.dialog.async_warning('不支持的格式: {}, 仅支持以下格式: \n{}'.format(self.controller.save_format, EXTENSION_KEYS_STRING), '保存格式错误')
+            self.controller.save_format = self.controller.previous_save_format
 
     @catch_exc_for_frame_method
-    def record_saving_format(self, event=None):
-        self.controller.previous_saving_format = self.controller.saving_format
-        if self.controller.saving_format in LOSSY_FORMATS:
+    def record_save_format(self, event=None):
+        self.controller.previous_save_format = self.controller.save_format
+        if self.controller.save_format in LOSSY_FORMATS:
             self.dialog.warning(
                 '''当前保存格式为有损压缩格式, 这将导致加密后保存的图像在后续解密时出现不可预估的 噪点/分界线/颜色异常 等损坏
 损坏程度与加密方法和下方的有损格式保存设置相关''', '有损保存风险警告'
             )
 
     @catch_exc_for_frame_method
-    def stop_saving_event(self, event):
+    def stop_save_event(self, event):
         self.image_saver.cancel()
         self.dialog.info('已取消所有保存任务')
-        self.stopSavingBtn.Disable()
-        self.image_saver.hide_saving_progress_plane()
+        self.stopSaveBtn.Disable()
+        self.image_saver.hide_save_progress_plane()
 
     @catch_exc_for_frame_method
     def apply_to_all(self, event):
@@ -356,10 +356,10 @@ class MainFrame(BasicMainFrame):
             self.controller.clear_preview()
 
     def update_quality_num(self, event: 'CommandEvent' = None):
-        self.controller.saving_quality_info = str(self.controller.saving_quality)
+        self.controller.save_quality_info = str(self.controller.save_quality)
 
     def update_subsampling_num(self, event: 'CommandEvent' = None):
-        self.controller.saving_subsampling_info = str(self.controller.saving_subsampling_level)
+        self.controller.save_subsampling_info = str(self.controller.save_subsampling_level)
 
     def change_redundant_cache_length(self, event: 'SpinEvent'):
         self.startup_parameters.maximum_redundant_cache_length = event.Int
@@ -378,6 +378,20 @@ class MainFrame(BasicMainFrame):
 
     def toggle_final_layout_widgets(self, event: 'CommandEvent'):
         self.startup_parameters.final_layout_widgets = event.IsChecked()
+
+    def open_config_folder(self, event):
+        self.config.open_config_folder()
+
+    def edit_save_args_json(self, event):
+        user_input = self.dialog.json_editor_dialog(
+            '编辑编码器参数的Json文本',
+            '可使用的属性已在上方文档中说明, 格式: {属性名: 属性值, ...}\n可随意缩进\n示例(如果你不清楚了解这些属性代表了什么功能，请勿直接复制这段示例进行应用):\n{\n  "quality": 98,\n  "gamma": 2.2,\n  "exif": false,\n  "optimize": true\n}',
+            'https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html',
+            '点击查看相关的Pillow文档',
+            self.controller.save_kwds_json
+        )
+        if user_input is not None:
+            self.controller.save_kwds_json, self.controller.save_kwds_dict = user_input
 
     def exit(self, event):
         self.Hide()

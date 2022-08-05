@@ -2,11 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-30 08:37:58
+LastEditTime : 2022-08-05 11:28:57
 Description  : 界面控制相关
 """
+from json import dumps
 from os.path import splitext
-from typing import TYPE_CHECKING, Callable, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union
 
 from wx import VERTICAL, HORIZONTAL, Bitmap
 
@@ -31,17 +32,18 @@ class ItemNotFoundError(Exception):
 class Controller(object):
     "控件/控制器"
     __slots__ = (
-        'frame', 'previous_saving_format', 'previous_proc_mode', 'imported_image_id', 'visible_proc_settings_panel',
-        'password_ctrl_hash'
+        'frame', 'previous_save_format', 'previous_proc_mode', 'imported_image_id', 'visible_proc_settings_panel',
+        'password_ctrl_hash', 'save_kwds_dict'
     )
 
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
-        self.previous_saving_format = 'png'
+        self.previous_save_format = 'png'
         self.previous_proc_mode: 'ModeInterface' = ...
         self.imported_image_id = 0
         self.visible_proc_settings_panel: Optional['Panel'] = None
         self.password_ctrl_hash = hash(self.frame.passwordCtrl)
+        self.save_kwds_dict = {}
 
     # ----------
     # properties
@@ -219,10 +221,10 @@ class Controller(object):
     def preview_source(self, v: int): self.frame.previewSource.Select(v)
 
     @property
-    def saving_progress(self) -> int: return self.frame.savingProgress.GetValue()
+    def save_progress(self) -> int: return self.frame.saveProgress.GetValue()
 
-    @saving_progress.setter
-    def saving_progress(self, v): self.frame.savingProgress.SetValue(v)
+    @save_progress.setter
+    def save_progress(self, v): self.frame.saveProgress.SetValue(v)
 
     @property
     def preview_progress_info(self) -> str: return self.frame.previewProgressInfo.GetLabelText()
@@ -267,58 +269,88 @@ class Controller(object):
     def reloading_btn_text(self, v): self.frame.reloadingBtn.SetLabelText(v)
 
     @property
-    def saving_quality_info(self) -> str: return self.frame.qualityInfo.GetLabelText()
+    def save_quality_info(self) -> str: return self.frame.qualityInfo.GetLabelText()
 
-    @saving_quality_info.setter
-    def saving_quality_info(self, v): self.frame.qualityInfo.SetLabelText(v)
-
-    @property
-    def saving_quality(self) -> int: return self.frame.savingQuality.GetValue()
-
-    @saving_quality.setter
-    def saving_quality(self, v: int): self.frame.savingQuality.SetValue(v)
+    @save_quality_info.setter
+    def save_quality_info(self, v): self.frame.qualityInfo.SetLabelText(v)
 
     @property
-    def saving_subsampling_info(self) -> str: return self.frame.subsamplingInfo.GetLabelText()
+    def save_quality(self) -> int: return self.frame.saveQuality.GetValue()
 
-    @saving_subsampling_info.setter
-    def saving_subsampling_info(self, v): self.frame.subsamplingInfo.SetLabelText(v)
-
-    @property
-    def saving_subsampling_level(self) -> int: return self.frame.subsamplingLevel.GetValue()
-
-    @saving_subsampling_level.setter
-    def saving_subsampling_level(self, v: int): self.frame.subsamplingLevel.SetValue(v)
+    @save_quality.setter
+    def save_quality(self, v: int): self.frame.saveQuality.SetValue(v)
 
     @property
-    def saving_path(self) -> str: return self.frame.selectSavingPath.GetPath()
+    def save_optimize(self) -> bool: return self.frame.saveOptimize.GetValue()
 
-    @saving_path.setter
-    def saving_path(self, v: str): self.frame.selectSavingPath.SetPath(v)
-
-    @property
-    def saving_format(self) -> str: return self.frame.savingFormat.GetValue()
-
-    @saving_format.setter
-    def saving_format(self, v: str): self.frame.savingFormat.SetValue(v)
+    @save_optimize.setter
+    def save_optimize(self, v: bool): self.frame.saveOptimize.SetValue(v)
 
     @property
-    def saving_format_index(self) -> int: return EXTENSION_KEYS.index(self.frame.savingFormat.GetValue())
+    def save_exif(self) -> bool: return self.frame.saveExif.GetValue()
 
-    @saving_format_index.setter
-    def saving_format_index(self, v: int): self.frame.savingFormat.Select(v)
-
-    @property
-    def saving_progress_info(self) -> str: return self.frame.savingProgressInfo.GetLabelText()
-
-    @saving_progress_info.setter
-    def saving_progress_info(self, v: str): self.frame.savingProgressInfo.SetLabelText(v)
+    @save_exif.setter
+    def save_exif(self, v: bool): self.frame.saveExif.SetValue(v)
 
     @property
-    def saving_progress(self) -> int: return self.frame.savingProgress.GetValue()
+    def save_lossless(self) -> bool: return self.frame.saveLossless.GetValue()
 
-    @saving_progress.setter
-    def saving_progress(self, v: int): self.frame.savingProgress.SetValue(v)
+    @save_lossless.setter
+    def save_lossless(self, v: bool): self.frame.saveLossless.SetValue(v)
+
+    @property
+    def save_compression(self) -> str: return self.frame.saveCompression.GetStringSelection()
+
+    @save_compression.setter
+    def save_compression(self, v: str): self.frame.saveCompression.SetStringSelection(v)
+
+    @property
+    def save_subsampling_info(self) -> str: return self.frame.subsamplingInfo.GetLabelText()
+
+    @save_subsampling_info.setter
+    def save_subsampling_info(self, v): self.frame.subsamplingInfo.SetLabelText(v)
+
+    @property
+    def save_subsampling_level(self) -> int: return self.frame.subsamplingLevel.GetValue()
+
+    @save_subsampling_level.setter
+    def save_subsampling_level(self, v: int): self.frame.subsamplingLevel.SetValue(v)
+
+    @property
+    def save_path(self) -> str: return self.frame.selectSavePath.GetPath()
+
+    @save_path.setter
+    def save_path(self, v: str): self.frame.selectSavePath.SetPath(v)
+
+    @property
+    def save_format(self) -> str: return self.frame.saveFormat.GetValue()
+
+    @save_format.setter
+    def save_format(self, v: str): self.frame.saveFormat.SetValue(v)
+
+    @property
+    def save_format_index(self) -> int: return EXTENSION_KEYS.index(self.frame.saveFormat.GetValue())
+
+    @save_format_index.setter
+    def save_format_index(self, v: int): self.frame.saveFormat.Select(v)
+
+    @property
+    def save_kwds_json(self) -> str: return self.frame.saveKwdsJson.GetValue()
+
+    @save_kwds_json.setter
+    def save_kwds_json(self, v: str): self.frame.saveKwdsJson.SetValue(v)
+
+    @property
+    def save_progress_info(self) -> str: return self.frame.saveProgressInfo.GetLabelText()
+
+    @save_progress_info.setter
+    def save_progress_info(self, v: str): self.frame.saveProgressInfo.SetLabelText(v)
+
+    @property
+    def save_progress(self) -> int: return self.frame.saveProgress.GetValue()
+
+    @save_progress.setter
+    def save_progress(self, v: int): self.frame.saveProgress.SetValue(v)
 
     @property
     def redundant_cache_length(self) -> int:
@@ -397,14 +429,6 @@ class Controller(object):
 
     @final_layout_widgets.setter
     def final_layout_widgets(self, v: bool): self.frame.finalLayoutWidgets.SetValue(v)
-
-    @property
-    def saving_settings(self) -> 'SavingSettings':
-        """以当前的所有保存设置实例化SavingSettings类"""
-        return SavingSettings(
-            self.saving_path, self.saving_format_index, EXTENSION_KEYS[self.saving_format_index],
-            self.saving_quality, self.saving_subsampling_level
-        )
 
     @property
     def default_proc_mode(self): return self.frame.mode_manager.default_mode
@@ -499,20 +523,58 @@ class Controller(object):
         return self.proc_mode_interface.instantiate_settings_cls()
 
     @property
-    def saving_settings(self) -> 'SavingSettings':
-        """以当前的所有保存设置实例化SavingSettings类"""
-        return SavingSettings(self.saving_path, self.saving_format_index, self.saving_format, self.saving_quality, self.saving_subsampling_level)
+    def save_settings(self) -> 'SaveSettings':
+        """以当前的所有保存设置实例化SaveSettings类"""
+        return SaveSettings(
+            self.save_path, self.save_format_index, self.save_format,
+            self.save_quality, self.save_subsampling_level, self.save_optimize,
+            self.save_exif, self.save_lossless, self.save_compression,
+            self.save_kwds_dict
+        )
+
+    def sync_save_settings(self, save_settings: 'SaveSettings'):
+        self.save_path = save_settings.path
+        self.save_format_index = save_settings.format_index
+        self.save_quality = save_settings.quality
+        self.save_subsampling_level = save_settings.subsampling
+        self.save_optimize = save_settings.optimize
+        self.save_exif = save_settings.exif
+        self.save_lossless = save_settings.lossless
+        self.save_compression = save_settings.compression
+        self.save_kwds_dict = save_settings.user_kwds
+        self.save_kwds_json = dumps(save_settings.user_kwds, indent=2)
 
 
-class SavingSettings(BaseSettings):
-    __slots__ = SETTING_NAMES = ('path', 'format_index', 'format', 'quality', 'subsampling_level')
+class SaveSettings(BaseSettings):
+    __slots__ = SETTING_NAMES = (
+        'path', 'format_index', 'format', 'quality', 'subsampling', 'optimize',
+        'exif', 'lossless', 'compression', 'user_kwds'
+    )
+    kwd_names = (
+        'quality', 'subsampling', 'optimize', 'exif', 'lossless', 'compression'
+    )
 
-    def __init__(self, path: str, format_index: int, format: str, quality: int, subsampling_level: int):
+    def __init__(
+            self, path: str, format_index: int, format: str, quality: int, subsampling: int,
+            optimize: bool, exif: bool, lossless: bool, compression: str, user_kwds: dict[str, Any]
+        ):
         self.path = path
         self.format_index = format_index
         self.format = format
         self.quality = quality
-        self.subsampling_level = subsampling_level
+        self.subsampling = subsampling
+        self.optimize = optimize
+        self.exif = exif
+        self.lossless = lossless
+        self.compression = compression
+        self.user_kwds = user_kwds
+
+    @property
+    def kwds(self) -> dict[str, Any]:
+        kwds = {k: getattr(self, k) for k in self.kwd_names}
+        if kwds['compression'] == 'none':
+            kwds['compression'] = None
+        return kwds | self.user_kwds
 
 
 class ProgressBar(object):

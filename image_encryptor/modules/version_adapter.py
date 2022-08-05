@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-22 11:51:27
+LastEditTime : 2022-08-05 12:13:45
 Description  : 对低版本加密的图像的加密信息进行转换, 向下兼容
 """
 from base64 import b64decode, b85encode
 from json import JSONDecodeError, loads
 from os.path import getsize
-from typing import Callable, Type
+from typing import Callable
 
 from image_encryptor.constants import (EA_VERSION, EAERR_DECODE_FAILED,
                                        EAERR_INCOMPATIBLE, EAERR_NO_ATTRIBUTES,

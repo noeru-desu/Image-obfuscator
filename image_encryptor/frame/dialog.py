@@ -2,27 +2,35 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-21 19:21:07
+LastEditTime : 2022-08-05 12:05:53
 Description  : 对话框相关
 """
+from json import JSONDecodeError, dumps, loads
 from typing import TYPE_CHECKING, Optional
 
+from image_encryptor.frame.design_frame import JsonEditorDialog as JED
+from image_encryptor.frame.design_frame import PasswordDialog as PD
+from image_encryptor.utils.thread import SingleThreadExecutor
 from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DEFAULT_STYLE,
                 DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR, FD_DEFAULT_STYLE,
                 FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, HELP, ICON_ERROR,
                 ICON_INFORMATION, ICON_QUESTION, ICON_WARNING, ID_CANCEL,
-                ID_OK, STAY_ON_TOP, YES_NO, DirDialog, FileDialog,
-                MessageDialog)
+                ID_NO, ID_OK, ID_YES, STAY_ON_TOP, YES_NO, RED, WHITE, Colour, DirDialog,
+                FileDialog, MessageDialog)
+from wx.stc import (STC_JSON_BLOCKCOMMENT, STC_JSON_COMPACTIRI,
+                    STC_JSON_DEFAULT, STC_JSON_ERROR, STC_JSON_ESCAPESEQUENCE,
+                    STC_JSON_KEYWORD, STC_JSON_LDKEYWORD, STC_JSON_LINECOMMENT,
+                    STC_JSON_NUMBER, STC_JSON_OPERATOR, STC_JSON_PROPERTYNAME,
+                    STC_JSON_STRING, STC_JSON_STRINGEOL, STC_JSON_URI,
+                    STC_LEX_JSON)
 
-from image_encryptor.frame.design_frame import PasswordDialog as PD
-from image_encryptor.utils.thread import SingleThreadExecutor
 # from image_encryptor.utils.debugging_utils import gen_slots_str
 
 if TYPE_CHECKING:
     from os import PathLike
 
     from image_encryptor.frame.events import MainFrame
-    from wx import Window
+    from wx import CloseEvent, Window
 
 
 class Dialog(object):
@@ -66,7 +74,7 @@ class Dialog(object):
             self.frame.logger.info(f'[{title}]{message}')
         return self.dialog(message, title, style, parent)
 
-    def question(self, message: str, title: str = '确认', additional_style: int = ..., log: bool = True, parent: 'Window' = ...) -> int:
+    def question(self, message: str, title: str = '询问', additional_style: int = ..., log: bool = True, parent: 'Window' = ...) -> int:
         style = ICON_QUESTION | STAY_ON_TOP
         if additional_style is not Ellipsis:
             style |= additional_style
@@ -90,7 +98,7 @@ class Dialog(object):
             self.frame.logger.error(f'[{title}]{message}')
         return self.dialog(message, title, style, parent)
 
-    def confirmation_frame(self, message: str, title: str = '确认', style: int = YES_NO | CANCEL, yes='是', no='否', cancel='取消', help=None, parent: 'Window' = ...) -> int:
+    def confirmation_frame(self, message: str, title: str = '询问', style: int = YES_NO | CANCEL, yes='是', no='否', cancel='取消', help=None, parent: 'Window' = ...) -> int:
         if parent is Ellipsis:
             parent = self.frame
         if help is not None:
@@ -111,6 +119,17 @@ class Dialog(object):
             return None
         elif return_code == ID_OK:
             return dialog.correct_password
+
+    def json_editor_dialog(self, title_text: str = '编辑Json文本', extra_info: str = '', extra_link: str = '', extra_link_info: str = '', json_text: str = '{\n  \n}', parent: 'Window' = ...):
+        if parent is Ellipsis:
+            parent = self.frame
+        dialog = JsonEditorDialog(parent, title_text, extra_info, extra_link, extra_link_info, json_text)
+        with dialog:
+            return_code = dialog.ShowModal()
+        if return_code == ID_CANCEL:
+            return None
+        elif return_code == ID_OK:
+            return dialog.user_saved_json, dialog.user_saved_dict
 
     """
     def _register_async_dialog(self, force: bool = False) -> bool:
@@ -225,3 +244,110 @@ class PasswordDialog(PD):
 
     def user_cancel(self, event):
         self.EndModal(ID_CANCEL)
+
+
+# 样式与Scintilla的json.properties中的配置大部分相同
+json_foreground_style = (
+    (STC_JSON_DEFAULT, Colour(150, 150, 150)),
+    (STC_JSON_ERROR, WHITE),
+    (STC_JSON_NUMBER, Colour(0, 127, 127)),
+    (STC_JSON_STRING, Colour(127, 0, 0)),
+    (STC_JSON_STRINGEOL, WHITE),
+    (STC_JSON_PROPERTYNAME, Colour(136, 10, 232)),
+    (STC_JSON_ESCAPESEQUENCE, Colour(11, 152, 46)),
+    (STC_JSON_LINECOMMENT, Colour(5, 187, 174)),
+    (STC_JSON_BLOCKCOMMENT, Colour(5, 187, 174)),
+    (STC_JSON_OPERATOR, Colour(24, 100, 74)),
+    (STC_JSON_URI, Colour(24, 100, 255)),
+    (STC_JSON_COMPACTIRI, Colour(209, 55, 193)),
+    (STC_JSON_KEYWORD, Colour(11, 206, 167)),
+    (STC_JSON_LDKEYWORD, Colour(236, 40, 6))
+)
+
+
+class JsonEditorDialog(JED):
+    __slots__ = ('_parent', 'target_json_type', 'user_saved_json', 'user_saved_dict')
+
+    def __init__(self, parent: 'MainFrame', title_text: str = '编辑Json文本', extra_info: str = '', extra_link: str = '', extra_link_info: str = '', json_text: str = '{\n  \n}', target_json_type=dict):
+        # o_args = set(dir(self))
+        super().__init__(parent)
+        # n_args = set(dir(self))
+        # gen_slots_str(n_args - o_args)
+        self._parent = parent
+        self.target_json_type = target_json_type
+        self.user_saved_json = None
+        self.user_saved_dict = None
+        self.titleText.SetLabelText(title_text)
+        self.extraInfoText.SetLabelText(extra_info)
+        self.extraLink.SetLabelText(extra_link_info)
+        self.extraLink.SetURL(extra_link)
+        self.textEditor.SetValue(json_text)
+        self.SetReturnCode(ID_CANCEL)
+        self.set_style()
+        self.Layout()
+
+    def set_style(self):
+        # 样式与Scintilla的json.properties中的配置相同(除特殊注释处)
+        self.textEditor.StyleClearAll()
+        self.textEditor.SetViewWhiteSpace(True)
+        self.textEditor.SetLexer(STC_LEX_JSON)
+        self.textEditor.SetProperty('lexer.json.allow.comments', "0")   # Python内置json标准库不支持注释(第三方库json5支持)
+        self.textEditor.SetProperty('lexer.json.escape.sequence', "1")
+        self.textEditor.SetKeyWords(0, 'false true null')
+        self.textEditor.SetKeyWords(1, '@id @context @type @value @language @container @list @set @reverse @index @base @vocab @graph')
+        for style, fore in json_foreground_style:
+            self.textEditor.StyleSetForeground(style, fore)
+        self.textEditor.SetWhitespaceSize(2)
+        self.textEditor.StyleSetBackground(STC_JSON_STRINGEOL, RED)
+        self.textEditor.StyleSetBackground(STC_JSON_ERROR, RED)
+        self.textEditor.StyleSetEOLFilled(STC_JSON_STRINGEOL, True)
+        self.textEditor.StyleSetBold(STC_JSON_KEYWORD, True)
+        self.textEditor.StyleSetItalic(STC_JSON_LINECOMMENT, True)
+        self.textEditor.StyleSetItalic(STC_JSON_BLOCKCOMMENT, True)
+
+    def check_json_format(self, event=None) -> Optional[dict]:
+        try:
+            data = loads(self.textEditor.GetValue())
+        except JSONDecodeError as e:
+            if e.doc[e.pos] == '/':
+                self._parent.dialog.async_warning(f'注释功能不被Python中的json标准库支持: 第{e.lineno}行, 第{e.colno}列 (从文本开头开始第{e.pos}个字符)\n', 'Json格式检查', parent=self)
+            else:
+                self._parent.dialog.async_warning(f'{e.msg}: 第{e.lineno}行, 第{e.colno}列 (从文本开头开始第{e.pos}个字符)', 'Json格式检查', parent=self)
+            return None
+        else:
+            if not isinstance(data, dict):
+                self._parent.dialog.async_warning('Json类型错误, 需要键值对，而不是数组', 'Json格式检查', parent=self)
+                return None
+            if event is None:
+                return data
+            self._parent.dialog.async_info('Json文本基础格式检查已通过', 'Json格式检查', parent=self)
+        return None
+
+    def format_json(self, event):
+        data = self.check_json_format()
+        if data is None:
+            return
+        self.textEditor.SetValue(dumps(data, indent=2))
+
+    def clear_json(self, event):
+        flag = self._parent.dialog.confirmation_frame('确定清空Json文本吗?', parent=self)
+        if flag != ID_YES:
+            return
+        self.textEditor.SetValue('{\n  \n}')
+
+    def apply_json(self, event):
+        data = self.check_json_format()
+        if data is None:
+            return
+        self.user_saved_dict = data
+        self.user_saved_json = self.textEditor.GetValue()
+        self.EndModal(ID_OK)
+
+    def close_dialog(self, event: 'CloseEvent'):
+        flag = self._parent.dialog.confirmation_frame('是否保存当前的Json文本?', parent=self)
+        if flag == ID_NO:
+            self.EndModal(ID_CANCEL)
+        elif flag == ID_YES:
+            self.apply_json(event)
+        else:
+            event.Veto()

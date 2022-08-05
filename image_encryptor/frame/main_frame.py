@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-31 19:34:14
+LastEditTime : 2022-08-05 11:37:49
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -23,7 +23,7 @@ from image_encryptor.constants import (EXTENSION_KEYS_STRING, FULL_VERSION_STRIN
 from image_encryptor.frame.controller import Controller, SegmentTrigger
 from image_encryptor.frame.design_frame import MainFrame as MF
 from image_encryptor.frame.dialog import Dialog
-from image_encryptor.frame.drag_importer import DragLoadingFile, DragSavingPath
+from image_encryptor.frame.drag_importer import DragLoadingFile, DragSavePath
 from image_encryptor.frame.file_item import Item, PreviewCache
 from image_encryptor.frame.image_loader import ImageLoader
 from image_encryptor.frame.image_saver import ImageSaver
@@ -114,7 +114,7 @@ class MainFrame(MF):
 
         # 文件拖入
         self.imageTreeCtrl.SetDropTarget(DragLoadingFile(self))
-        self.savingOptions.SetDropTarget(DragSavingPath(self))
+        self.saveOptions.SetDropTarget(DragSavePath(self))
 
         # hook
         at_exit(self.process_pool.shutdown, wait=False, cancel_futures=True)
@@ -126,15 +126,15 @@ class MainFrame(MF):
             AcceleratorEntry(ACCEL_NORMAL, WXK_F5, self.manuallyRefreshBtn.Id),  # F5     - 手动刷新预览图
             AcceleratorEntry(ACCEL_CTRL, ord('d'), self.delBtn.Id),              # Ctrl+D - 删除选中的项目(同Del)
             AcceleratorEntry(ACCEL_CTRL, ord('r'), self.reloadingBtn.Id),        # Ctrl+R - 重载选中的项目
-            AcceleratorEntry(ACCEL_CTRL, ord('s'), self.savingBtn.Id),           # Ctrl+S - 保存选中的项目
+            AcceleratorEntry(ACCEL_CTRL, ord('s'), self.saveBtn.Id),             # Ctrl+S - 保存选中的项目
             AcceleratorEntry(ACCEL_CTRL, ord('o'), self.loadingFileBtn.Id),      # Ctrl+O - 打开图像
             AcceleratorEntry(ACCEL_CTRL, ord('v'), self.loadingClipboardBtn.Id)  # Ctrl+V - 从剪切板打开图像
         ]))
 
         # 准备工作
         self.run_path = run_path
-        self.savingFormat.ToolTip = f'{self.savingFormat.GetToolTipText()}{EXTENSION_KEYS_STRING}'
-        self.selectSavingPath.PickerCtrl.SetLabel('选择文件夹')
+        self.saveFormat.ToolTip = f'{self.saveFormat.GetToolTipText()}{EXTENSION_KEYS_STRING}'
+        self.selectSavePath.PickerCtrl.SetLabel('选择文件夹')
 
         self.logger.info('窗口初始化完成')
         # self.Show()
