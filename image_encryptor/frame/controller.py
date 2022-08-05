@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-05 11:28:57
+LastEditTime : 2022-08-05 18:41:28
 Description  : 界面控制相关
 """
 from json import dumps
@@ -33,7 +33,7 @@ class Controller(object):
     "控件/控制器"
     __slots__ = (
         'frame', 'previous_save_format', 'previous_proc_mode', 'imported_image_id', 'visible_proc_settings_panel',
-        'password_ctrl_hash', 'save_kwds_dict'
+        'password_ctrl_hash', '_save_kwds_dict', 'save_kwds_json'
     )
 
     def __init__(self, frame: 'MainFrame'):
@@ -43,7 +43,8 @@ class Controller(object):
         self.imported_image_id = 0
         self.visible_proc_settings_panel: Optional['Panel'] = None
         self.password_ctrl_hash = hash(self.frame.passwordCtrl)
-        self.save_kwds_dict = {}
+        self._save_kwds_dict: dict[str, Any] = {}
+        self.save_kwds_json: str = '{\n\t\n}'
 
     # ----------
     # properties
@@ -335,10 +336,12 @@ class Controller(object):
     def save_format_index(self, v: int): self.frame.saveFormat.Select(v)
 
     @property
-    def save_kwds_json(self) -> str: return self.frame.saveKwdsJson.GetValue()
+    def save_kwds_dict(self) -> dict: return self._save_kwds_dict
 
-    @save_kwds_json.setter
-    def save_kwds_json(self, v: str): self.frame.saveKwdsJson.SetValue(v)
+    @save_kwds_dict.setter
+    def save_kwds_dict(self, v: dict):
+        self._save_kwds_dict = v
+        self.frame.saveKwdsJson.SetValue(dumps(v))
 
     @property
     def save_progress_info(self) -> str: return self.frame.saveProgressInfo.GetLabelText()

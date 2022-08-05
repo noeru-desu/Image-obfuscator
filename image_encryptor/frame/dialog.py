@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-05 12:05:53
+LastEditTime : 2022-08-05 18:10:32
 Description  : 对话框相关
 """
 from json import JSONDecodeError, dumps, loads
@@ -120,7 +120,7 @@ class Dialog(object):
         elif return_code == ID_OK:
             return dialog.correct_password
 
-    def json_editor_dialog(self, title_text: str = '编辑Json文本', extra_info: str = '', extra_link: str = '', extra_link_info: str = '', json_text: str = '{\n  \n}', parent: 'Window' = ...):
+    def json_editor_dialog(self, title_text: str = '编辑Json文本', extra_info: str = '', extra_link: str = '', extra_link_info: str = '', json_text: str = '{\n\t\n}', parent: 'Window' = ...):
         if parent is Ellipsis:
             parent = self.frame
         dialog = JsonEditorDialog(parent, title_text, extra_info, extra_link, extra_link_info, json_text)
@@ -268,7 +268,7 @@ json_foreground_style = (
 class JsonEditorDialog(JED):
     __slots__ = ('_parent', 'target_json_type', 'user_saved_json', 'user_saved_dict')
 
-    def __init__(self, parent: 'MainFrame', title_text: str = '编辑Json文本', extra_info: str = '', extra_link: str = '', extra_link_info: str = '', json_text: str = '{\n  \n}', target_json_type=dict):
+    def __init__(self, parent: 'MainFrame', title_text: str = '编辑Json文本', extra_info: str = '', extra_link: str = '', extra_link_info: str = '', json_text: str = '{\n\t\n}', target_json_type=dict):
         # o_args = set(dir(self))
         super().__init__(parent)
         # n_args = set(dir(self))
@@ -333,7 +333,7 @@ class JsonEditorDialog(JED):
         flag = self._parent.dialog.confirmation_frame('确定清空Json文本吗?', parent=self)
         if flag != ID_YES:
             return
-        self.textEditor.SetValue('{\n  \n}')
+        self.textEditor.SetValue('{\n\t\n}')
 
     def apply_json(self, event):
         data = self.check_json_format()

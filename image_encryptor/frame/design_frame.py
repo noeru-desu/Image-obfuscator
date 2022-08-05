@@ -518,7 +518,7 @@ class MainFrame (wx.Frame):
 
         bSizer48.Add(self.m_button18, 0, 0, 5)
 
-        self.saveKwdsJson = wx.TextCtrl(sbSizer61.GetStaticBox(), wx.ID_ANY, u"{\n  \n}", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_NO_VSCROLL | wx.TE_READONLY)
+        self.saveKwdsJson = wx.TextCtrl(sbSizer61.GetStaticBox(), wx.ID_ANY, u"{\n\t\n}", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_NO_VSCROLL | wx.TE_READONLY)
         self.saveKwdsJson.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
         self.saveKwdsJson.SetToolTip(u"自定义键值对以使用支持的任意保存参数(若与上方的交互式参数重复，重复部分将始终使用自定义参数)")
 
