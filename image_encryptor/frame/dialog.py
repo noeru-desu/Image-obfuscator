@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-05 18:10:32
+LastEditTime : 2022-08-07 10:14:32
 Description  : 对话框相关
 """
 from json import JSONDecodeError, dumps, loads
@@ -306,8 +306,12 @@ class JsonEditorDialog(JED):
         self.textEditor.StyleSetItalic(STC_JSON_BLOCKCOMMENT, True)
 
     def check_json_format(self, event=None) -> Optional[dict]:
+        value = self.textEditor.GetValue()
+        if not value:
+            self.textEditor.SetValue('{\n\t\n}')
+            value = '{\n\t\n}'
         try:
-            data = loads(self.textEditor.GetValue())
+            data = loads(value)
         except JSONDecodeError as e:
             if e.doc[e.pos] == '/':
                 self._parent.dialog.async_warning(f'注释功能不被Python中的json标准库支持: 第{e.lineno}行, 第{e.colno}列 (从文本开头开始第{e.pos}个字符)\n', 'Json格式检查', parent=self)
