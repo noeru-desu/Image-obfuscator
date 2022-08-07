@@ -504,6 +504,8 @@ class MainFrame (wx.Frame):
 
         sbSizer61.Add(bSizer47, 0, 0, 0)
 
+        sbSizer61.Add((0, 0), 1, 0, 5)
+
         bSizer48 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.m_staticText29 = wx.StaticText(sbSizer61.GetStaticBox(), wx.ID_ANY, u"其他参数(具有最高优先级)", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -518,7 +520,7 @@ class MainFrame (wx.Frame):
 
         bSizer48.Add(self.m_button18, 0, 0, 5)
 
-        self.saveKwdsJson = wx.TextCtrl(sbSizer61.GetStaticBox(), wx.ID_ANY, u"{\n\t\n}", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_NO_VSCROLL | wx.TE_READONLY)
+        self.saveKwdsJson = wx.TextCtrl(sbSizer61.GetStaticBox(), wx.ID_ANY, u"{}", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_NO_VSCROLL | wx.TE_READONLY)
         self.saveKwdsJson.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
         self.saveKwdsJson.SetToolTip(u"自定义键值对以使用支持的任意保存参数(若与上方的交互式参数重复，重复部分将始终使用自定义参数)")
 
@@ -672,8 +674,8 @@ class MainFrame (wx.Frame):
         self.resamplingFilter.Bind(wx.EVT_RADIOBOX, self.force_refresh_preview)
         self.saveFormat.Bind(wx.EVT_COMBOBOX, self.record_save_format)
         self.saveFormat.Bind(wx.EVT_TEXT_ENTER, self.check_save_format)
-        self.m_button8.Bind(wx.EVT_BUTTON, self.bulk_save)
         self.saveBtn.Bind(wx.EVT_BUTTON, self.save_selected_image)
+        self.m_button8.Bind(wx.EVT_BUTTON, self.bulk_save)
         self.stopSaveBtn.Bind(wx.EVT_BUTTON, self.stop_save_event)
         self.saveQuality.Bind(wx.EVT_SCROLL, self.update_quality_num)
         self.subsamplingLevel.Bind(wx.EVT_SCROLL, self.update_subsampling_num)
@@ -768,10 +770,10 @@ class MainFrame (wx.Frame):
     def check_save_format(self, event):
         event.Skip()
 
-    def bulk_save(self, event):
+    def save_selected_image(self, event):
         event.Skip()
 
-    def save_selected_image(self, event):
+    def bulk_save(self, event):
         event.Skip()
 
     def stop_save_event(self, event):
