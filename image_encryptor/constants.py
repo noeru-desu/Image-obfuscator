@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-05 08:48:42
+LastEditTime : 2022-08-07 10:20:29
 Description  : 常量
 """
 from platform import machine, platform
@@ -25,7 +25,6 @@ try:
     from nuitka.Version import getNuitkaVersion as nuitka_ver
 except ImportError:
     nuitka_ver = lambda: '[未安装]'
-COMPILED = True
 
 Pillow_init()
 
@@ -34,11 +33,12 @@ RELEASE_CANDIDATE = 1
 DEV = 2
 BETA = 3
 ALPHA = 4
-VERSION_TYPE = BETA
+VERSION_TYPE = RELEASE_CANDIDATE
 VERSION = '2.0.0'
-PRE_RELEASE_VERSION = 'beta.4'
-BATCH = '20220805a'
+PRE_RELEASE_VERSION = 'rc.1'
+BATCH = '20220807a'
 BUILD_METADATA = BATCH # 'build.4' / BATCH
+COMPILED = True
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-encryptor'
