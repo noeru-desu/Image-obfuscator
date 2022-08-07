@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-15 18:10:55
+LastEditTime : 2022-07-30 09:04:23
 Description  : 一些小东西
 """
 from collections import deque
@@ -196,3 +196,23 @@ class Singleton(type):
         if not hasattr(self, 'inst'):
             self.inst = super().__call__(*args, **kwds)
         return self.inst
+
+
+class SingleCache(object):
+    __slots__ = ('_func', '_c_result', '_c_args', '_c_kwds')
+
+    def __init__(self, func: Callable):
+        self._func = func
+        self._c_result = ...
+        self._c_args = ...
+        self._c_kwds = ...
+
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        if self._c_result is Ellipsis or self._c_args != args or self._c_kwds != kwds:
+            self._c_args = args
+            self._c_kwds = kwds
+            self._c_result = self._func(*args, **kwds)
+        return self._c_result
+
+    def clear(self):
+        self._c_result = ...

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-06-07 06:20:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-05 11:24:14
+LastEditTime : 2022-08-06 18:25:31
 Description  : 
 """
 from pickle import dump as pickle_dump, load as pickle_load
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 class ConfigManager(object):
     __slots__ = (
         'frame', 'data_path', 'frame_settings_path', 'password_dict_path', 'default_frame_settings',
-        'FrameConfig'
+        'FrameConfig', 'image_items_path'
     )
 
     def __init__(self, frame: 'MainFrame') -> None:
@@ -30,6 +30,7 @@ class ConfigManager(object):
         self.data_path = join(getenv('LOCALAPPDATA', 'pickles'), 'ImageEncryptor')
         self.frame_settings_path = join(self.data_path, 'frame_settings.pickle')
         self.password_dict_path = join(self.data_path, 'password_dict.pickle')
+        self.image_items_path = join(self.data_path, 'image_items.pickle')
         if not exists(self.data_path):
             mkdir(self.data_path)
         self.default_frame_settings = self.gen_frame_settings()
@@ -118,3 +119,11 @@ class ConfigManager(object):
         except Exception:
             self.frame.logger.warning('应用配置文件时出现错误\n{}'.format(format_exc().rstrip('\r\n')))
             self.frame.logger.warning('出现此问题不影响程序使用, 可能是配置文件版本过高导致')
+
+    def save_loaded_image_items(self):
+        image_items = (
+            [() for path, mode, settings in self.frame.tree_manager.all_folder_item_data],
+            [() for path, mode, settings in self.frame.tree_manager.all_image_item_data]
+        )
+        with open(self.image_items_path, 'wb') as f:
+            pickle_dump(self.gen_frame_settings(), f)
