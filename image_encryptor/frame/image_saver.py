@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-05 11:11:17
+LastEditTime : 2022-08-08 09:40:54
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -191,9 +191,9 @@ class ImageSaver(object):
     def _save_task(self, mode_interface: 'ModeInterface', image_item: 'ImageItem', settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters', save_settings: 'SaveSettings', relative_save_path: str = '', quiet=False):
         loaded_image = image_item.cache.loaded_image
         result = (mode_interface.proc_image_quietly(
-            self.frame, loaded_image, True, PillowImage, settings, encryption_parameters
+            loaded_image, True, PillowImage, settings, encryption_parameters
         ) if quiet else mode_interface.proc_image(
-            self.frame, loaded_image, True, PillowImage, settings, encryption_parameters,
+            loaded_image, True, PillowImage, settings, encryption_parameters,
             self.frame.saveProgressInfo.SetLabelText, self.frame.saveProgress
         ))
         if __debug__:

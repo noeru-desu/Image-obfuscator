@@ -2,17 +2,19 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:39:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-27 08:43:14
+LastEditTime : 2022-08-08 12:59:28
 Description  : 设置选项
 """
 from base64 import b85decode
 from pickle import loads as pickle_loads
-from typing import TYPE_CHECKING, Iterable, Any
+from typing import TYPE_CHECKING, Callable, Iterable, Any
 
 from image_encryptor.modes.base import BaseSettings, Channels
 
 if TYPE_CHECKING:
-    from image_encryptor.modes.encrypt.controller import EncryptModeController
+    from image_encryptor.modes.base import ModeConstants
+    from image_encryptor.modes.decrypt.controller import DecryptModeController
+    from image_encryptor.modes.decrypt.panel import ProcSettingsPanel
 
 
 class EncryptionParametersData(BaseSettings):
@@ -68,8 +70,10 @@ class EncryptionParametersData(BaseSettings):
 
 class EncryptionParameters(EncryptionParametersData):
     __slots__ = ()
-    MODE_CONTROLLER: 'EncryptModeController'
+    mode_controller: 'DecryptModeController'
+    settings_panel: 'ProcSettingsPanel'
     PASSWORD_PROPERTY_NAME = 'password'
+    mode_constants: 'ModeConstants' = ...
 
     def __init__(self, parameters: dict[str, Any] | Iterable[Any]):
         super().__init__(parameters)
@@ -79,35 +83,128 @@ class EncryptionParameters(EncryptionParametersData):
     def get_password(self):
         if not self.has_password:
             return 100
-        self.password = self.MAIN_CONTROLLER.frame.password_dict.get_password(self.password_base85)
-        if self.password is None:
-            return None
+        self.password = self.main_controller.frame.password_dict.get_password(self.password_base85)
         return self.password
 
     def backtrack_interface(self):
         """将加密参数显示到界面"""
-        self.MODE_CONTROLLER.cutting_row = self.cutting_row
-        self.MODE_CONTROLLER.cutting_col = self.cutting_col
-        self.MODE_CONTROLLER.shuffle_chunks = self.shuffle_chunks
-        self.MODE_CONTROLLER.mapping_channels = self.mapping_channels
-        self.MODE_CONTROLLER.flip_chunks = self.flip_chunks
-        self.MODE_CONTROLLER.noise_XOR = self.noise_XOR
-        self.MODE_CONTROLLER.noise_factor = self.noise_factor
-        self.MODE_CONTROLLER.noise_factor_info = str(self.noise_factor)
-        self.MODE_CONTROLLER.XOR_encryption = self.XOR_encryption
-        self.MODE_CONTROLLER.XOR_channels = self.XOR_channels
+        self.mode_controller.cutting_row = self.cutting_row
+        self.mode_controller.cutting_col = self.cutting_col
+        self.mode_controller.shuffle_chunks = self.shuffle_chunks
+        self.mode_controller.mapping_channels = self.mapping_channels
+        self.mode_controller.flip_chunks = self.flip_chunks
+        self.mode_controller.noise_XOR = self.noise_XOR
+        self.mode_controller.noise_factor = self.noise_factor
+        self.mode_controller.noise_factor_info = str(self.noise_factor)
+        self.mode_controller.XOR_encryption = self.XOR_encryption
+        self.mode_controller.XOR_channels = self.XOR_channels
+        self.mode_controller.core_version = self.version
+        self.settings_panel.origWidth.SetMax(self.orig_width)
+        self.settings_panel.origHeight.SetMax(self.orig_height)
+        self.mode_controller.orig_width = self.orig_width
+        self.mode_controller.orig_height = self.orig_height
         if self.has_password:
             while self.password is None:
-                self.password = self.MAIN_CONTROLLER.frame.password_dict.get_password(self.password_base85)
+                self.password = self.main_controller.frame.password_dict.get_password(self.password_base85)
                 if self.password is not None:
                     break
-                self.password = self.MAIN_CONTROLLER.frame.dialog.password_dialog(self.MAIN_CONTROLLER.frame.image_item.path_data.file_name, self.password_base85, True)
+                self.password = self.main_controller.frame.dialog.password_dialog(self.main_controller.frame.image_item.path_data.file_name, self.password_base85, True)
                 if self.password is not None:
                     break
-                self.MAIN_CONTROLLER.password = ''
+                self.main_controller.password = ''
                 self.set_enable_password(True)
                 return
             self.set_enable_password(False)
-            self.MAIN_CONTROLLER.password = self.password
+            self.main_controller.password = self.password
         else:
-            self.MAIN_CONTROLLER.password = 'none'
+            self.main_controller.password = 'none'
+
+
+class Settings(BaseSettings):
+    __slots__ = SETTING_NAMES = (
+        'cutting_row', 'cutting_col', 'shuffle_chunks', 'flip_chunks',
+        'mapping_channels', 'XOR_encryption', 'XOR_channels', 'noise_XOR', 'noise_factor',
+        'password', 'orig_width', 'orig_height', 'version'
+    )
+    mode_controller: 'DecryptModeController'
+    settings_panel: 'ProcSettingsPanel'
+    PASSWORD_PROPERTY_NAME = 'password'
+
+    def __init__(self, settings: Iterable[Any] = None):
+        """
+        Args:
+            controller (Controller): Controller实例.\n
+            settings (Iterable[Any], optional): settings (Iterable[Any]): 可迭代对象(一般是由`(self.properties_tuple)`生成的元组)
+            默认为None, 为None时将从界面中获取加密设置
+        """
+        if settings is None:
+            self.sync_from_interface()
+        else:
+            self.sync_from_tuple(settings)
+        super().__init__(settings)
+
+    @classmethod
+    def gen_settings_mapping_kwargs(cls) -> dict[int, tuple[str, Callable]]:
+        mode_controller: 'DecryptModeController' = cls.mode_constants.mode_controller
+        settings_panel: 'ProcSettingsPanel' = cls.mode_constants.settings_panel
+        mapping_channels = ('mapping_channels', lambda event: mode_controller.mapping_channels)
+        XOR_channels = ('XOR_channels', lambda event: mode_controller.XOR_channels)
+        return {
+            hash(settings_panel.cuttingRow): ('cutting_row', lambda event: mode_controller.cutting_row),
+            hash(settings_panel.cuttingCol): ('cutting_col', lambda event: mode_controller.cutting_col),
+            hash(settings_panel.shuffleChunks): ('shuffle_chunks', lambda event: mode_controller.shuffle_chunks),
+            hash(settings_panel.flipChunks): ('flip_chunks', lambda event: mode_controller.flip_chunks),
+            hash(settings_panel.mappingR): mapping_channels, hash(settings_panel.mappingG): mapping_channels,
+            hash(settings_panel.mappingB): mapping_channels, hash(settings_panel.mappingA): mapping_channels,
+            hash(settings_panel.XOREncryption): ('XOR_encryption', lambda event: mode_controller.XOR_encryption),
+            hash(settings_panel.XORR): XOR_channels, hash(settings_panel.XORG): XOR_channels,
+            hash(settings_panel.XORB): XOR_channels, hash(settings_panel.XORA): XOR_channels,
+            hash(settings_panel.noiseXor): ('noise_XOR', lambda event: mode_controller.noise_XOR),
+            hash(settings_panel.noiseFactor): ('noise_factor', lambda event: mode_controller.noise_factor),
+            hash(settings_panel.origWidth): ('orig_width', lambda event: mode_controller.orig_width),
+            hash(settings_panel.origHeight): ('orig_height', lambda event: mode_controller.orig_height),
+            hash(settings_panel.coreVersion): ('version', lambda event: mode_controller.core_version)
+        }
+
+    def get_password(self):
+        return 100 if self.password == 'none' else self.password
+
+    def sync_from_interface(self):
+        self.cutting_row = self.mode_controller.cutting_row
+        self.cutting_col = self.mode_controller.cutting_col
+        self.shuffle_chunks = self.mode_controller.shuffle_chunks
+        self.flip_chunks = self.mode_controller.flip_chunks
+        self.mapping_channels = self.mode_controller.mapping_channels
+        self.XOR_encryption = self.mode_controller.XOR_encryption
+        self.XOR_channels = self.mode_controller.XOR_channels
+        self.noise_XOR = self.mode_controller.noise_XOR
+        self.noise_factor = self.mode_controller.noise_factor
+        self.version = self.mode_controller.core_version
+        self.password = self.main_controller.password
+        self.orig_width = self.mode_controller.orig_width
+        self.orig_height = self.mode_controller.orig_height
+
+    def backtrack_interface(self):
+        """将加密设置显示到界面"""
+        self.mode_controller.cutting_row = self.cutting_row
+        self.mode_controller.cutting_col = self.cutting_col
+        self.mode_controller.shuffle_chunks = self.shuffle_chunks
+        self.mode_controller.mapping_channels = self.mapping_channels
+        self.mode_controller.flip_chunks = self.flip_chunks
+        self.main_controller.password = self.password
+        self.mode_controller.XOR_encryption = self.XOR_encryption
+        self.mode_controller.XOR_channels = self.XOR_channels
+        self.mode_controller.noise_XOR = self.noise_XOR
+        self.mode_controller.noise_factor = self.noise_factor
+        self.mode_controller.noise_factor_info = str(self.noise_factor)
+        self.mode_controller.core_version = self.version
+        self.settings_panel.xorPanel.Enable(self.XOR_encryption)
+        self.settings_panel.noiseFactor.Enable(self.XOR_encryption and self.noise_XOR)
+        w, h = self.main_frame.image_item.cache.loaded_image_size
+        self.settings_panel.origWidth.SetMax(w)
+        self.settings_panel.origHeight.SetMax(h)
+        if self.orig_width == 1 and self.orig_height == 1:
+            self.orig_width = w
+            self.orig_height = h
+        self.mode_controller.orig_width = self.orig_width
+        self.mode_controller.orig_height = self.orig_height

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-05 11:37:49
+LastEditTime : 2022-08-08 21:06:44
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -31,7 +31,7 @@ from image_encryptor.frame.mode_manager import ModeManager
 from image_encryptor.frame.preview_generator import PreviewGenerator
 from image_encryptor.frame.tree_manager import TreeManager
 from image_encryptor.frame.config import ConfigManager
-from image_encryptor.modes.base import EmptySettings
+from image_encryptor.modes.base import EmptySettings, ModeConstants
 from image_encryptor.modules.argparse import Arguments, Parameters
 from image_encryptor.modules.decorator import catch_exc_for_frame_method
 from image_encryptor.modules.password_verifier import PasswordDict
@@ -87,7 +87,9 @@ class MainFrame(MF):
         # 实例化各功能实现
         self.dialog = Dialog(self)
         self.controller = Controller(self)
-        EmptySettings.set_constants(self.controller)
+        ModeConstants.main_frame = self
+        ModeConstants.main_controller = self.controller
+        EmptySettings.create_settings_mapping()
         self.mode_manager = ModeManager(self)
         self.mode_manager.load_builtin_modes()
         self.password_dict = PasswordDict()
@@ -133,6 +135,8 @@ class MainFrame(MF):
 
         # 准备工作
         self.run_path = run_path
+        self.SettingsSourceUsed.EnableItem(1, False)
+        self.SettingsSourceUsed.EnableItem(2, False)
         self.saveFormat.ToolTip = f'{self.saveFormat.GetToolTipText()}{EXTENSION_KEYS_STRING}'
         self.selectSavePath.PickerCtrl.SetLabel('选择文件夹')
 
@@ -190,6 +194,8 @@ class MainFrame(MF):
         Returns:
             bool: 添加成功则返回`True`
         """
+        if password in self.password_dict.values():
+            return True
         try:
             self.password_dict[self.password_dict.get_validation_field_base85(password)] = password
             self.password_dict[self.password_dict.get_validation_field_base85(password, False)] = password
@@ -246,7 +252,9 @@ class MainFrame(MF):
     def apply_settings_to_all(self):
         """将当前加密设置应用到全部"""
         proc_mode = self.controller.proc_mode_interface
-        if proc_mode.requires_encryption_parameters:
+        if not proc_mode.can_be_set_as_default_mode:
+            if __debug__:
+                raise ValueError('Operations not permitted by the current mode interface setting (can_be_set_as_default_mode)')
             return
         properties_tuple = self.controller.current_settings.properties_tuple
         for i in self.tree_manager.all_image_item_data:

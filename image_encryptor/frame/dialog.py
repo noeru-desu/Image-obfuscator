@@ -2,15 +2,15 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-07 10:14:32
+LastEditTime : 2022-08-08 21:07:15
 Description  : 对话框相关
 """
 from json import JSONDecodeError, dumps, loads
+from pickle import loads as pickle_loads
+from base64 import b85decode
 from typing import TYPE_CHECKING, Optional
 
-from image_encryptor.frame.design_frame import JsonEditorDialog as JED
-from image_encryptor.frame.design_frame import PasswordDialog as PD
-from image_encryptor.utils.thread import SingleThreadExecutor
+from pyperclip import copy as clipboard_copy
 from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DEFAULT_STYLE,
                 DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR, FD_DEFAULT_STYLE,
                 FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, HELP, ICON_ERROR,
@@ -23,6 +23,13 @@ from wx.stc import (STC_JSON_BLOCKCOMMENT, STC_JSON_COMPACTIRI,
                     STC_JSON_NUMBER, STC_JSON_OPERATOR, STC_JSON_PROPERTYNAME,
                     STC_JSON_STRING, STC_JSON_STRINGEOL, STC_JSON_URI,
                     STC_LEX_JSON)
+
+from image_encryptor.frame.design_frame import JsonEditorDialog as JED
+from image_encryptor.frame.design_frame import PasswordDialog as PD
+from image_encryptor.frame.design_frame import TextDisplayDialog as TDD
+from image_encryptor.frame.design_frame import MultiLineTextEntryDialog as MLTED
+from image_encryptor.modules.version_adapter import check_version
+from image_encryptor.utils.thread import SingleThreadExecutor
 
 # from image_encryptor.utils.debugging_utils import gen_slots_str
 
@@ -131,6 +138,18 @@ class Dialog(object):
         elif return_code == ID_OK:
             return dialog.user_saved_json, dialog.user_saved_dict
 
+    def text_display_dialog(self, title: str = '文本展示', extra_info: str = '', main_text: str = '', parent: 'Window' = ...):
+        if parent is Ellipsis:
+            parent = self.frame
+        dialog = TextDisplayDialog(parent, title, extra_info, main_text)
+        with dialog:
+            dialog.ShowModal()
+
+    def encryption_attributes_b85_entry_dialog(self):
+        dialog = EncryptionAttributesB85EntryDialog(self.frame, '请输入序列化后的加密参数字段', '请输入序列化后的加密参数字段')
+        with dialog:
+            return_code = dialog.ShowModal()
+        return dialog.succeeded if return_code == ID_OK else None
     """
     def _register_async_dialog(self, force: bool = False) -> bool:
         '''注册异步对话框
@@ -355,3 +374,63 @@ class JsonEditorDialog(JED):
             self.apply_json(event)
         else:
             event.Veto()
+
+
+class TextDisplayDialog(TDD):
+    __slots__ = ()
+
+    def __init__(self, parent: 'MainFrame', title: str = '文本展示', extra_info: str = '', main_text: str = ''):
+        # o_args = set(dir(self))
+        super().__init__(parent)
+        # n_args = set(dir(self))
+        # gen_slots_str(n_args - o_args)
+        self.SetTitle(title)
+        self.extraInfo.SetLabelText(extra_info)
+        self.text.SetValue(main_text)
+        self.SetReturnCode(ID_CANCEL)
+        self.Layout()
+
+    def copy_text(self, event):
+        clipboard_copy(self.text.GetValue())
+        self.actionTip.Show()
+        self.Layout()
+
+
+class MultiLineTextEntryDialog(MLTED):
+    __slots__ = ('user_input', '_parent')
+    _parent: 'MainFrame'
+
+    def __init__(self, parent: 'MainFrame', title: str = '文本输入', extra_info: str = ''):
+        # o_args = set(dir(self))
+        super().__init__(parent)
+        # n_args = set(dir(self))
+        # gen_slots_str(n_args - o_args)
+        self._parent = parent
+        self.SetTitle(title)
+        self.extraInfo.SetLabelText(extra_info)
+        self.SetReturnCode(ID_CANCEL)
+        self.Layout()
+        self.user_input = None
+
+    def confirm(self, event):
+        self.user_input = self.text.GetValue()
+
+    def cancel(self, event):
+        self.EndModal(ID_CANCEL)
+
+
+class EncryptionAttributesB85EntryDialog(MultiLineTextEntryDialog):
+    __slots__ = ('succeeded',)
+
+    def confirm(self, event):
+        try:
+            attributes_dict = pickle_loads(b85decode(self.text.GetValue()))
+        except Exception as e:
+            self._parent.dialog.warning(f'{repr(e)}\n加载当前输入的加密参数时出现以上问题, 请检查输入的序列化字段是否正确且完整', '加载当前输入的加密参数时出现问题', parent=self)
+            return
+        attributes_dict, err = check_version(attributes_dict)
+        if err is not None:
+            self._parent.dialog.warning(f'检查当前输入的加密参数时出现错误: {err}', parent=self)
+            return
+        self.succeeded = self._parent.image_item.load_encryption_attributes(attributes_dict, err)
+        self.EndModal(ID_OK)

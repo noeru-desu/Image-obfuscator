@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-24 12:16:16
+LastEditTime : 2022-08-07 16:06:24
 Description  : 加密模式
 """
 from json import dumps
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from image_encryptor.modules.image import WrappedImage, ImageData
 
 
-def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'Settings', encryption_parameters: 'EmptySettings', label_text_setter: Callable, gauge: 'Gauge') -> 'WrappedImage':
+def normal_gen(source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'Settings', encryption_parameters: 'EmptySettings', label_text_setter: Callable, gauge: 'Gauge') -> 'WrappedImage':
     step_count = 0
     if settings.shuffle_chunks or settings.flip_chunks or settings.mapping_channels:
         step_count += 2
@@ -61,7 +61,7 @@ def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return
     return image
 
 
-def normal_gen_quietly(frame: 'MainFrame', source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'Settings', encryption_parameters: 'EmptySettings') -> 'WrappedImage':
+def normal_gen_quietly(source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'Settings', encryption_parameters: 'EmptySettings') -> 'WrappedImage':
     if not settings.shuffle_chunks and not settings.flip_chunks and not settings.mapping_channels and not settings.XOR_encryption:
         return WrappedPillowImage(source)
 

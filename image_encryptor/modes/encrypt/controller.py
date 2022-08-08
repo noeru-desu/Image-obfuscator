@@ -2,32 +2,32 @@
 Author       : noeru_desu
 Date         : 2022-04-17 13:38:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-28 19:56:52
+LastEditTime : 2022-08-08 08:40:10
 Description  : 
 """
 from typing import TYPE_CHECKING, Optional
 
-from image_encryptor.modes.base import ModeController, Channels
+from image_encryptor.modes.base import BaseModeController, Channels
 
 if TYPE_CHECKING:
-    from image_encryptor.frame.events import MainFrame
+    from image_encryptor.modes.base import ModeConstants
     from image_encryptor.modes.encrypt.panel import ProcSettingsPanel
 
 
-class EncryptModeController(ModeController):
+class EncryptModeController(BaseModeController):
     "控制器"
-    __slots__ = ('frame', 'settings_panel', 'mapping_checkboxes', 'XOR_checkboxes')
+    __slots__ = ('frame', 'mapping_checkboxes', 'XOR_checkboxes')
     _instance: Optional['EncryptModeController'] = None
+    mode_constants: 'ModeConstants' = ...
 
     def __new__(cls: type['EncryptModeController'], *_):
         return super().__new__(cls) if cls._instance is None else cls._instance
 
-    def __init__(self, frame: 'MainFrame', settings_panel: 'ProcSettingsPanel'):
+    def __init__(self):
         if self.__class__._instance is not None:
             return
         self.__class__._instance = self
-        self.frame = frame
-        self.settings_panel = settings_panel
+        settings_panel = self.settings_panel
         settings_panel.xorPanel.Disable()
         self.mapping_checkboxes = (settings_panel.mappingR, settings_panel.mappingG, settings_panel.mappingB, settings_panel.mappingA)
         self.XOR_checkboxes = (settings_panel.XORR, settings_panel.XORG, settings_panel.XORB, settings_panel.XORA)

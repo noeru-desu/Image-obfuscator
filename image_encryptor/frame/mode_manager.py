@@ -2,13 +2,14 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:48:20
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-15 17:54:53
+LastEditTime : 2022-08-08 10:59:32
 Description  : 模式管理器
 """
 from typing import TYPE_CHECKING, Type
 
 from wx import BoxSizer, VERTICAL, ALIGN_CENTER
 
+from image_encryptor.modes.base import ModeConstants
 from image_encryptor.modes.antishield import ModeInterface as AntiShieldModeInterface
 from image_encryptor.modes.encrypt import ModeInterface as EncryptModeInterface
 from image_encryptor.modes.decrypt import ModeInterface as DecryptModeInterface
@@ -44,17 +45,30 @@ class ModeManager(object):
         self.frame.procMode.Select(self.default_mode.mode_id)
 
     def add_mode(self, mode_interface_cls: Type['ModeInterface']):
-        interface = mode_interface_cls(self.frame, self.mode_id_count)
+        mode_interface_cls.main_frame = self.frame
+        mode_interface_cls.mode_id = self.mode_id_count
+        mode_constants = mode_interface_cls.mode_constants = ModeConstants()
+        interface = mode_interface_cls()
+        mode_constants.mode_interface = interface
         if __debug__ and not interface.check_metadata():
             return
 
-        interface.mode_id = self.mode_id_count
-        if hasattr(interface, 'settings_panel'):
-            pass
-        elif interface.settings_panel_cls is not None:
-            interface.settings_panel = self.add_settings_panel(interface.settings_panel_cls)
-        else:
-            interface.settings_panel = None
+        if not hasattr(interface, 'settings_panel'):
+            if interface.settings_panel_cls is not None:
+                interface.settings_panel = self.add_settings_panel(interface.settings_panel_cls)
+            else:
+                interface.settings_panel = None
+        if not hasattr(interface, 'settings_controller'):
+            if interface.settings_controller_cls is not None:
+                interface.settings_controller = interface.settings_controller_cls()
+            else:
+                interface.settings_controller = None
+        if interface.settings_cls is not None:
+            interface.settings_cls._init_constants()
+        if interface.encryption_parameters_cls is not None:
+            interface.encryption_parameters_cls._init_constants()
+        if not hasattr(interface, 'default_settings'):
+            interface.default_settings = interface.instantiate_settings_cls(interface.default_settings_args)
 
         self.modes[self.mode_id_count] = self.modes[interface.mode_qualname] = interface
         self.frame.procMode.Append(interface.mode_name)
@@ -74,8 +88,8 @@ class ModeManager(object):
         return settings_panel
 
     @property
-    def default_no_encryption_parameters_required_mode(self):
-        return self.modes[0] if self.default_mode.requires_encryption_parameters else self.default_mode
+    def default_mode_that_can_be_set_as_default(self):
+        return self.default_mode if self.default_mode.can_be_set_as_default_mode else self.modes[0]
 
     @property
     def default_settings(self) -> 'ItemSettings':

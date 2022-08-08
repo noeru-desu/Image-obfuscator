@@ -19,20 +19,20 @@ import wx.stc
 
 class MainFrame (wx.Frame):
     __slots__ = (
-        'advancedSaveSettingsPanel', 'collapseAllBtn', 'delBtn', 'disableCache', 'displayedPreview', 'expandAllBtn',
-        'finalLayoutWidgets', 'imageInfo', 'imagePanel', 'imageTreeCtrl', 'imageTreePanel', 'imageTreeSearchCtrl',
+        'SettingsSourceUsed', 'advancedSaveSettingsPanel', 'collapseAllBtn', 'delBtn', 'disableCache', 'displayedPreview',
+        'expandAllBtn', 'finalLayoutWidgets', 'imageInfo', 'imagePanel', 'imageTreeCtrl', 'imageTreePanel', 'imageTreeSearchCtrl',
         'importedBitmap', 'importedBitmapPanel', 'importedBitmapSizerPanel', 'loadingClipboardBtn', 'loadingFileBtn',
         'loadingPanel', 'loadingProgress', 'loadingProgressInfo', 'loadingProgressPanel', 'lowMemoryMode', 'm_button18',
-        'm_button23', 'm_button31', 'm_button311', 'm_button312', 'm_button6', 'm_button8', 'm_panel25', 'm_staticText12',
-        'm_staticText14', 'm_staticText29', 'm_staticText34', 'm_staticText81', 'm_staticText82', 'm_staticText82111',
-        'm_staticText821111', 'm_staticText8212', 'm_staticline31', 'm_staticline4', 'manuallyRefreshBtn', 'maxImagePixels',
-        'otherOptions', 'passwordCtrl', 'previewLayout', 'previewMode', 'previewOptions', 'previewProgress', 'previewProgressInfo',
-        'previewSource', 'previewedBitmap', 'previewedBitmapPanel', 'previewedBitmapSizerPanel', 'procMode',
-        'procSettingsPanelContainer', 'processingOptions', 'qualityInfo', 'recordInterfaceSettings', 'recordPasswordDict',
-        'redundantCacheLength', 'reloadingBtn', 'resamplingFilter', 'saveBtn', 'saveBtnPanel', 'saveCompression', 'saveExif',
-        'saveFormat', 'saveKwdsJson', 'saveLossless', 'saveOptimize', 'saveOptions', 'saveProgress', 'saveProgressInfo',
-        'saveProgressPanel', 'saveQuality', 'selectSavePath', 'settingsPanel', 'stopLoadingBtn', 'stopSaveBtn', 'subsamplingInfo',
-        'subsamplingLevel'
+        'm_button23', 'm_button24', 'm_button31', 'm_button311', 'm_button312', 'm_button6', 'm_button8', 'm_panel25',
+        'm_staticText12', 'm_staticText14', 'm_staticText23', 'm_staticText29', 'm_staticText34', 'm_staticText81',
+        'm_staticText82', 'm_staticText82111', 'm_staticText821111', 'm_staticText8212', 'm_staticline3', 'm_staticline31',
+        'm_staticline4', 'manuallyRefreshBtn', 'maxImagePixels', 'otherOptions', 'passwordCtrl', 'previewLayout', 'previewMode',
+        'previewOptions', 'previewProgress', 'previewProgressInfo', 'previewSource', 'previewedBitmap', 'previewedBitmapPanel',
+        'previewedBitmapSizerPanel', 'procMode', 'procSettingsPanelContainer', 'processingOptions', 'qualityInfo',
+        'recordInterfaceSettings', 'recordPasswordDict', 'redundantCacheLength', 'reloadingBtn', 'resamplingFilter', 'saveBtn',
+        'saveBtnPanel', 'saveCompression', 'saveExif', 'saveFormat', 'saveKwdsJson', 'saveLossless', 'saveOptimize', 'saveOptions',
+        'saveProgress', 'saveProgressInfo', 'saveProgressPanel', 'saveQuality', 'selectSavePath', 'settingsPanel',
+        'stopLoadingBtn', 'stopSaveBtn', 'subsamplingInfo', 'subsamplingLevel'
     )
 
     def __init__(self, parent):
@@ -200,29 +200,37 @@ class MainFrame (wx.Frame):
 
         bSizer12.Add((0, 0), 1, 0, 5)
 
-        bSizer282 = wx.BoxSizer(wx.VERTICAL)
-
         sbSizer10 = wx.StaticBoxSizer(wx.StaticBox(self.processingOptions, wx.ID_ANY, u"处理模式"), wx.VERTICAL)
 
         procModeChoices = []
         self.procMode = wx.ListBox(sbSizer10.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, procModeChoices, wx.LB_NEEDED_SB | wx.LB_SINGLE)
         self.procMode.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Segoe UI Variable Display Semib"))
-        self.procMode.SetMaxSize(wx.Size(-1, 120))
 
         sbSizer10.Add(self.procMode, 1, wx.EXPAND, 5)
 
-        bSizer282.Add(sbSizer10, 1, wx.EXPAND, 5)
+        bSizer12.Add(sbSizer10, 0, wx.EXPAND, 5)
 
-        self.m_staticText12 = wx.StaticText(self.processingOptions, wx.ID_ANY, u"添加密码到密码字典", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer12.Add((0, 0), 0, wx.ALL, 5)
+
+        bSizer282 = wx.BoxSizer(wx.VERTICAL)
+
+        SettingsSourceUsedChoices = [u"界面设置", u"文件加密参数", u"加密参数字段"]
+        self.SettingsSourceUsed = wx.RadioBox(self.processingOptions, wx.ID_ANY, u"使用的设置源", wx.DefaultPosition, wx.DefaultSize, SettingsSourceUsedChoices, 1, wx.RA_SPECIFY_COLS)
+        self.SettingsSourceUsed.SetSelection(0)
+        self.SettingsSourceUsed.SetToolTip(u"处理图像时使用的设置来源\n界面设置: 每个模式在右侧(如果有)提供的设置选项\n文件加密参数: 来自于每个被加密文件末尾的加密参数\n加密参数字段: base85编码的加密参数(手动指定)\n选项呈灰色表明当前模式不需要此选项")
+
+        bSizer282.Add(self.SettingsSourceUsed, 1, wx.EXPAND, 5)
+
+        self.m_staticText12 = wx.StaticText(self.processingOptions, wx.ID_ANY, u"密码", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText12.Wrap(-1)
 
-        bSizer282.Add(self.m_staticText12, 0, wx.ALL, 2)
+        bSizer282.Add(self.m_staticText12, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
-        self.passwordCtrl = wx.TextCtrl(self.processingOptions, wx.ID_ANY, u"none", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_PROCESS_ENTER)
+        self.passwordCtrl = wx.TextCtrl(self.processingOptions, wx.ID_ANY, u"none", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_NO_VSCROLL | wx.TE_PROCESS_ENTER)
         self.passwordCtrl.SetMaxLength(32)
         self.passwordCtrl.SetToolTip(u"none表示不使用密码，密码长度不可超过32字节")
 
-        bSizer282.Add(self.passwordCtrl, 0, wx.ALL | wx.EXPAND, 0)
+        bSizer282.Add(self.passwordCtrl, 0, 0, 0)
 
         bSizer12.Add(bSizer282, 0, wx.EXPAND, 5)
 
@@ -232,13 +240,13 @@ class MainFrame (wx.Frame):
         bSizer31 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.m_staticline31 = wx.StaticLine(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_VERTICAL)
-        bSizer31.Add(self.m_staticline31, 0, wx.EXPAND | wx.ALL, 5)
+        bSizer31.Add(self.m_staticline31, 0, wx.EXPAND | wx.ALL, 3)
 
         bSizer29 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer29.Add((0, 0), 1, wx.EXPAND, 5)
 
-        self.m_staticText14 = wx.StaticText(self.processingOptions, wx.ID_ANY, u"同步加密设置", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText14 = wx.StaticText(self.processingOptions, wx.ID_ANY, u"设置管理", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText14.Wrap(-1)
 
         bSizer29.Add(self.m_staticText14, 0, wx.ALIGN_CENTER | wx.ALL, 2)
@@ -258,12 +266,23 @@ class MainFrame (wx.Frame):
 
         bSizer29.Add(self.m_button312, 0, wx.ALL, 2)
 
+        self.m_staticline3 = wx.StaticLine(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL)
+        bSizer29.Add(self.m_staticline3, 0, wx.EXPAND, 5)
+
+        self.m_staticText23 = wx.StaticText(self.processingOptions, wx.ID_ANY, u"获取加密参数", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText23.Wrap(-1)
+
+        bSizer29.Add(self.m_staticText23, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 2)
+
+        self.m_button24 = wx.Button(self.processingOptions, wx.ID_ANY, u"序列化数据", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer29.Add(self.m_button24, 0, wx.ALL, 2)
+
         bSizer29.Add((0, 0), 1, wx.EXPAND, 5)
 
         bSizer31.Add(bSizer29, 0, wx.ALL | wx.EXPAND, 2)
 
         self.m_staticline4 = wx.StaticLine(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_VERTICAL)
-        bSizer31.Add(self.m_staticline4, 0, wx.ALL | wx.EXPAND, 5)
+        bSizer31.Add(self.m_staticline4, 0, wx.ALL | wx.EXPAND, 3)
 
         bSizer12.Add(bSizer31, 0, wx.EXPAND, 5)
 
@@ -662,10 +681,12 @@ class MainFrame (wx.Frame):
         self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.switched_image)
         self.imageTreeCtrl.Bind(wx.EVT_TREE_SEL_CHANGING, self.switching_image)
         self.procMode.Bind(wx.EVT_LISTBOX, self.processing_mode_changed)
+        self.SettingsSourceUsed.Bind(wx.EVT_RADIOBOX, self.settings_source_changed)
         self.passwordCtrl.Bind(wx.EVT_TEXT_ENTER, self.update_password_dict)
         self.m_button31.Bind(wx.EVT_BUTTON, self.apply_to_all)
         self.m_button311.Bind(wx.EVT_BUTTON, self.set_settings_as_default)
         self.m_button312.Bind(wx.EVT_BUTTON, self.revert_to_default)
+        self.m_button24.Bind(wx.EVT_BUTTON, self.get_serialized_encryption_parameters)
         self.previewMode.Bind(wx.EVT_RADIOBOX, self.preview_mode_change)
         self.displayedPreview.Bind(wx.EVT_RADIOBOX, self.change_displayed_preview)
         self.previewLayout.Bind(wx.EVT_RADIOBOX, self.change_preview_layout)
@@ -737,6 +758,9 @@ class MainFrame (wx.Frame):
     def processing_mode_changed(self, event):
         event.Skip()
 
+    def settings_source_changed(self, event):
+        event.Skip()
+
     def update_password_dict(self, event):
         event.Skip()
 
@@ -747,6 +771,9 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def revert_to_default(self, event):
+        event.Skip()
+
+    def get_serialized_encryption_parameters(self, event):
         event.Skip()
 
     def preview_mode_change(self, event):
@@ -1051,4 +1078,130 @@ class JsonEditorDialog (wx.Dialog):
         event.Skip()
 
     def clear_json(self, event):
+        event.Skip()
+
+
+###########################################################################
+# Class TextDisplayDialog
+###########################################################################
+
+class TextDisplayDialog (wx.Dialog):
+    __slots__ = (
+        'actionTip', 'extraInfo', 'm_button25', 'text'
+    )
+
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"文本展示", pos=wx.DefaultPosition, size=wx.Size(400, 350), style=wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP)
+
+        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+
+        bSizer52 = wx.BoxSizer(wx.VERTICAL)
+
+        self.extraInfo = wx.StaticText(self, wx.ID_ANY, u"详细信息", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL)
+        self.extraInfo.Wrap(-1)
+
+        bSizer52.Add(self.extraInfo, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+
+        self.text = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE | wx.TE_NO_VSCROLL | wx.TE_READONLY)
+        self.text.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
+
+        bSizer52.Add(self.text, 1, wx.ALL | wx.EXPAND, 5)
+
+        bSizer53 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.actionTip = wx.StaticText(self, wx.ID_ANY, u"已复制到剪贴板", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.actionTip.Wrap(-1)
+
+        self.actionTip.Hide()
+
+        bSizer53.Add(self.actionTip, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        self.m_button25 = wx.Button(self, wx.ID_ANY, u"复制到剪贴板", wx.DefaultPosition, wx.DefaultSize, 0)
+
+        self.m_button25.SetDefault()
+        bSizer53.Add(self.m_button25, 0, wx.ALL, 3)
+
+        bSizer52.Add(bSizer53, 0, wx.ALIGN_RIGHT, 5)
+
+        self.SetSizer(bSizer52)
+        self.Layout()
+
+        self.Centre(wx.BOTH)
+
+        # Connect Events
+        self.m_button25.Bind(wx.EVT_BUTTON, self.copy_text)
+
+    def __del__(self):
+        pass
+
+    # Virtual event handlers, override them in your derived class
+    def copy_text(self, event):
+        event.Skip()
+
+
+###########################################################################
+# Class MultiLineTextEntryDialog
+###########################################################################
+
+class MultiLineTextEntryDialog (wx.Dialog):
+    __slots__ = (
+        'actionTip', 'extraInfo', 'm_button25', 'm_button251', 'text'
+    )
+
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"输入文本", pos=wx.DefaultPosition, size=wx.Size(400, 350), style=wx.DEFAULT_DIALOG_STYLE)
+
+        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+
+        bSizer52 = wx.BoxSizer(wx.VERTICAL)
+
+        self.extraInfo = wx.StaticText(self, wx.ID_ANY, u"详细信息", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL)
+        self.extraInfo.Wrap(-1)
+
+        bSizer52.Add(self.extraInfo, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+
+        self.text = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE | wx.TE_NO_VSCROLL)
+        self.text.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
+
+        bSizer52.Add(self.text, 1, wx.ALL | wx.EXPAND, 5)
+
+        bSizer53 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.actionTip = wx.StaticText(self, wx.ID_ANY, u"已复制到剪贴板", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.actionTip.Wrap(-1)
+
+        self.actionTip.Hide()
+
+        bSizer53.Add(self.actionTip, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        self.m_button251 = wx.Button(self, wx.ID_ANY, u"取消", wx.DefaultPosition, wx.DefaultSize, 0)
+
+        self.m_button251.SetDefault()
+        bSizer53.Add(self.m_button251, 0, wx.ALL, 3)
+
+        self.m_button25 = wx.Button(self, wx.ID_ANY, u"确认", wx.DefaultPosition, wx.DefaultSize, 0)
+
+        self.m_button25.SetDefault()
+        bSizer53.Add(self.m_button25, 0, wx.ALL, 3)
+
+        bSizer52.Add(bSizer53, 0, wx.ALIGN_RIGHT, 5)
+
+        self.SetSizer(bSizer52)
+        self.Layout()
+
+        self.Centre(wx.BOTH)
+
+        # Connect Events
+        self.Bind(wx.EVT_CLOSE, self.cancel)
+        self.m_button251.Bind(wx.EVT_BUTTON, self.cancel)
+        self.m_button25.Bind(wx.EVT_BUTTON, self.confirm)
+
+    def __del__(self):
+        pass
+
+    # Virtual event handlers, override them in your derived class
+    def cancel(self, event):
+        event.Skip()
+
+    def confirm(self, event):
         event.Skip()
