@@ -6241,7 +6241,7 @@
             <property name="name">PasswordDialog</property>
             <property name="pos"></property>
             <property name="size">320,180</property>
-            <property name="style">wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP</property>
+            <property name="style">wxDEFAULT_DIALOG_STYLE</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">请输入密码</property>
             <property name="tooltip"></property>
@@ -7574,7 +7574,7 @@
             <property name="name">TextDisplayDialog</property>
             <property name="pos"></property>
             <property name="size">400,350</property>
-            <property name="style">wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP</property>
+            <property name="style">wxDEFAULT_DIALOG_STYLE</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">文本展示</property>
             <property name="tooltip"></property>
