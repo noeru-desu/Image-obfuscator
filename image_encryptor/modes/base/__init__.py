@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-08 10:57:33
+LastEditTime : 2022-08-09 10:25:20
 Description  : 基类
 """
 from abc import ABC
@@ -318,7 +318,7 @@ class BaseModeInterface(ABC):
     mode_constants: 'ModeConstants'
     mode_id: int
     main_frame: 'MainFrame'
-    #以上属性值均为自动设置
+    #以上属性值均为只可自动设置
 
     default_mode: bool = False           # 是否为默认模式
     decryption_mode: bool = False   # 是否属于解密模式, 为True在生成预览图时，将始终提供原图进行处理
@@ -328,7 +328,7 @@ class BaseModeInterface(ABC):
 
     settings_cls: Optional[Type['ItemSettings']] = None  # 该模式需使用的设置类
     default_settings_args: Optional[tuple[Any]] = None   # 实例化默认设置时使用的参数
-    default_settings: 'ItemSettings'
+    default_settings: 'ItemSettings'                     # 使用上方属性实例化默认设置, 一般为自动, 手动时请注意顺序
 
     requires_encryption_parameters: bool = False        # 是否需要读取文件末尾的加密参数
     encryption_parameters_must_be_used: bool = False      # 是否必须使用加密参数, 为True且图像加密参数不存在或不对应时将阻止用户使用此模式
@@ -336,12 +336,12 @@ class BaseModeInterface(ABC):
     corresponding_decryption_mode: Optional[str] = None # 对应的解密模式的唯一名称
     add_encryption_parameters_in_file: bool = False     # 是否需要添加加密参数到文件结尾
 
-    settings_controller_cls: Optional[Type['ModeController']] = None
-    settings_controller: Optional['ModeController']     # 面板控制器实例
+    settings_controller_cls: Optional[Type['ModeController']] = None    # 面板控制器类(基类为BaseModeController)
+    settings_controller: Optional['ModeController']                     # 面板控制器实例(一般为自动创建, 手动实例化时请注意顺序)
     enable_password: bool = False       # 是否使用密码输入框
     settings_panel: Optional['ModeSettingsPanel']                       # 该模式的设置面板实例, 如需手动实例化,
                                                             # 请在ModeInterface.__init__中使用frame.mode_manager.add_settings_panel()进行实例化
-    settings_panel_cls: Optional[Type['ModeSettingsPanel']] = None      # 该模式的设置面板(`wx.Panel`子类)
+    settings_panel_cls: Optional[Type['ModeSettingsPanel']] = None      # 该模式的设置面板(BaseModeSettingsPanel和wx.Panel的子类(务必使MRO中BaseModeSettingsPanel优先))
 
     file_name_suffix: Optional[tuple[str, str]] = None      # 添加到文件名末尾的后缀信息(非格式后缀)
 
@@ -411,11 +411,11 @@ class BaseModeInterface(ABC):
 
 class PropertyAliasMapping(dict):
     def add_alias(self, property_name, alias: Union[Iterable[str], str]):
-        if isinstance(alias, Iterable):
+        if isinstance(alias, str):
+            self[alias] = property_name
+        else:
             for i in alias:
                 self[i] = property_name
-        else:
-            self[alias] = property_name
 
     def get_property_name(self, alias) -> str:
         try:
