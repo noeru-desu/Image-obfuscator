@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-08 20:38:51
+LastEditTime : 2022-08-09 10:17:04
 Description  : 事件处理
 """
 from base64 import b85encode
@@ -229,6 +229,7 @@ class MainFrame(BasicMainFrame):
         match event.GetSelection():
             case 0:
                 self.controller.settings_source_selected(0)
+                self.controller.backtrack_interface(self.image_item.settings)
             case 1:
                 if self.image_item.is_correct_decryption_mode(self.controller.proc_mode_interface):
                     self.image_item.settings_source = 1
@@ -243,6 +244,7 @@ class MainFrame(BasicMainFrame):
                         self.controller.settings_source_used = self.image_item.settings_source
                         return
                 self.controller.settings_source_selected(2)
+                self.image_item.display_encryption_attributes()
         self.refresh_preview(event)
 
     @catch_exc_for_frame_method
@@ -286,7 +288,6 @@ class MainFrame(BasicMainFrame):
             self.controller.gen_image_info(image_data)
             self.processingOptions.Enable()
             image_data.enable_available_settings_source_btn()
-            # image_data.standardized_proc_mode()
             match image_data.settings_source:
                 case 0:
                     self.procSettingsPanelContainer.Enable()
