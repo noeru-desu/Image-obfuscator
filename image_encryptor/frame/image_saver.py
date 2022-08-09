@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-08 09:40:54
+LastEditTime : 2022-08-09 10:03:30
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -64,20 +64,20 @@ class ImageSaver(object):
         self.show_save_progress_plane(False)
         self.frame.controller.standardized_password_ctrl()
         mode_interface = image_item.proc_mode
-        settings = image_item.settings
+        settings = image_item.available_settings_inst
         cache_hash = image_item.scalable_cache_hash
         cache = image_item.cache.previews.get_scalable_cache(cache_hash)
         if cache is None:
             self.save_thread.add_task(
                 self._save_task,
-                (mode_interface, image_item, settings, image_item.encryption_attributes.settings, self.frame.controller.save_settings),
+                (mode_interface, image_item, *settings, self.frame.controller.save_settings),
                 cb=self._save_selected_image_call_back, cb_args=(cache_hash,)
             )
         else:   # 如果存在原始图像处理结果缓存则直接保存缓存
             self.frame.saveProgress.SetValue(50)
             self.save_thread.add_task(
                 self._save_cache_task,
-                (cache, mode_interface, image_item, settings, self.frame.controller.save_settings),
+                (cache, mode_interface, image_item, settings[0], self.frame.controller.save_settings),
                 cb=self.hide_save_progress_plane
             )
 
@@ -104,19 +104,19 @@ class ImageSaver(object):
 
         for top, name, image_item in folder_item.walk() if use_folder else folder_item.all_included_items():
             # image_item.standardized_proc_mode()
-            settings = image_item.settings
+            settings = image_item.available_settings_inst
             cache = image_item.cache.previews.get_scalable_cache(image_item.scalable_cache_hash)
             relative_save_path = top if use_folder else ''
             if cache is None:
                 self.save_thread.add_task(
                     self._save_task,
-                    (image_item.proc_mode, image_item, settings, image_item.encryption_attributes.settings, save_settings, relative_save_path, True),
+                    (image_item.proc_mode, image_item, *settings, save_settings, relative_save_path, True),
                     cb=self._bulk_save_callback
                 )
             else:   # 如果存在原始图像处理结果缓存则直接保存缓存
                 self.save_thread.add_task(
                     self._save_cache_task,
-                    (cache, image_item.proc_mode, image_item, settings, save_settings, relative_save_path, True),
+                    (cache, image_item.proc_mode, image_item, settings[0], save_settings, relative_save_path, True),
                     cb=self._bulk_save_from_cache_callback
                 )
 
@@ -155,19 +155,19 @@ class ImageSaver(object):
         self.lock.acquire()                                 # 锁住线程锁，防止在任务添加期间执行回调函数，而导致进度识别错误
 
         for image_item in self.frame.tree_manager.all_image_item_data:
-            settings = image_item.settings
+            settings = image_item.available_settings_inst
             cache = image_item.cache.previews.get_scalable_cache(image_item.scalable_cache_hash)
             relative_save_path = image_item.path_data.relative_save_dir if use_folder else ''
             if cache is None:
                 self.save_thread.add_task(
                     self._save_task,
-                    (image_item.proc_mode, image_item, settings, image_item.encryption_attributes.settings, save_settings, relative_save_path, True),
+                    (image_item.proc_mode, image_item, *settings, save_settings, relative_save_path, True),
                     cb=self._bulk_save_callback
                 )
             else:   # 如果存在原始图像处理结果缓存则直接保存缓存
                 self.save_thread.add_task(
                     self._save_cache_task,
-                    (cache, image_item.proc_mode, image_item, settings, save_settings, relative_save_path, True),
+                    (cache, image_item.proc_mode, image_item, settings[0], save_settings, relative_save_path, True),
                     cb=self._bulk_save_from_cache_callback
                 )
 
