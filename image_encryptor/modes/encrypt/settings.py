@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-23 14:25:27
+LastEditTime : 2022-08-08 09:22:24
 Description  : 
 """
 from base64 import b85encode
@@ -15,7 +15,9 @@ from image_encryptor.modes.decrypt.settings import EncryptionParametersData
 from image_encryptor.modules.password_verifier import PasswordDict
 
 if TYPE_CHECKING:
+    from image_encryptor.modes.base import ModeConstants
     from image_encryptor.modes.encrypt.controller import EncryptModeController
+    from image_encryptor.modes.encrypt.panel import ProcSettingsPanel
 
 
 class SettingsData(BaseSettings):
@@ -83,7 +85,8 @@ class SettingsData(BaseSettings):
 
 class Settings(SettingsData):
     __slots__ = ()
-    MODE_CONTROLLER: 'EncryptModeController'
+    settings_panel: 'ProcSettingsPanel'
+    mode_controller: 'EncryptModeController'
     PASSWORD_PROPERTY_NAME = 'password'
 
     def __init__(self, settings: Iterable[Any] = None):
@@ -101,8 +104,8 @@ class Settings(SettingsData):
 
     @classmethod
     def gen_settings_mapping_kwargs(cls) -> dict[int, tuple[str, Callable]]:
-        mode_controller = cls.MODE_CONTROLLER
-        settings_panel = cls.MODE_CONTROLLER.settings_panel
+        mode_controller: 'EncryptModeController' = cls.mode_constants.mode_controller
+        settings_panel: 'ProcSettingsPanel' = cls.mode_constants.settings_panel
         mapping_channels = ('mapping_channels', lambda event: mode_controller.mapping_channels)
         XOR_channels = ('XOR_channels', lambda event: mode_controller.XOR_channels)
         return {
@@ -120,16 +123,16 @@ class Settings(SettingsData):
         }
 
     def sync_from_interface(self):
-        self.cutting_row = self.MODE_CONTROLLER.cutting_row
-        self.cutting_col = self.MODE_CONTROLLER.cutting_col
-        self.shuffle_chunks = self.MODE_CONTROLLER.shuffle_chunks
-        self.flip_chunks = self.MODE_CONTROLLER.flip_chunks
-        self.mapping_channels = self.MODE_CONTROLLER.mapping_channels
-        self.XOR_encryption = self.MODE_CONTROLLER.XOR_encryption
-        self.XOR_channels = self.MODE_CONTROLLER.XOR_channels
-        self.noise_XOR = self.MODE_CONTROLLER.noise_XOR
-        self.noise_factor = self.MODE_CONTROLLER.noise_factor
-        self.password = self.MAIN_CONTROLLER.password
+        self.cutting_row = self.mode_controller.cutting_row
+        self.cutting_col = self.mode_controller.cutting_col
+        self.shuffle_chunks = self.mode_controller.shuffle_chunks
+        self.flip_chunks = self.mode_controller.flip_chunks
+        self.mapping_channels = self.mode_controller.mapping_channels
+        self.XOR_encryption = self.mode_controller.XOR_encryption
+        self.XOR_channels = self.mode_controller.XOR_channels
+        self.noise_XOR = self.mode_controller.noise_XOR
+        self.noise_factor = self.mode_controller.noise_factor
+        self.password = self.main_controller.password
 
     def backtrack_interface(self):
         """将加密设置显示到界面"""
@@ -139,16 +142,16 @@ class Settings(SettingsData):
         # else:
         #     self.controller.frame.processingSettingsPanel.Enable()
         #     self.controller.frame.passwordCtrl.Enable()
-        self.MODE_CONTROLLER.cutting_row = self.cutting_row
-        self.MODE_CONTROLLER.cutting_col = self.cutting_col
-        self.MODE_CONTROLLER.shuffle_chunks = self.shuffle_chunks
-        self.MODE_CONTROLLER.mapping_channels = self.mapping_channels
-        self.MODE_CONTROLLER.flip_chunks = self.flip_chunks
-        self.MAIN_CONTROLLER.password = self.password
-        self.MODE_CONTROLLER.XOR_encryption = self.XOR_encryption
-        self.MODE_CONTROLLER.XOR_channels = self.XOR_channels
-        self.MODE_CONTROLLER.noise_XOR = self.noise_XOR
-        self.MODE_CONTROLLER.noise_factor = self.noise_factor
-        self.MODE_CONTROLLER.noise_factor_info = str(self.noise_factor)
-        self.MODE_CONTROLLER.settings_panel.xorPanel.Enable(self.XOR_encryption)
-        self.MODE_CONTROLLER.settings_panel.noiseFactor.Enable(self.XOR_encryption and self.noise_XOR)
+        self.mode_controller.cutting_row = self.cutting_row
+        self.mode_controller.cutting_col = self.cutting_col
+        self.mode_controller.shuffle_chunks = self.shuffle_chunks
+        self.mode_controller.mapping_channels = self.mapping_channels
+        self.mode_controller.flip_chunks = self.flip_chunks
+        self.main_controller.password = self.password
+        self.mode_controller.XOR_encryption = self.XOR_encryption
+        self.mode_controller.XOR_channels = self.XOR_channels
+        self.mode_controller.noise_XOR = self.noise_XOR
+        self.mode_controller.noise_factor = self.noise_factor
+        self.mode_controller.noise_factor_info = str(self.noise_factor)
+        self.settings_panel.xorPanel.Enable(self.XOR_encryption)
+        self.settings_panel.noiseFactor.Enable(self.XOR_encryption and self.noise_XOR)

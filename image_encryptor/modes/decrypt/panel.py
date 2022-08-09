@@ -2,30 +2,31 @@
 Author       : noeru_desu
 Date         : 2022-05-28 18:35:11
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-08 09:29:38
+LastEditTime : 2022-08-08 21:07:40
 Description  : 
 """
 from typing import TYPE_CHECKING
 
-from image_encryptor.modes.encrypt.auto_generated_panel import ProcSettingsPanel as BaseProcSettingsPanel
+from image_encryptor.constants import EA_VERSION
+from image_encryptor.modes.decrypt.auto_generated_panel import ProcSettingsPanel as BaseProcSettingsPanel
 from image_encryptor.modes.base import BaseModeSettingsPanel
 
 # from image_encryptor.utils.debugging_utils import gen_slots_str
 
 if TYPE_CHECKING:
     from wx import CommandEvent
-    from image_encryptor.modes.base import ModeConstants
 
 
 class ProcSettingsPanel(BaseModeSettingsPanel, BaseProcSettingsPanel):
     __slots__ = ()
-    mode_constants: 'ModeConstants' = ...
 
-    # def __init__(self, *args):
-    #     o_args = set(dir(self))
-    #     super().__init__(*args)
-    #     n_args = set(dir(self))
-    #     gen_slots_str(n_args - o_args)
+    def __init__(self, *args):
+        # o_args = set(dir(self))
+        super().__init__(*args)
+        # n_args = set(dir(self))
+        # gen_slots_str(n_args - o_args)
+        self.coreVersion.SetMax(EA_VERSION)
+        self.coreVersion.SetValue(EA_VERSION)
 
     def settings_changed(self, event):
         self.main_frame.settings_changed(event)

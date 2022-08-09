@@ -43,12 +43,9 @@ class ConfigManager(object):
         startfile(self.data_path)
 
     def gen_frame_settings(self):
-        if self.frame.controller.proc_mode_interface.requires_encryption_parameters:
-            default_proc_mode = self.frame.mode_manager.default_no_encryption_parameters_required_mode
-            if self.frame.mode_manager.default_mode.requires_encryption_parameters:
-                default_mode_settings = default_proc_mode.default_settings
-            else:
-                default_mode_settings = self.frame.mode_manager.default_settings
+        if not self.frame.controller.proc_mode_interface.can_be_set_as_default_mode:
+            default_proc_mode = self.frame.mode_manager.default_mode_that_can_be_set_as_default
+            default_mode_settings = default_proc_mode.default_settings
         else:
             default_proc_mode = self.frame.controller.proc_mode_interface
             default_mode_settings = self.frame.controller.current_settings
@@ -64,7 +61,7 @@ class ConfigManager(object):
             'resampling_filter': self.frame.controller.resampling_filter_id,
             'save_settings': self.frame.controller.save_settings,
             'max_image_pixels': self.frame.controller.max_image_pixels
-            }
+        }
 
     def save_password_dict(self):
         with open(self.password_dict_path, 'wb') as f:

@@ -2,12 +2,12 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-05 18:41:28
+LastEditTime : 2022-08-08 14:07:07
 Description  : 界面控制相关
 """
 from json import dumps
 from os.path import splitext
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Sequence, Union
 
 from wx import VERTICAL, HORIZONTAL, Bitmap
 
@@ -33,7 +33,7 @@ class Controller(object):
     "控件/控制器"
     __slots__ = (
         'frame', 'previous_save_format', 'previous_proc_mode', 'imported_image_id', 'visible_proc_settings_panel',
-        'password_ctrl_hash', '_save_kwds_dict', 'save_kwds_json'
+        'password_ctrl_hash', '_save_kwds_dict', 'save_kwds_json', 'proc_panel_state_association'
     )
 
     def __init__(self, frame: 'MainFrame'):
@@ -45,6 +45,7 @@ class Controller(object):
         self.password_ctrl_hash = hash(self.frame.passwordCtrl)
         self._save_kwds_dict: dict[str, Any] = {}
         self.save_kwds_json: str = '{\n\t\n}'
+        self.proc_panel_state_association = (frame.procSettingsPanelContainer.Enable, frame.procSettingsPanelContainer.Disable, frame.procSettingsPanelContainer.Disable)
 
     # ----------
     # properties
@@ -200,6 +201,47 @@ class Controller(object):
 
     @proc_mode_qualname.setter
     def proc_mode_qualname(self, v: 'str'): self.frame.procMode.Select(self.frame.mode_manager.modes[v].mode_id)
+
+    def settings_source_selected(self, btn: int):
+        self.proc_panel_state_association[btn]()
+        if self.frame.image_item is not None:
+            self.frame.image_item.settings_source = btn
+
+    @property
+    def settings_source_used(self) -> int: return self.frame.SettingsSourceUsed.GetSelection()
+
+    @settings_source_used.setter
+    def settings_source_used(self, v: int):
+        if __debug__ and not self.frame.SettingsSourceUsed.IsItemEnabled(v):
+            self.frame.dialog.warning('settings_source_used请求选中的目标已被禁用')
+            self.enable_settings_source_btn(v)
+        self.frame.SettingsSourceUsed.Select(v)
+        self.settings_source_selected(v)
+
+    def enable_settings_source_btn(self, item_id: Union[int, Sequence[int]]):
+        all_item_id = tuple(range(self.frame.SettingsSourceUsed.GetCount()))
+        if isinstance(item_id, int):
+            self.frame.SettingsSourceUsed.Select(item_id)
+            self.settings_source_selected(item_id)
+            if self.frame.image_item is not None:
+                self.frame.image_item.settings_source = item_id
+            for i in all_item_id:
+                if i == item_id:
+                    self.frame.SettingsSourceUsed.EnableItem(i)
+                else:
+                    self.frame.SettingsSourceUsed.EnableItem(i, False)
+        elif isinstance(item_id, Sequence):
+            selected = self.frame.SettingsSourceUsed.GetSelection()
+            if selected not in item_id:
+                self.frame.SettingsSourceUsed.Select(item_id[0])
+                self.settings_source_selected(item_id[0])
+                if self.frame.image_item is not None:
+                    self.frame.image_item.settings_source = item_id[0]
+            for i in all_item_id:
+                if i in item_id:
+                    self.frame.SettingsSourceUsed.EnableItem(i)
+                else:
+                    self.frame.SettingsSourceUsed.EnableItem(i, False)
 
     @property
     def password(self) -> str: return self.frame.passwordCtrl.GetValue()
@@ -457,7 +499,7 @@ class Controller(object):
         if not self.frame.update_password_dict():
             self.password = 'none'
             image_item = self.frame.image_item
-            if image_item is not None and image_item.proc_mode.enable_password and image_item.proc_mode.settings_cls is not None:
+            if image_item is not None and image_item.proc_mode.settings_cls is not None:
                 image_item.settings.sync_from_mapping(self.frame.passwordCtrl)
 
     def display_and_cache_processed_preview(self, image: 'WrappedImage', cache_hash: 'ImageCacheHash' = ...):
@@ -481,20 +523,21 @@ class Controller(object):
             self.frame.image_item.cache.previews.add_normal_cache(cache_hash, bitmap)
             self.previewed_bitmap = bitmap
 
-    def change_mode_plane(self, proc_mode: 'ModeInterface', settings_instance: 'ItemSettings'):
+    def change_mode_plane(self, proc_mode: 'ModeInterface', image_item: 'ImageItem', settings_instance: 'ItemSettings'):
         self.proc_settings_panel = proc_mode.settings_panel
         if settings_instance is not EmptySettings:
-            self.frame.procSettingsPanelContainer.Enable(settings_instance.enable_settings_panel)
             self.frame.passwordCtrl.Enable(settings_instance.enable_password)
         if not proc_mode.enable_password:
             self.password = 'none'
 
-    def backtrack_interface(self, settings_instance: 'ItemSettings', proc_mode: 'ModeInterface' = ...):
+    def backtrack_interface(self, settings_instance: 'ItemSettings', proc_mode: 'ModeInterface' = ..., image_item: 'ImageItem' = ...):
+        if image_item is Ellipsis:
+            image_item = self.frame.image_item
         if proc_mode is Ellipsis:
-            mode_interface = self.proc_mode_interface = self.frame.image_item.proc_mode
+            mode_interface = self.proc_mode_interface = image_item.proc_mode
         else:
             mode_interface = self.proc_mode_interface = proc_mode
-        self.change_mode_plane(mode_interface, settings_instance)
+        self.change_mode_plane(mode_interface, image_item, settings_instance)
         settings_instance.backtrack_interface()
 
     '''

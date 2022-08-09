@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-28 11:19:28
+LastEditTime : 2022-08-09 10:25:20
 Description  : 基类
 """
 from abc import ABC
@@ -25,7 +25,8 @@ if TYPE_CHECKING:
                                        PropertiesDict, PropertiesGenerator,
                                        PropertiesTuple, PropertiesTupleHash,
                                        ChannelsHash, ChannelsNum, ChannelsTuple,
-                                       ModeSettingsPanel, ItemEncryptionParameters)
+                                       ModeSettingsPanel, ItemEncryptionParameters,
+                                       ModeController)
 
 
 class Channels(object):
@@ -67,6 +68,43 @@ class Channels(object):
         return self._channels_num
 
 
+class ModeConstants(object):
+    __slots__ = ('settings_panel', 'mode_controller', 'mode_interface')
+    main_frame: 'MainFrame' = ...
+    main_controller: 'MainController' = ...
+    mode_interface: 'ModeInterface'
+
+    def __init__(self):
+        self.settings_panel: Optional['ModeSettingsPanel'] = None
+        self.mode_controller: Optional['ModeController'] = None
+
+
+
+class SupportConstantProperty(object):
+    __slots__ = ()
+    mode_constants: 'ModeConstants'
+
+    @property
+    def main_frame(self) -> 'MainFrame':
+        return self.mode_constants.main_frame
+
+    @property
+    def main_controller(self) -> 'MainController':
+        return self.mode_constants.main_controller
+
+    @property
+    def mode_interface(self) -> 'ModeInterface':
+        return self.mode_constants.mode_interface
+
+    @property
+    def settings_panel(self) -> Optional['ModeSettingsPanel']:
+        return self.mode_constants.settings_panel
+
+    @property
+    def mode_controller(self) -> Optional['ModeController']:
+        return self.mode_constants.mode_controller
+
+
 class LengthMismatchWarning(UserWarning):
     pass
 
@@ -78,8 +116,8 @@ class SettingsMapping(dict):
         super().__init__(kwargs)
         self.settings = settings
         if password_property_name is not None:
-            MAIN_CONTROLLER = self.settings.MAIN_CONTROLLER
-            self[MAIN_CONTROLLER.password_ctrl_hash] = (password_property_name, lambda event: MAIN_CONTROLLER.password)
+            main_controller = self.settings.main_controller
+            self[main_controller.password_ctrl_hash] = (password_property_name, lambda event: main_controller.password)
         if __debug__:
             self.check_mapping()
 
@@ -102,20 +140,16 @@ class SettingsMapping(dict):
             setattr(self.settings, attr, setter(event))
 
 
-class BaseSettings(ABC):
-    __slots__ = ('SETTINGS_MAPPING', 'enable_password', 'enable_settings_panel')
+class BaseSettings(SupportConstantProperty):
+    __slots__ = ('SETTINGS_MAPPING', 'enable_password')
     SETTING_NAMES: tuple[str]
     SETTINGS_MAPPING_DICT: 'ItemSettingsMappingDict'
     PASSWORD_PROPERTY_NAME: Optional[str] = None
-    MAIN_CONTROLLER: 'MainController'
-    MODE_CONTROLLER: Optional['ModeController']
-    MODE_INTERFACE: 'ModeInterface'
     SETTINGS_MAPPING: 'SettingsMapping'     # 每次实例化时都将生成新的SettingsMapping
 
     def __init__(self, settings: Optional[Iterable[Any]] = None) -> None:
         self.SETTINGS_MAPPING = SettingsMapping(self, self.SETTINGS_MAPPING_DICT, self.PASSWORD_PROPERTY_NAME)
-        self.enable_password = self.MODE_INTERFACE.enable_password
-        self.enable_settings_panel = self.MODE_INTERFACE.enable_settings_panel
+        self.enable_password = self.mode_interface.enable_password
 
     def __repr__(self) -> str:
         return ', '.join(f'{i}: {getattr(self, i)}' for i in self.SETTING_NAMES)
@@ -125,10 +159,7 @@ class BaseSettings(ABC):
             return getattr(self, i)
 
     @classmethod
-    def set_constants(cls, main_controller: 'MainController', mode_interface: 'ModeInterface'):
-        cls.MODE_INTERFACE = mode_interface
-        cls.MAIN_CONTROLLER = main_controller
-        cls.MODE_CONTROLLER = mode_interface.settings_controller
+    def _init_constants(cls):
         cls.SETTINGS_MAPPING_DICT = cls.gen_settings_mapping_kwargs()
 
     @classmethod
@@ -137,11 +168,7 @@ class BaseSettings(ABC):
 
     def set_enable_password(self, v: bool):
         self.enable_password = v
-        self.MAIN_CONTROLLER.frame.passwordCtrl.Enable(v)
-
-    def set_enable_settings_panel(self, v: bool):
-        self.enable_settings_panel = v
-        self.MAIN_CONTROLLER.frame.passwordCtrl.Enable(v)
+        self.main_frame.passwordCtrl.Enable(v)
 
     def sync_from_event(self, event: 'Event'):
         self.SETTINGS_MAPPING.sync_from_event_to_settings(event)
@@ -230,21 +257,19 @@ class BaseSettings(ABC):
 
 class EmptySettingsType(BaseSettings):
     """空的设置实例, 用于占位, 实例为单例"""
-    __slots__ = SETTING_NAMES = ('_',)
+    __slots__ = SETTING_NAMES = ('_', 'SETTINGS_MAPPING')
     _instance: Optional['EmptySettingsType'] = None
 
-    def __new__(cls: type['EmptySettingsType'], main_controller):
+    def __new__(cls: type['EmptySettingsType']):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, main_controller) -> None:
+    def __init__(self) -> None:
         self._ = None
 
-    def set_constants(self, main_controller: 'MainController'):
-        cls = self.__class__
-        cls.MAIN_CONTROLLER = main_controller
-        cls.SETTINGS_MAPPING = SettingsMapping(self, {}, '_')
+    def create_settings_mapping(self):
+        self.SETTINGS_MAPPING = SettingsMapping(self, {}, '_')
 
     def sync_from_tuple(self, v): pass
 
@@ -265,73 +290,87 @@ class EmptySettingsType(BaseSettings):
     def copy(self): return self
 
 
-EmptySettings = EmptySettingsType(...)
+EmptySettingsType.mode_constants = ModeConstants()
+EmptySettings: EmptySettingsType = EmptySettingsType()
 
 
-class ModeController(object):
+class BaseModeSettingsPanel(SupportConstantProperty):
     __slots__ = ()
-    """用于单一模式的控制器"""
+
+    def __new__(cls, *args):
+        inst = super().__new__(cls, *args)
+        cls.mode_constants.settings_panel = inst
+        return inst
 
 
-class BaseModeSettingsPanel(object):
-    MAIN_FRAME: 'MainFrame'
+class BaseModeController(SupportConstantProperty):
+    __slots__ = ()
 
-    @classmethod
-    def set_constants(cls, inst: 'MainFrame'):
-        cls.MAIN_FRAME = inst
+    def __new__(cls):
+        inst = super().__new__(cls)
+        cls.mode_constants.mode_controller = inst
+        return inst
 
 
 class BaseModeInterface(ABC):
-    __slots__ = ('mode_id', 'settings_panel', 'default_settings')
+    __slots__ = ('settings_panel', 'default_settings', 'settings_controller')
 
-    frame: 'MainFrame'
+    mode_constants: 'ModeConstants'
+    mode_id: int
+    main_frame: 'MainFrame'
+    #以上属性值均为只可自动设置
 
     default_mode: bool = False           # 是否为默认模式
-    decryption_mode: bool = False   # 是否属于解密模式
-    mode_id: int        # 模式ID, 将被自动设置
+    decryption_mode: bool = False   # 是否属于解密模式, 为True在生成预览图时，将始终提供原图进行处理
     mode_name: str = NotImplemented      # 模式的显示名称
     mode_qualname: str = NotImplemented  # 模式唯一名称 (如`builtin.mode_a`)
+    can_be_set_as_default_mode: Optional[bool] = None    # 是否可被设置为默认模式(包括在没有选择图像时是否可被选择), 为None时与decryption_mode值相反
 
     settings_cls: Optional[Type['ItemSettings']] = None  # 该模式需使用的设置类
-    default_settings: 'ItemSettings'
+    default_settings_args: Optional[tuple[Any]] = None   # 实例化默认设置时使用的参数
+    default_settings: 'ItemSettings'                     # 使用上方属性实例化默认设置, 一般为自动, 手动时请注意顺序
 
     requires_encryption_parameters: bool = False        # 是否需要读取文件末尾的加密参数
+    encryption_parameters_must_be_used: bool = False      # 是否必须使用加密参数, 为True且图像加密参数不存在或不对应时将阻止用户使用此模式
     encryption_parameters_cls: Optional[Type['ItemEncryptionParameters']] = None  # 读取加密参数后实例化的参数类
     corresponding_decryption_mode: Optional[str] = None # 对应的解密模式的唯一名称
     add_encryption_parameters_in_file: bool = False     # 是否需要添加加密参数到文件结尾
 
-    settings_controller: Optional['ModeController'] = None     # 面板控制器类
-    enable_settings_panel: bool = True  # 是否启用设置面板
+    settings_controller_cls: Optional[Type['ModeController']] = None    # 面板控制器类(基类为BaseModeController)
+    settings_controller: Optional['ModeController']                     # 面板控制器实例(一般为自动创建, 手动实例化时请注意顺序)
     enable_password: bool = False       # 是否使用密码输入框
     settings_panel: Optional['ModeSettingsPanel']                       # 该模式的设置面板实例, 如需手动实例化,
                                                             # 请在ModeInterface.__init__中使用frame.mode_manager.add_settings_panel()进行实例化
-    settings_panel_cls: Optional[Type['ModeSettingsPanel']] = None      # 该模式的设置面板(`wx.Panel`子类)
+    settings_panel_cls: Optional[Type['ModeSettingsPanel']] = None      # 该模式的设置面板(BaseModeSettingsPanel和wx.Panel的子类(务必使MRO中BaseModeSettingsPanel优先))
 
     file_name_suffix: Optional[tuple[str, str]] = None      # 添加到文件名末尾的后缀信息(非格式后缀)
 
     supports_multiprocessing = False
 
-    def __new__(cls, frame: 'MainFrame', mode_id: int):
+    def __new__(cls):
         if __debug__:
             cls.proc_image = catch_exc_and_return(cls.proc_image)
             cls.proc_image_quietly = catch_exc_and_return(cls.proc_image_quietly)
         # TODO [需要SharedMemory支持] cls.proc_image_independently = catch_exc_and_return(lambda image_data, original)
+        if cls.can_be_set_as_default_mode is None:
+            cls.can_be_set_as_default_mode = not cls.decryption_mode
         return super().__new__(cls)
 
-    def __init__(self, frame: 'MainFrame', mode_id: int):
-        if self.settings_controller is not None:
-            if self.settings_cls is not None:
-                self.settings_cls.set_constants(frame.controller, self)
-            if self.encryption_parameters_cls is not None:
-                self.encryption_parameters_cls.set_constants(frame.controller, self)
+    def __init__(self):
+        """继承时请始终在最开始执行`super().__init__`"""
         if self.settings_panel_cls is not None:
-            self.settings_panel_cls.set_constants(frame)
-        self.default_settings = EmptySettings
+            self.settings_panel_cls.mode_constants = self.mode_constants
+        if self.settings_controller_cls is not None:
+            self.settings_controller_cls.mode_constants = self.mode_constants
+            if self.settings_cls is not None:
+                self.settings_cls.mode_constants = self.mode_constants
+            if self.encryption_parameters_cls is not None:
+                self.encryption_parameters_cls.mode_constants = self.mode_constants
 
-    def proc_image(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters', label_text_setter: Callable, gauge: 'Gauge') -> tuple[Optional['WrappedImage'], Optional[str]]:
+    def proc_image(self, source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters', label_text_setter: Callable, gauge: 'Gauge') -> tuple[Optional['WrappedImage'], Optional[str]]:
         raise NotImplementedError()
 
-    def proc_image_quietly(self, frame: 'MainFrame', source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters'):
+    def proc_image_quietly(self, source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters'):
         raise NotImplementedError()
 
     def proc_image_multiprocessing(self, source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'ItemSettings') -> tuple[Optional['WrappedImage'], Optional[str]]:
@@ -350,20 +389,36 @@ class BaseModeInterface(ABC):
         else:
             name = self.mode_qualname
         ok = True
-        self.frame.logger.info(f'正在检查{name}的元数据')
-        if hasattr(self, 'mode_id'):
-            self.frame.logger.warning('mode_id属性将会被自动设置, 手动设置值无效')
+        self.main_frame.logger.info(f'正在检查{name}的元数据')
         if self.mode_qualname is NotImplemented:
             ok = False
-            self.frame.logger.error('请设置mode_qualname属性作为唯一名称')
+            self.main_frame.logger.error('请设置mode_qualname属性作为唯一名称')
         if self.mode_name is NotImplemented:
-            self.frame.logger.warning('请设置mode_name属性作为显示名称')
+            self.main_frame.logger.warning('请设置mode_name属性作为显示名称')
             self.mode_name = self.mode_qualname
         if self.add_encryption_parameters_in_file and self.corresponding_decryption_mode is None:
             ok = False
-            self.frame.logger.error('add_encryption_parameters_in_file为True时请设置corresponding_decryption_mode属性')
+            self.main_frame.logger.error('add_encryption_parameters_in_file为True时请设置corresponding_decryption_mode属性')
         if self.supports_multiprocessing:
-            self.frame.logger.warning('多进程处理将不会被使用')
+            self.main_frame.logger.warning('多进程处理将不会被使用')
+        if not self.can_be_set_as_default_mode and self.default_mode:
+            ok = False
+            self.main_frame.logger.error('can_be_set_as_default_mode与default_mode的值相冲突')
         if not ok:
-            self.frame.dialog.error('模式元数据错误, 请查看控制台')
+            self.main_frame.dialog.error('模式元数据错误, 请查看控制台', f'加载{name}模式失败')
         return ok
+
+
+class PropertyAliasMapping(dict):
+    def add_alias(self, property_name, alias: Union[Iterable[str], str]):
+        if isinstance(alias, str):
+            self[alias] = property_name
+        else:
+            for i in alias:
+                self[i] = property_name
+
+    def get_property_name(self, alias) -> str:
+        try:
+            return self[alias]
+        except KeyError as e:
+            raise KeyError(f'{alias} is not an alias for any property') from e

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-25 08:19:29
+LastEditTime : 2022-08-06 12:17:29
 Description  : 节点树控制
 """
 from contextlib import suppress
@@ -50,7 +50,7 @@ class TreeManager(object):
 
         Args:
             root_path (str): 文件树中的根文件夹(不存在时自动添加)
-            relative_path (str, optional): 根文件夹中的相对路径(不存在时自动添加, 可为多级文件夹). 默认为None.
+            relative_path (str, optional): 根文件夹中的相对路径(相对路径中的文件夹不存在时自动添加, 可为多级文件夹). 默认为None.
 
         Returns:
             TreeItemId: 添加的到文件树的项目的TreeItemId(如果有多个则返回最后一个)

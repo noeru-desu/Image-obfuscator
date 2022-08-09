@@ -2,18 +2,21 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-05 09:39:07
+LastEditTime : 2022-08-09 10:17:04
 Description  : 事件处理
 """
+from base64 import b85encode
+from pickle import dumps as pickle_dumps
 from typing import TYPE_CHECKING, Optional, Union
 
 from PIL.ImageGrab import grabclipboard
-from wx import VERTICAL, ID_OK, CallAfter
+from wx import VERTICAL, CallAfter
 
 from image_encryptor.constants import DO_NOT_REFRESH, AUTO_REFRESH, EXTENSION_KEYS, EXTENSION_KEYS_STRING, LOSSY_FORMATS
 from image_encryptor.frame.file_item import FolderItem, ImageItem
 from image_encryptor.frame.main_frame import MainFrame as BasicMainFrame
 from image_encryptor.modules.decorator import catch_exc_for_frame_method
+from image_encryptor.modules.version_adapter import gen_encryption_attributes
 
 if TYPE_CHECKING:
     from wx import CommandEvent, Event, SizeEvent, SpinEvent, TreeEvent, TreeItemId, RadioBox
@@ -186,15 +189,24 @@ class MainFrame(BasicMainFrame):
     def processing_mode_changed(self, event: 'CommandEvent' = ...):
         selected_mode = self.controller.proc_mode_interface
         if self.image_item is None:
-            if selected_mode.requires_encryption_parameters:
+            if not selected_mode.can_be_set_as_default_mode:    # 当所选模式不能被设置为默认模式时回退
                 self.controller.proc_mode_interface = self.controller.previous_proc_mode
                 return
             self.controller.previous_proc_mode = self.mode_manager.default_mode = selected_mode
             self.controller.backtrack_interface(selected_mode.default_settings, selected_mode)
             return
-        if selected_mode.requires_encryption_parameters:
-            if self.image_item.is_correct_decryption_mode(selected_mode):
+        self.image_item.enable_available_settings_source_btn(selected_mode)
+        if selected_mode.requires_encryption_parameters:    # 如果所选模式需要加密参数
+            if self.image_item.is_correct_decryption_mode(selected_mode):   # 如果所选图像已有正确对应的加密参数，则直接显示
+                self.image_item.proc_mode = selected_mode
+                self.controller.previous_proc_mode = selected_mode
+                if not self.image_item.cache.encryption_attributes_from_file:
+                    self.controller.settings_source_used = 2
                 self.image_item.display_encryption_attributes()
+                self.refresh_preview(event)
+                return
+            elif not selected_mode.encryption_parameters_must_be_used:  # 如果所选模式可以使用设置面板手动指定加密参数
+                self.controller.settings_source_used = 0
             elif self.image_item.cache.loading_encryption_attributes_error is not None:
                 self.controller.proc_mode_interface = self.controller.previous_proc_mode
                 self.dialog.async_warning(self.image_item.cache.loading_encryption_attributes_error)
@@ -206,6 +218,33 @@ class MainFrame(BasicMainFrame):
         self.image_item.proc_mode = selected_mode
         self.controller.backtrack_interface(self.image_item.settings, selected_mode)
         self.controller.previous_proc_mode = selected_mode
+        self.refresh_preview(event)
+
+    @catch_exc_for_frame_method
+    def settings_source_changed(self, event: 'CommandEvent'):
+        if self.image_item is None:
+            if __debug__:
+                raise ValueError()
+            return
+        match event.GetSelection():
+            case 0:
+                self.controller.settings_source_selected(0)
+                self.controller.backtrack_interface(self.image_item.settings)
+            case 1:
+                if self.image_item.is_correct_decryption_mode(self.controller.proc_mode_interface):
+                    self.image_item.settings_source = 1
+                    self.image_item.display_encryption_attributes()
+                else:
+                    self.controller.settings_source_used = self.image_item.settings_source
+                self.procSettingsPanelContainer.Disable()
+            case 2:
+                if not self.image_item.encrypted_image:
+                    flag = self.dialog.encryption_attributes_b85_entry_dialog()
+                    if flag is None or not flag:
+                        self.controller.settings_source_used = self.image_item.settings_source
+                        return
+                self.controller.settings_source_selected(2)
+                self.image_item.display_encryption_attributes()
         self.refresh_preview(event)
 
     @catch_exc_for_frame_method
@@ -248,10 +287,14 @@ class MainFrame(BasicMainFrame):
             self.controller.previous_proc_mode = image_data.proc_mode
             self.controller.gen_image_info(image_data)
             self.processingOptions.Enable()
-            # image_data.standardized_proc_mode()
-            if image_data.proc_mode.requires_encryption_parameters:
-                self.controller.backtrack_interface(image_data.encryption_attributes.settings)
-            self.controller.backtrack_interface(image_data.settings)
+            image_data.enable_available_settings_source_btn()
+            match image_data.settings_source:
+                case 0:
+                    self.procSettingsPanelContainer.Enable()
+                    self.controller.backtrack_interface(image_data.settings)
+                case _:
+                    self.procSettingsPanelContainer.Disable()
+                    self.controller.backtrack_interface(image_data.encryption_attributes.settings)
 
             if self.controller.preview_layout == 2 and self.controller.displayed_preview == 2:
                 self.set_preview_layout(image_data.best_layout)
@@ -292,8 +335,8 @@ class MainFrame(BasicMainFrame):
     @catch_exc_for_frame_method
     def set_settings_as_default(self, event=None):
         proc_mode = self.controller.proc_mode_interface
-        if proc_mode.requires_encryption_parameters:
-            self.dialog.warning('请勿将解密模式设置为默认模式')
+        if not proc_mode.can_be_set_as_default_mode:
+            self.dialog.warning('当前模式不允许被设定为默认模式')
             return
         if self.image_item is not None:
             self.mode_manager.default_mode = self.image_item.proc_mode
@@ -332,8 +375,8 @@ class MainFrame(BasicMainFrame):
     def apply_to_all(self, event):
         if not self.tree_manager.file_dict:
             return
-        if self.controller.proc_mode_interface.requires_encryption_parameters:
-            self.dialog.warning('请勿将解密模式应用到全部')
+        if not self.controller.proc_mode_interface.can_be_set_as_default_mode:
+            self.dialog.warning('当前模式不允许应用到全部')
             return
         self.apply_settings_to_all()
 
@@ -354,6 +397,21 @@ class MainFrame(BasicMainFrame):
             self.controller.gen_image_info()
             self.processingOptions.Disable()
             self.controller.clear_preview()
+
+    @catch_exc_for_frame_method
+    def get_serialized_encryption_parameters(self, event):
+        if self.image_item is None:
+            return
+        if not self.controller.proc_mode_interface.add_encryption_parameters_in_file:
+            self.dialog.info('当前模式不会生成加密参数', '提示')
+            return
+        self.dialog.text_display_dialog(
+            '序列化的加密参数', '以下为序列化至字符后的当前加密参数',
+            b85encode(pickle_dumps(gen_encryption_attributes(
+                self.controller.proc_mode_interface.corresponding_decryption_mode,
+                self.image_item.settings.serialize_encryption_parameters(*self.image_item.cache.loaded_image_size)
+            ))).decode('utf-8')
+        )
 
     def update_quality_num(self, event: 'CommandEvent' = None):
         self.controller.save_quality_info = str(self.controller.save_quality)
