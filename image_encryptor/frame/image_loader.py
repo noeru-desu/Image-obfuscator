@@ -143,7 +143,7 @@ class ImageLoader(object):
                 None if self.frame.startup_parameters.low_memory else loaded_image, PathData(path, '', name)
             )
             item_id = self.frame.tree_manager.add_file(image_item, path_chosen)
-            image_item.load_encryption_attributes_in_file()
+            image_item.load_encryption_attributes_from_file()
         else:
             self._output_image_loading_failure_info(error, file_name=split(path_chosen)[1])
             item_id = None
@@ -198,7 +198,7 @@ class ImageLoader(object):
                         PathData(path_chosen, r, n), settings_instantiator(settings_tuple)
                     )
                     self.frame.tree_manager.add_file(image_item, path_chosen, r, n, False)
-                    image_item.load_encryption_attributes_in_file()
+                    image_item.load_encryption_attributes_from_file()
                     self.add_loading_progress()
                     loaded_num += 1
                 else:

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-08 20:45:29
+LastEditTime : 2022-08-09 13:16:05
 Description  : 图像项目
 """
 from abc import ABC
@@ -264,7 +264,7 @@ class ImageItemCache(object):
                 self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, LIGHT_RED)
             else:
                 if reload_encryption_attributes:
-                    self._item.load_encryption_attributes_in_file()
+                    self._item.load_encryption_attributes_from_file()
                 self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, BLACK)
         if self._item.frame.startup_parameters.low_memory and not self._item.selected:  # 为防止低内存占用模式下的内存泄露, 在项目未被选中时不可缓存图像数据
             loaded_image = self._loaded_image
@@ -286,7 +286,7 @@ class ImageItemCache(object):
             BaseSettings
         """
         if self._encryption_attributes is None:
-            self._item.load_encryption_attributes_in_file()
+            self._item.load_encryption_attributes_from_file()
         return self._encryption_attributes
 
     @encryption_attributes.setter
@@ -496,11 +496,11 @@ class ImageItem(Item):
         如果尚未检测是否包含加密参数, 则进行检测并加载后再进行上述操作
         """
         if self.cache._encryption_attributes is None:
-            self.load_encryption_attributes_in_file()
+            self.load_encryption_attributes_from_file()
         if self.encrypted_image:
             self.frame.controller.backtrack_interface(self.cache.encryption_attributes.settings, self.cache.encryption_attributes.decryption_mode)
 
-    def load_encryption_attributes_in_file(self):
+    def load_encryption_attributes_from_file(self):
         """加载图像加密参数\n
         如果当前实例`no_file`属性为`True`或图像原始文件不存在, 则跳过操作\n
         加载成功后, 将自动切换项目设置中的处理模式为解密模式
@@ -524,7 +524,8 @@ class ImageItem(Item):
                     '指定的解密模式不存在'
                 )
                 self.encrypted_image = False
-                self.proc_mode = self.frame.mode_manager.default_mode_that_can_be_set_as_default
+                if self.proc_mode.requires_encryption_parameters and self.proc_mode.encryption_parameters_must_be_used:
+                    self.proc_mode = self.frame.mode_manager.default_mode_that_can_be_set_as_default
                 return False
             self.cache._encryption_attributes = ImageEncryptionAttributes(
                 mode, mode.instantiate_encryption_parameters_cls(
@@ -541,7 +542,8 @@ class ImageItem(Item):
         else:
             self.cache._encryption_attributes = EmptyEncryptionAttributes
             self.encrypted_image = False
-            self.proc_mode = self.frame.mode_manager.default_mode_that_can_be_set_as_default
+            if self.proc_mode.requires_encryption_parameters and self.proc_mode.encryption_parameters_must_be_used:
+                self.proc_mode = self.frame.mode_manager.default_mode_that_can_be_set_as_default
         return False
 
     def is_correct_decryption_mode(self, mode: 'ModeInterface') -> bool:
@@ -625,7 +627,7 @@ class ImageItem(Item):
         self.cache.refresh_cache()
         if self.settings_source == 2:
             self.set_settings_source(0)
-        self.load_encryption_attributes_in_file()
+        self.load_encryption_attributes_from_file()
         if dialog:
             self.frame.dialog.async_info(f'{self.path_data.file_name}重载成功')
             self.reload_done()
