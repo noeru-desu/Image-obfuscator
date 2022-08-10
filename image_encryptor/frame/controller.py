@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-08 14:07:07
+LastEditTime : 2022-08-10 07:10:56
 Description  : 界面控制相关
 """
 from json import dumps
@@ -202,41 +202,47 @@ class Controller(object):
     @proc_mode_qualname.setter
     def proc_mode_qualname(self, v: 'str'): self.frame.procMode.Select(self.frame.mode_manager.modes[v].mode_id)
 
-    def settings_source_selected(self, btn: int):
+    def settings_source_selected(self, btn: int, sync_to_item: bool = True):
         self.proc_panel_state_association[btn]()
-        if self.frame.image_item is not None:
+        if sync_to_item and self.frame.image_item is not None:
             self.frame.image_item.settings_source = btn
 
     @property
     def settings_source_used(self) -> int: return self.frame.SettingsSourceUsed.GetSelection()
 
-    @settings_source_used.setter
-    def settings_source_used(self, v: int):
-        if __debug__ and not self.frame.SettingsSourceUsed.IsItemEnabled(v):
+    def set_settings_source_used(self, item_id: int, sync_to_item: bool = True):
+        if self.frame.SettingsSourceUsed.GetSelection() == item_id:
+            return
+        if __debug__ and not self.frame.SettingsSourceUsed.IsItemEnabled(item_id):
             self.frame.dialog.warning('settings_source_used请求选中的目标已被禁用')
-            self.enable_settings_source_btn(v)
-        self.frame.SettingsSourceUsed.Select(v)
-        self.settings_source_selected(v)
+            self.enable_settings_source_btn(item_id, sync_to_item=sync_to_item)
+        self.frame.SettingsSourceUsed.Select(item_id)
+        self.settings_source_selected(item_id, sync_to_item)
 
-    def enable_settings_source_btn(self, item_id: Union[int, Sequence[int]]):
+    def enable_settings_source_btn(self, item_id: Union[int, Sequence[int]], select: int = ..., sync_to_item: bool = True):
         all_item_id = tuple(range(self.frame.SettingsSourceUsed.GetCount()))
         if isinstance(item_id, int):
-            self.frame.SettingsSourceUsed.Select(item_id)
-            self.settings_source_selected(item_id)
-            if self.frame.image_item is not None:
-                self.frame.image_item.settings_source = item_id
+            if self.frame.SettingsSourceUsed.GetSelection() != item_id:
+                self.frame.SettingsSourceUsed.Select(item_id)
+                self.settings_source_selected(item_id, sync_to_item)
+                if sync_to_item and self.frame.image_item is not None:
+                    self.frame.image_item.settings_source = item_id
             for i in all_item_id:
                 if i == item_id:
                     self.frame.SettingsSourceUsed.EnableItem(i)
                 else:
                     self.frame.SettingsSourceUsed.EnableItem(i, False)
         elif isinstance(item_id, Sequence):
-            selected = self.frame.SettingsSourceUsed.GetSelection()
-            if selected not in item_id:
-                self.frame.SettingsSourceUsed.Select(item_id[0])
-                self.settings_source_selected(item_id[0])
-                if self.frame.image_item is not None:
-                    self.frame.image_item.settings_source = item_id[0]
+            if __debug__:
+                if select is not Ellipsis and select not in item_id:
+                    raise ValueError('select does not exist in item_id')
+            if select is Ellipsis:
+                select = item_id[0]
+            if self.frame.SettingsSourceUsed.GetSelection() != select:
+                self.frame.SettingsSourceUsed.Select(select)
+                self.settings_source_selected(select, sync_to_item)
+                if sync_to_item and self.frame.image_item is not None:
+                    self.frame.image_item.settings_source = select
             for i in all_item_id:
                 if i in item_id:
                     self.frame.SettingsSourceUsed.EnableItem(i)

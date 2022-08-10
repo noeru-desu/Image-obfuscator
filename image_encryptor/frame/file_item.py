@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-09 13:16:05
+LastEditTime : 2022-08-10 07:10:42
 Description  : 图像项目
 """
 from abc import ABC
@@ -389,7 +389,7 @@ class ImageItem(Item):
     def set_settings_source(self, source: int):
         self.settings_source = source
         if self.selected:
-            self.frame.controller.settings_source_used = source
+            self.frame.controller.set_settings_source_used(source, False)
 
     @property
     def proc_mode(self):
@@ -552,16 +552,16 @@ class ImageItem(Item):
             return decryption_mode.requires_encryption_parameters and mode.mode_id == decryption_mode.mode_id
         return False
 
-    def enable_available_settings_source_btn(self, proc_mode: 'ModeInterface' = ...):
+    def enable_available_settings_source_btn(self, proc_mode: 'ModeInterface' = ..., sync_to_item: bool = True):
         if proc_mode is Ellipsis:
             proc_mode = self.proc_mode
         if proc_mode.requires_encryption_parameters:
             if self.is_correct_decryption_mode(proc_mode) and self.cache.encryption_attributes_from_file:
-                self.frame.controller.enable_settings_source_btn(1)
+                self.frame.controller.enable_settings_source_btn(1, sync_to_item=sync_to_item)
             elif not proc_mode.encryption_parameters_must_be_used:
-                self.frame.controller.enable_settings_source_btn((0, 2))
+                self.frame.controller.enable_settings_source_btn((0, 2), self.settings_source, sync_to_item)
         else:
-            self.frame.controller.enable_settings_source_btn(0)
+            self.frame.controller.enable_settings_source_btn(0, sync_to_item=sync_to_item)
 
     @property
     def available_settings_inst(self) -> tuple[Union['ItemSettings', 'EmptySettings'], Union['ItemEncryptionParameters', 'EmptySettings']]:

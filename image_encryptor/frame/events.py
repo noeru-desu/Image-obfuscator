@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-09 10:17:04
+LastEditTime : 2022-08-10 07:11:30
 Description  : 事件处理
 """
 from base64 import b85encode
@@ -201,12 +201,12 @@ class MainFrame(BasicMainFrame):
                 self.image_item.proc_mode = selected_mode
                 self.controller.previous_proc_mode = selected_mode
                 if not self.image_item.cache.encryption_attributes_from_file:
-                    self.controller.settings_source_used = 2
+                    self.controller.set_settings_source_used(2)
                 self.image_item.display_encryption_attributes()
                 self.refresh_preview(event)
                 return
             elif not selected_mode.encryption_parameters_must_be_used:  # 如果所选模式可以使用设置面板手动指定加密参数
-                self.controller.settings_source_used = 0
+                self.controller.set_settings_source_used(0)
             elif self.image_item.cache.loading_encryption_attributes_error is not None:
                 self.controller.proc_mode_interface = self.controller.previous_proc_mode
                 self.dialog.async_warning(self.image_item.cache.loading_encryption_attributes_error)
@@ -235,13 +235,12 @@ class MainFrame(BasicMainFrame):
                     self.image_item.settings_source = 1
                     self.image_item.display_encryption_attributes()
                 else:
-                    self.controller.settings_source_used = self.image_item.settings_source
-                self.procSettingsPanelContainer.Disable()
+                    self.controller.set_settings_source_used(self.image_item.settings_source, False)
             case 2:
                 if not self.image_item.encrypted_image:
                     flag = self.dialog.encryption_attributes_b85_entry_dialog()
                     if flag is None or not flag:
-                        self.controller.settings_source_used = self.image_item.settings_source
+                        self.controller.set_settings_source_used(self.image_item.settings_source, False)
                         return
                 self.controller.settings_source_selected(2)
                 self.image_item.display_encryption_attributes()
@@ -287,13 +286,11 @@ class MainFrame(BasicMainFrame):
             self.controller.previous_proc_mode = image_data.proc_mode
             self.controller.gen_image_info(image_data)
             self.processingOptions.Enable()
-            image_data.enable_available_settings_source_btn()
+            image_data.enable_available_settings_source_btn(sync_to_item=False)
             match image_data.settings_source:
                 case 0:
-                    self.procSettingsPanelContainer.Enable()
                     self.controller.backtrack_interface(image_data.settings)
                 case _:
-                    self.procSettingsPanelContainer.Disable()
                     self.controller.backtrack_interface(image_data.encryption_attributes.settings)
 
             if self.controller.preview_layout == 2 and self.controller.displayed_preview == 2:
