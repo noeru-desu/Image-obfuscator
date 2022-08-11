@@ -2,11 +2,11 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-07-23 13:55:58
+LastEditTime : 2022-08-11 12:18:28
 Description  : 图像加密模块
 """
 from copy import copy
-from itertools import product
+from itertools import pairwise, product
 from math import ceil
 from random import Random
 from threading import Lock
@@ -238,7 +238,11 @@ class BaseImageEncryptV3(object):
             self.mapped_channels = False
             self.mapping_table = None
         # 生成坐标
-        self.block_pos_list = [(slice(y, y + self.block_height), slice(x, x + self.block_width)) for y, x in product(range(0, self.row * self.block_height, self.block_height), range(0, self.col * self.block_width, self.block_width))]
+        x_slices = tuple(slice(x, nx) for x, nx in pairwise(range(0, self.col * self.block_width + 1, self.block_width)))
+        self.block_pos_list = [
+            (slice(y, ny), x_slice)
+            for (y, ny), x_slice in product(pairwise(range(0, self.row * self.block_height + 1, self.block_height)), x_slices)
+        ]
         # 随机映射
         if self.mapping_table is not None:
             if len(self.mapping_table) != 1:
