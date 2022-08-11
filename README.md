@@ -2,10 +2,10 @@
  * @Author       : noeru_desu
  * @Date         : 2021-11-21 19:21:41
  * @LastEditors  : noeru_desu
- * @LastEditTime : 2022-05-15 12:03:35
+ * @LastEditTime : 2022-08-11 13:31:33
  * @Description  : README
 -->
-# Image Encryptor
+# Image Obfuscator
 
 ## 下载
 
@@ -27,7 +27,7 @@ Python版本：`3.10`
 
 CLI版本已停止支持 (2.x版本中可能被重新添加)
 
-GUI版本为`ImageEncryptor.py`
+GUI版本为`ImageObfuscator.py`
 
 向Python传入`-O`或`-OO`参数启动GUI版本时，将在参数本身的优化操作之外，禁用部分装饰器
 

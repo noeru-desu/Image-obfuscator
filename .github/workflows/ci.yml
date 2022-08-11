@@ -11,8 +11,8 @@ on:
   workflow_dispatch:
 
 env:
-  ORIGINAL_PROJECT: "noeru-desu/Image-encryptor"
-  PROGRAM_NAME: "ImageEncryptor"
+  ORIGINAL_PROJECT: "noeru-desu/Image-obfuscator"
+  PROGRAM_NAME: "ImageObfuscator"
   BUILD_ENV: "win64-nuitka-msvc"
 
 jobs:
@@ -77,22 +77,22 @@ jobs:
         shell: cmd
         run: |
           mkdir nuitka
-          nuitka --disable-console --python-flag=-OO,no_docstrings --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=colorlog,pydoc,urllib,socket,tkinter --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow ImageEncryptor.py
+          nuitka --disable-console --python-flag=-OO,no_docstrings --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=colorlog,pydoc,urllib,socket,tkinter --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow ImageObfuscator.py
       - name: Build artifacts (with console)
         run: |
-          nuitka --enable-console --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=pydoc,urllib,socket,tkinter --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow --warn-implicit-exceptions -o ImageEncryptor.with_console.exe ImageEncryptor.py
+          nuitka --enable-console --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=pydoc,urllib,socket,tkinter --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow --warn-implicit-exceptions -o ImageObfuscator.with_console.exe ImageObfuscator.py
       - name: Basic tests
         shell: cmd
         run: |
-          if exist ".\nuitka\ImageEncryptor.exe" ".\nuitka\ImageEncryptor.exe" -t
-          if exist ".\ImageEncryptor.with_console.exe" ".\ImageEncryptor.with_console.exe" -t
+          if exist ".\nuitka\ImageObfuscator.exe" ".\nuitka\ImageObfuscator.exe" -t
+          if exist ".\ImageObfuscator.with_console.exe" ".\ImageObfuscator.with_console.exe" -t
       - name: Rename release exe
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
         shell: cmd
         run: |
           set ver=${{ github.ref_name }}
-          copy ".\nuitka\ImageEncryptor.exe" ".\ImageEncryptor_%ver:v=%.exe"
-          copy ".\ImageEncryptor.with_console.exe" ".\ImageEncryptor_%ver:v=%.with_console.exe"
+          copy ".\nuitka\ImageObfuscator.exe" ".\ImageObfuscator_%ver:v=%.exe"
+          copy ".\ImageObfuscator.with_console.exe" ".\ImageObfuscator_%ver:v=%.with_console.exe"
       - name: Draft release
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
         uses: softprops/action-gh-release@v1
@@ -111,7 +111,7 @@ jobs:
             * 
             **_`with_console`版本: 未使用`-OO`参数进行优化，并在运行时显示CMD窗口_**
           files: |
-            ImageEncryptor_*.exe
+            ImageObfuscator_*.exe
           draft: true
           prerelease: false
         env:
@@ -121,5 +121,5 @@ jobs:
         with:
           name: ${{ env.BUILD_ENV }}-${{ env.VCToolsVersion }}-build.${{ github.run_number }}
           path: |
-            nuitka/ImageEncryptor.exe
-            ImageEncryptor.with_console.exe
+            nuitka/ImageObfuscator.exe
+            ImageObfuscator.with_console.exe
