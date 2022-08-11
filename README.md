@@ -7,6 +7,8 @@
 -->
 # Image Obfuscator
 
+__`2.1.0`版本前称为*Image Encryptor*__
+
 ## 下载
 
 [Release版本](../../../releases)
