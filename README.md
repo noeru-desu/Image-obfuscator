@@ -1,19 +1,22 @@
-<!--
- * @Author       : noeru_desu
- * @Date         : 2021-11-21 19:21:41
- * @LastEditors  : noeru_desu
- * @LastEditTime : 2022-08-11 13:31:33
- * @Description  : README
--->
 # Image Obfuscator
 
 __`2.1.0`版本前称为*Image Encryptor*__
+
+## 网页版
+
+已有计划...
 
 ## 下载
 
 [Release版本](../../../releases)
 
 [自动构建版本](../../../actions)
+
+## 已计划新增的模式
+
+1. 彩色幻影坦克
+
+*类似于 一个文件中隐藏一张图像 的模式暂时没有计划添加*
 
 ## 启动参数
 
