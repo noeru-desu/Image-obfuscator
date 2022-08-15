@@ -265,7 +265,7 @@ class PasswordDialog(PD):
         self.EndModal(ID_CANCEL)
 
 
-# 样式与Scintilla的json.properties中的配置大部分相同
+# 样式与Scintilla的json.settings中的配置大部分相同
 json_foreground_style = (
     (STC_JSON_DEFAULT, Colour(150, 150, 150)),
     (STC_JSON_ERROR, WHITE),
@@ -306,7 +306,7 @@ class JsonEditorDialog(JED):
         self.Layout()
 
     def set_style(self):
-        # 样式与Scintilla的json.properties中的配置相同(除特殊注释处)
+        # 样式与Scintilla的json.settings中的配置相同(除特殊注释处)
         self.textEditor.StyleClearAll()
         self.textEditor.SetViewWhiteSpace(True)
         self.textEditor.SetLexer(STC_LEX_JSON)

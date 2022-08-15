@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-11 12:02:54
+LastEditTime : 2022-08-14 16:27:51
 Description  : 单文件解密功能
 """
 from os import makedirs
@@ -32,7 +32,7 @@ def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return
     password = parameters.get_password()
     if password is None:
         frame.dialog.async_warning('密码字典中不存在此图像的密码')
-        return WrappedPillowImage(source, cacheable=False)
+        return None
     step_count = 0
     if parameters.shuffle_chunks or parameters.flip_chunks or parameters.mapping_channels:
         step_count += 2
@@ -75,7 +75,7 @@ def normal_gen_quietly(frame: 'MainFrame', source: 'Image.Image', original: bool
     password = encryption_parameters.get_password()
     if password is None:
         frame.dialog.async_warning('密码字典中不存在此图像的密码')
-        return WrappedPillowImage(source, cacheable=False)
+        return None
     step_count = 0
     if encryption_parameters.shuffle_chunks or encryption_parameters.flip_chunks or encryption_parameters.mapping_channels:
         step_count += 2

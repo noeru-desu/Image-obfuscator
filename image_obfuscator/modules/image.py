@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-02 12:31:51
+LastEditTime : 2022-08-14 17:20:41
 Description  : 图像相关工具
 """
 from abc import ABC
@@ -168,13 +168,15 @@ def crop_array(array, width, height):
 
 def array_to_image(array: 'ndarray', size: tuple = ...) -> 'PIL_Image.Image':
     if size is Ellipsis:
-        size = array.shape[:-1:-1]
+        shape = array.shape
+        size = (shape[1], shape[0])
     return PIL_Image.frombuffer('RGBA', size, array.data, "raw", 'RGBA', 0, 1)
 
 
 def array_to_bitmap(array: 'ndarray', size: tuple = ...) -> 'Bitmap':
     if size is Ellipsis:
-        size = array.shape[:-1:-1]
+        shape = array.shape
+        size = (shape[1], shape[0])
     return Bitmap.FromBufferRGBA(*size, array.data)
 
 

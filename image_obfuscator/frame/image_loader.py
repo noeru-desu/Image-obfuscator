@@ -173,7 +173,7 @@ class ImageLoader(object):
             self.finish_loading_progress()
             return
         self.init_loading_progress(file_num, True)
-        settings_tuple = self.frame.mode_manager.default_settings.properties_tuple
+        settings_tuple = self.frame.mode_manager.default_settings.settings_tuple
         settings_instantiator = self.frame.mode_manager.default_mode.instantiate_settings_cls
         loaded_num = 0
         load_failures = 0

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-10 07:10:56
+LastEditTime : 2022-08-14 17:33:52
 Description  : 界面控制相关
 """
 from json import dumps
@@ -16,7 +16,7 @@ from image_obfuscator.modes.base import BaseSettings, EmptySettings
 
 if TYPE_CHECKING:
     from PIL.Image import Image
-    from wx import Gauge, Panel
+    from wx import Gauge, Panel, Colour
     from image_obfuscator.frame.events import MainFrame
     from image_obfuscator.frame.tree_manager import ImageItem
     from image_obfuscator.modules.image import WrappedImage
@@ -48,7 +48,7 @@ class Controller(object):
         self.proc_panel_state_association = (frame.procSettingsPanelContainer.Enable, frame.procSettingsPanelContainer.Disable, frame.procSettingsPanelContainer.Disable)
 
     # ----------
-    # properties
+    # settings
     # ----------
 
     @property
@@ -151,6 +151,10 @@ class Controller(object):
     def previewed_image(self, v: 'WrappedImage'):
         self.frame.previewedBitmap.SetBitmap(v.wxBitmap)
         self.frame.previewedBitmapPanel.Layout()
+
+    def set_preview_panel_bg(self, color: 'Colour'):
+        self.frame.previewedBitmapSizerPanel.SetBackgroundColour(color)
+        self.frame.previewedBitmapSizerPanel.Refresh()
 
     @property
     def displayed_preview(self) -> int:
@@ -533,6 +537,7 @@ class Controller(object):
         self.proc_settings_panel = proc_mode.settings_panel
         if settings_instance is not EmptySettings:
             self.frame.passwordCtrl.Enable(settings_instance.enable_password)
+            self.set_preview_panel_bg(settings_instance.preview_bg)
         if not proc_mode.enable_password:
             self.password = 'none'
 
@@ -561,10 +566,10 @@ class Controller(object):
         return hash((self.controller.proc_mode_id, self.controller.proc_mode_interface.encryption_settings_tuple, self.controller.resampling_filter_id, self.controller.preview_source, *self.controller.preview_size))
 
     def gen_encryption_settings_hash(self, settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters'):
-        return hash((self.controller.proc_mode_id, settings.properties_tuple, encryption_parameters.properties_tuple))
+        return hash((self.controller.proc_mode_id, settings.settings_tuple, encryption_parameters.settings_tuple))
 
     def gen_encryption_settings_hash_with_size(self, settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters'):
-        return hash((self.controller.proc_mode_id, settings.properties_tuple, encryption_parameters.properties_tuple, self.controller.resampling_filter_id, self.controller.preview_source, *self.controller.preview_size))
+        return hash((self.controller.proc_mode_id, settings.settings_tuple, encryption_parameters.settings_tuple, self.controller.resampling_filter_id, self.controller.preview_source, *self.controller.preview_size))
     '''
 
     @property

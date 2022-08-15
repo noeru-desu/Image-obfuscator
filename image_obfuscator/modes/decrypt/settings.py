@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:39:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-08 12:59:28
+LastEditTime : 2022-08-15 07:31:27
 Description  : 设置选项
 """
 from base64 import b85decode
@@ -25,10 +25,10 @@ class EncryptionParametersData(BaseSettings):
         # 需保证dynamic_auth与password在最后，参考self.serialize_encryption_parameters
     )
 
-    def __init__(self, parameters: Iterable[Any]):
+    def __init__(self, parameters: Iterable[Any], data = None):
         """
         Args:
-            parameters: 加密参数字典或加密参数元组(一般由`self.properties_tuple`生成)
+            parameters: 加密参数字典或加密参数元组(一般由`self.settings_tuple`生成)
         """
         if isinstance(parameters, tuple):
             self.sync_from_tuple(parameters, False)
@@ -58,7 +58,7 @@ class EncryptionParametersData(BaseSettings):
         return pickle_loads(b85decode(data))
 
     @property
-    def properties(self):
+    def settings(self):
         return (
             self.cutting_row, self.cutting_col,
             self.shuffle_chunks, self.flip_chunks,
@@ -75,10 +75,10 @@ class EncryptionParameters(EncryptionParametersData):
     PASSWORD_PROPERTY_NAME = 'password'
     mode_constants: 'ModeConstants' = ...
 
-    def __init__(self, parameters: dict[str, Any] | Iterable[Any]):
+    def __init__(self, parameters: dict[str, Any] | Iterable[Any], data = None):
         super().__init__(parameters)
         super(EncryptionParametersData, self).__init__()
-        self.set_enable_password(self.has_password)
+        self.enable_password = self.has_password
 
     def get_password(self):
         if not self.has_password:
@@ -130,11 +130,11 @@ class Settings(BaseSettings):
     settings_panel: 'ProcSettingsPanel'
     PASSWORD_PROPERTY_NAME = 'password'
 
-    def __init__(self, settings: Iterable[Any] = None):
+    def __init__(self, settings: Iterable[Any] = None, data = None):
         """
         Args:
             controller (Controller): Controller实例.\n
-            settings (Iterable[Any], optional): settings (Iterable[Any]): 可迭代对象(一般是由`(self.properties_tuple)`生成的元组)
+            settings (Iterable[Any], optional): settings (Iterable[Any]): 可迭代对象(一般是由`(self.settings_tuple)`生成的元组)
             默认为None, 为None时将从界面中获取加密设置
         """
         if settings is None:

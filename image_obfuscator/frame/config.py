@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-06-07 06:20:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-11 13:32:46
+LastEditTime : 2022-08-13 16:39:52
 Description  : 
 """
 from pickle import dump as pickle_dump, load as pickle_load
@@ -52,7 +52,7 @@ class ConfigManager(object):
         return {
             'config_version': (FRAME_SETTINGS_MAIN_VERSION, FRAME_SETTINGS_SUB_VERSION),
             'default_proc_mode': default_proc_mode.mode_qualname,
-            'default_mode_settings': default_mode_settings.properties_dict,
+            'default_mode_settings': default_mode_settings.settings_dict,
             'startup_parameters': self.frame.startup_parameters.parameters_dict,
             'preview_mode': self.frame.controller.preview_mode,
             'displayed_preview': self.frame.controller.displayed_preview,
@@ -100,8 +100,9 @@ class ConfigManager(object):
         try:
             if frame_settings.default_proc_mode in self.frame.mode_manager.modes:
                 default_mode = self.frame.mode_manager.default_mode = self.frame.mode_manager.modes[frame_settings.default_proc_mode]
+                self.frame.controller.previous_proc_mode = default_mode
                 default_settings = default_mode.instantiate_settings_cls()
-                default_settings.properties_dict = frame_settings.default_mode_settings
+                default_settings.settings_dict = frame_settings.default_mode_settings
                 self.frame.mode_manager.default_settings = default_settings
                 self.frame.controller.backtrack_interface(default_settings, default_mode)
             self.frame.startup_parameters.parameters_dict = frame_settings.startup_parameters

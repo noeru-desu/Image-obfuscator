@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-05-28 18:35:11
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-08 09:29:38
+LastEditTime : 2022-08-13 15:08:02
 Description  : 
 """
 from typing import TYPE_CHECKING
@@ -19,7 +19,6 @@ if TYPE_CHECKING:
 
 class ProcSettingsPanel(BaseModeSettingsPanel, BaseProcSettingsPanel):
     __slots__ = ()
-    mode_constants: 'ModeConstants' = ...
 
     # def __init__(self, *args):
     #     o_args = set(dir(self))

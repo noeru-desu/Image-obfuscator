@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-09 10:03:30
+LastEditTime : 2022-08-14 16:16:59
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -202,6 +202,8 @@ class ImageSaver(object):
                 return result
         else:
             image = result
+        if image is None:
+            return result
         self._post_save_processing(
                     mode_interface,
                     settings.serialize_encryption_parameters(*loaded_image.size) if mode_interface.add_encryption_parameters_in_file else None,
@@ -281,7 +283,8 @@ class ImageSaver(object):
             if error is not None:
                 self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
                 return
-        self.frame.controller.display_and_cache_processed_preview(result, cache_hash)     # 顺便刷新一下预览图
+        if result is not None:
+            self.frame.controller.display_and_cache_processed_preview(result, cache_hash)     # 顺便刷新一下预览图
 
     def _bulk_save_from_cache_callback(self, result):
         """批量保存回调函数"""

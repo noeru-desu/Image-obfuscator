@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-10 14:27:52
+LastEditTime : 2022-08-15 07:31:46
 Description  : 
 """
 from base64 import b85encode
@@ -26,10 +26,10 @@ class SettingsData(BaseSettings):
         'password'
     )
 
-    def __init__(self, settings: Iterable[Any]):
+    def __init__(self, settings: Iterable[Any], data = None):
         """
         Args:
-            settings (Iterable[Any]): 可迭代对象(一般是由`(self.properties_tuple)`生成的元组)
+            settings (Iterable[Any]): 可迭代对象(一般是由`(self.settings_tuple)`生成的元组)
         """
         self.sync_from_tuple(settings)
         # if isinstance(settings, tuple):
@@ -88,11 +88,11 @@ class Settings(SettingsData):
     mode_controller: 'EncryptModeController'
     PASSWORD_PROPERTY_NAME = 'password'
 
-    def __init__(self, settings: Iterable[Any] = None):
+    def __init__(self, settings: Iterable[Any] = None, data = None):
         """
         Args:
             controller (Controller): Controller实例.\n
-            settings (Iterable[Any], optional): settings (Iterable[Any]): 可迭代对象(一般是由`(self.properties_tuple)`生成的元组)
+            settings (Iterable[Any], optional): settings (Iterable[Any]): 可迭代对象(一般是由`(self.settings_tuple)`生成的元组)
             默认为None, 为None时将从界面中获取加密设置
         """
         if settings is None:

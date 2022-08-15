@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-09 10:25:20
+LastEditTime : 2022-08-15 07:35:31
 Description  : 基类
 """
 from abc import ABC
@@ -11,19 +11,22 @@ from typing import (TYPE_CHECKING, Any, Callable, Iterable, Iterator, Optional,
                     Type, Union, final)
 from warnings import warn
 
+from wx import WHITE
+
 from image_obfuscator.modules.decorator import catch_exc_and_return
 
 if TYPE_CHECKING:
     from PIL.Image import Image
-    from wx import Event, Gauge, Object
+    from wx import Colour, Event, Gauge, Object
     from image_obfuscator.frame.controller import Controller as MainController
     from image_obfuscator.frame.events import MainFrame
     from image_obfuscator.modules.image import (ImageData, PillowImage,
                                                WrappedImage)
     from image_obfuscator.types import (ItemSettings, ItemSettingsMappingDict,
-                                       ModeInterface, Properties,
-                                       PropertiesDict, PropertiesGenerator,
-                                       PropertiesTuple, PropertiesTupleHash,
+                                       ModeInterface, Settings,
+                                       SettingsDict, SettingsGenerator,
+                                       DataGenerator, DataTuple,
+                                       SettingsTuple, SettingsTupleHash,
                                        ChannelsHash, ChannelsNum, ChannelsTuple,
                                        ModeSettingsPanel, ItemEncryptionParameters,
                                        ModeController)
@@ -141,15 +144,19 @@ class SettingsMapping(dict):
 
 
 class BaseSettings(SupportConstantProperty):
-    __slots__ = ('SETTINGS_MAPPING', 'enable_password')
+    __slots__ = ('SETTINGS_MAPPING', 'enable_password', 'preview_bg')
+    DATA_NAMES = ()
     SETTING_NAMES: tuple[str]
     SETTINGS_MAPPING_DICT: 'ItemSettingsMappingDict'
     PASSWORD_PROPERTY_NAME: Optional[str] = None
     SETTINGS_MAPPING: 'SettingsMapping'     # 每次实例化时都将生成新的SettingsMapping
 
-    def __init__(self, settings: Optional[Iterable[Any]] = None) -> None:
+    def __init__(self, settings: Optional[Iterable[Any]] = None, data: Optional[Iterable[Any]] = None) -> None:
+        if not hasattr(self, 'enable_password'):
+            self.enable_password = self.mode_interface.enable_password
+        if not hasattr(self, 'preview_bg'):
+            self.preview_bg = WHITE
         self.SETTINGS_MAPPING = SettingsMapping(self, self.SETTINGS_MAPPING_DICT, self.PASSWORD_PROPERTY_NAME)
-        self.enable_password = self.mode_interface.enable_password
 
     def __repr__(self) -> str:
         return ', '.join(f'{i}: {getattr(self, i)}' for i in self.SETTING_NAMES)
@@ -170,17 +177,21 @@ class BaseSettings(SupportConstantProperty):
         self.enable_password = v
         self.main_frame.passwordCtrl.Enable(v)
 
+    def set_preview_bg(self, color: 'Colour'):
+        self.main_controller.set_preview_panel_bg(color)
+        self.preview_bg = color
+
     def sync_from_event(self, event: 'Event'):
         self.SETTINGS_MAPPING.sync_from_event_to_settings(event)
 
     def sync_from_mapping(self, _object: 'Object'):
         self.SETTINGS_MAPPING.sync_from_object_to_settings(_object)
 
-    def sync_from_tuple(self, settings: 'Properties', check_length=True):
-        """将可迭代对象(一般是由`self.properties_tuple`生成的元组)中的数据同步到自身
+    def sync_from_tuple(self, settings: 'Settings', check_length=True):
+        """将可迭代对象(一般是由`self.settings_tuple`生成的元组)中的数据同步到自身
 
         Args:
-            settings (Iterable[Any]): 可迭代对象(一般是由`(self.properties_tuple)`生成的元组)
+            settings (Iterable[Any]): 可迭代对象(一般是由`(self.settings_tuple)`生成的元组)
             check_length (bool): 是否检查`settings`参数与`SETTING_NAMES`属性的长度是否对应. 默认为`True`. 当检查出长度不一致时触发`LengthMismatchWarning`警告
         """
         if __debug__ and check_length and len(self.SETTING_NAMES) != len(settings):
@@ -188,8 +199,20 @@ class BaseSettings(SupportConstantProperty):
         for n, v in zip(self.SETTING_NAMES, settings):
             self.__setattr__(n, v)
 
+    def sync_data_from_tuple(self, data, check_length=True):
+        """将可迭代对象(一般是由`self.data_tuple`生成的元组)中的数据同步到自身
+
+        Args:
+            settings (Iterable[Any]): 可迭代对象(一般是由`(self.settings_tuple)`生成的元组)
+            check_length (bool): 是否检查`settings`参数与`SETTING_NAMES`属性的长度是否对应. 默认为`True`. 当检查出长度不一致时触发`LengthMismatchWarning`警告
+        """
+        if __debug__ and check_length and len(self.DATA_NAMES) != len(data):
+            warn(f'Wrong settings arguments length, currently {len(data)} (expected {len(self.DATA_NAMES)})', LengthMismatchWarning)
+        for n, v in zip(self.DATA_NAMES, data):
+            self.__setattr__(n, v)
+
     @property
-    def properties(self) -> 'PropertiesGenerator':
+    def settings(self) -> 'SettingsGenerator':
         """返回`self.SETTING_NAMES`中每个属性名的值的生成器.\n
         此方法返回值必须与`ModeInterface.encryption_settings_tuple`相同,
         即`SETTING_NAMES`对应内容的类型/顺序与`encryption_settings_tuple`相同
@@ -200,26 +223,26 @@ class BaseSettings(SupportConstantProperty):
         return (getattr(self, i) for i in self.SETTING_NAMES)
 
     @property
-    def properties_tuple(self) -> 'PropertiesTuple':
-        """将`self.properties`转换为元组
+    def settings_tuple(self) -> 'SettingsTuple':
+        """将`self.settings`转换为元组
 
         Returns:
             tuple: `self.SETTING_NAMES`中每个属性名的值的元组
         """
-        return tuple(self.properties)
+        return tuple(self.settings)
 
     @property
-    def properties_hash(self) -> 'PropertiesTupleHash':
-        """`self.properties_tuple`的hash值\n
+    def settings_hash(self) -> 'SettingsTupleHash':
+        """`self.settings_tuple`的hash值\n
         注意: 此hash不包含`proc_mode_id`, 用于预览图缓存的hash请使用`Item`中的方法生成
 
         Returns:
             int: hash结果
         """
-        return hash(self.properties_tuple)
+        return hash(self.settings_tuple)
 
     @property
-    def properties_dict(self) -> Optional['PropertiesDict']:
+    def settings_dict(self) -> Optional['SettingsDict']:
         """返回`self.SETTING_NAMES`中每个属性名与其值的字典.
 
         Returns:
@@ -227,11 +250,29 @@ class BaseSettings(SupportConstantProperty):
         """
         return {k: getattr(self, k) for k in self.SETTING_NAMES}
 
-    @properties_dict.setter
-    def properties_dict(self, v: 'PropertiesDict'):
+    @settings_dict.setter
+    def settings_dict(self, v: 'SettingsDict'):
         for k, _v in v.items():
             if k in self.SETTING_NAMES:
                 setattr(self, k, _v)
+
+    @property
+    def data(self) -> 'DataGenerator':
+        """返回`self.DATA_NAMES`中每个属性名的值的生成器.
+
+        Returns:
+            Generator: `self.DATA_NAMES`中每个属性名的值
+        """
+        return (getattr(self, i) for i in self.DATA_NAMES)
+
+    @property
+    def data_tuple(self) -> 'DataTuple':
+        """将`self.data`转换为元组
+
+        Returns:
+            tuple: `self.DATA_NAMES`中每个属性名的值的元组
+        """
+        return tuple(self.data)
 
     def copy(self) -> 'ItemSettings':
         """返回当前实例的浅拷贝
@@ -239,7 +280,7 @@ class BaseSettings(SupportConstantProperty):
         Returns:
             Type[Self]: 当前实例的浅拷贝
         """
-        return self.__class__(self.properties_tuple)
+        return self.__class__(self.settings_tuple, self.data_tuple)
 
     def backtrack_interface(self):
         pass
@@ -276,16 +317,16 @@ class EmptySettingsType(BaseSettings):
     def sync_from_interface(self): pass
 
     @property
-    def properties(self): return ()
+    def settings(self): return ()
 
     @property
-    def properties_tuple(self): return ()
+    def settings_tuple(self): return ()
 
     @property
-    def properties_dict(self) -> None: return None
+    def settings_dict(self) -> None: return None
 
-    @properties_dict.setter
-    def properties_dict(self, v: Any): pass
+    @settings_dict.setter
+    def settings_dict(self, v: Any): pass
 
     def copy(self): return self
 
@@ -339,7 +380,7 @@ class BaseModeInterface(ABC):
     settings_controller_cls: Optional[Type['ModeController']] = None    # 面板控制器类(基类为BaseModeController)
     settings_controller: Optional['ModeController']                     # 面板控制器实例(一般为自动创建, 手动实例化时请注意顺序)
     enable_password: bool = False       # 是否使用密码输入框
-    settings_panel: Optional['ModeSettingsPanel']                       # 该模式的设置面板实例, 如需手动实例化,
+    settings_panel: Optional['ModeSettingsPanel']           # 该模式的设置面板实例, 如需手动实例化,
                                                             # 请在ModeInterface.__init__中使用frame.mode_manager.add_settings_panel()进行实例化
     settings_panel_cls: Optional[Type['ModeSettingsPanel']] = None      # 该模式的设置面板(BaseModeSettingsPanel和wx.Panel的子类(务必使MRO中BaseModeSettingsPanel优先))
 
@@ -377,10 +418,10 @@ class BaseModeInterface(ABC):
         raise NotImplementedError()
 
     def instantiate_settings_cls(self, data: Optional[Any] = None) -> Union[EmptySettingsType, 'ItemSettings']:
-        return EmptySettings if self.settings_cls is None else self.settings_cls(data)
+        return EmptySettings if self.settings_cls is None else self.settings_cls(data, None)
 
     def instantiate_encryption_parameters_cls(self, data) -> Union[EmptySettingsType, 'ItemEncryptionParameters']:
-        return EmptySettings if self.encryption_parameters_cls is None else self.encryption_parameters_cls(data)
+        return EmptySettings if self.encryption_parameters_cls is None else self.encryption_parameters_cls(data, None)
 
     @final
     def check_metadata(self):

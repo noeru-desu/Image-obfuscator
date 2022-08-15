@@ -235,6 +235,7 @@ class MainFrame (wx.Frame):
         bSizer12.Add(bSizer282, 0, wx.EXPAND, 5)
 
         self.procSettingsPanelContainer = wx.Panel(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.procSettingsPanelContainer.SetMinSize(wx.Size(-1, 180))
         bSizer12.Add(self.procSettingsPanelContainer, 5, wx.EXPAND, 0)
 
         bSizer31 = wx.BoxSizer(wx.HORIZONTAL)

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-10 07:11:30
+LastEditTime : 2022-08-14 17:31:08
 Description  : 事件处理
 """
 from base64 import b85encode
@@ -83,8 +83,9 @@ class MainFrame(BasicMainFrame):
                 self.set_preview_layout(self.image_item.best_layout)
             else:
                 self.set_preview_layout(VERTICAL)
-        else:
-            self.set_preview_layout(self.controller.preview_layout_flag)
+        elif self.controller.displayed_preview != 2:
+            return
+        self.set_preview_layout(self.controller.preview_layout_flag)
         self.refresh_preview(event)
 
     @catch_exc_for_frame_method
@@ -99,8 +100,6 @@ class MainFrame(BasicMainFrame):
             return
         if self.image_item.proc_mode.settings_cls is not None:
             self.image_item.settings.sync_from_event(event)
-        if self.image_item.proc_mode.encryption_parameters_cls is not None:
-            self.image_item.encryption_attributes.settings.sync_from_event(event)
         self.refresh_preview(event)
 
     @catch_exc_for_frame_method

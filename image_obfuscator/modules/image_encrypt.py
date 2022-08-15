@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-11 12:39:07
+LastEditTime : 2022-08-15 07:53:22
 Description  : 图像加密模块
 """
 from copy import copy
@@ -23,7 +23,6 @@ from image_obfuscator.pregenerated.image_encrypt import (FlipFuncV1, FlipFuncV2,
                                                         MappingFuncV2,
                                                         MappingFuncV3)
 from image_obfuscator.utils.misc_utils import FakeBar
-from image_obfuscator.utils.debugging_utils import Timeit
 
 if TYPE_CHECKING:
     from numpy import ndarray

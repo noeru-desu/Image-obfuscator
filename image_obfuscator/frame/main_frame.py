@@ -256,7 +256,7 @@ class MainFrame(MF):
             if __debug__:
                 raise ValueError('Operations not permitted by the current mode interface setting (can_be_set_as_default_mode)')
             return
-        properties_tuple = self.controller.current_settings.properties_tuple
+        settings_tuple = self.controller.current_settings.settings_tuple
         for i in self.tree_manager.all_image_item_data:
             i.proc_mode = proc_mode
-            i.settings.sync_from_tuple(properties_tuple)
+            i.settings.sync_from_tuple(settings_tuple)

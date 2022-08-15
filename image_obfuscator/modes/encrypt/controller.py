@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 13:38:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-10 14:29:52
+LastEditTime : 2022-08-13 15:08:16
 Description  : 
 """
 from typing import TYPE_CHECKING, Optional
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 class EncryptModeController(BaseModeController):
     "控制器"
-    __slots__ = ('frame', 'mapping_checkboxes', 'XOR_checkboxes')
+    __slots__ = ('mapping_checkboxes', 'XOR_checkboxes')
     _instance: Optional['EncryptModeController'] = None
     settings_panel: 'ProcSettingsPanel'
 

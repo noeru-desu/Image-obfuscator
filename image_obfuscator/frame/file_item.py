@@ -584,15 +584,15 @@ class ImageItem(Item):
     @property
     def scalable_cache_hash(self) -> 'ScalableImageCacheHash':
         return hash((
-            self.proc_mode.mode_id, self.frame.controller.settings_source_used, self._settings.properties_tuple,
-            self.encryption_attributes.settings.properties_tuple
+            self.proc_mode.mode_id, self.frame.controller.settings_source_used, self._settings.settings_tuple,
+            self.encryption_attributes.settings.settings_tuple
         ))
 
     @property
     def normal_cache_hash(self) -> 'NormalImageCacheHash':
         return hash((
-            self.proc_mode.mode_id, self.frame.controller.settings_source_used, self._settings.properties_tuple,
-            self.encryption_attributes.settings.properties_tuple, self.frame.controller.resampling_filter_id,
+            self.proc_mode.mode_id, self.frame.controller.settings_source_used, self._settings.settings_tuple,
+            self.encryption_attributes.settings.settings_tuple, self.frame.controller.resampling_filter_id,
             self.frame.controller.preview_source, *self.frame.controller.preview_size
         ))
 
