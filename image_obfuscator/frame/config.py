@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-06-07 06:20:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-13 16:39:52
+LastEditTime : 2022-08-16 10:01:41
 Description  : 
 """
 from pickle import dump as pickle_dump, load as pickle_load
@@ -36,7 +36,8 @@ class ConfigManager(object):
         self.FrameConfig = namedtuple('FrameConfig', (
             'config_version', 'default_proc_mode', 'default_mode_settings', 'startup_parameters',
             'preview_mode', 'displayed_preview', 'preview_layout', 'preview_source',
-            'resampling_filter', 'save_settings', 'max_image_pixels'
+            'resampling_filter', 'save_settings', 'max_image_pixels', 'window_size',
+            'window_maximized'
         ), defaults=tuple(self.default_frame_settings.items()))
 
     def open_config_folder(self):
@@ -51,6 +52,8 @@ class ConfigManager(object):
             default_mode_settings = self.frame.controller.current_settings
         return {
             'config_version': (FRAME_SETTINGS_MAIN_VERSION, FRAME_SETTINGS_SUB_VERSION),
+            'window_maximized': self.frame.IsMaximized(),
+            'window_size': self.frame.GetSize(),
             'default_proc_mode': default_proc_mode.mode_qualname,
             'default_mode_settings': default_mode_settings.settings_dict,
             'startup_parameters': self.frame.startup_parameters.parameters_dict,
@@ -98,6 +101,11 @@ class ConfigManager(object):
         if not frame_settings.startup_parameters.get('record_interface_settings', True):
             return
         try:
+            if frame_settings.window_maximized:
+                self.frame.Maximize()
+            else:
+                self.frame.SetSize(frame_settings.window_size)
+            self.frame.Layout()
             if frame_settings.default_proc_mode in self.frame.mode_manager.modes:
                 default_mode = self.frame.mode_manager.default_mode = self.frame.mode_manager.modes[frame_settings.default_proc_mode]
                 self.frame.controller.previous_proc_mode = default_mode

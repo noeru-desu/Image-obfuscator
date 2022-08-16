@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-03-27 08:07:12
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-10 15:04:35
+LastEditTime : 2022-08-15 18:05:04
 Description  : 调试函数
 """
 from functools import wraps as functools_wraps
@@ -11,6 +11,9 @@ from time import perf_counter, perf_counter_ns
 from traceback import print_exc
 from typing import Iterable, Type
 from types import FunctionType
+
+from viztracer import VizTracer
+from line_profiler import LineProfiler
 
 from image_obfuscator.utils.misc_utils import copy_signature, isclassmethod
 
@@ -69,6 +72,26 @@ def gen_slots_str(a_set):
     a_args_str += '\n' + ('\000' * 8) + b_args_str
     a_args_str += '\n' + ('\000' * 4) + ')'
     print(a_args_str)
+
+
+def viz_tracer(func):
+    @functools_wraps(func)
+    def wrap(*args, **kwargs):
+        with VizTracer():
+            func_return = func(*args, **kwargs)
+        return func_return
+    return wrap
+
+
+def time_each_line(func):
+    @functools_wraps(func)
+    def wrap(*args, **kwargs):
+        lp = LineProfiler()
+        lp_wrap = lp.wrap_function(func)
+        func_return = lp_wrap(*args, **kwargs)
+        lp.print_stats()
+        return func_return
+    return wrap
 
 
 class Timeit(object):

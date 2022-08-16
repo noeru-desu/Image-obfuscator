@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-14 17:31:08
+LastEditTime : 2022-08-16 09:18:57
 Description  : 事件处理
 """
 from base64 import b85encode
@@ -85,7 +85,8 @@ class MainFrame(BasicMainFrame):
                 self.set_preview_layout(VERTICAL)
         elif self.controller.displayed_preview != 2:
             return
-        self.set_preview_layout(self.controller.preview_layout_flag)
+        else:
+            self.set_preview_layout(self.controller.preview_layout_flag)
         self.refresh_preview(event)
 
     @catch_exc_for_frame_method

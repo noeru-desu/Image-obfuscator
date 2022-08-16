@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-15 09:57:26
+LastEditTime : 2022-08-16 09:55:43
 Description  : 常量
 """
 from platform import machine, platform
@@ -33,12 +33,12 @@ RELEASE_CANDIDATE = 1
 DEV = 2
 BETA = 3
 ALPHA = 4
-VERSION_TYPE = BETA
+VERSION_TYPE = RELEASE_CANDIDATE
 VERSION = '2.1.0'
-PRE_RELEASE_VERSION = 'beta.3'
-BATCH = '20220815a'
+PRE_RELEASE_VERSION = 'rc.1'
+BATCH = '20220816a'
 BUILD_METADATA = BATCH # 'build.1' / BATCH
-COMPILED = False
+COMPILED = True
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-obfuscator'
@@ -77,7 +77,7 @@ EAERR_INCOMPATIBLE = '该版本不支持解密0.1.0-BETA版混淆器加密的图
 EAERR_NOT_SUPPORT = '选择的图像文件由更高版本的混淆器加密, 请使用最新版的混淆器进行解密'
 
 FRAME_SETTINGS_MAIN_VERSION = 1
-FRAME_SETTINGS_SUB_VERSION = 2
+FRAME_SETTINGS_SUB_VERSION = 3
 
 LIGHT_RED = Colour(255, 30, 30)
 

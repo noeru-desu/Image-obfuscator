@@ -91,6 +91,8 @@ class MainFrame (wx.Frame):
         bSizer281 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.imageTreePanel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.imageTreePanel.SetMaxSize(wx.Size(280, -1))
+
         bSizer262 = wx.BoxSizer(wx.VERTICAL)
 
         self.imageTreeSearchCtrl = wx.SearchCtrl(self.imageTreePanel, wx.ID_ANY, u"文件树搜索功能尚不可用", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER)
@@ -236,6 +238,7 @@ class MainFrame (wx.Frame):
 
         self.procSettingsPanelContainer = wx.Panel(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.procSettingsPanelContainer.SetMinSize(wx.Size(-1, 180))
+
         bSizer12.Add(self.procSettingsPanelContainer, 5, wx.EXPAND, 0)
 
         bSizer31 = wx.BoxSizer(wx.HORIZONTAL)

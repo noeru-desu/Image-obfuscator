@@ -284,7 +284,7 @@
                                         </object>
                                         <object class="sizeritem" expanded="1">
                                             <property name="border">2</property>
-                                            <property name="flag">wxALIGN_CENTER_VERTICAL|wxALL</property>
+                                            <property name="flag">wxALL|wxEXPAND</property>
                                             <property name="proportion">0</property>
                                             <object class="wxToggleButton" expanded="1">
                                                 <property name="BottomDockable">1</property>
@@ -1154,7 +1154,7 @@
                                 <property name="style">wxRA_SPECIFY_COLS</property>
                                 <property name="subclass">; ; forward_declare</property>
                                 <property name="toolbar_pane">0</property>
-                                <property name="tooltip">低 - float16&#x0A;中 - float32 (C.float)&#x0A;高 - float64 (C.double)&#x0A;&#x0A;由于使用浮点数计算，所以计算精度还将影响计算的速度、内存占用&#x0A;&#x0A;如何选择？&#x0A;请结合RAM性能与CPU性能进行选择。float64意味着更多的内存占用与读写量，CPU计算量也会增大；而float16虽然应该有更小的内存与CPU占用，但大部分消费级CPU并不支持float16硬件加速(一般是转换为float32进行计算)，导致性能低下。一般情况下使用float32性能最佳。</property>
+                                <property name="tooltip">低 - float16&#x0A;中 - float32 (C.float)&#x0A;高 - float64 (C.double)&#x0A;&#x0A;由于使用浮点数计算，所以计算精度还将影响计算的速度、内存占用。此外，精度对最终的效果基本没有影响，一般情况下使用默认设置即可。&#x0A;&#x0A;如何选择？&#x0A;请结合RAM性能与CPU性能进行选择。float64意味着更多的内存占用与读写量，CPU计算量也会增大；而float16虽然应该有更小的内存与CPU占用，但大部分消费级CPU并不支持float16硬件加速(一般是转换为float32进行计算)，导致性能低下。一般情况下使用float32性能最佳。</property>
                                 <property name="validator_data_type"></property>
                                 <property name="validator_style">wxFILTER_NONE</property>
                                 <property name="validator_type">wxDefaultValidator</property>

@@ -2,14 +2,14 @@
 Author       : noeru_desu
 Date         : 2022-08-13 16:27:28
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-15 09:29:22
+LastEditTime : 2022-08-16 09:49:48
 Description  : 生成幻影坦克的核心函数
 Reference    : https://github.com/Aloxaf/MirageTankGo
 """
 from typing import TYPE_CHECKING
 
-from numpy import (ascontiguousarray, dstack, float16, float32, float64, uint8, where,
-                   zeros, seterr)
+from numpy import (ascontiguousarray, float16, float32, float64, uint8, where,
+                   seterr, empty)
 from PIL.Image import Image, new
 from PIL.ImageEnhance import Brightness
 
@@ -55,21 +55,24 @@ def gray_mode(i_image: 'Image', o_image: 'Image', o_brightness: float, i_brightn
     i_array = ascontiguousarray(i_image, dtype)
 
     if damier:
-        o_array[::2, ::2] = 255.0
-        i_array[1::2, 1::2] = 0.0
+        o_array[::2, ::2] = 255.
+        i_array[1::2, 1::2] = 0.
 
     o_array *= o_brightness
     i_array *= i_brightness
 
-    a = 1.0 - o_array / 255.0 + i_array / 255.0
-    r = where(a != 0, i_array / a, 255.0)
+    a = 1. - o_array / 255. + i_array / 255.
+    r = where(a != 0, i_array / a, 255.)
 
-    pixels = dstack((r, r, r, a * 255.0))
+    pixels = empty((r.shape[0], r.shape[1], 4), dtype)
+    pixels[..., 0] = r
+    pixels[..., 1] = r
+    pixels[..., 2] = r
+    pixels[..., 3] = a * 255.
 
     pixels[pixels > 255] = 255
 
     return ascontiguousarray(pixels, uint8)
-
 
 
 def colorful_mode(i_image: 'Image', o_image: 'Image', o_brightness: float, i_brightness: float, o_color: float , i_color: float, damier: bool, resize_mode: int, accuracy_lvl: int) -> 'ndarray':
@@ -85,8 +88,8 @@ def colorful_mode(i_image: 'Image', o_image: 'Image', o_brightness: float, i_bri
     i_array = ascontiguousarray(i_image, dtype)
 
     if damier:
-        o_array[::2, ::2] = [255., 255., 255.]
-        i_array[1::2, 1::2] = [0., 0., 0.]
+        o_array[::2, ::2] = (255., 255., 255.)
+        i_array[1::2, 1::2] = (0., 0., 0.)
 
     o_array /= 255.
     i_array /= 255.
@@ -110,7 +113,7 @@ def colorful_mode(i_image: 'Image', o_image: 'Image', o_brightness: float, i_bri
     p = where(d != 0, i_array / d * 255., 255.)
     a = d[:, :, 0] * 255.
 
-    colors = zeros((p.shape[0], p.shape[1], 4))
+    colors = empty((p.shape[0], p.shape[1], 4))
     colors[:, :, :3] = p
     colors[:, :, -1] = a
 
