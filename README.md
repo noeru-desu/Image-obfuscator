@@ -13,13 +13,13 @@ __[保存为无损图像且解密时使用保存的原图时，可无损还原�
 
 <img style="max-width:100%;overflow:hidden;height:500px" src="https://github.com/noeru-desu/noeru-desu/blob/main/assets/Image-obfuscator/normal_encrypt.jpg?raw=true">
 
----
-
 ### 加密模式(最高强度噪音异或RGB)
 
 __[保存为无损图像且解密时使用保存的原图时，可无损还原出原图像]__
 
 <img style="max-width:100%;overflow:hidden;height:500px" src="https://github.com/noeru-desu/noeru-desu/blob/main/assets/Image-obfuscator/noise_xor_encrypt.jpg?raw=true">
+
+---
 
 ### QQ反屏蔽模式
 
@@ -29,11 +29,17 @@ __[仅修改4个角的各1个像素点]__
 
 ---
 
-### 幻影坦克模式
+### 幻影坦克模式 (使同一张图像显示在黑底与白底中时展现出不同的内容)
 
-__[不在此赘述了]__
+__[彩色模式就看个乐子，效果不好]__
 
-*已在2.1.0.beta.3中添加，2.1.0稳定版尚未发布，预览图将在发布后贴出*
+> 核心实现参考:
+[Aloxaf/MirageTankGo的核心实现](https://github.com/Aloxaf/MirageTankGo/blob/master/MTCore/MTCore.py)、
+[幻影坦克架构指南(一)](https://zhuanlan.zhihu.com/p/31164700)、
+[幻影坦克架构指南(三)](https://zhuanlan.zhihu.com/p/32532733)、
+[棋盘格与幻影坦克](https://zhuanlan.zhihu.com/p/33148445)
+
+<img style="max-width:100%;overflow:hidden;height:500px" src="https://github.com/noeru-desu/noeru-desu/blob/main/assets/Image-obfuscator/mirage_tank.jpg?raw=true">
 
 ---
 
