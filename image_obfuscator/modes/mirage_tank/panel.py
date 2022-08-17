@@ -2,14 +2,14 @@
 Author       : noeru_desu
 Date         : 2022-05-28 18:35:11
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 16:00:53
+LastEditTime : 2022-08-17 16:58:08
 Description  : 
 """
 from os.path import isfile
 from traceback import format_exc
 from typing import TYPE_CHECKING
 
-from wx import BLACK, WHITE, FileDropTarget, FileDirPickerEvent, PostEvent, EVT_FILEPICKER_CHANGED
+from wx import BLACK, WHITE, FileDropTarget
 
 from image_obfuscator.modes.mirage_tank.auto_generated_panel import ProcSettingsPanel as BaseProcSettingsPanel
 from image_obfuscator.modes.base import BaseModeSettingsPanel
