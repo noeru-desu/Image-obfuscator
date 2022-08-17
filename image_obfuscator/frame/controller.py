@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 15:57:56
+LastEditTime : 2022-08-17 16:47:10
 Description  : 界面控制相关
 """
 from json import dumps
@@ -16,7 +16,7 @@ from image_obfuscator.modes.base import BaseSettings, EmptySettings
 
 if TYPE_CHECKING:
     from PIL.Image import Image
-    from wx import Gauge, Panel, Colour
+    from wx import Gauge, Panel, Colour, StaticBox
     from image_obfuscator.frame.events import MainFrame
     from image_obfuscator.frame.tree_manager import ImageItem
     from image_obfuscator.modules.image import WrappedImage
@@ -33,7 +33,7 @@ class Controller(object):
     "控件/控制器"
     __slots__ = (
         'frame', 'previous_save_format', 'previous_proc_mode', 'imported_image_id', 'visible_proc_settings_panel',
-        'password_ctrl_hash', '_save_kwds_dict', 'save_kwds_json', 'proc_panel_state_association'
+        'password_ctrl_hash', '_save_kwds_dict', 'save_kwds_json', 'proc_panel_state_association', 'preview_static_box'
     )
 
     def __init__(self, frame: 'MainFrame'):
@@ -45,6 +45,7 @@ class Controller(object):
         self.password_ctrl_hash = hash(self.frame.passwordCtrl)
         self._save_kwds_dict: dict[str, Any] = {}
         self.save_kwds_json: str = '{\n\t\n}'
+        self.preview_static_box: 'StaticBox' = frame.previewedBitmapPanel.GetSizer().GetStaticBox()
         self.proc_panel_state_association = (frame.procSettingsPanelContainer.Enable, frame.procSettingsPanelContainer.Disable, frame.procSettingsPanelContainer.Disable)
 
     # ----------
@@ -78,6 +79,12 @@ class Controller(object):
 
     @loading_progress.setter
     def loading_progress(self, v: int): self.frame.loadingProgress.SetValue(v)
+
+    @property
+    def preview_panel_title(self) -> str: return self.preview_static_box.GetLabelText()
+
+    @preview_panel_title.setter
+    def preview_panel_title(self, v: str): self.preview_static_box.SetLabelText(v)
 
     @property
     def image_info(self) -> str: return self.frame.imageInfo.GetLabelText()

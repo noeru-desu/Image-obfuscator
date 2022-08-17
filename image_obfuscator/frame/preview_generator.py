@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-14 16:09:23
+LastEditTime : 2022-08-17 16:47:48
 Description  : 图像生成功能
 """
 from typing import TYPE_CHECKING
@@ -12,6 +12,7 @@ from image_obfuscator.modules.image import ImageData, PillowImage
 from image_obfuscator.utils.thread import SingleThreadExecutor
 
 if TYPE_CHECKING:
+    from wx import StaticBoxSizer, StaticBox
     from image_obfuscator.frame.events import MainFrame
 
 
@@ -29,6 +30,7 @@ class PreviewGenerator(object):
         self.frame.controller.standardized_password_ctrl()
         image_item = self.frame.image_item
         mode_interface = image_item.proc_mode
+        self.frame.controller.preview_panel_title = '处理结果-预览图 [正在生成]'
         if mode_interface.decryption_mode or self.frame.controller.preview_source == ORIG_IMAGE:
             self.preview_thread.add_task(mode_interface.proc_image, (
                 image_item.cache.loaded_image, True, PillowImage,
@@ -46,5 +48,6 @@ class PreviewGenerator(object):
             if error is not None:
                 self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')
                 return
+        self.frame.controller.preview_panel_title = '处理结果-预览图'
         if result is not None:
             self.frame.controller.display_and_cache_processed_preview(result, cache_hash=cache_hash)
