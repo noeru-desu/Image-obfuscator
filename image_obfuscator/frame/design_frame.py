@@ -212,7 +212,7 @@ class MainFrame (wx.Frame):
 
         bSizer12.Add(sbSizer10, 0, wx.EXPAND, 5)
 
-        bSizer12.Add((0, 0), 0, wx.ALL, 5)
+        bSizer12.Add((0, 0), 0, wx.ALL, 3)
 
         bSizer282 = wx.BoxSizer(wx.VERTICAL)
 
@@ -235,6 +235,8 @@ class MainFrame (wx.Frame):
         bSizer282.Add(self.passwordCtrl, 0, 0, 0)
 
         bSizer12.Add(bSizer282, 0, wx.EXPAND, 5)
+
+        bSizer12.Add((0, 0), 1, 0, 3)
 
         self.procSettingsPanelContainer = wx.Panel(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.procSettingsPanelContainer.SetMinSize(wx.Size(-1, 180))
@@ -290,7 +292,7 @@ class MainFrame (wx.Frame):
 
         bSizer12.Add(bSizer31, 0, wx.EXPAND, 5)
 
-        bSizer12.Add((0, 0), 1, 0, 5)
+        bSizer12.Add((0, 0), 1, 0, 0)
 
         self.processingOptions.SetSizer(bSizer12)
         self.processingOptions.Layout()

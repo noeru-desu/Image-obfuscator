@@ -27,10 +27,11 @@ class ProcSettingsPanel (wx.Panel):
 
         bSizer1 = wx.BoxSizer(wx.VERTICAL)
 
-        self.m_staticText62 = wx.StaticText(self, wx.ID_ANY, u"当前模式处于测试阶段，性能较低", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText62 = wx.StaticText(self, wx.ID_ANY, u"处理高分辨率图像时性能较低", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText62.Wrap(-1)
 
-        self.m_staticText62.SetForegroundColour(wx.Colour(255, 0, 0))
+        self.m_staticText62.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Segoe UI Variable Display"))
+        self.m_staticText62.SetForegroundColour(wx.Colour(255, 128, 0))
 
         bSizer1.Add(self.m_staticText62, 0, wx.ALIGN_CENTER, 2)
 
