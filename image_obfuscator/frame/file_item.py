@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-10 07:10:42
+LastEditTime : 2022-08-17 13:31:22
 Description  : 图像项目
 """
 from abc import ABC
@@ -227,7 +227,7 @@ class ImageItemCache(object):
         'encryption_attributes_from_file'
     )
 
-    def __init__(self, item: 'ImageItem', loaded_image: 'Image' = None):
+    def __init__(self, item: 'ImageItem', loaded_image: 'Image', force_cache: bool = False):
         """
         Args:
             item (ImageItem): `ImageItem`实例
@@ -240,8 +240,8 @@ class ImageItemCache(object):
         self.loading_encryption_attributes_error: Optional[str] = None
         self._encryption_attributes: Optional['ImageEncryptionAttributes'] = None
         self.encryption_attributes_from_file = False
-        self._loaded_image = loaded_image
-        self.loaded_image_size = self.loaded_image.size if loaded_image is None else loaded_image.size
+        self._loaded_image = loaded_image if force_cache or not self._item.frame.startup_parameters.low_memory else None
+        self.loaded_image_size = loaded_image.size
         self._image_panel_size_for_best_layout = None
         self._best_layout = VERTICAL
 
@@ -362,8 +362,6 @@ class ImageItem(Item):
             no_file (bool, optional): 是否没有原始文件. `默认为False`
             keep_cache_loaded_image (bool, optional): 是否在低内存占用模式下保留原始图像数据缓存(一般用于从剪切板加载的图像). 默认为`False`
         """
-        self.cache = ImageItemCache(self, loaded_image)
-
         self.path_data = path_data
         self._proc_mode = self.frame.mode_manager.default_mode
         self.settings_source = 0
@@ -378,8 +376,10 @@ class ImageItem(Item):
         self.no_file = no_file
         self.keep_cache_loaded_image = keep_cache_loaded_image
         self.loading_image_data_error = None
-
         self.encrypted_image: bool = None
+
+        self.cache = ImageItemCache(self, loaded_image, keep_cache_loaded_image)
+
         if self.no_file:
             self.encrypted_image = False
             self.cache.loading_encryption_attributes_error = f'来自剪贴板的图像[{self.path_data.file_name}]不支持解密操作'

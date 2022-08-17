@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-08 19:34:38
+LastEditTime : 2022-08-17 13:27:32
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split, splitext
@@ -139,9 +139,7 @@ class ImageLoader(object):
         loaded_image, error = open_image(path_chosen)
         if error is None:
             path, name = split(path_chosen)
-            image_item = ImageItem(
-                None if self.frame.startup_parameters.low_memory else loaded_image, PathData(path, '', name)
-            )
+            image_item = ImageItem(loaded_image, PathData(path, '', name))
             item_id = self.frame.tree_manager.add_file(image_item, path_chosen)
             image_item.load_encryption_attributes_from_file()
         else:
@@ -194,7 +192,7 @@ class ImageLoader(object):
                 loaded_image, error = open_image(absolute_path)
                 if error is None:
                     image_item = ImageItem(
-                        None if self.frame.startup_parameters.low_memory else loaded_image,
+                        loaded_image,
                         PathData(path_chosen, r, n), settings_instantiator(settings_tuple)
                     )
                     self.frame.tree_manager.add_file(image_item, path_chosen, r, n, False)
