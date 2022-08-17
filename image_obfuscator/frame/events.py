@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-16 09:18:57
+LastEditTime : 2022-08-17 15:59:27
 Description  : 事件处理
 """
 from base64 import b85encode
@@ -19,7 +19,7 @@ from image_obfuscator.modules.decorator import catch_exc_for_frame_method
 from image_obfuscator.modules.version_adapter import gen_encryption_attributes
 
 if TYPE_CHECKING:
-    from wx import CommandEvent, Event, SizeEvent, SpinEvent, TreeEvent, TreeItemId, RadioBox
+    from wx import CommandEvent, Event, SizeEvent, SpinEvent, TreeEvent, TreeItemId, RadioBox, Object
 
 
 class MainFrame(BasicMainFrame):
@@ -102,6 +102,15 @@ class MainFrame(BasicMainFrame):
         if self.image_item.proc_mode.settings_cls is not None:
             self.image_item.settings.sync_from_event(event)
         self.refresh_preview(event)
+
+    @catch_exc_for_frame_method
+    def sync_setting(self, obj: 'Object'):
+        if self.image_item is None:
+            self.controller.proc_mode_interface.default_settings.sync_from_object(obj)
+            return
+        if self.image_item.proc_mode.settings_cls is not None:
+            self.image_item.settings.sync_from_object(obj)
+        self.refresh_preview(...)
 
     @catch_exc_for_frame_method
     def refresh_preview(self, event: Optional['Event'] = None):

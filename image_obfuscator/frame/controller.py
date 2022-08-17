@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-14 17:33:52
+LastEditTime : 2022-08-17 15:57:56
 Description  : 界面控制相关
 """
 from json import dumps
@@ -510,7 +510,7 @@ class Controller(object):
             self.password = 'none'
             image_item = self.frame.image_item
             if image_item is not None and image_item.proc_mode.settings_cls is not None:
-                image_item.settings.sync_from_mapping(self.frame.passwordCtrl)
+                image_item.settings.sync_from_object(self.frame.passwordCtrl)
 
     def display_and_cache_processed_preview(self, image: 'WrappedImage', cache_hash: 'ImageCacheHash' = ...):
         """显示并缓存处理结果

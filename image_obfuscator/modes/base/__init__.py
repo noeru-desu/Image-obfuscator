@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-15 07:35:31
+LastEditTime : 2022-08-17 15:58:08
 Description  : 基类
 """
 from abc import ABC
@@ -184,8 +184,8 @@ class BaseSettings(SupportConstantProperty):
     def sync_from_event(self, event: 'Event'):
         self.SETTINGS_MAPPING.sync_from_event_to_settings(event)
 
-    def sync_from_mapping(self, _object: 'Object'):
-        self.SETTINGS_MAPPING.sync_from_object_to_settings(_object)
+    def sync_from_object(self, obj: 'Object'):
+        self.SETTINGS_MAPPING.sync_from_object_to_settings(obj)
 
     def sync_from_tuple(self, settings: 'Settings', check_length=True):
         """将可迭代对象(一般是由`self.settings_tuple`生成的元组)中的数据同步到自身
