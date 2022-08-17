@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-15 08:24:28
+LastEditTime : 2022-08-17 14:15:52
 Description  : 
 """
 from typing import TYPE_CHECKING, Callable, Iterable, Any
@@ -73,7 +73,7 @@ class Settings(BaseSettings):
         self.colorful_mode = self.mode_controller.colorful_mode
         self.resize_method = self.mode_controller.resize_method
         self.accuracy = self.mode_controller.accuracy
-        if self.outside_image_path:
+        if self.outside_image_path and not self.main_frame.startup_parameters.low_memory:
             self.load_outside_image()
 
     def backtrack_interface(self):
@@ -102,9 +102,14 @@ class Settings(BaseSettings):
 
     @property
     def outside_image(self) -> 'Image':
-        # ! 未对低内存占用模式进行支持
+        """多次使用时请使用临时变量保存此属性值, 防止多次读取"""
         if self._outside_image is None:
             self.load_outside_image()
+        if self.main_frame.startup_parameters.low_memory:
+            outside_image = self._outside_image
+            del self._outside_image
+            self._outside_image = None
+            return outside_image
         return self._outside_image
 
     @outside_image.setter
@@ -117,4 +122,5 @@ class Settings(BaseSettings):
     @_outside_image_path.setter
     def _outside_image_path(self, v):
         self.outside_image_path = v
-        self.load_outside_image()
+        if not self.main_frame.startup_parameters.low_memory:
+            self.load_outside_image()

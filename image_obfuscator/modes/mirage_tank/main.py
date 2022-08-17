@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-15 08:23:48
+LastEditTime : 2022-08-17 13:13:05
 Description  : 加密模式
 """
 from typing import TYPE_CHECKING, Callable, Union, Type
@@ -39,14 +39,15 @@ def normal_gen(source: 'Image.Image', original: bool, return_type: Type[Union['P
 
 
 def normal_gen_quietly(source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'Settings', encryption_parameters: 'EmptySettings') -> 'WrappedImage':
-    if settings.outside_image is None:
+    outside_image = settings.outside_image
+    if outside_image is None:
         return None
     image = return_type(colorful_mode(
-        source, settings.outside_image, settings.outside_brightness_scale / 100, settings.inside_brightness_scale / 100,
+        source, outside_image, settings.outside_brightness_scale / 100, settings.inside_brightness_scale / 100,
         settings.outside_color_scale / 100, settings.inside_color_scale / 100, settings.damier_mode, settings.resize_method,
         settings.accuracy
     ) if settings.colorful_mode else gray_mode(
-        source, settings.outside_image, settings.outside_brightness_scale / 100, settings.inside_brightness_scale / 100,
+        source, outside_image, settings.outside_brightness_scale / 100, settings.inside_brightness_scale / 100,
         settings.damier_mode, settings.resize_method, settings.accuracy
     ))
     return image
