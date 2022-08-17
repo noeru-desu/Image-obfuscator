@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 16:47:10
+LastEditTime : 2022-08-17 19:39:49
 Description  : 界面控制相关
 """
 from json import dumps
@@ -33,11 +33,13 @@ class Controller(object):
     "控件/控制器"
     __slots__ = (
         'frame', 'previous_save_format', 'previous_proc_mode', 'imported_image_id', 'visible_proc_settings_panel',
-        'password_ctrl_hash', '_save_kwds_dict', 'save_kwds_json', 'proc_panel_state_association', 'preview_static_box'
+        'password_ctrl_hash', '_save_kwds_dict', 'save_kwds_json', 'proc_panel_state_association', 'preview_static_box',
+        'empty_bitmap'
     )
 
     def __init__(self, frame: 'MainFrame'):
         self.frame = frame
+        self.empty_bitmap = Bitmap()    # 必须在wx.App实例化后创建
         self.previous_save_format = 'png'
         self.previous_proc_mode: 'ModeInterface' = ...
         self.imported_image_id = 0
@@ -510,7 +512,11 @@ class Controller(object):
 
     def clear_preview(self):
         """取消显示所有预览图"""
-        self.frame.importedBitmap.Bitmap = self.frame.previewedBitmap.Bitmap = Bitmap()
+        self.frame.importedBitmap.Bitmap = self.frame.previewedBitmap.Bitmap = self.empty_bitmap
+
+    def clear_proc_preview(self):
+        """取消显示处理结果预览图"""
+        self.frame.previewedBitmap.Bitmap = self.empty_bitmap
 
     def standardized_password_ctrl(self):
         if not self.frame.update_password_dict():
