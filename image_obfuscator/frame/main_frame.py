@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-11 13:33:17
+LastEditTime : 2022-08-17 13:04:36
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -170,7 +170,7 @@ class MainFrame(MF):
             run_path (str, optional): 运行路径. 默认为`os.getcwd()`.
         """
         app = App(useBestVisual=True)
-        frame = cls(None, path).Enable()
+        cls(None, path).Enable()
 
         app.MainLoop()
 

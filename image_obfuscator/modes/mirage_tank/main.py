@@ -11,7 +11,6 @@ from PIL import Image
 
 from image_obfuscator.modes.mirage_tank.settings import Settings
 from image_obfuscator.modes.mirage_tank.core import gray_mode, colorful_mode
-from image_obfuscator.modules.image import cal_best_size
 
 if TYPE_CHECKING:
     from wx import Gauge
