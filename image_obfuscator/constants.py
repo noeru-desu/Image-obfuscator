@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 16:56:39
+LastEditTime : 2022-08-17 19:40:58
 Description  : 常量
 """
 from platform import machine, platform
@@ -34,7 +34,7 @@ DEV = 2
 BETA = 3
 ALPHA = 4
 VERSION_TYPE = RELEASE
-VERSION = '2.1.0'
+VERSION = '2.1.1'
 PRE_RELEASE_VERSION = 'release'
 BATCH = '20220817a'
 BUILD_METADATA = 'build.1' # 'build.1' / BATCH
