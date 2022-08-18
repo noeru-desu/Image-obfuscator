@@ -77,6 +77,9 @@ jobs:
         run: |
           mkdir nuitka
           nuitka --disable-console --python-flag=-OO,no_docstrings --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=colorlog,pydoc,urllib,socket,tkinter --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow ImageObfuscator.py
+      - name: Build artifacts (without dependencies and runtime)
+        run: |
+          nuitka --disable-console --python-flag=-OO,no_docstrings --clang --msvc=latest --lto=yes --prefer-source-code --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-imports --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow -o ImageObfuscator.without_dependencies&runtime.exe ImageObfuscator.py
       - name: Build artifacts (with console)
         run: |
           nuitka --enable-console --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=pydoc,urllib,socket,tkinter --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow --warn-implicit-exceptions -o ImageObfuscator.with_console.exe ImageObfuscator.py
@@ -84,6 +87,7 @@ jobs:
         shell: cmd
         run: |
           if exist ".\nuitka\ImageObfuscator.exe" ".\nuitka\ImageObfuscator.exe" -t
+          if exist ".\ImageObfuscator.without_dependencies&runtime.exe" ".\ImageObfuscator.without_dependencies&runtime.exe" -t
           if exist ".\ImageObfuscator.with_console.exe" ".\ImageObfuscator.with_console.exe" -t
       - name: Rename release exe
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
@@ -91,6 +95,7 @@ jobs:
         run: |
           set ver=${{ github.ref_name }}
           copy ".\nuitka\ImageObfuscator.exe" ".\ImageObfuscator_%ver:v=%.exe"
+          copy ".\ImageObfuscator.without_dependencies&runtime.exe" ".\ImageObfuscator_%ver:v=%.without_dependencies&runtime.exe"
           copy ".\ImageObfuscator.with_console.exe" ".\ImageObfuscator_%ver:v=%.with_console.exe"
       - name: Draft release
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
@@ -108,7 +113,8 @@ jobs:
             ## 修复
             * 
             * 
-            **_`with_console`版本: 未使用`-OO`参数进行优化，并在运行时显示CMD窗口_**
+            > _`without_dependencies&runtime`后缀: 在普通版本上去除了Python运行时与依赖库, 性能可能会略微降低, 使用此版本时请自行安装所需的运行时与依赖库_
+            > _`with_console`后缀: 未使用`-OO`参数进行优化, 并在运行时显示CMD窗口, 复现错误时请始终使用此版本_
           files: |
             ImageObfuscator_*.exe
           draft: true
@@ -121,4 +127,5 @@ jobs:
           name: ${{ env.BUILD_ENV }}-${{ env.VCToolsVersion }}-build.${{ github.run_number }}
           path: |
             nuitka/ImageObfuscator.exe
+            ImageObfuscator.without_dependencies&runtime.exe
             ImageObfuscator.with_console.exe
