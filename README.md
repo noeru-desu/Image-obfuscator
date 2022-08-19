@@ -3,7 +3,7 @@
 __`2.1.0`版本前称为*Image Encryptor*__
 
 <details>
-<summary><h2>部分处理效果展示[点击展开/收起]</h2></summary>
+<summary><h2>部分已实现的处理效果展示[点击展开/收起]</h2></summary>
 
 > 示例图像画师: `かにビーム`
 
@@ -23,7 +23,9 @@ __[保存为无损图像且解密时使用保存的原图时，可无损还原�
 
 ### QQ反屏蔽模式
 
-__[仅修改4个角的各1个像素点]__
+__[仅修改4个角的各1个像素点，]__
+
+注意: 此模式完全**无法**防举报
 
 <img style="max-width:100%;overflow:hidden;height:500px" src="https://github.com/noeru-desu/noeru-desu/blob/main/assets/Image-obfuscator/qq_antishield.jpg?raw=true">
 
@@ -64,9 +66,9 @@ __*未来将添加更多模式*__
 
 ## 已计划新增的模式
 
-1. 暂无
+1. LSB(最低有效位)隐写模式 (俗称无影坦克)
 
-*类似于 一个文件中隐藏一张图像 的模式暂时没有计划添加*
+*类似于 一个**非图像文件**中隐藏一张图像 的模式暂时没有计划添加*
 
 ## 启动参数
 
