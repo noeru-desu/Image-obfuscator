@@ -21,11 +21,11 @@ __[保存为无损图像且解密时使用保存的原图时，可无损还原�
 
 ---
 
-### QQ反屏蔽模式
+### QQ反屏蔽模式(用于群聊中发送图像)
 
-__[仅修改4个角的各1个像素点，]__
+__[仅修改4个角的各1个像素点，使图像不会被特征匹配机制拦截]__
 
-注意: 此模式完全**无法**防举报
+注意: 此模式完全**无法防举报**
 
 <img style="max-width:100%;overflow:hidden;height:500px" src="https://github.com/noeru-desu/noeru-desu/blob/main/assets/Image-obfuscator/qq_antishield.jpg?raw=true">
 
