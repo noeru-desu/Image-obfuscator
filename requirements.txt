@@ -4,3 +4,4 @@ colorlog
 pycryptodome
 wxPython
 pyperclip
+natsort

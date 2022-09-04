@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Iterable, overload
 
 from PIL import Image
 from wx import ID_YES, YES_NO, CallAfter
+from natsort import os_sort_key
 
 from image_obfuscator.constants import EXTENSION_KEYS, DialogReturnCodes
 from image_obfuscator.frame.controller import ProgressBar
@@ -107,6 +108,8 @@ class ImageLoader(object):
         """加载文件/文件夹"""
         if isinstance(path_chosen, str):
             path_chosen = (path_chosen,)
+        else:
+            path_chosen = sorted(path_chosen, key=os_sort_key)
         self.frame.loadingPanel.Disable()
         self.frame.processingOptions.Disable()
         self.frame.dialog.dialog_thread.pause()
@@ -148,11 +151,6 @@ class ImageLoader(object):
         self.frame.stop_loading_func.init()
         return item_id
 
-    @staticmethod
-    def sortable_file_name(file: str):
-        name = splitext(file)[0]
-        return int(name) if name.isalnum() else name
-
     def _load_dir(self, path_chosen):
         """加载文件夹"""
         self.show_loading_progress_plane()
@@ -177,7 +175,7 @@ class ImageLoader(object):
         load_failures = 0
 
         for r, fl in files:
-            fl.sort(key=self.sortable_file_name)
+            fl.sort(key=os_sort_key)
             for n in fl:
 
                 if self.stop_loading_signal:

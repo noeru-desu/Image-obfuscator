@@ -61,7 +61,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install pip --upgrade
-          pip install -U colorlog wxPython pycryptodome numpy pyperclip zstandard ordered-set
+          pip install -U colorlog wxPython pycryptodome numpy pyperclip natsort zstandard ordered-set
           pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
           pip uninstall -y Pillow
           pip install -U "Pillow_SIMD-9.0.0.post0-cp310-cp310-win_amd64.whl"
