@@ -2,10 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 13:27:32
+LastEditTime : 2022-09-04 07:17:40
 Description  : 文件载入功能
 """
-from os.path import isdir, isfile, join, split, splitext
+from os.path import isdir, isfile, join, split
 from typing import TYPE_CHECKING, Iterable, overload
 # from zipfile import is_zipfile
 
@@ -23,6 +23,7 @@ from image_obfuscator.utils.thread import SingleThreadExecutor
 
 if TYPE_CHECKING:
     from os import PathLike
+    from image_obfuscator.frame.dialog import ChooseActionDialog
     from image_obfuscator.frame.events import MainFrame
 
 STOP = 2
@@ -116,11 +117,15 @@ class ImageLoader(object):
         self.frame.processingOptions.Disable()
         self.frame.dialog.dialog_thread.pause()
         item_id = None
+        recordable = len(path_chosen) > 1
+        file_dialog = self.frame.dialog.choose_action_dialog('已存在同路径文件(夹), 是否在跳转到相应位置后重载?', '每一文件(夹)只可存在1个实例', ('是', '否', '取消此类载入操作'), recordable=recordable)
+        folder_dialog= self.frame.dialog.choose_action_dialog('是否尝试将文件夹内文件追加到程序中?', '请选择', ('是', '否'), recordable=recordable)
+        deep_loading_dialog= self.frame.dialog.choose_action_dialog(None, '请选择', ('是', '否', '取消此类载入操作'), recordable=recordable)
         for i in path_chosen:
             if self.stop_loading_signal:
                 self.frame.stop_loading(False)
                 break
-            match self._exist(i):
+            match self._exist(i, file_dialog, folder_dialog):
                 case 3:
                     continue
                 case None:
@@ -135,7 +140,7 @@ class ImageLoader(object):
                 if _item_id is not None:
                     item_id = _item_id
             elif isdir(i):
-                if self._load_dir(i) == STOP:
+                if self._load_dir(i, deep_loading_dialog) == STOP:
                     break
         return item_id
 
@@ -153,19 +158,19 @@ class ImageLoader(object):
         self.frame.stop_loading_func.init()
         return item_id
 
-    def _load_dir(self, path_chosen):
+    def _load_dir(self, path_chosen, deep_loading_dialog: 'ChooseActionDialog'):
         """加载文件夹"""
         self.show_loading_progress_plane()
         folder_name = split(path_chosen)[1]
-        match self.frame.dialog.confirmation_frame(f'是否将文件夹{folder_name}内子文件夹中的文件也进行载入？', '选择', cancel='取消载入操作'):
-            case DialogReturnCodes.yes:
-                topdown = True
-            case DialogReturnCodes.no:
-                topdown = False
+        match deep_loading_dialog.open_dialog(massage=f'是否将文件夹{folder_name}内子文件夹中的文件也进行载入？'):
+            case 0:
+                deep_loading = True
+            case 1:
+                deep_loading = False
             case _:
                 self.hide_loading_progress_plane()
                 return
-        file_num, files = walk_file(path_chosen, topdown, EXTENSION_KEYS)
+        file_num, files = walk_file(path_chosen, deep_loading, EXTENSION_KEYS)
         if file_num == 0:
             self.frame.dialog.async_info(f'没有从文件夹{folder_name}中载入任何文件')
             self.finish_loading_progress()
@@ -216,35 +221,35 @@ class ImageLoader(object):
         else:
             self.frame.logger.warning(f'加载{file_name}时出现错误: {massage}')
 
-    def _exist(self, path_chosen):
+    def _exist(self, path_chosen, file_dialog: 'ChooseActionDialog', folder_dialog: 'ChooseActionDialog'):
         """检测是否已存在于文件树"""
         if path_chosen in self.frame.tree_manager.file_dict:
             item_id = self.frame.tree_manager.file_dict[path_chosen]
         elif path_chosen in self.frame.tree_manager.root_dir_dict:
             item_id = self.frame.tree_manager.root_dir_dict[path_chosen]
-            if self.frame.dialog.confirmation_frame('是否尝试从文件夹追加图像到程序中?', '请选择', YES_NO) == ID_YES:
+            if folder_dialog.open_dialog() == 0:
                 self.frame.imageTreeCtrl.CollapseAll()
                 self.frame.imageTreeCtrl.EnsureVisible(item_id)
                 self.frame.imageTreeCtrl.Expand(item_id)
                 return
         elif path_chosen in self.frame.tree_manager.dir_dict:
             item_id = self.frame.tree_manager.dir_dict[path_chosen]
-            if self.frame.dialog.confirmation_frame('是否尝试从文件夹追加图像到程序中?', '请选择', YES_NO) == ID_YES:
+            if folder_dialog.open_dialog() == 0:
                 self.frame.imageTreeCtrl.CollapseAll()
                 self.frame.imageTreeCtrl.EnsureVisible(item_id)
                 self.frame.imageTreeCtrl.Expand(item_id)
                 return
         else:
             return
-        match self.frame.dialog.confirmation_frame('已存在同路径文件(夹), 是否在跳转到相应位置后重载?', '每一文件(夹)只可存在1个实例', cancel='取消操作'):
-            case DialogReturnCodes.yes:
+        match file_dialog.open_dialog():
+            case 0:
                 self.frame.imageTreeCtrl.EnsureVisible(item_id)
                 self.frame.imageTreeCtrl.Expand(item_id)
                 self.frame.tree_manager.reload_item(item_id)
-            case DialogReturnCodes.no:
+            case 1:
                 self.frame.imageTreeCtrl.EnsureVisible(item_id)
                 self.frame.imageTreeCtrl.Expand(item_id)
-            case _:
+            case 2:
                 return SKIP
         return item_id
 

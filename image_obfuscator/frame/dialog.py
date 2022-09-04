@@ -2,21 +2,23 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-08 21:07:15
+LastEditTime : 2022-09-04 08:33:46
 Description  : 对话框相关
 """
+from base64 import b85decode
 from json import JSONDecodeError, dumps, loads
 from pickle import loads as pickle_loads
-from base64 import b85decode
-from typing import TYPE_CHECKING, Optional
+from threading import Event
+from typing import TYPE_CHECKING, Optional, Sequence
 
 from pyperclip import copy as clipboard_copy
-from wx import (CANCEL, DIRP_CHANGE_DIR, DIRP_DEFAULT_STYLE,
-                DIRP_DIR_MUST_EXIST, FD_CHANGE_DIR, FD_DEFAULT_STYLE,
-                FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW, HELP, ICON_ERROR,
-                ICON_INFORMATION, ICON_QUESTION, ICON_WARNING, ID_CANCEL,
-                ID_NO, ID_OK, ID_YES, STAY_ON_TOP, YES_NO, RED, WHITE, Colour, DirDialog,
-                FileDialog, MessageDialog)
+from wx import (ALIGN_RIGHT, ALL, CANCEL, DIRP_CHANGE_DIR, DIRP_DEFAULT_STYLE,
+                DIRP_DIR_MUST_EXIST, EVT_BUTTON, FD_CHANGE_DIR,
+                FD_DEFAULT_STYLE, FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW,
+                HELP, HORIZONTAL, ICON_ERROR, ICON_INFORMATION, ICON_QUESTION,
+                ICON_WARNING, ID_CANCEL, ID_NO, ID_OK, ID_YES, RED,
+                STAY_ON_TOP, WHITE, YES_NO, BoxSizer, Button, CallAfter,
+                Colour, DirDialog, FileDialog, IsMainThread, MessageDialog)
 from wx.stc import (STC_JSON_BLOCKCOMMENT, STC_JSON_COMPACTIRI,
                     STC_JSON_DEFAULT, STC_JSON_ERROR, STC_JSON_ESCAPESEQUENCE,
                     STC_JSON_KEYWORD, STC_JSON_LDKEYWORD, STC_JSON_LINECOMMENT,
@@ -25,9 +27,10 @@ from wx.stc import (STC_JSON_BLOCKCOMMENT, STC_JSON_COMPACTIRI,
                     STC_LEX_JSON)
 
 from image_obfuscator.frame.design_frame import JsonEditorDialog as JED
+from image_obfuscator.frame.design_frame import ModifiedChoiceDialog as MCD
+from image_obfuscator.frame.design_frame import MultiLineTextEntryDialog as MLTED
 from image_obfuscator.frame.design_frame import PasswordDialog as PD
 from image_obfuscator.frame.design_frame import TextDisplayDialog as TDD
-from image_obfuscator.frame.design_frame import MultiLineTextEntryDialog as MLTED
 from image_obfuscator.modules.version_adapter import check_version
 from image_obfuscator.utils.thread import SingleThreadExecutor
 
@@ -37,7 +40,7 @@ if TYPE_CHECKING:
     from os import PathLike
 
     from image_obfuscator.frame.events import MainFrame
-    from wx import CloseEvent, Window
+    from wx import CloseEvent, CommandEvent, Window
 
 
 class Dialog(object):
@@ -150,6 +153,12 @@ class Dialog(object):
         with dialog:
             return_code = dialog.ShowModal()
         return dialog.succeeded if return_code == ID_OK else None
+
+    def choose_action_dialog(self, message: str, title: str = '选择操作', actions: Sequence[str] = ('是', '否'), default_action: int = ..., recordable=True, parent: 'Window' = ...):
+        if parent is Ellipsis:
+            parent = self.frame
+        return ChooseActionDialog(parent, message, title, actions, default_action, recordable)
+
     """
     def _register_async_dialog(self, force: bool = False) -> bool:
         '''注册异步对话框
@@ -294,8 +303,8 @@ class JsonEditorDialog(JED):
         # gen_slots_str(n_args - o_args)
         self._parent = parent
         self.target_json_type = target_json_type
-        self.user_saved_json = None
-        self.user_saved_dict = None
+        self.user_saved_json: Optional[str] = None
+        self.user_saved_dict: Optional[dict] = None
         self.titleText.SetLabelText(title_text)
         self.extraInfoText.SetLabelText(extra_info)
         self.extraLink.SetLabelText(extra_link_info)
@@ -434,3 +443,83 @@ class EncryptionAttributesB85EntryDialog(MultiLineTextEntryDialog):
             return
         self.succeeded = self._parent.image_item.load_encryption_attributes(attributes_dict, err)
         self.EndModal(ID_OK)
+
+
+class ModifiedChoiceDialog(MCD):
+    __slots__ = (
+        'action', 'record'
+    )
+
+    def __init__(self, parent: 'Window', message: str, title: str = '选择操作', actions: Sequence[str] = ('是', '否'), default_action: int = ..., recordable=True):
+        super().__init__(parent)
+        if not recordable:
+            self.remember.Hide()
+        self.SetTitle(title)
+        self.info.SetLabelText(message)
+        sizer = BoxSizer(HORIZONTAL)
+        for i, j in enumerate(actions):
+            btn = Button(self, label=j)
+            sizer.Add(btn, 0, ALL, 5)
+            btn.Bind(EVT_BUTTON, self.choice)
+            btn.action = i
+        self.GetSizer().Add(sizer, 0, ALIGN_RIGHT, 5)
+        self.Layout()
+        self.SetSize(self.GetBestSize())
+        if default_action is Ellipsis:
+            default_action = len(actions) - 1
+        self.action = default_action
+        self.record = False
+        self.SetReturnCode(ID_CANCEL)
+
+    def choice(self, event: 'CommandEvent'):
+        self.action = event.GetEventObject().action
+        self.record = self.remember.GetValue()
+        self.EndModal(ID_OK)
+
+
+class ChooseActionDialog(object):
+    __slots__ = (
+        'parent', 'message', 'title', 'actions', 'default_action', 'record',
+        '_dialog', 'async_dialog', 'event', 'recordable'
+    )
+
+    def __init__(self, parent: 'Window', message: str, title: str = '选择操作', actions: Sequence[str] = ('是', '否'), default_action: int = ..., recordable=True) -> None:
+        self.parent = parent
+        self.message = message
+        self.title = title
+        self.actions = actions
+        self.default_action = default_action
+        self.recordable = recordable
+        self.record = None
+        self._dialog = None
+        self.async_dialog = IsMainThread()
+        self.event = Event()
+
+    def _open_dialog(self, parent, message, title, default_action, recordable):
+        self._dialog = ModifiedChoiceDialog(parent, message, title, self.actions, default_action, recordable)
+        with self._dialog:
+            self._dialog.ShowModal()
+        self.event.set()
+
+    def open_dialog(self, parent: 'Window' = ..., message: str = ..., title: str = ..., default_action: int = ..., recordable: bool = ...):
+        if self.record is not None:
+            return self.record
+        if parent is Ellipsis:
+            parent = self.parent
+        if message is Ellipsis:
+            message = self.message
+        if title is Ellipsis:
+            title = self.title
+        if default_action is Ellipsis:
+            default_action = self.default_action
+        if recordable is Ellipsis:
+            recordable = self.recordable
+        if self.async_dialog:
+            self._open_dialog(parent, message, title, default_action, recordable)
+        else:
+            self.event.clear()
+            CallAfter(self._open_dialog, parent, message, title, default_action, recordable)
+            self.event.wait()
+        if self._dialog.record:
+            self.record = self._dialog.action
+        return self._dialog.action

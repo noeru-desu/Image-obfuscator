@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 19:40:58
+LastEditTime : 2022-09-04 06:20:50
 Description  : 常量
 """
 from platform import machine, platform
@@ -18,7 +18,7 @@ from wx import (ID_CANCEL, ID_HELP, ID_NO, ID_OK, ID_YES,
                 IMAGE_QUALITY_BICUBIC, IMAGE_QUALITY_BILINEAR,
                 IMAGE_QUALITY_BOX_AVERAGE, IMAGE_QUALITY_HIGH,
                 IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_NORMAL,
-                VERTICAL, HORIZONTAL, Colour)
+                VERTICAL, HORIZONTAL, Colour, Cursor, CURSOR_ARROWWAIT, CURSOR_ARROW)
 from wx import version as wx_ver
 
 try:
@@ -33,11 +33,11 @@ RELEASE_CANDIDATE = 1
 DEV = 2
 BETA = 3
 ALPHA = 4
-VERSION_TYPE = RELEASE
-VERSION = '2.1.1'
-PRE_RELEASE_VERSION = 'release'
-BATCH = '20220817a'
-BUILD_METADATA = 'build.1' # 'build.1' / BATCH
+VERSION_TYPE = DEV
+VERSION = '2.1.2'
+PRE_RELEASE_VERSION = 'dev.1'
+BATCH = '20220904a'
+BUILD_METADATA = BATCH # 'build.1' / BATCH
 COMPILED = True
 BRANCH = 'dev/2.x'
 

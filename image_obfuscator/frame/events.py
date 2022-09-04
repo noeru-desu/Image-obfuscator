@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 15:59:27
+LastEditTime : 2022-09-03 07:46:11
 Description  : 事件处理
 """
 from base64 import b85encode
@@ -264,7 +264,7 @@ class MainFrame(BasicMainFrame):
             self.refresh_preview(event)
 
     def switching_image(self, event: 'TreeEvent'):
-        if self.image_loader.loading_thread.in_execution:
+        if self.image_loader.loading_thread.in_execution or self.disable_switching_image:
             event.Veto()
 
     @catch_exc_for_frame_method

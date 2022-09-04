@@ -1211,3 +1211,35 @@ class MultiLineTextEntryDialog (wx.Dialog):
 
     def confirm(self, event):
         event.Skip()
+
+
+###########################################################################
+# Class ModifiedChoiceDialog
+###########################################################################
+
+class ModifiedChoiceDialog (wx.Dialog):
+    __slots__ = ('info', 'remember')
+
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition, size=wx.Size(-1, -1), style=wx.DEFAULT_DIALOG_STYLE)
+
+        self.SetSizeHints(wx.Size(400, -1), wx.Size(500, -1))
+
+        bSizer58 = wx.BoxSizer(wx.VERTICAL)
+
+        self.info = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.info.Wrap(-1)
+
+        bSizer58.Add(self.info, 0, wx.ALL, 15)
+
+        self.remember = wx.CheckBox(self, wx.ID_ANY, u"此次批量操作记住此次选择", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer58.Add(self.remember, 0, wx.ALL, 10)
+
+        self.SetSizer(bSizer58)
+        self.Layout()
+        bSizer58.Fit(self)
+
+        self.Centre(wx.BOTH)
+
+    def __del__(self):
+        pass
