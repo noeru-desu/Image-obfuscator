@@ -1966,7 +1966,7 @@
                                                             <property name="style">wxRA_SPECIFY_COLS</property>
                                                             <property name="subclass">; ; forward_declare</property>
                                                             <property name="toolbar_pane">0</property>
-                                                            <property name="tooltip">处理图像时使用的设置来源&#x0A;界面设置: 每个模式在右侧(如果有)提供的设置选项&#x0A;文件加密参数: 来自于每个被加密文件末尾的加密参数&#x0A;加密参数字段: base85编码的加密参数(手动指定)&#x0A;选项呈灰色表明当前模式不需要此选项</property>
+                                                            <property name="tooltip">处理图像时使用的设置来源&#x0A;界面设置: 每个模式在右侧(如果有)提供的设置选项&#x0A;文件加密参数: 来自于每个被加密文件末尾的加密参数&#x0A;加密参数字段: base85编码的加密参数(手动指定)&#x0A;选项呈灰色表明当前模式不需要或无法使用此选项</property>
                                                             <property name="validator_data_type"></property>
                                                             <property name="validator_style">wxFILTER_NONE</property>
                                                             <property name="validator_type">wxDefaultValidator</property>

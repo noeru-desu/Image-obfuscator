@@ -219,7 +219,7 @@ class MainFrame (wx.Frame):
         SettingsSourceUsedChoices = [u"界面设置", u"文件加密参数", u"加密参数字段"]
         self.SettingsSourceUsed = wx.RadioBox(self.processingOptions, wx.ID_ANY, u"使用的设置源", wx.DefaultPosition, wx.DefaultSize, SettingsSourceUsedChoices, 1, wx.RA_SPECIFY_COLS)
         self.SettingsSourceUsed.SetSelection(0)
-        self.SettingsSourceUsed.SetToolTip(u"处理图像时使用的设置来源\n界面设置: 每个模式在右侧(如果有)提供的设置选项\n文件加密参数: 来自于每个被加密文件末尾的加密参数\n加密参数字段: base85编码的加密参数(手动指定)\n选项呈灰色表明当前模式不需要此选项")
+        self.SettingsSourceUsed.SetToolTip(u"处理图像时使用的设置来源\n界面设置: 每个模式在右侧(如果有)提供的设置选项\n文件加密参数: 来自于每个被加密文件末尾的加密参数\n加密参数字段: base85编码的加密参数(手动指定)\n选项呈灰色表明当前模式不需要或无法使用此选项")
 
         bSizer282.Add(self.SettingsSourceUsed, 1, wx.EXPAND, 5)
 
