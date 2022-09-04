@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-04 07:17:40
+LastEditTime : 2022-09-04 20:23:34
 Description  : 文件载入功能
 """
 from os.path import isdir, isfile, join, split
@@ -162,7 +162,7 @@ class ImageLoader(object):
         """加载文件夹"""
         self.show_loading_progress_plane()
         folder_name = split(path_chosen)[1]
-        match deep_loading_dialog.open_dialog(massage=f'是否将文件夹{folder_name}内子文件夹中的文件也进行载入？'):
+        match deep_loading_dialog.open_dialog(message=f'是否将文件夹{folder_name}内子文件夹中的文件也进行载入？'):
             case 0:
                 deep_loading = True
             case 1:
@@ -214,12 +214,12 @@ class ImageLoader(object):
             folder_name, loaded_num, self.file_count - load_failures - loaded_num, load_failures
         ))
 
-    def _output_image_loading_failure_info(self, massage: str, pop_up=True, file_name='图像'):
+    def _output_image_loading_failure_info(self, message: str, pop_up=True, file_name='图像'):
         """输出图像加载时出现的错误信息"""
         if pop_up:
-            self.frame.dialog.async_error(massage, f'加载{file_name}时出现错误')
+            self.frame.dialog.async_error(message, f'加载{file_name}时出现错误')
         else:
-            self.frame.logger.warning(f'加载{file_name}时出现错误: {massage}')
+            self.frame.logger.warning(f'加载{file_name}时出现错误: {message}')
 
     def _exist(self, path_chosen, file_dialog: 'ChooseActionDialog', folder_dialog: 'ChooseActionDialog'):
         """检测是否已存在于文件树"""
