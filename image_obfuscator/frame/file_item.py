@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 13:31:22
+LastEditTime : 2022-09-03 07:10:48
 Description  : 图像项目
 """
 from abc import ABC
@@ -11,7 +11,7 @@ from gc import collect
 from os.path import isfile, join, split
 from typing import TYPE_CHECKING, Any, Generator, Optional, Union
 
-from wx import BLACK, VERTICAL, HORIZONTAL, Bitmap, CallAfter
+from wx import BLACK, CURSOR_ARROWWAIT, CURSOR_ARROW, VERTICAL, HORIZONTAL, Bitmap, CallAfter
 
 from image_obfuscator.constants import LIGHT_RED, PIL_RESAMPLING_FILTERS
 from image_obfuscator.modes.base import EmptySettings
@@ -60,6 +60,7 @@ class Item(ABC):
         if self.frame.tree_manager.stop_reloading_signal:
             self.frame.stop_reloading(False, False)
         self.frame.stop_reloading_func.init()
+        self.frame.set_cursor(CURSOR_ARROW)
 
 
 class PreviewCache(object):
@@ -598,6 +599,7 @@ class ImageItem(Item):
 
     def del_item(self, item_id: 'TreeItemId', del_item=True):
         if del_item:
+            self.frame.set_cursor(CURSOR_ARROWWAIT)
             self.frame.imageTreeCtrl.Delete(item_id)
             if self.parent is not None:
                 del self.parent.children[item_id]
@@ -605,6 +607,7 @@ class ImageItem(Item):
         self.cache.del_cache()
         del self.cache
         if del_item:
+            self.frame.set_cursor(CURSOR_ARROW)
             collect()
 
     def reload_item(self, dialog=True, refresh_preview=True) -> Optional[tuple[int, int]]:
@@ -614,6 +617,8 @@ class ImageItem(Item):
             return 0, 0
         if self.frame.tree_manager.stop_reloading_signal:
             return 0, 0
+        if dialog:
+            self.frame.set_cursor(CURSOR_ARROWWAIT)
         loaded_image, error = open_image(self.loaded_image_path)
         if error is not None:
             if dialog:
@@ -659,6 +664,8 @@ class FolderItem(Item):
         self.parent_id: Optional['TreeItemId'] = None
 
     def del_item(self, item_id: 'TreeItemId', del_item=True):
+        if del_item:
+            self.frame.set_cursor(CURSOR_ARROWWAIT)
         for id, data in tuple(self.children.items()):
             data.del_item(id, False)
             del self.children[id]
@@ -671,11 +678,14 @@ class FolderItem(Item):
         else:
             del self.frame.tree_manager.dir_dict[self.path]
         if del_item:
+            self.frame.set_cursor(CURSOR_ARROW)
             collect()
 
     def reload_item(self, dialog=True, refresh_preview=False):
         if self.frame.tree_manager.stop_reloading_signal:
             return 0, 0
+        if dialog:
+            self.frame.set_cursor(CURSOR_ARROWWAIT)
         nums = [0, 0]
         for data in self.children.values():
             if self.frame.tree_manager.stop_reloading_signal:

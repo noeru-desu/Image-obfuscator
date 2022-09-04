@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Iterable, overload
 # from zipfile import is_zipfile
 
 from PIL import Image
-from wx import ID_YES, YES_NO, CallAfter
+from wx import CURSOR_WAIT, CURSOR_ARROW, CallAfter
 from natsort import os_sort_key
 
 from image_obfuscator.constants import EXTENSION_KEYS, DialogReturnCodes
@@ -64,6 +64,7 @@ class ImageLoader(object):
 
     def load(self, target: Iterable['PathLike[str]'] | 'PathLike[str]' | Image.Image):
         Image.MAX_IMAGE_PIXELS = self.frame.controller.max_image_pixels if self.frame.controller.max_image_pixels != 0 else None
+        self.frame.set_cursor(CURSOR_WAIT)
         if isinstance(target, Image.Image):
             self.loading_thread.add_task(self._load_image_object, (target,), cb=self._loading_callback)
         else:
@@ -81,6 +82,7 @@ class ImageLoader(object):
         self.frame.processingOptions.Enable()
         self.frame.loadingPanel.Enable()
         self.hide_loading_progress_plane()
+        self.frame.set_cursor(CURSOR_ARROW)
 
     @catch_exc_and_return
     def _load_image_object(self, image: 'Image.Image'):

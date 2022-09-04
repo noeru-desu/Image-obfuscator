@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 13:04:36
+LastEditTime : 2022-09-03 07:55:25
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -13,8 +13,8 @@ from multiprocessing import cpu_count
 from os import getcwd
 from typing import TYPE_CHECKING, Optional, Union
 
-from wx import (ACCEL_CTRL, ACCEL_NORMAL, WXK_DELETE, WXK_F5, VERTICAL, HORIZONTAL, AcceleratorEntry,
-                AcceleratorTable, App, CallAfter)
+from wx import (ACCEL_CTRL, ACCEL_NORMAL, CURSOR_ARROW, CURSOR_WAIT, WXK_DELETE, WXK_F5, VERTICAL, HORIZONTAL, AcceleratorEntry,
+                AcceleratorTable, App, Cursor, CallAfter, SetCursor)
 from wx.core import EmptyString
 
 from image_obfuscator.constants import (EXTENSION_KEYS_STRING, FULL_VERSION_STRING,
@@ -55,7 +55,7 @@ class MainFrame(MF):
         'startup_parameters', 'logger', 'controller', 'settings', 'dialog', 'universal_thread_pool',
         'password_dict', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator', 'folder_item',
         'image_saver', 'stop_loading_func', 'stop_reloading_func', 'image_item', 'run_path','mode_manager',
-        'config'
+        'config', 'disable_switching_image'
     )
 
     def __init__(self, parent: 'Window', run_path: 'PathLike[str]' = getcwd()):
@@ -139,6 +139,7 @@ class MainFrame(MF):
         self.SettingsSourceUsed.EnableItem(2, False)
         self.saveFormat.ToolTip = f'{self.saveFormat.GetToolTipText()}{EXTENSION_KEYS_STRING}'
         self.selectSavePath.PickerCtrl.SetLabel('选择文件夹')
+        self.disable_switching_image = False
 
         self.logger.info('窗口初始化完成')
         # self.Show()
@@ -238,6 +239,7 @@ class MainFrame(MF):
     def stop_reloading(self, force=True, dialog=True):
         if force:
             self.tree_manager.reloading_thread.interrupt_task()
+            self.set_cursor(CURSOR_ARROW)
             self.dialog.async_warning('已强制终止重载操作')
         elif dialog:
             self.dialog.async_warning('已停止重载操作')
@@ -256,7 +258,16 @@ class MainFrame(MF):
             if __debug__:
                 raise ValueError('Operations not permitted by the current mode interface setting (can_be_set_as_default_mode)')
             return
+        self.set_cursor(CURSOR_WAIT)
+        self.disable_switching_image = True
+        self.processingOptions.Disable()
         settings_tuple = self.controller.current_settings.settings_tuple
         for i in self.tree_manager.all_image_item_data:
             i.proc_mode = proc_mode
             i.settings.sync_from_tuple(settings_tuple)
+        self.processingOptions.Enable()
+        self.disable_switching_image = False
+        self.set_cursor(CURSOR_ARROW)
+
+    def set_cursor(self, cursor):
+        self.SetCursor(Cursor(cursor))

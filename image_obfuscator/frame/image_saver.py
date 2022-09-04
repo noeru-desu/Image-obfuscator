@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-14 16:16:59
+LastEditTime : 2022-09-03 06:36:59
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -12,7 +12,7 @@ from os.path import isdir, splitext, join
 from threading import Lock
 from typing import TYPE_CHECKING
 
-from wx import DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, DirDialog
+from wx import CURSOR_ARROW, CURSOR_WAIT, DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, DirDialog
 
 from image_obfuscator.constants import DialogReturnCodes
 from image_obfuscator.frame.controller import ProgressBar
@@ -61,6 +61,7 @@ class ImageSaver(object):
         image_item = self.frame.image_item
         if self._check():
             return
+        self.frame.set_cursor(CURSOR_WAIT)
         self.show_save_progress_plane(False)
         self.frame.controller.standardized_password_ctrl()
         mode_interface = image_item.proc_mode
@@ -126,6 +127,7 @@ class ImageSaver(object):
             self.frame.dialog.async_warning('没有添加任何批量保存任务')
             self.hide_save_progress_plane()
         else:
+            self.frame.set_cursor(CURSOR_WAIT)
             self.bar.next_step(self.task_num)
             self.frame.dialog.async_info(f'已添加{self.task_num}个批量保存任务')
             self.frame.saveProgressInfo.SetLabelText(f'0/{self.task_num} - 0%')
@@ -177,6 +179,7 @@ class ImageSaver(object):
             self.frame.dialog.async_warning('没有添加任何批量保存任务')
             self.hide_save_progress_plane()
         else:
+            self.frame.set_cursor(CURSOR_WAIT)
             self.bar.next_step(self.task_num)
             self.frame.dialog.async_info(f'已添加{self.task_num}个批量保存任务')
             self.frame.saveProgressInfo.SetLabelText(f'0/{self.task_num} - 0%')
@@ -372,6 +375,7 @@ class ImageSaver(object):
         self.frame.imageTreeCtrl.Enable()
         self.frame.processingOptions.Enable()
         self.frame.saveOptions.Layout()
+        self.frame.set_cursor(CURSOR_ARROW)
 
 
 '''
