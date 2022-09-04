@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-04 08:33:46
+LastEditTime : 2022-09-04 20:26:43
 Description  : 对话框相关
 """
 from base64 import b85decode
@@ -459,7 +459,7 @@ class ModifiedChoiceDialog(MCD):
         sizer = BoxSizer(HORIZONTAL)
         for i, j in enumerate(actions):
             btn = Button(self, label=j)
-            sizer.Add(btn, 0, ALL, 5)
+            sizer.Add(btn, 0, ALL, 2)
             btn.Bind(EVT_BUTTON, self.choice)
             btn.action = i
         self.GetSizer().Add(sizer, 0, ALIGN_RIGHT, 5)
