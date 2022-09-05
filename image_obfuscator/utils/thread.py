@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-06-03 14:16:44
+LastEditTime : 2022-09-05 12:42:35
 Description  : 线程相关类
 """
 from concurrent.futures import (CancelledError, ProcessPoolExecutor,
@@ -208,7 +208,7 @@ class SingleThreadExecutor(object):
     __slots__ = ('thread', 'name', 'deque', 'exc_cb', 'restartable')
 
     class Thread(threading_Thread):
-        __slots__ = ('executor', 'semaphore', 'lock', 'exit_signal', 'in_execution', 'changed_signal')
+        __slots__ = ('executor', 'semaphore', 'lock', 'exit_signal', 'in_execution', 'changed_signal', 'started')
 
         def __init__(self, executor: 'SingleThreadExecutor', name: str = 'single-thread-executor') -> None:
             super().__init__(name=name if name is ... else name, daemon=True)
@@ -221,6 +221,7 @@ class SingleThreadExecutor(object):
             self.lock = Lock()
             self.pause = Event()
             self.pause.set()
+            self.started = False
 
         def set_async_exc(self, exc_type: type[Any] = SystemExit):
             if self.is_alive():
@@ -231,6 +232,7 @@ class SingleThreadExecutor(object):
             return True
 
         def run(self):
+            self.started = True
             while True:
                 try:
                     if self.perform_task() == STOP:
@@ -283,8 +285,7 @@ class SingleThreadExecutor(object):
         self.exc_cb: Optional[Callable] = None
         self.deque: Deque[tuple[Callable, tuple, dict, Optional[Callable], tuple, dict]] = Deque(maxlen=maxlen, blocking=False)
         self.restartable = True
-        self.thread = self.Thread(self, name)
-        self.thread.start()
+        self.thread: 'SingleThreadExecutor.Thread' = self.Thread(self, name)
 
     def restart_thread(self, clean_restart=True):
         """重启线程
@@ -292,6 +293,8 @@ class SingleThreadExecutor(object):
         Args:
             clean_restart (bool, optional): 是否在重启时清空任务列表. 默认为`True`.
         """
+        if not self.thread.started:
+            self.thread.start()
         if self.thread.is_alive():
             raise ThreadIsRunningError('The thread is already running.')
         if not self.restartable:
@@ -299,7 +302,8 @@ class SingleThreadExecutor(object):
         if clean_restart:
             self.deque.clear()
         self.thread = self.Thread(self, self.name)
-        self.thread.start()
+        if not clean_restart:
+            self.thread.start()
 
     def set_exception_callback(self, func: Callable, *args, **kwargs):
         """设置当任务内出现异常时将使用的回调. 将会在第一个参数中传入异常实例, 其`traceback`属性将被赋值为`traceback.format_exc()`"""
@@ -369,6 +373,8 @@ class SingleThreadExecutor(object):
             cb_kwargs (dict, optional): 回调的keyword参数. 默认为`{}`.
             highest_priority (bool, optional): 是否添加为最高优先级任务. 默认为`False`
         """
+        if not self.thread.started:
+            self.thread.start()
         assert self.thread.is_alive(), 'Thread has been shutdown.'
         if kwargs is None:
             kwargs = {}
@@ -399,10 +405,10 @@ class SingleThreadExecutor(object):
 
     @property
     def alive(self):
-        return self.thread.is_alive()
+        return self.thread.is_alive() or not self.thread.started
 
     def is_alive(self):
-        return self.thread.is_alive()
+        return self.thread.is_alive() or not self.thread.started
 
     @property
     def idle(self):
