@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-03 07:55:25
+LastEditTime : 2022-09-05 12:09:03
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -11,10 +11,11 @@ from functools import cached_property
 from inspect import isroutine
 from multiprocessing import cpu_count
 from os import getcwd
+from traceback import format_exc
 from typing import TYPE_CHECKING, Optional, Union
 
 from wx import (ACCEL_CTRL, ACCEL_NORMAL, CURSOR_ARROW, CURSOR_WAIT, WXK_DELETE, WXK_F5, VERTICAL, HORIZONTAL, AcceleratorEntry,
-                AcceleratorTable, App, Cursor, CallAfter, SetCursor)
+                AcceleratorTable, App, Cursor, CallAfter, ICON_ERROR, STAY_ON_TOP)
 from wx.core import EmptyString
 
 from image_obfuscator.constants import (EXTENSION_KEYS_STRING, FULL_VERSION_STRING,
@@ -171,7 +172,11 @@ class MainFrame(MF):
             run_path (str, optional): 运行路径. 默认为`os.getcwd()`.
         """
         app = App(useBestVisual=True)
-        cls(None, path).Enable()
+        try:
+            cls(None, path).Enable()
+        except BaseException:
+            Dialog.standalone_dialog(format_exc(), '初始化窗口时出现错误', ICON_ERROR | STAY_ON_TOP)
+            exit(3)
 
         app.MainLoop()
 
