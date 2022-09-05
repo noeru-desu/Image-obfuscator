@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-04 20:26:43
+LastEditTime : 2022-09-05 12:06:52
 Description  : 对话框相关
 """
 from base64 import b85decode
 from json import JSONDecodeError, dumps, loads
 from pickle import loads as pickle_loads
-from threading import Event
+from threading import Lock
 from typing import TYPE_CHECKING, Optional, Sequence
 
 from pyperclip import copy as clipboard_copy
@@ -216,7 +216,7 @@ class Dialog(object):
         return True
 
     @staticmethod
-    def singel_dialog(message: str, title: str, style: int = None) -> int:
+    def standalone_dialog(message: str, title: str, style: int = None) -> int:
         with MessageDialog(None, message, title, style=style) as dialog:
             return dialog.ShowModal()
 
@@ -480,7 +480,7 @@ class ModifiedChoiceDialog(MCD):
 class ChooseActionDialog(object):
     __slots__ = (
         'parent', 'message', 'title', 'actions', 'default_action', 'record',
-        '_dialog', 'async_dialog', 'event', 'recordable'
+        '_dialog', 'lock', 'recordable'
     )
 
     def __init__(self, parent: 'Window', message: str, title: str = '选择操作', actions: Sequence[str] = ('是', '否'), default_action: int = ..., recordable=True) -> None:
@@ -492,14 +492,13 @@ class ChooseActionDialog(object):
         self.recordable = recordable
         self.record = None
         self._dialog = None
-        self.async_dialog = IsMainThread()
-        self.event = Event()
+        self.lock = Lock()
 
     def _open_dialog(self, parent, message, title, default_action, recordable):
         self._dialog = ModifiedChoiceDialog(parent, message, title, self.actions, default_action, recordable)
         with self._dialog:
             self._dialog.ShowModal()
-        self.event.set()
+        self.lock.release()
 
     def open_dialog(self, parent: 'Window' = ..., message: str = ..., title: str = ..., default_action: int = ..., recordable: bool = ...):
         if self.record is not None:
@@ -514,12 +513,13 @@ class ChooseActionDialog(object):
             default_action = self.default_action
         if recordable is Ellipsis:
             recordable = self.recordable
-        if self.async_dialog:
+        if IsMainThread():
             self._open_dialog(parent, message, title, default_action, recordable)
         else:
-            self.event.clear()
+            self.lock.acquire()
             CallAfter(self._open_dialog, parent, message, title, default_action, recordable)
-            self.event.wait()
+            self.lock.acquire()
+            self.lock.release()
         if self._dialog.record:
             self.record = self._dialog.action
         return self._dialog.action

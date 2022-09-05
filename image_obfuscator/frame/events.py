@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-03 07:46:11
+LastEditTime : 2022-09-05 12:20:50
 Description  : 事件处理
 """
 from base64 import b85encode
@@ -150,7 +150,7 @@ class MainFrame(BasicMainFrame):
     def load_image_from_clipboard(self, event):
         clipboard = grabclipboard()
         if clipboard is None:
-            self.dialog.async_warning('没有从剪切板导入任何图像')
+            self.dialog.async_warning('剪切板中没有图像文件路径或图像数据', '无法载入')
         else:
             self.image_loader.load(clipboard)
 
