@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-03 07:10:48
+LastEditTime : 2022-09-06 12:03:48
 Description  : 图像项目
 """
 from abc import ABC
@@ -508,10 +508,9 @@ class ImageItem(Item):
         """
         if self.no_file or not isfile(self.loaded_image_path):
             return
-        if self.load_encryption_attributes(*load_encryption_attributes(self.loaded_image_path)):
-            self.cache.encryption_attributes_from_file = True
+        self.load_encryption_attributes(*load_encryption_attributes(self.loaded_image_path), True)
 
-    def load_encryption_attributes(self, encryption_attributes, loading_encryption_attributes_error):
+    def load_encryption_attributes(self, encryption_attributes, loading_encryption_attributes_error, from_file: bool):
         """加载图像加密参数\n
         如果当前实例`no_file`属性为`True`或图像原始文件不存在, 则跳过操作\n
         加载成功后, 将自动切换项目设置中的处理模式为解密模式, 返回True
@@ -537,8 +536,11 @@ class ImageItem(Item):
             )
             self.encrypted_image = True
             self.proc_mode = mode
-            if self.cache.encryption_attributes_from_file:
+            if from_file:
+                self.cache.encryption_attributes_from_file = True
                 self.set_settings_source(1)
+            else:
+                self.cache.encryption_attributes_from_file = False
             return True
         else:
             self.cache._encryption_attributes = EmptyEncryptionAttributes
@@ -619,6 +621,7 @@ class ImageItem(Item):
             return 0, 0
         if dialog:
             self.frame.set_cursor(CURSOR_ARROWWAIT)
+
         loaded_image, error = open_image(self.loaded_image_path)
         if error is not None:
             if dialog:

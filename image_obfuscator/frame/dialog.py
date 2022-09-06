@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-05 12:06:52
+LastEditTime : 2022-09-06 07:38:58
 Description  : 对话框相关
 """
 from base64 import b85decode
@@ -441,7 +441,7 @@ class EncryptionAttributesB85EntryDialog(MultiLineTextEntryDialog):
         if err is not None:
             self._parent.dialog.warning(f'检查当前输入的加密参数时出现错误: {err}', parent=self)
             return
-        self.succeeded = self._parent.image_item.load_encryption_attributes(attributes_dict, err)
+        self.succeeded = self._parent.image_item.load_encryption_attributes(attributes_dict, err, False)
         self.EndModal(ID_OK)
 
 
