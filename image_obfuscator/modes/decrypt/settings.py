@@ -55,7 +55,17 @@ class EncryptionParametersData(BaseSettings):
 
     @staticmethod
     def deserialize_encrypted_parameters(data: str):
-        return pickle_loads(b85decode(data))
+        pickle_data = b85decode(data)
+        try:
+            return pickle_loads(pickle_data)
+        except ModuleNotFoundError:         # 转换旧版本pickle数据
+            return pickle_loads(pickle_data.replace(
+                    b'\x1aimage_encryptor', # 对2.1版本前的模块名进行转换
+                    b'\x1bimage_obfuscator'
+                ).replace(
+                    b'\x0c_channels_id',    # 对2.0-beta版本的属性名进行转换
+                    b'\r_channels_num'
+            ))
 
     @property
     def settings(self):
