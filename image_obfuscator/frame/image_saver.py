@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-03 06:36:59
+LastEditTime : 2022-09-06 16:12:58
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -206,6 +206,7 @@ class ImageSaver(object):
         else:
             image = result
         if image is None:
+            self.frame.dialog.async_warning('根据当前模式设置无法生成结果', '无图像可供保存')
             return result
         self._post_save_processing(
                     mode_interface,
