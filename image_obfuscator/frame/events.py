@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-05 12:20:50
+LastEditTime : 2022-09-06 06:38:46
 Description  : 事件处理
 """
 from base64 import b85encode
@@ -323,6 +323,7 @@ class MainFrame(BasicMainFrame):
             self.tree_manager.del_item(selection)
         if not self.tree_manager.file_dict:
             self.controller.gen_image_info()
+            self.processingOptions.Enable()
 
     @catch_exc_for_frame_method
     def reload_item(self, event):
