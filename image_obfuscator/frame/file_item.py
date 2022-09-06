@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-06 12:03:48
+LastEditTime : 2022-09-06 21:03:13
 Description  : 图像项目
 """
 from abc import ABC
@@ -264,6 +264,7 @@ class ImageItemCache(object):
                 self._item.encrypted_image = False
                 self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, LIGHT_RED)
             else:
+                self.loaded_image_size = self._loaded_image.size
                 if reload_encryption_attributes:
                     self._item.load_encryption_attributes_from_file()
                 self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, BLACK)
@@ -634,6 +635,7 @@ class ImageItem(Item):
         self.cache.loaded_image = loaded_image
 
         # 重置缓存与设置源
+        self.cache.loaded_image_size = loaded_image.size
         self.cache.refresh_cache()
         self.settings_source = 0
         self.frame.controller.reset_settings_source()
