@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-15 07:53:22
+LastEditTime : 2022-09-06 21:13:22
 Description  : 图像加密模块
 """
 from copy import copy
@@ -10,7 +10,7 @@ from itertools import pairwise, product
 from math import ceil
 from random import Random
 from threading import Lock
-from typing import TYPE_CHECKING, MutableSequence, Union
+from typing import TYPE_CHECKING, Any, MutableSequence, Union
 
 from numpy import ascontiguousarray, empty, uint8, zeros
 from numpy.random import randint
@@ -43,7 +43,7 @@ class BaseImageEncryptV2(object):
         'flip', 'mapped_channels', 'mapping_table', 'block_flip_list', '_shuffle'
     )
 
-    def __init__(self, image: Image.Image, row: int, col: int, random_seed):
+    def __init__(self, image: Image.Image, row: int, col: int, random_seed, resize=False):
         """
         :param image: 需要加密的图像
         :param row: 切割行数
@@ -56,6 +56,8 @@ class BaseImageEncryptV2(object):
         self.block_width = ceil(image.size[0] / col)
         self.block_height = ceil(image.size[1] / row)
         self.ceil_size = (self.block_width * col, self.block_height * row)
+        if resize and (image.size[0] % col != 0 or image.size[1] % row != 0):
+            image = image.resize(self.ceil_size)
         self.block_list = []
         self.block_pos_list = []
         self.block_mapping_list = []
@@ -202,7 +204,7 @@ class BaseImageEncryptV3(object):
         'mapping_table', 'block_pos_list', '_shuffle'
     )
 
-    def __init__(self, image: Image.Image, row: int, col: int, random_seed):
+    def __init__(self, image: Image.Image, row: int, col: int, random_seed: Any, resize=False):
         """
         :param image: 需要加密的图像
         :param row: 切割行数
@@ -215,6 +217,8 @@ class BaseImageEncryptV3(object):
         self.block_width = ceil(image.size[0] / col)
         self.block_height = ceil(image.size[1] / row)
         self.ceil_size = (self.block_width * col, self.block_height * row)
+        if resize and (image.size[0] % col != 0 or image.size[1] % row != 0):
+            image = image.resize(self.ceil_size)
         self.block_mapping_list = []
         self.block_pos_list = []
         self.init = False
@@ -336,11 +340,11 @@ class ImageDecrypt(object):
 
     def __init__(self, image: Image.Image, row: int, col: int, random_seed, version=EA_VERSION) -> None:
         if version >= 7:
-            self.base = BaseImageEncryptV3(image, row, col, random_seed)
+            self.base = BaseImageEncryptV3(image, row, col, random_seed, True)
         elif version >= 5:
-            self.base = BaseImageEncryptV2(image, row, col, random_seed)
+            self.base = BaseImageEncryptV2(image, row, col, random_seed, True)
         else:
-            self.base = BaseImageEncryptV1(image, row, col, random_seed)
+            self.base = BaseImageEncryptV1(image, row, col, random_seed, True)
 
     def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: 'Channels', bar=FakeBar):
         return self.base.init_block_data(True, shuffle, flip, mapped_channels, bar)
