@@ -83,6 +83,14 @@ jobs:
       - name: Build artifacts (with console)
         run: |
           nuitka --enable-console --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=pydoc,urllib,socket,tkinter --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow --warn-implicit-exceptions -o ImageObfuscator.with_console.exe ImageObfuscator.py
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.BUILD_ENV }}-${{ env.VCToolsVersion }}-build.${{ github.run_number }}
+          path: |
+            nuitka/ImageObfuscator.exe
+            ImageObfuscator.without_runtime.exe
+            ImageObfuscator.with_console.exe
       - name: Basic tests
         shell: cmd
         run: |
@@ -121,11 +129,3 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ env.BUILD_ENV }}-${{ env.VCToolsVersion }}-build.${{ github.run_number }}
-          path: |
-            nuitka/ImageObfuscator.exe
-            ImageObfuscator.without_runtime.exe
-            ImageObfuscator.with_console.exe
