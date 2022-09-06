@@ -6,7 +6,7 @@ LastEditTime : 2022-09-05 12:20:50
 Description  : 事件处理
 """
 from base64 import b85encode
-from pickle import dumps as pickle_dumps
+from pickle import dumps as pickle_dumps, HIGHEST_PROTOCOL
 from typing import TYPE_CHECKING, Optional, Union
 
 from PIL.ImageGrab import grabclipboard
@@ -416,7 +416,7 @@ class MainFrame(BasicMainFrame):
             b85encode(pickle_dumps(gen_encryption_attributes(
                 self.controller.proc_mode_interface.corresponding_decryption_mode,
                 self.image_item.settings.serialize_encryption_parameters(*self.image_item.cache.loaded_image_size)
-            ))).decode('utf-8')
+            ), HIGHEST_PROTOCOL)).decode('utf-8')
         )
 
     def update_quality_num(self, event: 'CommandEvent' = None):

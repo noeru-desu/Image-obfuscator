@@ -2,10 +2,11 @@
 Author       : noeru_desu
 Date         : 2022-06-07 06:20:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-16 10:01:41
+LastEditTime : 2022-09-06 06:37:53
 Description  : 
 """
-from pickle import dump as pickle_dump, load as pickle_load
+from pickle import dumps as pickle_dumps, load as pickle_load, HIGHEST_PROTOCOL
+from pickletools import optimize
 from contextlib import suppress
 from collections import namedtuple
 from os import getenv, mkdir, startfile
@@ -68,7 +69,7 @@ class ConfigManager(object):
 
     def save_password_dict(self):
         with open(self.password_dict_path, 'wb') as f:
-            pickle_dump(self.frame.password_dict.copy(), f)
+            f.write(optimize(pickle_dumps(self.frame.password_dict.copy(), HIGHEST_PROTOCOL)))
 
     def load_password_dict(self):
         if not isfile(self.password_dict_path):
@@ -79,7 +80,7 @@ class ConfigManager(object):
 
     def save_frame_settings(self):
         with open(self.frame_settings_path, 'wb') as f:
-            pickle_dump(self.gen_frame_settings(), f)
+            f.write(optimize(pickle_dumps(self.gen_frame_settings(), HIGHEST_PROTOCOL)))
 
     def load_frame_settings(self):
         if not isfile(self.frame_settings_path):

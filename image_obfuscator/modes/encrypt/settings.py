@@ -79,7 +79,12 @@ class SettingsData(BaseSettings):
 
     def serialize_encryption_parameters(self, orig_width: int, orig_height: int):
         encryption_parameters_data = self.encryption_parameters_data(orig_width, orig_height)
-        return b85encode(pickle_dumps(tuple(getattr(encryption_parameters_data, i) for i in EncryptionParametersData.SETTING_NAMES[:-2]))).decode('utf-8')
+        return b85encode(
+            optimize(pickle_dumps(
+                tuple(getattr(encryption_parameters_data, i) for i in EncryptionParametersData.SETTING_NAMES[:-2]),
+                HIGHEST_PROTOCOL
+            ))
+        ).decode('utf-8')
 
 
 class Settings(SettingsData):
