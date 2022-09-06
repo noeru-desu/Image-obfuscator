@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:39:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-06 17:12:09
+LastEditTime : 2022-09-06 21:32:50
 Description  : 设置选项
 """
 from base64 import b85decode
@@ -223,5 +223,12 @@ class Settings(BaseSettings):
         if self.orig_width == 1 and self.orig_height == 1:
             self.orig_width = w
             self.orig_height = h
+        else:
+            if self.orig_width > w:
+                self.main_frame.dialog.async_warning(f'加密参数指定的裁切宽度({self.orig_width}px)超出当前图像宽度({w}px), 已自动设置为{w}px', '越界警告')
+                self.orig_width = w
+            if self.orig_height > h:
+                self.main_frame.dialog.async_warning(f'加密参数指定的裁切高度({self.orig_height}px)超出当前图像高度({h}px), 已自动设置为{h}px', '越界警告')
+                self.orig_height = h
         self.mode_controller.orig_width = self.orig_width
         self.mode_controller.orig_height = self.orig_height
