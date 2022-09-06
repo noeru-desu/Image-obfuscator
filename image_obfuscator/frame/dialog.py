@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-06 07:38:58
+LastEditTime : 2022-09-06 17:42:42
 Description  : 对话框相关
 """
 from base64 import b85decode
@@ -11,7 +11,7 @@ from pickle import loads as pickle_loads
 from threading import Lock
 from typing import TYPE_CHECKING, Optional, Sequence
 
-from pyperclip import copy as clipboard_copy
+from pyperclip import copy as clipboard_copy, paste as clipboard_paste
 from wx import (ALIGN_RIGHT, ALL, CANCEL, DIRP_CHANGE_DIR, DIRP_DEFAULT_STYLE,
                 DIRP_DIR_MUST_EXIST, EVT_BUTTON, FD_CHANGE_DIR,
                 FD_DEFAULT_STYLE, FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW,
@@ -430,6 +430,17 @@ class MultiLineTextEntryDialog(MLTED):
 
 class EncryptionAttributesB85EntryDialog(MultiLineTextEntryDialog):
     __slots__ = ('succeeded',)
+
+    def __init__(self, parent: 'MainFrame', title: str = '文本输入', extra_info: str = ''):
+        super().__init__(parent, title, extra_info)
+        clipboard = clipboard_paste()
+        try:
+            data = b85decode(clipboard)
+        except Exception:
+            return
+        else:
+            if data.startswith(b'\x80'):
+                self.text.SetValue(clipboard)
 
     def confirm(self, event):
         try:
