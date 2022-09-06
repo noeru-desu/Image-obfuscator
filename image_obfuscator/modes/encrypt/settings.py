@@ -2,11 +2,12 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-15 07:31:46
+LastEditTime : 2022-09-06 06:37:28
 Description  : 
 """
 from base64 import b85encode
-from pickle import dumps as pickle_dumps
+from pickle import dumps as pickle_dumps, HIGHEST_PROTOCOL
+from pickletools import optimize
 from typing import TYPE_CHECKING, Callable, Iterable, Any
 
 from image_obfuscator.constants import EA_VERSION

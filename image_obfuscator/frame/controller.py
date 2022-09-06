@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 19:39:49
+LastEditTime : 2022-09-06 10:25:01
 Description  : 界面控制相关
 """
 from json import dumps
@@ -223,11 +223,18 @@ class Controller(object):
     @property
     def settings_source_used(self) -> int: return self.frame.SettingsSourceUsed.GetSelection()
 
+    def reset_settings_source(self, select=0, sync_to_item: bool = True):
+        for i in range(3):
+            self.frame.SettingsSourceUsed.EnableItem(i)
+        self.frame.SettingsSourceUsed.Select(select)
+        self.settings_source_selected(select, sync_to_item)
+
     def set_settings_source_used(self, item_id: int, sync_to_item: bool = True):
         if self.frame.SettingsSourceUsed.GetSelection() == item_id:
             return
         if __debug__ and not self.frame.SettingsSourceUsed.IsItemEnabled(item_id):
             self.frame.dialog.warning('settings_source_used请求选中的目标已被禁用')
+            raise
             self.enable_settings_source_btn(item_id, sync_to_item=sync_to_item)
         self.frame.SettingsSourceUsed.Select(item_id)
         self.settings_source_selected(item_id, sync_to_item)

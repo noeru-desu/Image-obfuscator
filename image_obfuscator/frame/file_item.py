@@ -632,17 +632,22 @@ class ImageItem(Item):
         else:
             self.frame.imageTreeCtrl.SetItemTextColour(self.item_id, BLACK)
         self.cache.loaded_image = loaded_image
+
+        # 重置缓存与设置源
         self.cache.refresh_cache()
-        if self.settings_source == 2:
-            self.set_settings_source(0)
+        self.settings_source = 0
+        self.frame.controller.reset_settings_source()
+
         self.load_encryption_attributes_from_file()
         if dialog:
+            self.enable_available_settings_source_btn()
             self.frame.dialog.async_info(f'{self.path_data.file_name}重载成功')
             self.reload_done()
         if refresh_preview:
             if self.encrypted_image:
                 CallAfter(self._refresh_encrypted_image)
             else:
+                self.frame.controller.backtrack_interface(self.settings, self.proc_mode)
                 self.frame.force_refresh_preview()
         return 1, 0
 
