@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-06 21:03:13
+LastEditTime : 2022-09-07 09:35:12
 Description  : 图像项目
 """
 from abc import ABC
@@ -384,6 +384,7 @@ class ImageItem(Item):
 
         if self.no_file:
             self.encrypted_image = False
+            self.cache._encryption_attributes = EmptyEncryptionAttributes
             self.cache.loading_encryption_attributes_error = f'来自剪贴板的图像[{self.path_data.file_name}]不支持解密操作'
         else:
             self.cache.loading_encryption_attributes_error = None
@@ -527,6 +528,7 @@ class ImageItem(Item):
                 self.encrypted_image = False
                 if self.proc_mode.requires_encryption_parameters and self.proc_mode.encryption_parameters_must_be_used:
                     self.proc_mode = self.frame.mode_manager.default_mode_that_can_be_set_as_default
+                self.cache._encryption_attributes = EmptyEncryptionAttributes
                 return False
             self.cache._encryption_attributes = ImageEncryptionAttributes(
                 mode, mode.instantiate_encryption_parameters_cls(
