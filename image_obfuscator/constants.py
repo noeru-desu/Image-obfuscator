@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-06 21:16:35
+LastEditTime : 2022-09-07 10:37:27
 Description  : 常量
 """
 from platform import machine, platform
@@ -18,7 +18,7 @@ from wx import (ID_CANCEL, ID_HELP, ID_NO, ID_OK, ID_YES,
                 IMAGE_QUALITY_BICUBIC, IMAGE_QUALITY_BILINEAR,
                 IMAGE_QUALITY_BOX_AVERAGE, IMAGE_QUALITY_HIGH,
                 IMAGE_QUALITY_NEAREST, IMAGE_QUALITY_NORMAL,
-                VERTICAL, HORIZONTAL, Colour, Cursor, CURSOR_ARROWWAIT, CURSOR_ARROW)
+                VERTICAL, HORIZONTAL, Colour)
 from wx import version as wx_ver
 
 try:
@@ -36,8 +36,8 @@ ALPHA = 4
 VERSION_TYPE = RELEASE
 VERSION = '2.1.2'
 PRE_RELEASE_VERSION = 'release'
-BATCH = '20220906a'
-BUILD_METADATA = 'build.1' # 'build.1' / BATCH
+BATCH = '20220907a'
+BUILD_METADATA = 'build.2' # 'build.1' / BATCH
 COMPILED = True
 BRANCH = 'dev/2.x'
 
@@ -82,6 +82,7 @@ FRAME_SETTINGS_SUB_VERSION = 3
 LIGHT_RED = Colour(255, 30, 30)
 
 _BUILD_METADATA = BUILD_METADATA if COMPILED else BATCH
+_SHORT_BUILD_METADATA = BUILD_METADATA.replace('build.', '.b') if COMPILED else BATCH
 
 VERSION_INFO = (
     f'{machine()}-{platform()}',
@@ -95,7 +96,7 @@ VERSION_INFO = (
 )
 
 FULL_VERSION_STRING = f'{VERSION}-{PRE_RELEASE_VERSION}+{_BUILD_METADATA} (branch: {BRANCH}) {"[Not optimized]" if __debug__ else ""}'
-SHORT_VERSION_STRING = f'{VERSION} {"[Not optimized]" if __debug__ else ""}'
+SHORT_VERSION_STRING = f'{VERSION}{_SHORT_BUILD_METADATA if _SHORT_BUILD_METADATA != ".b1" else ""} {"[Not optimized]" if __debug__ else ""}'
 
 
 class DialogReturnCodes(object):
