@@ -5,17 +5,19 @@ __`2.1.0`版本前称为*Image Encryptor*__
 <details>
 <summary><h2>部分已实现的处理效果展示[点击展开/收起]</h2></summary>
 
-> 示例图像画师: `かにビーム`
+> 所引用图像的画师: `かにビーム`
 
-### 加密模式(默认设置)
+### 加密模式
 
-__[保存为无损图像且解密时使用保存的原图时，可无损还原出原图像]__
+__[保存为无损图像后解密保存的原图时，可无损还原出原图像]__
+
+__[保存为有损图像或解密时使用非原图时，会出现较细的切割线]__
+
+↓默认设置↓
 
 <img style="max-width:100%;overflow:hidden;height:500px" src="https://github.com/noeru-desu/noeru-desu/blob/main/assets/Image-obfuscator/normal_encrypt.jpg?raw=true">
 
-### 加密模式(最高强度噪音异或RGB)
-
-__[保存为无损图像且解密时使用保存的原图时，可无损还原出原图像]__
+↓最高强度噪音异或RGB↓
 
 <img style="max-width:100%;overflow:hidden;height:500px" src="https://github.com/noeru-desu/noeru-desu/blob/main/assets/Image-obfuscator/noise_xor_encrypt.jpg?raw=true">
 
