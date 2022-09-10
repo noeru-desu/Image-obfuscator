@@ -11,6 +11,7 @@ import wx
 import wx.xrc
 import wx.adv
 import wx.stc
+import wx.richtext
 
 ###########################################################################
 # Class MainFrame
@@ -236,7 +237,7 @@ class MainFrame (wx.Frame):
 
         bSizer12.Add(bSizer282, 0, wx.EXPAND, 5)
 
-        bSizer12.Add((0, 0), 1, 0, 3)
+        bSizer12.Add((0, 0), 0, wx.ALL, 3)
 
         self.procSettingsPanelContainer = wx.Panel(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.procSettingsPanelContainer.SetMinSize(wx.Size(-1, 180))
@@ -1107,10 +1108,8 @@ class TextDisplayDialog (wx.Dialog):
 
         bSizer52.Add(self.extraInfo, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
-        self.text = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE | wx.TE_NO_VSCROLL | wx.TE_READONLY)
-        self.text.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
-
-        bSizer52.Add(self.text, 1, wx.ALL | wx.EXPAND, 5)
+        self.text = wx.richtext.RichTextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_READONLY)
+        bSizer52.Add(self.text, 1, wx.EXPAND | wx.ALL, 5)
 
         bSizer53 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -1165,10 +1164,8 @@ class MultiLineTextEntryDialog (wx.Dialog):
 
         bSizer52.Add(self.extraInfo, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
-        self.text = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE | wx.TE_NO_VSCROLL)
-        self.text.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
-
-        bSizer52.Add(self.text, 1, wx.ALL | wx.EXPAND, 5)
+        self.text = wx.richtext.RichTextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER)
+        bSizer52.Add(self.text, 1, wx.EXPAND | wx.ALL, 5)
 
         bSizer53 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -1198,6 +1195,7 @@ class MultiLineTextEntryDialog (wx.Dialog):
 
         # Connect Events
         self.Bind(wx.EVT_CLOSE, self.cancel)
+        self.text.Bind(wx.EVT_TEXT_ENTER, self.confirm)
         self.m_button251.Bind(wx.EVT_BUTTON, self.cancel)
         self.m_button25.Bind(wx.EVT_BUTTON, self.confirm)
 
