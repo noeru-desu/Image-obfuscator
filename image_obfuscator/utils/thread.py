@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-05 12:42:35
+LastEditTime : 2022-09-10 12:19:31
 Description  : 线程相关类
 """
 from concurrent.futures import (CancelledError, ProcessPoolExecutor,
@@ -232,7 +232,6 @@ class SingleThreadExecutor(object):
             return True
 
         def run(self):
-            self.started = True
             while True:
                 try:
                     if self.perform_task() == STOP:
@@ -293,8 +292,7 @@ class SingleThreadExecutor(object):
         Args:
             clean_restart (bool, optional): 是否在重启时清空任务列表. 默认为`True`.
         """
-        if not self.thread.started:
-            self.thread.start()
+        self.start_thread()
         if self.thread.is_alive():
             raise ThreadIsRunningError('The thread is already running.')
         if not self.restartable:
@@ -304,6 +302,12 @@ class SingleThreadExecutor(object):
         self.thread = self.Thread(self, self.name)
         if not clean_restart:
             self.thread.start()
+
+    def start_thread(self):
+        with self.thread.lock:
+            if not self.thread.started:
+                self.thread.start()
+                self.thread.started = True
 
     def set_exception_callback(self, func: Callable, *args, **kwargs):
         """设置当任务内出现异常时将使用的回调. 将会在第一个参数中传入异常实例, 其`traceback`属性将被赋值为`traceback.format_exc()`"""
@@ -373,8 +377,7 @@ class SingleThreadExecutor(object):
             cb_kwargs (dict, optional): 回调的keyword参数. 默认为`{}`.
             highest_priority (bool, optional): 是否添加为最高优先级任务. 默认为`False`
         """
-        if not self.thread.started:
-            self.thread.start()
+        self.start_thread()
         assert self.thread.is_alive(), 'Thread has been shutdown.'
         if kwargs is None:
             kwargs = {}
@@ -405,10 +408,10 @@ class SingleThreadExecutor(object):
 
     @property
     def alive(self):
-        return self.thread.is_alive() or not self.thread.started
+        return (not self.thread.started) or self.thread.is_alive()
 
     def is_alive(self):
-        return self.thread.is_alive() or not self.thread.started
+        return (not self.thread.started) or self.thread.is_alive()
 
     @property
     def idle(self):
