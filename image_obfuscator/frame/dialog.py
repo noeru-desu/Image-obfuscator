@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-06 17:42:42
+LastEditTime : 2022-09-09 12:07:59
 Description  : 对话框相关
 """
 from base64 import b85decode
@@ -294,7 +294,7 @@ json_foreground_style = (
 
 
 class JsonEditorDialog(JED):
-    __slots__ = ('_parent', 'target_json_type', 'user_saved_json', 'user_saved_dict')
+    __slots__ = ('_parent', 'target_json_type', 'user_saved_json', 'user_saved_dict', 'o_json_text')
 
     def __init__(self, parent: 'MainFrame', title_text: str = '编辑Json文本', extra_info: str = '', extra_link: str = '', extra_link_info: str = '', json_text: str = '{\n\t\n}', target_json_type=dict):
         # o_args = set(dir(self))
@@ -303,6 +303,7 @@ class JsonEditorDialog(JED):
         # gen_slots_str(n_args - o_args)
         self._parent = parent
         self.target_json_type = target_json_type
+        self.o_json_text = json_text
         self.user_saved_json: Optional[str] = None
         self.user_saved_dict: Optional[dict] = None
         self.titleText.SetLabelText(title_text)
@@ -376,6 +377,9 @@ class JsonEditorDialog(JED):
         self.EndModal(ID_OK)
 
     def close_dialog(self, event: 'CloseEvent'):
+        if self.o_json_text == self.textEditor.GetValue():
+            self.EndModal(ID_CANCEL)
+            return
         flag = self._parent.dialog.confirmation_frame('是否保存当前的Json文本?', parent=self)
         if flag == ID_NO:
             self.EndModal(ID_CANCEL)
@@ -444,7 +448,7 @@ class EncryptionAttributesB85EntryDialog(MultiLineTextEntryDialog):
 
     def confirm(self, event):
         try:
-            attributes_dict = pickle_loads(b85decode(self.text.GetValue()))
+            attributes_dict = pickle_loads(b85decode(self.text.GetValue().rstrip('\r\n\t\000')))
         except Exception as e:
             self._parent.dialog.warning(f'{repr(e)}\n加载当前输入的加密参数时出现以上问题, 请检查输入的序列化字段是否正确且完整', '加载当前输入的加密参数时出现问题', parent=self)
             return
