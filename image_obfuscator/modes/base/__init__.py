@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 15:58:08
+LastEditTime : 2022-09-09 11:05:05
 Description  : 基类
 """
 from abc import ABC
@@ -288,7 +288,7 @@ class BaseSettings(SupportConstantProperty):
     def sync_from_interface(self):
         raise NotImplementedError()
 
-    def serialize_encryption_parameters(self, orig_width: int, orig_height: int) -> str:
+    def serialize_encryption_parameters(self, orig_width: Optional[int], orig_height: Optional[int]) -> str:
         raise NotImplementedError()
 
     @classmethod

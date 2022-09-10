@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-06 06:38:46
+LastEditTime : 2022-09-09 16:17:46
 Description  : 事件处理
 """
 from base64 import b85encode
@@ -210,12 +210,12 @@ class MainFrame(BasicMainFrame):
                 self.image_item.proc_mode = selected_mode
                 self.controller.previous_proc_mode = selected_mode
                 if not self.image_item.cache.encryption_attributes_from_file:
-                    self.controller.set_settings_source_used(2)
+                    self.controller.set_settings_source(2)
                 self.image_item.display_encryption_attributes()
                 self.refresh_preview(event)
                 return
             elif not selected_mode.encryption_parameters_must_be_used:  # 如果所选模式可以使用设置面板手动指定加密参数
-                self.controller.set_settings_source_used(0)
+                pass
             elif self.image_item.cache.loading_encryption_attributes_error is not None:
                 self.controller.proc_mode_interface = self.controller.previous_proc_mode
                 self.dialog.async_warning(self.image_item.cache.loading_encryption_attributes_error)
@@ -244,12 +244,12 @@ class MainFrame(BasicMainFrame):
                     self.image_item.settings_source = 1
                     self.image_item.display_encryption_attributes()
                 else:
-                    self.controller.set_settings_source_used(self.image_item.settings_source, False)
+                    self.controller.set_settings_source(self.image_item.settings_source, False)
             case 2:
                 if not self.image_item.encrypted_image:
                     flag = self.dialog.encryption_attributes_b85_entry_dialog()
                     if flag is None or not flag:
-                        self.controller.set_settings_source_used(self.image_item.settings_source, False)
+                        self.controller.set_settings_source(self.image_item.settings_source, False)
                         return
                 self.controller.settings_source_selected(2)
                 self.image_item.display_encryption_attributes()
@@ -276,8 +276,6 @@ class MainFrame(BasicMainFrame):
                 image_data.unselect()
         elif self.deleted_item:
             self.deleted_item = False
-        # else:
-        #     self.apply_settings_to_all()
         if self.first_choice:
             self.first_choice = False
 

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-06 10:25:01
+LastEditTime : 2022-09-09 13:38:15
 Description  : 界面控制相关
 """
 from json import dumps
@@ -221,7 +221,7 @@ class Controller(object):
             self.frame.image_item.settings_source = btn
 
     @property
-    def settings_source_used(self) -> int: return self.frame.SettingsSourceUsed.GetSelection()
+    def settings_source(self) -> int: return self.frame.SettingsSourceUsed.GetSelection()
 
     def reset_settings_source(self, select=0, sync_to_item: bool = True):
         for i in range(3):
@@ -229,11 +229,11 @@ class Controller(object):
         self.frame.SettingsSourceUsed.Select(select)
         self.settings_source_selected(select, sync_to_item)
 
-    def set_settings_source_used(self, item_id: int, sync_to_item: bool = True):
+    def set_settings_source(self, item_id: int, sync_to_item: bool = True):
         if self.frame.SettingsSourceUsed.GetSelection() == item_id:
             return
         if __debug__ and not self.frame.SettingsSourceUsed.IsItemEnabled(item_id):
-            self.frame.dialog.warning('settings_source_used请求选中的目标已被禁用')
+            self.frame.dialog.warning('settings_source请求选中的目标已被禁用')
             raise
             self.enable_settings_source_btn(item_id, sync_to_item=sync_to_item)
         self.frame.SettingsSourceUsed.Select(item_id)
@@ -253,6 +253,11 @@ class Controller(object):
                 else:
                     self.frame.SettingsSourceUsed.EnableItem(i, False)
         elif isinstance(item_id, Sequence):
+            for i in all_item_id:
+                if i in item_id:
+                    self.frame.SettingsSourceUsed.EnableItem(i)
+                else:
+                    self.frame.SettingsSourceUsed.EnableItem(i, False)
             if __debug__:
                 if select is not Ellipsis and select not in item_id:
                     raise ValueError('select does not exist in item_id')
@@ -263,11 +268,6 @@ class Controller(object):
                 self.settings_source_selected(select, sync_to_item)
                 if sync_to_item and self.frame.image_item is not None:
                     self.frame.image_item.settings_source = select
-            for i in all_item_id:
-                if i in item_id:
-                    self.frame.SettingsSourceUsed.EnableItem(i)
-                else:
-                    self.frame.SettingsSourceUsed.EnableItem(i, False)
 
     @property
     def password(self) -> str: return self.frame.passwordCtrl.GetValue()
