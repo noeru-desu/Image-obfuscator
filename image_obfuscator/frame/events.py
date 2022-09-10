@@ -405,16 +405,17 @@ class MainFrame(BasicMainFrame):
 
     @catch_exc_for_frame_method
     def get_serialized_encryption_parameters(self, event):
-        if self.image_item is None:
-            return
         if not self.controller.proc_mode_interface.add_encryption_parameters_in_file:
             self.dialog.info('当前模式不会生成加密参数', '提示')
             return
+        loaded_image_size = (None, None) if self.image_item is None else self.image_item.cache.loaded_image_size
         self.dialog.text_display_dialog(
             '序列化的加密参数', '以下为序列化至字符后的当前加密参数',
             b85encode(pickle_dumps(gen_encryption_attributes(
                 self.controller.proc_mode_interface.corresponding_decryption_mode,
-                self.image_item.settings.serialize_encryption_parameters(*self.image_item.cache.loaded_image_size)
+                self.controller.proc_mode_interface.default_settings.serialize_encryption_parameters(*loaded_image_size)
+                if self.image_item is None else
+                self.image_item.settings.serialize_encryption_parameters(*loaded_image_size)
             ), HIGHEST_PROTOCOL)).decode('utf-8')
         )
 

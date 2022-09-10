@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-06 06:37:28
+LastEditTime : 2022-09-09 11:11:24
 Description  : 
 """
 from base64 import b85encode
 from pickle import dumps as pickle_dumps, HIGHEST_PROTOCOL
 from pickletools import optimize
-from typing import TYPE_CHECKING, Callable, Iterable, Any
+from typing import TYPE_CHECKING, Callable, Iterable, Any, Optional
 
 from image_obfuscator.constants import EA_VERSION
 from image_obfuscator.modes.base import BaseSettings, Channels
@@ -55,7 +55,7 @@ class SettingsData(BaseSettings):
         self.noise_factor = settings_dict['noise_factor']
         self.password = settings_dict['password']
 
-    def encryption_parameters_data(self, orig_width: int, orig_height: int):
+    def encryption_parameters_data(self, orig_width: Optional[int], orig_height: Optional[int]):
         """根据当前实例的数据与给出的参数实例化EncryptionParametersData类
 
         Args:
@@ -67,6 +67,10 @@ class SettingsData(BaseSettings):
         """
         has_password = self.password != 'none'
         password = self.password if has_password else 100
+        if orig_width is None:
+            orig_width = 1
+        if orig_height is None:
+            orig_height = 1
         return EncryptionParametersData((self.cutting_row, self.cutting_col, orig_width, orig_height, self.shuffle_chunks,
                                         self.flip_chunks, self.mapping_channels,
                                         self.XOR_channels if self.XOR_encryption else Channels((False, False, False, False)),
