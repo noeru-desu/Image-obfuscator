@@ -456,8 +456,7 @@ class MainFrame (wx.Frame):
         bSizer491 = wx.BoxSizer(wx.VERTICAL)
 
         self.saveLossless = wx.CheckBox(sbSizer61.GetStaticBox(), wx.ID_ANY, u"无损Webp", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.saveLossless.SetToolTip(u"部分格式启用后将保持图像质量无损并一定程度减小文件大小，但是会增加保存耗时")
-        self.saveLossless.SetHelpText(u"保存webp时无损保存")
+        self.saveLossless.SetToolTip(u"保存webp时无损保存")
 
         bSizer491.Add(self.saveLossless, 0, wx.ALL, 3)
 
