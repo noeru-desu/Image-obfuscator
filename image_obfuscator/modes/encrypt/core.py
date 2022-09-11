@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-06 21:13:22
+LastEditTime : 2022-09-11 17:36:19
 Description  : 图像加密模块
 """
 from copy import copy
@@ -13,7 +13,6 @@ from threading import Lock
 from typing import TYPE_CHECKING, Any, MutableSequence, Union
 
 from numpy import ascontiguousarray, empty, uint8, zeros
-from numpy.random import randint
 from PIL import Image
 
 from image_obfuscator.constants import EA_VERSION
@@ -333,43 +332,6 @@ class ImageEncrypt(object):
 
     def xor_pixels(self, channels='rgb', noise=False, noise_factor=255) -> Union[tuple['ndarray', tuple[int, int]], 'Image.Image']:
         return self.base.xor_pixels(channels, noise, noise_factor)
-
-
-class ImageDecrypt(object):
-    __slots__ = ('base',)
-
-    def __init__(self, image: Image.Image, row: int, col: int, random_seed, version=EA_VERSION) -> None:
-        if version >= 7:
-            self.base = BaseImageEncryptV3(image, row, col, random_seed, True)
-        elif version >= 5:
-            self.base = BaseImageEncryptV2(image, row, col, random_seed, True)
-        else:
-            self.base = BaseImageEncryptV1(image, row, col, random_seed, True)
-
-    def init_block_data(self, shuffle: bool, flip: bool, mapped_channels: 'Channels', bar=FakeBar):
-        return self.base.init_block_data(True, shuffle, flip, mapped_channels, bar)
-
-    def generate_image(self, bar=FakeBar) -> Union[tuple['ndarray', tuple[int, int]], 'Image.Image']:
-        return self.base.generate_image(bar)
-
-    def xor_pixels(self, channels='rgb', noise=False, noise_factor=255) -> Union[tuple['ndarray', tuple[int, int]], 'Image.Image']:
-        return self.base.xor_pixels(channels, noise, noise_factor)
-
-
-class AntiShield(object):
-    __slots__ = ('image', 'right_pos', 'button_pos')
-
-    def __init__(self, image: 'Image.Image'):
-        self.image = image
-        self.right_pos = self.image.size[0] - 1
-        self.button_pos = self.image.size[1] - 1
-
-    def generate_image(self):
-        self.image.putpixel((0, 0), (randint(256), randint(256), randint(256)))
-        self.image.putpixel((self.right_pos, 0), (randint(256), randint(256), randint(256)))
-        self.image.putpixel((0, self.button_pos), (randint(256), randint(256), randint(256)))
-        self.image.putpixel((self.right_pos, self.button_pos), (randint(256), randint(256), randint(256)))
-        return self.image
 
 
 class Shuffle(object):
