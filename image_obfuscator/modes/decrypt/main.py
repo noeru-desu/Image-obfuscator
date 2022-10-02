@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-11 17:36:02
+LastEditTime : 2022-10-02 19:29:40
 Description  : 单文件解密功能
 """
 from typing import TYPE_CHECKING, Callable, Union, Type
@@ -32,7 +32,7 @@ def normal_gen(frame: 'MainFrame', source: 'Image.Image', original: bool, return
     step_count = 0
     if parameters.shuffle_chunks or parameters.flip_chunks or parameters.mapping_channels:
         step_count += 2
-    if parameters.XOR_channels:
+    if parameters.XOR_encryption:
         step_count += 1
     if step_count < 1:
         return WrappedPillowImage(source)
@@ -75,7 +75,7 @@ def normal_gen_quietly(frame: 'MainFrame', source: 'Image.Image', original: bool
     step_count = 0
     if encryption_parameters.shuffle_chunks or encryption_parameters.flip_chunks or encryption_parameters.mapping_channels:
         step_count += 2
-    if encryption_parameters.XOR_channels:
+    if encryption_parameters.XOR_encryption:
         step_count += 1
     if step_count < 1:
         return WrappedPillowImage(source)
