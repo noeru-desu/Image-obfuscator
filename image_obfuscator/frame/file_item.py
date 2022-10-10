@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-07 09:35:12
+LastEditTime : 2022-10-10 09:05:41
 Description  : 图像项目
 """
 from abc import ABC
@@ -17,7 +17,7 @@ from image_obfuscator.constants import LIGHT_RED, PIL_RESAMPLING_FILTERS
 from image_obfuscator.modes.base import EmptySettings
 from image_obfuscator.modules.image import cal_best_size, cal_best_scale, open_image
 from image_obfuscator.modules.version_adapter import load_encryption_attributes
-from image_obfuscator.utils.misc_utils import add_to
+from image_obfuscator.utils.misc_utils import LRUCacheRecord, add_to
 
 if TYPE_CHECKING:
     from PIL.Image import Image
@@ -65,10 +65,12 @@ class Item(ABC):
 
 class PreviewCache(object):
     """预览图(处理结果)缓存"""
-    __slots__ = ('scalable_cache', 'normal_cache')
+    __slots__ = ('scalable_cache', 'normal_cache', 'cache_id')
     startup_parameters: 'Parameters' = ...
+    lru_cache_recorder = LRUCacheRecord()
 
-    def __init__(self) -> None:
+    def __init__(self, cache_id: int) -> None:
+        self.cache_id = cache_id
         self.normal_cache: OrderedDict['NormalImageCacheHash', Bitmap] = OrderedDict()
         self.scalable_cache: OrderedDict['ScalableImageCacheHash', WrappedImage] = OrderedDict()
 
@@ -80,6 +82,9 @@ class PreviewCache(object):
         if len(self.scalable_cache) > 1:
             for i in tuple(self.scalable_cache)[:-1]:
                 del self.scalable_cache[i]
+        if self.normal_cache or self.scalable_cache:
+            self.lru_cache_recorder.record_cache(self.cache_id, self.clear)
+
 
     def add_cache(self, cache_hash: 'ImageCacheHash', image: Union['WrappedImage', 'Bitmap']) -> None:
         """添加缓存(自动识别缓存类型)
@@ -227,6 +232,7 @@ class ImageItemCache(object):
         'loading_encryption_attributes_error', '_best_layout', 'loaded_image_size', '_image_panel_size_for_best_layout',
         'encryption_attributes_from_file'
     )
+    lru_cache_recorder = LRUCacheRecord()
 
     def __init__(self, item: 'ImageItem', loaded_image: 'Image', force_cache: bool = False):
         """
@@ -237,11 +243,15 @@ class ImageItemCache(object):
         self._item = item
         self.initial_preview: Image = None
         self.preview_size: tuple[int, int] = None
-        self.previews = PreviewCache()
+        self.previews = PreviewCache(item.cache_id)
         self.loading_encryption_attributes_error: Optional[str] = None
         self._encryption_attributes: Optional['ImageEncryptionAttributes'] = None
         self.encryption_attributes_from_file = False
-        self._loaded_image = loaded_image if force_cache or not self._item.frame.startup_parameters.low_memory else None
+        if force_cache or not self._item.frame.startup_parameters.low_memory:
+            self._loaded_image = loaded_image
+            self.lru_cache_recorder.record_cache(item.cache_id, self.loaded_image_cache_deleter)
+        else:
+            self._loaded_image = None
         self.loaded_image_size = loaded_image.size
         self._image_panel_size_for_best_layout = None
         self._best_layout = VERTICAL
@@ -268,15 +278,21 @@ class ImageItemCache(object):
                 if reload_encryption_attributes:
                     self._item.load_encryption_attributes_from_file()
                 self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, BLACK)
-        if self._item.frame.startup_parameters.low_memory and not self._item.selected:  # 为防止低内存占用模式下的内存泄露, 在项目未被选中时不可缓存图像数据
-            loaded_image = self._loaded_image
-            del self._loaded_image
-            return loaded_image
+        if self._item.frame.startup_parameters.low_memory:
+            if not self._item.selected:  # 为防止低内存占用模式下的内存泄露, 在项目未被选中时不可缓存图像数据
+                loaded_image = self._loaded_image
+                self._loaded_image = None
+                return loaded_image
+        else:
+            self.lru_cache_recorder.record_cache(self._item.cache_id, self.loaded_image_cache_deleter)
         return self._loaded_image
 
     @loaded_image.setter
     def loaded_image(self, v):
         self._loaded_image = v
+
+    def loaded_image_cache_deleter(self):
+        self._loaded_image = None
 
     @property
     def encryption_attributes(self) -> 'ImageEncryptionAttributes':
@@ -351,7 +367,7 @@ class ImageItem(Item):
     __slots__ = (
         'cache', 'path_data', 'loaded_image_path', '_settings_dict', '_settings', 'item_id', 'selected',
         'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error', '_proc_mode',
-        'settings_source'
+        'settings_source', 'cache_id'
     )
 
     def __init__(self, loaded_image: Optional['Image'], path_data: 'PathData', settings: 'ItemSettings' = ..., no_file=False, keep_cache_loaded_image=False):
@@ -368,6 +384,7 @@ class ImageItem(Item):
         self._proc_mode = self.frame.mode_manager.default_mode
         self.settings_source = 0
         self.loaded_image_path = path_data.file_name if no_file else path_data.full_path
+        self.cache_id = hash(self.loaded_image_path)
         self._settings_dict: dict[int, 'ItemSettings'] = {self.proc_mode.mode_id: self.frame.mode_manager.default_settings.copy() if settings is Ellipsis else settings}
         self._settings = self._settings_dict[self.proc_mode.mode_id]
 
@@ -431,6 +448,9 @@ class ImageItem(Item):
     @property
     def best_layout(self):
         return self.cache.best_layout
+
+    def on_select(self):
+        self.selected = True
 
     def unselect(self):
         """取消选中时的相关操作"""
@@ -610,6 +630,8 @@ class ImageItem(Item):
                 del self.parent.children[item_id]
         del self.frame.tree_manager.file_dict[self.loaded_image_path]
         self.cache.del_cache()
+        PreviewCache.lru_cache_recorder.remove_cache_recode(self.item_id)
+        ImageItemCache.lru_cache_recorder.remove_cache_recode(self.item_id)
         del self.cache
         if del_item:
             self.frame.set_cursor(CURSOR_ARROW)
@@ -625,7 +647,7 @@ class ImageItem(Item):
         if dialog:
             self.frame.set_cursor(CURSOR_ARROWWAIT)
 
-        loaded_image, error = open_image(self.loaded_image_path)
+        loaded_image, error = open_image(self.loaded_image_path, False)
         if error is not None:
             if dialog:
                 self.frame.dialog.async_warning(f'{self.path_data.file_name}重载失败: {error}')

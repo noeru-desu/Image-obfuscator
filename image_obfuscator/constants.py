@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-02 19:35:14
+LastEditTime : 2022-10-10 09:28:01
 Description  : 常量
 """
 from platform import machine, platform
@@ -33,12 +33,12 @@ RELEASE_CANDIDATE = 1
 DEV = 2
 BETA = 3
 ALPHA = 4
-VERSION_TYPE = RELEASE
-VERSION = '2.1.4'
-PRE_RELEASE_VERSION = 'release'
-BATCH = '20221002a'
-BUILD_METADATA = 'build.1' # 'build.1' / BATCH
-COMPILED = True
+VERSION_TYPE = BETA
+VERSION = '2.2.0'
+PRE_RELEASE_VERSION = 'beta.1'
+BATCH = '20221010a'
+BUILD_METADATA = BATCH # 'build.1' / BATCH
+COMPILED = False
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-obfuscator'

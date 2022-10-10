@@ -2,16 +2,18 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-11 20:12:21
+LastEditTime : 2022-10-10 08:56:44
 Description  : 一些小东西
 """
-from collections import deque
+from collections import OrderedDict, deque
+from collections.abc import Mapping
 from inspect import signature
 from os import walk
 from os.path import normpath
 from threading import Lock, Semaphore
-from types import FunctionType
-from typing import Callable, Iterable, Any, Iterator, NoReturn, Union, TypeVar
+from traceback import print_exc
+from types import FunctionType, GenericAlias
+from typing import Callable, Hashable, Iterable, Any, Iterator, NoReturn, Optional, Union, TypeVar
 
 
 T = TypeVar('T')
@@ -196,3 +198,123 @@ class Singleton(type):
         if not hasattr(self, 'inst'):
             self.inst = super().__call__(*args, **kwds)
         return self.inst
+
+
+class LRUCacheRecord(object):
+    __slots__ = ('_maxlen', 'dict')
+
+    def __init__(self, maxlen=10) -> None:
+        self._maxlen = maxlen
+        self.dict: OrderedDict[Hashable, tuple[Callable, tuple, dict]] = OrderedDict()
+
+    def __eq__(self, __o: object) -> bool:
+        return self.dict.__eq__(__o)
+
+    @property
+    def maxlen(self) -> int:
+        return self._maxlen
+
+    @maxlen.setter
+    def maxlen(self, v: int):
+        self._maxlen = v
+        if v != 0:
+            length = len(self.dict)
+            if length > v:
+                for _ in range(length - v):
+                    func, args, kwds = self.dict.popitem(False)[1]
+                    try:
+                        func(*args, **kwds)
+                    except Exception:
+                        print_exc()
+
+    def record_cache(self, key: Hashable, deleter: Optional[Callable] = None, *args, **kwds):
+        if key in self.dict:
+            self.dict.move_to_end(key)
+            if deleter is not None:
+                self.dict[key] = (deleter, args, kwds)
+            return
+        assert deleter is not None, 'deleter cannot be NoneType when the cache_hash does not exist in the cache.'
+        if self.maxlen != 0 and len(self.dict) >= self.maxlen:
+            func, args, kwds = self.dict.popitem(False)[1]
+            try:
+                func(*args, **kwds)
+            except Exception:
+                print_exc()
+        self.dict[key] = (deleter, args, kwds)
+
+    def remove_cache_recode(self, key: Hashable, call_deleter=False, exist=False):
+        if key not in self.dict:
+            if exist:
+                raise ValueError(f'no record of "{key}"')
+            else:
+                return
+        if call_deleter:
+            func, args, kwds = self.dict[key]
+            try:
+                func(*args, **kwds)
+            except Exception:
+                print_exc()
+        del self.dict[key]
+
+
+class LRUCache(Mapping):
+    __slots__ = ('_maxlen', 'dict')
+
+    def __init__(self, maxlen=10) -> None:
+        self._maxlen = maxlen
+        self.dict: OrderedDict[Hashable, Any] = OrderedDict()
+
+    def __eq__(self, __o: object) -> bool:
+        return self.dict.__eq__(__o)
+
+    def __getitem__(self, __key: Hashable):
+        value = self.dict[__key]
+        self.record(__key)
+        return value
+
+    def __setitem__(self, __key: Hashable, __value: Any):
+        self.record(__key, __value)
+
+    def __delitem__(self, __key: Hashable):
+        self.remove(__key)
+
+    def __len__(self) -> int:
+        return self.dict.__len__()
+
+    def __iter__(self) -> Iterator[Hashable]:
+        return self.dict.__iter__()
+
+    def __class_getitem__(cls, __item: Any) -> GenericAlias:
+        return OrderedDict.__class_getitem__(__item)
+
+    @property
+    def maxlen(self) -> int:
+        return self._maxlen
+
+    @maxlen.setter
+    def maxlen(self, v: int):
+        self._maxlen = v
+        if v != 0:
+            length = len(self.dict)
+            if length > v:
+                for _ in range(length - v):
+                    self.dict.popitem(False)
+
+    def record(self, key: Hashable, value: Optional[Any] = None):
+        if key in self.dict:
+            self.dict.move_to_end(key)
+            if value is not None:
+                self.dict[key] = value
+            return
+        assert value is not None, 'value cannot be NoneType when the cache_hash does not exist in the cache.'
+        if self.maxlen != 0 and len(self.dict) >= self.maxlen:
+            self.dict.popitem(False)
+        self.dict[key] = value
+
+    def remove(self, key: Hashable, exist=False):
+        if key not in self.dict:
+            if exist:
+                raise ValueError(f'no record of "{key}"')
+            else:
+                return
+        del self.dict[key]

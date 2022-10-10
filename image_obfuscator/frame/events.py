@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-09 16:17:46
+LastEditTime : 2022-10-09 12:09:04
 Description  : 事件处理
 """
 from base64 import b85encode
@@ -13,8 +13,9 @@ from PIL.ImageGrab import grabclipboard
 from wx import VERTICAL, CallAfter
 
 from image_obfuscator.constants import DO_NOT_REFRESH, AUTO_REFRESH, EXTENSION_KEYS, EXTENSION_KEYS_STRING, LOSSY_FORMATS
-from image_obfuscator.frame.file_item import FolderItem, ImageItem
+from image_obfuscator.frame.file_item import FolderItem, ImageItem, ImageItemCache, PreviewCache
 from image_obfuscator.frame.main_frame import MainFrame as BasicMainFrame
+from image_obfuscator.modes.mirage_tank.settings import Settings as MirageTankSettings
 from image_obfuscator.modules.decorator import catch_exc_for_frame_method
 from image_obfuscator.modules.version_adapter import gen_encryption_attributes
 
@@ -288,7 +289,7 @@ class MainFrame(BasicMainFrame):
         image_data = self.tree_manager.selected_item_data
         if isinstance(image_data, ImageItem):
             self.image_item = image_data
-            image_data.selected = True
+            image_data.on_select()
             self.controller.imported_image_id = 0
             self.controller.previous_proc_mode = image_data.proc_mode
             self.controller.gen_image_info(image_data)
@@ -442,6 +443,13 @@ class MainFrame(BasicMainFrame):
 
     def toggle_final_layout_widgets(self, event: 'CommandEvent'):
         self.startup_parameters.final_layout_widgets = event.IsChecked()
+
+    def change_maximum_orig_image_cache(self, event: 'SpinEvent'):
+        self.startup_parameters.maximum_orig_image_cache = event.Int
+        ImageItemCache.lru_cache_recorder.maxlen = MirageTankSettings.outside_image_cache.maxlen = event.Int
+
+    def change_maximum_proc_result_cache(self, event: 'SpinEvent'):
+        self.startup_parameters.maximum_proc_result_cache = PreviewCache.lru_cache_recorder.maxlen = event.Int
 
     def open_config_folder(self, event):
         self.config.open_config_folder()

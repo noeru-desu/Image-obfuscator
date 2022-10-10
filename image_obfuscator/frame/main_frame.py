@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-05 12:09:03
+LastEditTime : 2022-10-09 11:37:21
 Description  : 覆写窗口
 """
 from atexit import register as at_exit
@@ -11,6 +11,7 @@ from functools import cached_property
 from inspect import isroutine
 from multiprocessing import cpu_count
 from os import getcwd
+from sys import argv
 from traceback import format_exc
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -25,7 +26,7 @@ from image_obfuscator.frame.controller import Controller, SegmentTrigger
 from image_obfuscator.frame.design_frame import MainFrame as MF
 from image_obfuscator.frame.dialog import Dialog
 from image_obfuscator.frame.drag_importer import DragLoadingFile, DragSavePath
-from image_obfuscator.frame.file_item import Item, PreviewCache
+from image_obfuscator.frame.file_item import ImageItemCache, Item, PreviewCache
 from image_obfuscator.frame.image_loader import ImageLoader
 from image_obfuscator.frame.image_saver import ImageSaver
 from image_obfuscator.frame.mode_manager import ModeManager
@@ -33,6 +34,7 @@ from image_obfuscator.frame.preview_generator import PreviewGenerator
 from image_obfuscator.frame.tree_manager import TreeManager
 from image_obfuscator.frame.config import ConfigManager
 from image_obfuscator.modes.base import EmptySettings, ModeConstants
+from image_obfuscator.modes.mirage_tank.settings import Settings as MirageTankSettings
 from image_obfuscator.modules.argparse import Arguments, Parameters
 from image_obfuscator.modules.decorator import catch_exc_for_frame_method
 from image_obfuscator.modules.password_verifier import PasswordDict
@@ -109,11 +111,14 @@ class MainFrame(MF):
         self.stop_reloading_func = SegmentTrigger((self.set_reloading_btn_text, self.set_stop_reloading_signal, self.stop_reloading), self.init_reloading_btn)
 
         # 同步启动参数至界面
-        Arguments().parse_args(self.startup_parameters)
-        self.Show()
-        if self.startup_parameters.dark_mode:
-            self.dark_mode()
+        if len(argv) > 1:
+            Arguments().parse_args(self.startup_parameters)
+            if self.startup_parameters.dark_mode:
+                self.dark_mode()
+        ImageItemCache.lru_cache_recorder.maxlen = MirageTankSettings.outside_image_cache.maxlen = self.startup_parameters.maximum_orig_image_cache
+        PreviewCache.lru_cache_recorder.maxlen = self.startup_parameters.maximum_proc_result_cache
         self.startup_parameters.apply_to_interface(self.controller)
+        self.Show()
 
         # 文件拖入
         self.imageTreeCtrl.SetDropTarget(DragLoadingFile(self))

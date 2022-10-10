@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-14 17:20:41
+LastEditTime : 2022-10-10 08:58:39
 Description  : 图像相关工具
 """
 from abc import ABC
@@ -13,6 +13,7 @@ from random import randrange
 from random import seed as random_seed
 # from traceback import print_exc
 # from re import sub
+from weakref import ref as weak_ref
 from typing import TYPE_CHECKING, Optional
 
 from numpy import ascontiguousarray, squeeze, uint8, zeros
@@ -28,8 +29,11 @@ from image_obfuscator.constants import (BLACK_IMAGE, OIERR_EXCEED_LIMIT,
                                        OIERR_UNSUPPORTED_FORMAT,
                                        PIL_RESAMPLING_FILTERS,
                                        WX_RESAMPLING_FILTERS)
+from image_obfuscator.utils.misc_utils import LRUCache
 
 if TYPE_CHECKING:
+    from os import PathLike
+    from weakref import ReferenceType
     from numpy import ndarray
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -103,13 +107,22 @@ def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=Tr
         raise ValueError(f'Input nc should be 1/3/4. Got {nc}.')
 
 
-def open_image(file) -> tuple['PIL_Image.Image', Optional[str]]:
+weak_ref_cache: 'LRUCache[str, ReferenceType[PIL_Image.Image]]' = LRUCache(100)
+
+
+def open_image(file: 'PathLike[str]', use_cache=True) -> tuple['PIL_Image.Image', Optional[str]]:
+    """使用PIL打开图像, 并使用弱引用缓存
+
+    Args:
+        file (str): 要打开的文件
+        use_cache (bool): 是否在弱引用中查找缓存(重载图像时请设为False)
+    Returns:
+        tuple[PIL.Image, Optional[str]]: 成功时, 返回(Image实例, None); 失败时, 返回(黑色Image实例, 错误提示)
     """
-    :description: 打开图像
-    :param file: 要打开的文件
-    :return: 成功时，返回(Image实例, None)
-                失败时， 返回(黑色Image实例, 错误提示)
-    """
+    if use_cache and file in weak_ref_cache:
+        orig = weak_ref_cache[file]()
+        if orig is not None:
+            return orig, None
     try:
         image = PIL_Image.open(file).convert('RGBA')
     except FileNotFoundError:
@@ -123,6 +136,7 @@ def open_image(file) -> tuple['PIL_Image.Image', Optional[str]]:
         return BLACK_IMAGE, OIERR_OS_ERROR.format(e.args[0] if e.strerror is None else e.strerror)
     except Exception as e:
         return BLACK_IMAGE, repr(e)
+    weak_ref_cache.record(file, weak_ref(image))
     return image, None
 
 

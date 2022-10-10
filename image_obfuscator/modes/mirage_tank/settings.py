@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 14:15:52
+LastEditTime : 2022-10-09 12:10:51
 Description  : 
 """
 from typing import TYPE_CHECKING, Callable, Iterable, Any
@@ -12,37 +12,57 @@ from wx import BLACK, WHITE
 
 from image_obfuscator.modes.base import BaseSettings
 from image_obfuscator.modules.image import open_image
+from image_obfuscator.utils.misc_utils import LRUCache
 
 if TYPE_CHECKING:
     from PIL.Image import Image
+    from image_obfuscator.modes.base import ModeConstants
     from image_obfuscator.modes.mirage_tank.controller import MirageTankModeController
     from image_obfuscator.modes.mirage_tank.panel import ProcSettingsPanel
 
 
+class OutsideImageCache(LRUCache):
+    mode_constants: 'ModeConstants'
+
+    def __init__(self, maxlen=10) -> None:
+        super().__init__(maxlen)
+
+    def get(self, path):
+        if path in self.dict:
+            self.record(path)
+            return self.dict[path]
+        return self.load(path)
+
+    def load(self, path):
+        if not isfile(path):
+            self.remove(path)
+            return None
+        image, error = open_image(path)
+        if error is not None:
+            self.remove(path)
+            self.mode_constants.main_frame.dialog.async_error(error, '载入所选表图时出现错误')
+            return None
+        if not self.mode_constants.main_frame.startup_parameters.low_memory:
+            self.record(path, image)
+        return image
+
+
 class Settings(BaseSettings):
-    __slots__ = (
-        '_outside_image', 'outside_image_path', 'outside_brightness_scale', 'inside_brightness_scale',
-        'outside_color_scale', 'inside_color_scale', 'damier_mode', 'colorful_mode',
-        'resize_method', 'accuracy'
-    )
-    SETTING_NAMES = (
+    __slots__ = SETTING_NAMES = (
         'outside_image_path', 'outside_brightness_scale', 'inside_brightness_scale',
         'outside_color_scale', 'inside_color_scale', 'damier_mode', 'colorful_mode',
         'resize_method', 'accuracy'
     )
-    DATA_NAMES = ('_outside_image',)
     settings_panel: 'ProcSettingsPanel'
     mode_controller: 'MirageTankModeController'
+    outside_image_cache = OutsideImageCache()
 
     def __init__(self, settings: Iterable[Any] = None, data = None):
         self.outside_image_path = None
-        self._outside_image = None
         if settings is None:
             self.sync_from_interface()
         else:
             self.sync_from_tuple(settings)
-        if data is not None:
-            self.sync_data_from_tuple(data)
         super().__init__()
 
     @classmethod
@@ -62,8 +82,6 @@ class Settings(BaseSettings):
         }
 
     def sync_from_interface(self):
-        if self.outside_image_path != self.mode_controller.outside_image_path:
-            self._outside_image = None
         self.outside_image_path = self.mode_controller.outside_image_path
         self.outside_brightness_scale = self.mode_controller.outside_brightness_scale
         self.inside_brightness_scale = self.mode_controller.inside_brightness_scale
@@ -73,8 +91,6 @@ class Settings(BaseSettings):
         self.colorful_mode = self.mode_controller.colorful_mode
         self.resize_method = self.mode_controller.resize_method
         self.accuracy = self.mode_controller.accuracy
-        if self.outside_image_path and not self.main_frame.startup_parameters.low_memory:
-            self.load_outside_image()
 
     def backtrack_interface(self):
         self.mode_controller.outside_image_path = self.outside_image_path
@@ -88,33 +104,13 @@ class Settings(BaseSettings):
         self.mode_controller.accuracy = self.accuracy
         self.main_controller.set_preview_panel_bg(BLACK if self.settings_panel.toggleBg.GetValue() else WHITE)
 
-    def load_outside_image(self):
-        if not isfile(self.outside_image_path):
-            self._outside_image = None
-            self.mode_controller.outside_image_path = self.outside_image_path = ''
-            return None
-        self._outside_image, error = open_image(self.outside_image_path)
-        if error is not None:
-            self._outside_image = None
-            self.main_frame.dialog.async_error(error, '载入所选表图时出现错误')
-            self.mode_controller.outside_image_path = self.outside_image_path = ''
-        return self._outside_image
-
     @property
     def outside_image(self) -> 'Image':
         """多次使用时请使用临时变量保存此属性值, 防止多次读取"""
-        if self._outside_image is None:
-            self.load_outside_image()
-        if self.main_frame.startup_parameters.low_memory:
-            outside_image = self._outside_image
-            del self._outside_image
-            self._outside_image = None
-            return outside_image
-        return self._outside_image
-
-    @outside_image.setter
-    def outside_image(self, v: 'Image'):
-        self._outside_image = v
+        image = self.outside_image_cache.get(self.outside_image_path)
+        if image is None:
+            self.mode_controller.outside_image_path = self.outside_image_path = ''
+        return image
 
     @property
     def _outside_image_path(self): pass
@@ -122,5 +118,3 @@ class Settings(BaseSettings):
     @_outside_image_path.setter
     def _outside_image_path(self, v):
         self.outside_image_path = v
-        if not self.main_frame.startup_parameters.low_memory:
-            self.load_outside_image()

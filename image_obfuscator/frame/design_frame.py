@@ -25,15 +25,16 @@ class MainFrame (wx.Frame):
         'importedBitmap', 'importedBitmapPanel', 'importedBitmapSizerPanel', 'loadingClipboardBtn', 'loadingFileBtn',
         'loadingPanel', 'loadingProgress', 'loadingProgressInfo', 'loadingProgressPanel', 'lowMemoryMode', 'm_button18',
         'm_button23', 'm_button24', 'm_button31', 'm_button311', 'm_button312', 'm_button6', 'm_button8', 'm_panel25',
-        'm_staticText12', 'm_staticText14', 'm_staticText23', 'm_staticText29', 'm_staticText34', 'm_staticText81',
-        'm_staticText82', 'm_staticText82111', 'm_staticText821111', 'm_staticText8212', 'm_staticline3', 'm_staticline31',
-        'm_staticline4', 'manuallyRefreshBtn', 'maxImagePixels', 'otherOptions', 'passwordCtrl', 'previewLayout', 'previewMode',
-        'previewOptions', 'previewProgress', 'previewProgressInfo', 'previewSource', 'previewedBitmap', 'previewedBitmapPanel',
-        'previewedBitmapSizerPanel', 'procMode', 'procSettingsPanelContainer', 'processingOptions', 'qualityInfo',
-        'recordInterfaceSettings', 'recordPasswordDict', 'redundantCacheLength', 'reloadingBtn', 'resamplingFilter', 'saveBtn',
-        'saveBtnPanel', 'saveCompression', 'saveExif', 'saveFormat', 'saveKwdsJson', 'saveLossless', 'saveOptimize', 'saveOptions',
-        'saveProgress', 'saveProgressInfo', 'saveProgressPanel', 'saveQuality', 'selectSavePath', 'settingsPanel',
-        'stopLoadingBtn', 'stopSaveBtn', 'subsamplingInfo', 'subsamplingLevel'
+        'm_staticText12', 'm_staticText14', 'm_staticText23', 'm_staticText29', 'm_staticText291', 'm_staticText2911',
+        'm_staticText34', 'm_staticText81', 'm_staticText82', 'm_staticText82111', 'm_staticText821111', 'm_staticText8212',
+        'm_staticline3', 'm_staticline31', 'm_staticline4', 'manuallyRefreshBtn', 'maxImagePixels', 'origImageCache',
+        'otherOptions', 'passwordCtrl', 'previewLayout', 'previewMode', 'previewOptions', 'previewProgress', 'previewProgressInfo',
+        'previewSource', 'previewedBitmap', 'previewedBitmapPanel', 'previewedBitmapSizerPanel', 'procMode', 'procResultCache',
+        'procSettingsPanelContainer', 'processingOptions', 'qualityInfo', 'recordInterfaceSettings', 'recordPasswordDict',
+        'redundantCacheLength', 'reloadingBtn', 'resamplingFilter', 'saveBtn', 'saveBtnPanel', 'saveCompression', 'saveExif',
+        'saveFormat', 'saveKwdsJson', 'saveLossless', 'saveOptimize', 'saveOptions', 'saveProgress', 'saveProgressInfo',
+        'saveProgressPanel', 'saveQuality', 'selectSavePath', 'settingsPanel', 'stopLoadingBtn', 'stopSaveBtn', 'subsamplingInfo',
+        'subsamplingLevel'
     )
 
     def __init__(self, parent):
@@ -610,17 +611,17 @@ class MainFrame (wx.Frame):
 
         self.m_staticText34.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n预览图冗余缓存量: 使用加密模式时缓存多个不同加密设置下的处理结果，在取消选中时会仅保留最新的结果，其余结果将从缓存中删除")
 
-        bSizer75.Add(self.m_staticText34, 0, wx.ALL, 5)
+        bSizer75.Add(self.m_staticText34, 0, wx.ALL, 4)
 
         self.redundantCacheLength = wx.SpinCtrl(sbSizer17.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 1, 20, 5)
         self.redundantCacheLength.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n预览图冗余缓存量: 使用加密模式时缓存多个不同加密设置下的处理结果，在取消选中时会仅保留最新的结果，其余结果将从缓存中删除")
 
-        bSizer75.Add(self.redundantCacheLength, 0, wx.ALL | wx.EXPAND, 0)
+        bSizer75.Add(self.redundantCacheLength, 0, wx.EXPAND, 0)
 
         bSizer45.Add(bSizer75, 0, wx.EXPAND, 5)
 
         self.lowMemoryMode = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"低内存占用模式", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.lowMemoryMode.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n低内存占用模式: 取消选中时，不缓存原始图像数据(在需要时重新加载)、不缓存图像处理结果(在需要时重新生成)")
+        self.lowMemoryMode.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n低内存占用模式: 取消选中图像项目时，不缓存原始图像数据(在需要时重新加载)、不缓存图像处理结果(在需要时重新生成)")
 
         bSizer45.Add(self.lowMemoryMode, 0, wx.ALL, 5)
 
@@ -649,6 +650,38 @@ class MainFrame (wx.Frame):
         self.finalLayoutWidgets.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n不实时刷新部件大小: 在拖动更改窗口大小时不实时刷新部件大小，而是在拖动结束后刷新")
 
         bSizer46.Add(self.finalLayoutWidgets, 0, wx.ALL, 5)
+
+        bSizer571 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText2911 = wx.StaticText(sbSizer17.GetStaticBox(), wx.ID_ANY, u"原始图像缓存上限", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText2911.Wrap(-1)
+
+        self.m_staticText2911.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n原始图像缓存上限: 未开启低内存占用模式时, 可缓存原始图像数据的数量上限。0为无限制")
+
+        bSizer571.Add(self.m_staticText2911, 0, wx.ALL, 4)
+
+        self.origImageCache = wx.SpinCtrl(sbSizer17.GetStaticBox(), wx.ID_ANY, u"20", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 0, 1000, 20)
+        self.origImageCache.SetToolTip(u"热更改启动参数注意事项：")
+
+        bSizer571.Add(self.origImageCache, 0, wx.EXPAND, 0)
+
+        bSizer46.Add(bSizer571, 0, wx.EXPAND, 5)
+
+        bSizer57 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText291 = wx.StaticText(sbSizer17.GetStaticBox(), wx.ID_ANY, u"处理结果缓存上限", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText291.Wrap(-1)
+
+        self.m_staticText291.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n处理结果缓存上限：未开启低内存占用模式时, 可缓存处理结果数据的数量上限。0为无限制")
+
+        bSizer57.Add(self.m_staticText291, 0, wx.ALL, 4)
+
+        self.procResultCache = wx.SpinCtrl(sbSizer17.GetStaticBox(), wx.ID_ANY, u"20", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 0, 1000, 20)
+        self.procResultCache.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n处理结果缓存上限：未开启低内存占用模式时, 可缓存处理结果数据的数量上限。0为无限制")
+
+        bSizer57.Add(self.procResultCache, 0, wx.EXPAND, 0)
+
+        bSizer46.Add(bSizer57, 0, wx.EXPAND, 5)
 
         sbSizer17.Add(bSizer46, 0, wx.EXPAND, 5)
 
@@ -708,12 +741,17 @@ class MainFrame (wx.Frame):
         self.subsamplingLevel.Bind(wx.EVT_SCROLL, self.update_subsampling_num)
         self.m_button18.Bind(wx.EVT_BUTTON, self.edit_save_args_json)
         self.m_button23.Bind(wx.EVT_BUTTON, self.open_config_folder)
+        self.redundantCacheLength.Bind(wx.EVT_SPINCTRL, self.change_redundant_cache_length)
         self.redundantCacheLength.Bind(wx.EVT_TEXT_ENTER, self.change_redundant_cache_length)
         self.lowMemoryMode.Bind(wx.EVT_CHECKBOX, self.toggle_low_memory_usage_mode)
         self.recordInterfaceSettings.Bind(wx.EVT_CHECKBOX, self.toggle_record_interface_settings)
         self.recordPasswordDict.Bind(wx.EVT_CHECKBOX, self.toggle_record_password_dict)
         self.disableCache.Bind(wx.EVT_CHECKBOX, self.toggle_disable_cache)
         self.finalLayoutWidgets.Bind(wx.EVT_CHECKBOX, self.toggle_final_layout_widgets)
+        self.origImageCache.Bind(wx.EVT_SPINCTRL, self.change_maximum_orig_image_cache)
+        self.origImageCache.Bind(wx.EVT_TEXT_ENTER, self.change_maximum_orig_image_cache)
+        self.procResultCache.Bind(wx.EVT_SPINCTRL, self.change_maximum_proc_result_cache)
+        self.procResultCache.Bind(wx.EVT_TEXT_ENTER, self.change_maximum_proc_result_cache)
 
     def __del__(self):
         pass
@@ -840,6 +878,12 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def toggle_final_layout_widgets(self, event):
+        event.Skip()
+
+    def change_maximum_orig_image_cache(self, event):
+        event.Skip()
+
+    def change_maximum_proc_result_cache(self, event):
         event.Skip()
 
 

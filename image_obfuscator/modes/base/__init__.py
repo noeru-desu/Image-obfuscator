@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-09 11:05:05
+LastEditTime : 2022-10-09 10:40:59
 Description  : 基类
 """
 from abc import ABC
@@ -385,6 +385,7 @@ class BaseModeInterface(ABC):
     settings_panel_cls: Optional[Type['ModeSettingsPanel']] = None      # 该模式的设置面板(BaseModeSettingsPanel和wx.Panel的子类(务必使MRO中BaseModeSettingsPanel优先))
 
     file_name_suffix: Optional[tuple[str, str]] = None      # 添加到文件名末尾的后缀信息(非格式后缀)
+    mode_constants_required: Iterable = ()
 
     supports_multiprocessing = False
 
@@ -407,6 +408,8 @@ class BaseModeInterface(ABC):
                 self.settings_cls.mode_constants = self.mode_constants
             if self.encryption_parameters_cls is not None:
                 self.encryption_parameters_cls.mode_constants = self.mode_constants
+        for i in self.mode_constants_required:
+            setattr(i, 'mode_constants', self.mode_constants)
 
     def proc_image(self, source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters', label_text_setter: Callable, gauge: 'Gauge') -> tuple[Optional['WrappedImage'], Optional[str]]:
         raise NotImplementedError()

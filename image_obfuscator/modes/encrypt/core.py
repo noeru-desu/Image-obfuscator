@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-11 17:36:19
+LastEditTime : 2022-10-05 11:11:29
 Description  : 图像加密模块
 """
 from copy import copy
@@ -234,7 +234,7 @@ class BaseImageEncryptV3(object):
         self.shuffle = shuffle
         self.flip = flip
         # 使用对应的映射表
-        if len(mapped_channels) > 1:
+        if bool(mapped_channels):
             self.mapped_channels = mapped_channels
             self.mapping_table = MappingFuncV3.decrypt[mapped_channels.hash] if decryption_mode else MappingFuncV3.encrypt[mapped_channels.hash]
         else:

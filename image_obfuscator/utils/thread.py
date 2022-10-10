@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-10 12:19:31
+LastEditTime : 2022-10-08 15:50:52
 Description  : 线程相关类
 """
 from concurrent.futures import (CancelledError, ProcessPoolExecutor,
@@ -365,7 +365,7 @@ class SingleThreadExecutor(object):
         """添加任务
 
         普通任务: 将在已有任务(如果有)顺次执行完毕后执行
-        最高优先级任务: 将在当前任务(如果有)执行完毕后执行, 原有任务依次后移
+        最高优先级任务: 将在当前任务(如果有)执行完毕后执行, 原有任务依次后移\n
         调用回调函数时将插入`target`的返回值在第一个参数的位置
 
         Args:

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-09 13:38:15
+LastEditTime : 2022-10-10 09:17:34
 Description  : 界面控制相关
 """
 from json import dumps
@@ -500,6 +500,30 @@ class Controller(object):
 
     @final_layout_widgets.setter
     def final_layout_widgets(self, v: bool): self.frame.finalLayoutWidgets.SetValue(v)
+
+    @property
+    def maximum_orig_image_cache(self) -> int:
+        """启动参数: 原始图像缓存上限
+
+        Returns:
+            int: 原始图像缓存上限
+        """
+        return self.frame.origImageCache.GetValue()
+
+    @maximum_orig_image_cache.setter
+    def maximum_orig_image_cache(self, v: int): self.frame.origImageCache.SetValue(v)
+
+    @property
+    def maximum_proc_result_cache(self) -> int:
+        """启动参数: 处理结果缓存上限
+
+        Returns:
+            int: 处理结果缓存上限
+        """
+        return self.frame.procResultCache.GetValue()
+
+    @maximum_proc_result_cache.setter
+    def maximum_proc_result_cache(self, v: int): self.frame.procResultCache.SetValue(v)
 
     @property
     def default_proc_mode(self): return self.frame.mode_manager.default_mode
