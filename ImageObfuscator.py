@@ -1,4 +1,4 @@
-#! python3.10
+#! python3.11
 """
 Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
