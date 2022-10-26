@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-09 11:11:24
+LastEditTime : 2022-10-26 12:20:36
 Description  : 
 """
 from base64 import b85encode
@@ -145,12 +145,6 @@ class Settings(SettingsData):
 
     def backtrack_interface(self):
         """将加密设置显示到界面"""
-        # if self.controller.proc_mode == ANTISHIELD_MODE:
-        #     self.controller.frame.processingSettingsPanel.Disable()
-        #     self.controller.frame.passwordCtrl.Disable()
-        # else:
-        #     self.controller.frame.processingSettingsPanel.Enable()
-        #     self.controller.frame.passwordCtrl.Enable()
         self.mode_controller.cutting_row = self.cutting_row
         self.mode_controller.cutting_col = self.cutting_col
         self.mode_controller.shuffle_chunks = self.shuffle_chunks

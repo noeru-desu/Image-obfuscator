@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-10 09:17:34
+LastEditTime : 2022-10-26 12:31:34
 Description  : 界面控制相关
 """
 from json import dumps
@@ -49,10 +49,6 @@ class Controller(object):
         self.save_kwds_json: str = '{\n\t\n}'
         self.preview_static_box: 'StaticBox' = frame.previewedBitmapPanel.GetSizer().GetStaticBox()
         self.proc_panel_state_association = (frame.procSettingsPanelContainer.Enable, frame.procSettingsPanelContainer.Disable, frame.procSettingsPanelContainer.Disable)
-
-    # ----------
-    # settings
-    # ----------
 
     @property
     def proc_settings_panel(self) -> 'Panel': return self.visible_proc_settings_panel

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-09 12:07:59
+LastEditTime : 2022-10-26 11:05:11
 Description  : 对话框相关
 """
 from base64 import b85decode
@@ -447,10 +447,14 @@ class EncryptionAttributesB85EntryDialog(MultiLineTextEntryDialog):
                 self.text.SetValue(clipboard)
 
     def confirm(self, event):
+        text = self.text.GetValue().rstrip('\r\n\t\000')
+        if not text:
+            self._parent.dialog.warning('请输入加密参数', parent=self)
+            return
         try:
-            attributes_dict = pickle_loads(b85decode(self.text.GetValue().rstrip('\r\n\t\000')))
+            attributes_dict = pickle_loads(b85decode(text))
         except Exception as e:
-            self._parent.dialog.warning(f'{repr(e)}\n加载当前输入的加密参数时出现以上问题, 请检查输入的序列化字段是否正确且完整', '加载当前输入的加密参数时出现问题', parent=self)
+            self._parent.dialog.warning(f'{repr(e)}\n加载当前输入的加密参数时出现错误, 请检查输入的序列化字段是否正确且完整', '加载当前输入的加密参数时出现问题', parent=self)
             return
         attributes_dict, err = check_version(attributes_dict)
         if err is not None:

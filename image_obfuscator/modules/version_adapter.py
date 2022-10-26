@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-24 20:05:44
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-05 12:13:45
+LastEditTime : 2022-10-26 11:15:16
 Description  : 对低版本加密的图像的加密信息进行转换, 向下兼容
 """
 from base64 import b64decode, b85encode
@@ -13,7 +13,6 @@ from typing import Callable
 from image_obfuscator.constants import (EA_VERSION, EAERR_DECODE_FAILED,
                                        EAERR_INCOMPATIBLE, EAERR_NO_ATTRIBUTES,
                                        EAERR_NO_DATA, EAERR_NOT_SUPPORT)
-
 
 
 # 1 初始版本

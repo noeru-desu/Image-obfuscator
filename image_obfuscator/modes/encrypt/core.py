@@ -276,20 +276,20 @@ class BaseImageEncryptV3(object):
         randbelow = random._randbelow
         new_image_array = empty((self.ceil_size[1], self.ceil_size[0], 4), uint8)
         if self.flip and self.mapped_channels:
-            for (o_slice_h, o_slice_w), (slice_h, slice_w), mapping in zip(self.block_pos_list, self.shuffled_block_pos_list, self.block_mapping_list):
-                new_image_array[slice_h, slice_w] = self.mapping_table[mapping](FlipFuncV2[randbelow(4)](self.image_array[o_slice_h, o_slice_w]))
+            for o_slice, slice, mapping in zip(self.block_pos_list, self.shuffled_block_pos_list, self.block_mapping_list):
+                new_image_array[*slice] = self.mapping_table[mapping](FlipFuncV2[randbelow(4)](self.image_array[*o_slice]))
                 bar.add()
         elif self.flip:
-            for (o_slice_h, o_slice_w), (slice_h, slice_w) in zip(self.block_pos_list, self.shuffled_block_pos_list):
-                new_image_array[slice_h, slice_w] = FlipFuncV2[randbelow(4)](self.image_array[o_slice_h, o_slice_w])
+            for o_slice, slice in zip(self.block_pos_list, self.shuffled_block_pos_list):
+                new_image_array[*slice] = FlipFuncV2[randbelow(4)](self.image_array[*o_slice])
                 bar.add()
         elif self.mapped_channels:
-            for (o_slice_h, o_slice_w), (slice_h, slice_w), mapping in zip(self.block_pos_list, self.shuffled_block_pos_list, self.block_mapping_list):
-                new_image_array[slice_h, slice_w] = self.mapping_table[mapping](self.image_array[o_slice_h, o_slice_w])
+            for o_slice, slice, mapping in zip(self.block_pos_list, self.shuffled_block_pos_list, self.block_mapping_list):
+                new_image_array[*slice] = self.mapping_table[mapping](self.image_array[*o_slice])
                 bar.add()
         else:
-            for (o_slice_h, o_slice_w), (slice_h, slice_w) in zip(self.block_pos_list, self.shuffled_block_pos_list):
-                new_image_array[slice_h, slice_w] = self.image_array[o_slice_h, o_slice_w]
+            for o_slice, slice in zip(self.block_pos_list, self.shuffled_block_pos_list):
+                new_image_array[*slice] = self.image_array[*o_slice]
                 bar.add()
         bar.finish()
         self.image_array = new_image_array
