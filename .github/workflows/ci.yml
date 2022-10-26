@@ -43,14 +43,14 @@ jobs:
       #  run: |
       #    Expand-Archive -Path "./upx-*.zip" -DestinationPath "./"
       #    Move-Item "./upx-*/upx.exe" "./"
-      - name: Set up Python 3.10
+      - name: Set up Python 3.11
         uses: actions/setup-python@v2
         with:
-          python-version: '3.10'
-      - name: Download Pillow-SIMD
-        uses: carlosperate/download-file-action@v1
-        with:
-          file-url: 'https://download.lfd.uci.edu/pythonlibs/archived/Pillow_SIMD-9.0.0.post0-cp310-cp310-win_amd64.whl'
+          python-version: '3.11'
+      #- name: Download Pillow-SIMD
+      #  uses: carlosperate/download-file-action@v1
+      #  with:
+      #    file-url: 'https://download.lfd.uci.edu/pythonlibs/archived/Pillow_SIMD-9.0.0.post0-cp310-cp310-win_amd64.whl'
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -61,10 +61,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install pip --upgrade
-          pip install -U colorlog wxPython pycryptodome numpy pyperclip natsort zstandard ordered-set
+          pip install -U -r requirements.txt
+          pip install -U zstandard ordered-set
           pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
-          pip uninstall -y Pillow
-          pip install -U "Pillow_SIMD-9.0.0.post0-cp310-cp310-win_amd64.whl"
+      #pip uninstall -y Pillow
+      #pip install -U "Pillow_SIMD-9.0.0.post0-cp310-cp310-win_amd64.whl"
       - name: Cache Dependency Walker
         uses: actions/cache@v2
         with:
@@ -121,8 +122,8 @@ jobs:
             ## 修复
             * 
             * 
-            > _`without_runtime`后缀: 在普通版本上去除了**Python运行时与依赖库**, 性能可能会略微降低, 使用此版本时请自行安装所需的运行时与依赖库_
             > _`with_console`后缀: 未使用`-OO`参数进行优化, 并在运行时显示CMD窗口, 复现错误时请始终使用此版本_
+            > _`without_runtime`后缀: 在普通版本上去除了**Python运行时与依赖库**, 性能可能会略微降低, 使用此版本时请自行安装所需的运行时与依赖库_
           files: |
             ImageObfuscator_*.exe
           draft: true
