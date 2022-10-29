@@ -2,12 +2,13 @@
 Author       : noeru_desu
 Date         : 2022-04-17 13:38:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-13 15:08:16
+LastEditTime : 2022-10-29 12:19:58
 Description  : 
 """
 from typing import TYPE_CHECKING, Optional
 
 from image_obfuscator.modes.base import BaseModeController, Channels
+from image_obfuscator.utils.misc_utils import nclosest
 
 if TYPE_CHECKING:
     from image_obfuscator.modes.encrypt.panel import ProcSettingsPanel
@@ -154,3 +155,21 @@ class EncryptModeController(BaseModeController):
     def XOR_channels(self, v: 'Channels'):
         for i, j in zip(self.XOR_checkboxes, v.tuple):
             i.SetValue(j)
+
+    def set_width_factors_tip(self, current: Optional[int]):
+        if current is None:
+            self.settings_panel.widthFactors.SetLabelText('宽度因数: 无')
+        if factors := self.main_frame.image_item.cache.size_factors[0]:
+            self.settings_panel.widthFactors.SetLabelText(f'宽度因数: {", ".join(str(i) for i in nclosest(factors, current, 3))}')
+        else:
+            self.settings_panel.widthFactors.SetLabelText('宽度为质数')
+        self.settings_panel.Layout()
+
+    def set_height_factors_tip(self, current: int):
+        if current is None:
+            self.settings_panel.HeightFactors.SetLabelText('高度因数: 无')
+        if factors := self.main_frame.image_item.cache.size_factors[1]:
+            self.settings_panel.HeightFactors.SetLabelText(f'高度因数: {", ".join(str(i) for i in nclosest(factors, current, 3))}')
+        else:
+            self.settings_panel.HeightFactors.SetLabelText('高度为质数')
+        self.settings_panel.Layout()

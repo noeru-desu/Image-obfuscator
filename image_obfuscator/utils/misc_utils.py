@@ -2,18 +2,20 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-10 08:56:44
+LastEditTime : 2022-10-29 12:08:31
 Description  : 一些小东西
 """
 from collections import OrderedDict, deque
 from collections.abc import Mapping
+from heapq import nsmallest
 from inspect import signature
+from math import isqrt
 from os import walk
 from os.path import normpath
 from threading import Lock, Semaphore
 from traceback import print_exc
 from types import FunctionType, GenericAlias
-from typing import Callable, Hashable, Iterable, Any, Iterator, NoReturn, Optional, Union, TypeVar
+from typing import Callable, Generator, Hashable, Iterable, Any, Iterator, NoReturn, Optional, Union, TypeVar
 
 
 T = TypeVar('T')
@@ -88,6 +90,30 @@ def no_return_func(error) -> Callable[[Any], NoReturn]:
     def func(*_, **__) -> NoReturn:
         raise error
     return func
+
+
+def get_factors(num: int, endpoints=True) -> Generator[int, None, None]:
+    """获取`num`的因数
+
+    Args:
+        num (int): 非负整数
+    Raises:
+        ValueError: `num`为负数时抛出
+    Returns:
+        Generator
+    """
+    for i in range(1 if endpoints else 2, isqrt(num) + 1):
+        if num % i:
+            continue
+        yield i
+        j = num // i
+        if j != i:
+            yield j
+
+
+def nclosest(iterable: Iterable, num: int, length=1) -> list[int]:
+    """`iterable`中最接近于`num`的`length`个数字"""
+    return nsmallest(length, iterable, key=lambda x: abs(x - num))
 
 
 class FakeBar:

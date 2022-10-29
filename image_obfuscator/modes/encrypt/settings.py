@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-26 12:20:36
+LastEditTime : 2022-10-28 21:52:51
 Description  : 
 """
 from base64 import b85encode
@@ -158,3 +158,6 @@ class Settings(SettingsData):
         self.mode_controller.noise_factor_info = str(self.noise_factor)
         self.settings_panel.xorPanel.Enable(self.XOR_encryption)
         self.settings_panel.noiseFactor.Enable(self.XOR_encryption and self.noise_XOR)
+        if self.main_frame.image_item is not None:
+            self.mode_controller.set_width_factors_tip(self.cutting_col)
+            self.mode_controller.set_height_factors_tip(self.cutting_row)

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-05-28 18:35:11
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-13 15:08:02
+LastEditTime : 2022-10-28 21:55:50
 Description  : 
 """
 from typing import TYPE_CHECKING
@@ -14,11 +14,12 @@ from image_obfuscator.modes.base import BaseModeSettingsPanel
 
 if TYPE_CHECKING:
     from wx import CommandEvent
-    from image_obfuscator.modes.base import ModeConstants
+    from image_obfuscator.modes.encrypt.controller import EncryptModeController
 
 
 class ProcSettingsPanel(BaseModeSettingsPanel, BaseProcSettingsPanel):
     __slots__ = ()
+    mode_controller: 'EncryptModeController'
 
     # def __init__(self, *args):
     #     o_args = set(dir(self))
@@ -27,6 +28,14 @@ class ProcSettingsPanel(BaseModeSettingsPanel, BaseProcSettingsPanel):
     #     gen_slots_str(n_args - o_args)
 
     def settings_changed(self, event):
+        self.main_frame.settings_changed(event)
+
+    def cutting_col_changed(self, event):
+        self.mode_controller.set_width_factors_tip(event.Int)
+        self.main_frame.settings_changed(event)
+
+    def cutting_row_changed(self, event):
+        self.mode_controller.set_height_factors_tip(event.Int)
         self.main_frame.settings_changed(event)
 
     def toggle_factor_slider_switch(self, event: 'CommandEvent'):

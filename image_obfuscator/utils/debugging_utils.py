@@ -2,22 +2,43 @@
 Author       : noeru_desu
 Date         : 2022-03-27 08:07:12
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-15 18:05:04
+LastEditTime : 2022-10-29 11:32:27
 Description  : 调试函数
 """
 from functools import wraps as functools_wraps
 from threading import RLock
+from inspect import signature
 from time import perf_counter, perf_counter_ns
 from traceback import print_exc
 from typing import Iterable, Type
 from types import FunctionType
 
-from viztracer import VizTracer
-from line_profiler import LineProfiler
-
-from image_obfuscator.utils.misc_utils import copy_signature, isclassmethod
+# from viztracer import VizTracer
+# from line_profiler import LineProfiler
 
 lock = RLock()
+
+
+def isclassmethod(func: FunctionType) -> bool:
+    """通过比较`func`参数的
+        `__qualname__`与`__name__`属性是否一致\n
+        接受的参数名中是否存在名为`self`的参数
+    来尝试判断`func`是否是一个类方法(满足其中一个条件)
+    注意: 已实例化的类中的方法可直接使用`isinstance(func, MethodType)`或`inspect.ismethod(func)`进行准确的判断
+
+    Args:
+        func (FunctionType)
+    """
+    return func.__qualname__ != func.__name__ or 'self' in signature(func).parameters
+
+
+def copy_signature(target: FunctionType, origin: FunctionType) -> FunctionType:
+    """
+    Copy the function signature of origin into target
+    """
+    # https://stackoverflow.com/questions/39926567/python-create-decorator-preserving-function-arguments
+    target.__signature__ = signature(origin)
+    return target
 
 
 def gen_parameter_str(args: tuple = None, kwargs: dict = None) -> str:
@@ -73,7 +94,7 @@ def gen_slots_str(a_set):
     a_args_str += '\n' + ('\000' * 4) + ')'
     print(a_args_str)
 
-
+'''
 def viz_tracer(func):
     @functools_wraps(func)
     def wrap(*args, **kwargs):
@@ -81,8 +102,8 @@ def viz_tracer(func):
             func_return = func(*args, **kwargs)
         return func_return
     return wrap
-
-
+'''
+'''
 def time_each_line(func):
     @functools_wraps(func)
     def wrap(*args, **kwargs):
@@ -92,7 +113,7 @@ def time_each_line(func):
         lp.print_stats()
         return func_return
     return wrap
-
+'''
 
 class Timeit(object):
     __slots__ = (

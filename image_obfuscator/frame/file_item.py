@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-10 09:05:41
+LastEditTime : 2022-10-28 12:28:48
 Description  : 图像项目
 """
 from abc import ABC
@@ -17,7 +17,7 @@ from image_obfuscator.constants import LIGHT_RED, PIL_RESAMPLING_FILTERS
 from image_obfuscator.modes.base import EmptySettings
 from image_obfuscator.modules.image import cal_best_size, cal_best_scale, open_image
 from image_obfuscator.modules.version_adapter import load_encryption_attributes
-from image_obfuscator.utils.misc_utils import LRUCacheRecord, add_to
+from image_obfuscator.utils.misc_utils import LRUCacheRecord, add_to, get_factors
 
 if TYPE_CHECKING:
     from PIL.Image import Image
@@ -230,7 +230,7 @@ class ImageItemCache(object):
     __slots__ = (
         '_item', 'initial_preview', 'previews', 'preview_size', '_encryption_attributes', '_loaded_image',
         'loading_encryption_attributes_error', '_best_layout', 'loaded_image_size', '_image_panel_size_for_best_layout',
-        'encryption_attributes_from_file'
+        'encryption_attributes_from_file', '_size_factors'
     )
     lru_cache_recorder = LRUCacheRecord()
 
@@ -246,6 +246,7 @@ class ImageItemCache(object):
         self.previews = PreviewCache(item.cache_id)
         self.loading_encryption_attributes_error: Optional[str] = None
         self._encryption_attributes: Optional['ImageEncryptionAttributes'] = None
+        self._size_factors: Optional[tuple[int]] = None
         self.encryption_attributes_from_file = False
         if force_cache or not self._item.frame.startup_parameters.low_memory:
             self._loaded_image = loaded_image
@@ -320,6 +321,15 @@ class ImageItemCache(object):
             h_scale = cal_best_scale(*self.loaded_image_size, image_panel_w // 2, image_panel_h)
             self._best_layout = VERTICAL if v_scale >= h_scale else HORIZONTAL
         return self._best_layout
+
+    @property
+    def size_factors(self):
+        if self._size_factors is None:
+            self._size_factors = (
+                tuple(get_factors(self.loaded_image_size[0], False)),
+                tuple(get_factors(self.loaded_image_size[1], False))
+            )
+        return self._size_factors
 
     def refresh_cache(self):
         self.clear_cache()
