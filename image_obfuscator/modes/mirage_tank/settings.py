@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-09 12:10:51
+LastEditTime : 2022-10-26 21:17:10
 Description  : 
 """
 from typing import TYPE_CHECKING, Callable, Iterable, Any
@@ -106,7 +106,6 @@ class Settings(BaseSettings):
 
     @property
     def outside_image(self) -> 'Image':
-        """多次使用时请使用临时变量保存此属性值, 防止多次读取"""
         image = self.outside_image_cache.get(self.outside_image_path)
         if image is None:
             self.mode_controller.outside_image_path = self.outside_image_path = ''
