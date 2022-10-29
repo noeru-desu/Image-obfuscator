@@ -661,7 +661,7 @@ class MainFrame (wx.Frame):
         bSizer571.Add(self.m_staticText2911, 0, wx.ALL, 4)
 
         self.origImageCache = wx.SpinCtrl(sbSizer17.GetStaticBox(), wx.ID_ANY, u"20", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 0, 1000, 20)
-        self.origImageCache.SetToolTip(u"热更改启动参数注意事项：")
+        self.origImageCache.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n原始图像缓存上限: 未开启低内存占用模式时, 可缓存原始图像数据的数量上限。0为无限制")
 
         bSizer571.Add(self.origImageCache, 0, wx.EXPAND, 0)
 
