@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-09 12:09:04
+LastEditTime : 2022-10-29 12:33:37
 Description  : 事件处理
 """
 from base64 import b85encode
@@ -431,6 +431,8 @@ class MainFrame(BasicMainFrame):
 
     def toggle_low_memory_usage_mode(self, event: 'CommandEvent'):
         self.startup_parameters.low_memory = event.IsChecked()
+        self.origImageCache.Enable(not event.IsChecked())
+        self.procResultCache.Enable(not event.IsChecked())
 
     def toggle_disable_cache(self, event: 'CommandEvent'):
         self.startup_parameters.disable_cache = event.IsChecked()

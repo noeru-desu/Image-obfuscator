@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-26 12:31:34
+LastEditTime : 2022-10-29 12:34:41
 Description  : 界面控制相关
 """
 from json import dumps
@@ -447,7 +447,10 @@ class Controller(object):
         return self.frame.lowMemoryMode.GetValue()
 
     @low_memory_mode.setter
-    def low_memory_mode(self, v: bool): self.frame.lowMemoryMode.SetValue(v)
+    def low_memory_mode(self, v: bool):
+        self.frame.lowMemoryMode.SetValue(v)
+        self.frame.origImageCache.Enable(not v)
+        self.frame.procResultCache.Enable(not v)
 
     @property
     def disable_cache(self) -> bool:
