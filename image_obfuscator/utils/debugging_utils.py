@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-03-27 08:07:12
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-29 11:32:27
+LastEditTime : 2022-10-31 09:14:47
 Description  : 调试函数
 """
 from functools import wraps as functools_wraps
@@ -13,7 +13,7 @@ from traceback import print_exc
 from typing import Iterable, Type
 from types import FunctionType
 
-# from viztracer import VizTracer
+from viztracer import VizTracer
 # from line_profiler import LineProfiler
 
 lock = RLock()
@@ -94,7 +94,7 @@ def gen_slots_str(a_set):
     a_args_str += '\n' + ('\000' * 4) + ')'
     print(a_args_str)
 
-'''
+
 def viz_tracer(func):
     @functools_wraps(func)
     def wrap(*args, **kwargs):
@@ -102,7 +102,7 @@ def viz_tracer(func):
             func_return = func(*args, **kwargs)
         return func_return
     return wrap
-'''
+
 '''
 def time_each_line(func):
     @functools_wraps(func)
