@@ -6,7 +6,7 @@ LastEditTime : 2022-09-06 16:12:58
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
-from json import dumps
+from orjson import dumps
 from os import listdir, makedirs
 from os.path import isdir, splitext, join
 from threading import Lock
@@ -243,7 +243,7 @@ class ImageSaver(object):
         if mode_interface.add_encryption_parameters_in_file:
             serialized_encryption_parameters = gen_encryption_attributes(mode_interface.corresponding_decryption_mode, data)
             with open(output_path, "a") as f:
-                f.write('\n{}'.format(dumps(serialized_encryption_parameters, separators=(',', ':'))))
+                f.write(f'\n{dumps(serialized_encryption_parameters).decode()}')
 
     def _check_dir(self, image_item: 'ImageItem'):
         """文件夹相关检查"""

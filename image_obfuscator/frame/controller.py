@@ -5,7 +5,7 @@ LastEditors  : noeru_desu
 LastEditTime : 2022-10-29 12:34:41
 Description  : 界面控制相关
 """
-from json import dumps
+from orjson import dumps, OPT_INDENT_2
 from os.path import splitext
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Sequence, Union
 
@@ -405,7 +405,7 @@ class Controller(object):
     @save_kwds_dict.setter
     def save_kwds_dict(self, v: dict):
         self._save_kwds_dict = v
-        self.frame.saveKwdsJson.SetValue(dumps(v))
+        self.frame.saveKwdsJson.SetValue(dumps(v).decode())
 
     @property
     def save_progress_info(self) -> str: return self.frame.saveProgressInfo.GetLabelText()
@@ -642,7 +642,7 @@ class Controller(object):
         self.save_lossless = save_settings.lossless
         self.save_compression = save_settings.compression
         self.save_kwds_dict = save_settings.user_kwds
-        self.save_kwds_json = dumps(save_settings.user_kwds, indent=2)
+        self.save_kwds_json = dumps(save_settings.user_kwds, option=OPT_INDENT_2).decode()
 
 
 class SaveSettings(BaseSettings):

@@ -6,7 +6,7 @@ LastEditTime : 2022-10-26 11:05:11
 Description  : 对话框相关
 """
 from base64 import b85decode
-from json import JSONDecodeError, dumps, loads
+from orjson import JSONDecodeError, dumps, loads, OPT_INDENT_2
 from pickle import loads as pickle_loads
 from threading import Lock
 from typing import TYPE_CHECKING, Optional, Sequence
@@ -360,7 +360,7 @@ class JsonEditorDialog(JED):
         data = self.check_json_format()
         if data is None:
             return
-        self.textEditor.SetValue(dumps(data, indent=2))
+        self.textEditor.SetValue(dumps(data, option=OPT_INDENT_2).decode())
 
     def clear_json(self, event):
         flag = self._parent.dialog.confirmation_frame('确定清空Json文本吗?', parent=self)

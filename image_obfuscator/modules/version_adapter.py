@@ -6,7 +6,7 @@ LastEditTime : 2022-10-26 11:15:16
 Description  : 对低版本加密的图像的加密信息进行转换, 向下兼容
 """
 from base64 import b64decode, b85encode
-from json import JSONDecodeError, loads
+from orjson import JSONDecodeError, loads
 from os.path import getsize
 from typing import Callable
 
@@ -108,7 +108,7 @@ def load_encryption_attributes(file):
             return None, EAERR_NO_DATA
         elif not last_line:
             return None, EAERR_NO_ATTRIBUTES
-        return check_version(loads(last_line.decode()))
+        return check_version(loads(last_line))
     except UnicodeDecodeError:
         return None, EAERR_NO_ATTRIBUTES
     except JSONDecodeError:
