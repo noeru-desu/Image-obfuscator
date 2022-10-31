@@ -16,6 +16,11 @@ import wx.xrc
 
 
 class ProcSettingsPanel (wx.Panel):
+    __slots__ = (
+        'HeightFactors', 'XORA', 'XORB', 'XOREncryption', 'XORG', 'XORR', 'cuttingCol', 'cuttingColText', 'cuttingRow',
+        'cuttingRowText', 'flipChunks', 'm_staticText6', 'mappingA', 'mappingB', 'mappingG', 'mappingR', 'noiseFactor',
+        'noiseFactorNum', 'noiseXor', 'shuffleChunks', 'widthFactors', 'xorPanel'
+    )
 
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(247, 198), style=wx.TAB_TRAVERSAL, name=wx.EmptyString):
         wx.Panel.__init__(self, parent, id=id, pos=pos, size=size, style=style, name=name)
