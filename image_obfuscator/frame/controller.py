@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-29 12:34:41
+LastEditTime : 2022-10-31 08:59:55
 Description  : 界面控制相关
 """
 from orjson import dumps, OPT_INDENT_2
@@ -567,14 +567,13 @@ class Controller(object):
         if image.scalable:
             if cache_hash is Ellipsis:
                 cache_hash = self.frame.image_item.scalable_cache_hash
-            self.frame.image_item.cache.previews.add_scalable_cache(cache_hash, image)
+            self.frame.image_item.cache.preview_cache.record(cache_hash, image)
             self.previewed_bitmap = image.gen_wxBitmap(self.preview_size, self.resampling_filter_id)
         else:
             if cache_hash is Ellipsis:
                 cache_hash = self.frame.image_item.normal_cache_hash
-            bitmap = image.wxBitmap
-            self.frame.image_item.cache.previews.add_normal_cache(cache_hash, bitmap)
-            self.previewed_bitmap = bitmap
+            self.frame.image_item.cache.preview_cache.record(cache_hash, image)
+            self.previewed_bitmap = image.wxBitmap
 
     def change_mode_plane(self, proc_mode: 'ModeInterface', image_item: 'ImageItem', settings_instance: 'ItemSettings'):
         self.proc_settings_panel = proc_mode.settings_panel

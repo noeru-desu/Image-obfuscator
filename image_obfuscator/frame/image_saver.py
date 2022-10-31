@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-06 16:12:58
+LastEditTime : 2022-10-31 09:10:16
 Description  : 文件保存功能
 """
 from atexit import register as at_exit
@@ -67,7 +67,7 @@ class ImageSaver(object):
         mode_interface = image_item.proc_mode
         settings = image_item.available_settings_inst
         cache_hash = image_item.scalable_cache_hash
-        cache = image_item.cache.previews.get_scalable_cache(cache_hash)
+        cache = image_item.cache.preview_cache.get(cache_hash)
         if cache is None:
             self.save_thread.add_task(
                 self._save_task,
@@ -106,7 +106,7 @@ class ImageSaver(object):
         for top, name, image_item in folder_item.walk() if use_folder else folder_item.all_included_items():
             # image_item.standardized_proc_mode()
             settings = image_item.available_settings_inst
-            cache = image_item.cache.previews.get_scalable_cache(image_item.scalable_cache_hash)
+            cache = image_item.cache.preview_cache.record(image_item.scalable_cache_hash)
             relative_save_path = top if use_folder else ''
             if cache is None:
                 self.save_thread.add_task(
@@ -158,7 +158,7 @@ class ImageSaver(object):
 
         for image_item in self.frame.tree_manager.all_image_item_data:
             settings = image_item.available_settings_inst
-            cache = image_item.cache.previews.get_scalable_cache(image_item.scalable_cache_hash)
+            cache = image_item.cache.preview_cache.record(image_item.scalable_cache_hash)
             relative_save_path = image_item.path_data.relative_save_dir if use_folder else ''
             if cache is None:
                 self.save_thread.add_task(

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-29 12:08:31
+LastEditTime : 2022-10-31 07:52:07
 Description  : 一些小东西
 """
 from collections import OrderedDict, deque
@@ -14,11 +14,12 @@ from os import walk
 from os.path import normpath
 from threading import Lock, Semaphore
 from traceback import print_exc
-from types import FunctionType, GenericAlias
-from typing import Callable, Generator, Hashable, Iterable, Any, Iterator, NoReturn, Optional, Union, TypeVar
+from types import FunctionType
+from typing import Callable, Generator, Hashable, Iterable, Any, Iterator, NoReturn, Optional, Union, TypeVar, Generic, overload
 
-
-T = TypeVar('T')
+_T = TypeVar('_T')
+_KT = TypeVar('_KT')
+_VT = TypeVar('_VT')
 
 
 def walk_file(path, deep_walk=False, filter=None) -> tuple[int, list[tuple[list, list]]]:
@@ -81,7 +82,7 @@ def isclassmethod(func: FunctionType) -> bool:
     return func.__qualname__ != func.__name__ or 'self' in signature(func).parameters
 
 
-def add_to(iter: Iterable[T], lst: list[T]):
+def add_to(iter: Iterable[_T], lst: list[_T]):
     for i, v in enumerate(iter):
         lst[i] += v
 
@@ -283,35 +284,32 @@ class LRUCacheRecord(object):
         del self.dict[key]
 
 
-class LRUCache(Mapping):
+class LRUCache(Mapping[_KT, _VT], Generic[_KT, _VT]):
     __slots__ = ('_maxlen', 'dict')
 
     def __init__(self, maxlen=10) -> None:
         self._maxlen = maxlen
-        self.dict: OrderedDict[Hashable, Any] = OrderedDict()
+        self.dict: OrderedDict[_KT, _VT] = OrderedDict()
 
     def __eq__(self, __o: object) -> bool:
         return self.dict.__eq__(__o)
 
-    def __getitem__(self, __key: Hashable):
-        value = self.dict[__key]
-        self.record(__key)
-        return value
+    def __getitem__(self, __key: _KT) -> _VT:
+        if __key not in self.dict:
+            raise KeyError(__key)
+        return self.get(__key)
 
-    def __setitem__(self, __key: Hashable, __value: Any):
+    def __setitem__(self, __key: _KT, __value: Any):
         self.record(__key, __value)
 
-    def __delitem__(self, __key: Hashable):
+    def __delitem__(self, __key: _KT):
         self.remove(__key)
 
     def __len__(self) -> int:
         return self.dict.__len__()
 
-    def __iter__(self) -> Iterator[Hashable]:
+    def __iter__(self) -> Iterator[_KT]:
         return self.dict.__iter__()
-
-    def __class_getitem__(cls, __item: Any) -> GenericAlias:
-        return OrderedDict.__class_getitem__(__item)
 
     @property
     def maxlen(self) -> int:
@@ -326,7 +324,35 @@ class LRUCache(Mapping):
                 for _ in range(length - v):
                     self.dict.popitem(False)
 
-    def record(self, key: Hashable, value: Optional[Any] = None):
+    def clear(self):
+        self.dict.clear()
+
+    def reserve(self, length: int):
+        if len(self.dict) <= abs(length):
+            return
+        if length > 0:
+            for i in tuple(self.dict)[:-length]:
+                del self.dict[i]
+        elif length < 0:
+            for i in tuple(self.dict)[-length:]:
+                del self.dict[i]
+        else:
+            self.dict.clear()
+
+    @overload
+    def get(self, key: _KT) -> Optional[_VT]: ...
+
+    @overload
+    def get(self, key: _KT, default: _T) -> Union[_VT, _T]: ...
+
+    def get(self, key: _KT, default: Optional[_T] = None) -> Union[_T, Optional[_VT]]:
+        if key not in self.dict:
+            return default
+        value = self.dict[key]
+        self.record(key)
+        return value
+
+    def record(self, key: _KT, value: Optional[_VT] = None):
         if key in self.dict:
             self.dict.move_to_end(key)
             if value is not None:
@@ -337,7 +363,7 @@ class LRUCache(Mapping):
             self.dict.popitem(False)
         self.dict[key] = value
 
-    def remove(self, key: Hashable, exist=False):
+    def remove(self, key: _KT, exist=False):
         if key not in self.dict:
             if exist:
                 raise ValueError(f'no record of "{key}"')

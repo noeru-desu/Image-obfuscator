@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-03 07:48:52
+LastEditTime : 2022-10-31 11:19:13
 Description  : 图像生成功能
 """
 from typing import TYPE_CHECKING
@@ -15,6 +15,7 @@ from image_obfuscator.utils.thread import SingleThreadExecutor
 
 if TYPE_CHECKING:
     from image_obfuscator.frame.events import MainFrame
+    from image_obfuscator.modules.image import WrappedImage
 
 # from image_obfuscator.utils.debugging_utils import Timeit
 
@@ -46,7 +47,7 @@ class PreviewGenerator(object):
                 *image_item.available_settings_inst, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress
             ), cb=self._generate_preview_call_back, cb_args=(image_item.normal_cache_hash,))
 
-    def _generate_preview_call_back(self, result, cache_hash):
+    def _generate_preview_call_back(self, result: 'WrappedImage', cache_hash):
         if __debug__:
             result, error = result
             if error is not None:

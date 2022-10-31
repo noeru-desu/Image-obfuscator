@@ -2,14 +2,13 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-28 12:28:48
+LastEditTime : 2022-10-31 13:11:15
 Description  : 图像项目
 """
 from abc import ABC
-from collections import OrderedDict
 from gc import collect
 from os.path import isfile, join, split
-from typing import TYPE_CHECKING, Any, Generator, Optional, Union
+from typing import TYPE_CHECKING, Any, Generator, Hashable, Optional, Union
 
 from wx import BLACK, CURSOR_ARROWWAIT, CURSOR_ARROW, VERTICAL, HORIZONTAL, Bitmap, CallAfter
 
@@ -17,15 +16,35 @@ from image_obfuscator.constants import LIGHT_RED, PIL_RESAMPLING_FILTERS
 from image_obfuscator.modes.base import EmptySettings
 from image_obfuscator.modules.image import cal_best_size, cal_best_scale, open_image
 from image_obfuscator.modules.version_adapter import load_encryption_attributes
-from image_obfuscator.utils.misc_utils import LRUCacheRecord, add_to, get_factors
+from image_obfuscator.utils.misc_utils import LRUCache, LRUCacheRecord, add_to, get_factors
 
 if TYPE_CHECKING:
     from PIL.Image import Image
     from wx import TreeItemId
     from image_obfuscator.frame.events import MainFrame
-    from image_obfuscator.types import ModeInterface, ItemSettings, ItemEncryptionParameters, NormalImageCacheHash, ScalableImageCacheHash, ImageCacheHash
+    from image_obfuscator.types import ModeInterface, ItemSettings, ItemEncryptionParameters, ScalableImageCacheHash, NormalImageCacheHash, ImageCacheHash
     from image_obfuscator.modules.argparse import Parameters
     from image_obfuscator.modules.image import WrappedImage
+
+
+class PathData(object):
+    root_path: str
+    relative_path: str
+    file_name: str
+    relative_save_dir: str
+    full_path: str
+
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        """`PathData`只读"""
+        raise AttributeError("can't set attribute")
+
+    def __init__(self, root_path: str, relative_path: str, file_name: str, no_save_dir=False):
+        setter = super().__setattr__
+        setter('root_path', root_path)
+        setter('relative_path', relative_path)
+        setter('file_name', file_name)
+        setter('relative_save_dir', '' if no_save_dir else join(split(root_path)[1], relative_path))
+        setter('full_path', join(self.root_path, self.relative_path, self.file_name))
 
 
 class Item(ABC):
@@ -63,154 +82,6 @@ class Item(ABC):
         self.frame.set_cursor(CURSOR_ARROW)
 
 
-class PreviewCache(object):
-    """预览图(处理结果)缓存"""
-    __slots__ = ('scalable_cache', 'normal_cache', 'cache_id')
-    startup_parameters: 'Parameters' = ...
-    lru_cache_recorder = LRUCacheRecord()
-
-    def __init__(self, cache_id: int) -> None:
-        self.cache_id = cache_id
-        self.normal_cache: OrderedDict['NormalImageCacheHash', Bitmap] = OrderedDict()
-        self.scalable_cache: OrderedDict['ScalableImageCacheHash', WrappedImage] = OrderedDict()
-
-    def clear_redundant_cache(self) -> None:
-        """清理冗余缓存, 即从普通缓存与可缩放缓存中删除除最新缓存外的其他缓存"""
-        if len(self.normal_cache) > 1:
-            for i in tuple(self.normal_cache)[:-1]:
-                del self.normal_cache[i]
-        if len(self.scalable_cache) > 1:
-            for i in tuple(self.scalable_cache)[:-1]:
-                del self.scalable_cache[i]
-        if self.normal_cache or self.scalable_cache:
-            self.lru_cache_recorder.record_cache(self.cache_id, self.clear)
-
-
-    def add_cache(self, cache_hash: 'ImageCacheHash', image: Union['WrappedImage', 'Bitmap']) -> None:
-        """添加缓存(自动识别缓存类型)
-
-        Args:
-            cache_hash (Hashable): 用于标记缓存的可哈希对象(为`int`时不进行`hash(cache_hash)`处理)
-            image (WrappedImage | Bitmap): 需要添加到缓存的图像实例
-        """
-        if isinstance(image, Bitmap):
-            self.add_normal_cache(cache_hash, image)
-        elif image.scalable:
-            self.add_scalable_cache(cache_hash, image)
-        else:
-            self.add_normal_cache(cache_hash, image.wxBitmap)
-
-    def add_normal_cache(self, cache_hash: 'NormalImageCacheHash', bitmap: 'Bitmap' = None) -> None:
-        """添加普通缓存
-
-        如果`cache_hash`已存在于缓存中, 将会把缓存位置放到最后, 并且`bitmap`参数可以为`None`\n
-        如果`cache_hash`不存在于缓存中, 则`bitmap`参数不可为`None`\n
-        如果缓存长度超过设定的最大长度, 将会删除第一个缓存
-
-        Args:
-            cache_hash (Hashable): 用于标记缓存的可哈希对象
-            bitmap (Bitmap, optional): 需要添加到缓存的`wx.Bitmap`实例. 默认为`None`.
-        """
-        if cache_hash in self.normal_cache:
-            self.normal_cache.move_to_end(cache_hash)
-            if bitmap is not None:
-                self.normal_cache[cache_hash] = bitmap
-            return
-        assert bitmap is not None, 'Bitmap cannot be NoneType when the cache_hash does not exist in the cache.'
-        if len(self.normal_cache) >= self.startup_parameters.maximum_redundant_cache_length:
-            self.normal_cache.popitem(False)
-        self.normal_cache[cache_hash] = bitmap
-
-    def add_scalable_cache(self, cache_hash: 'ScalableImageCacheHash', image: 'WrappedImage' = None) -> None:
-        """添加可缩放缓存
-
-        如果`cache_hash`已存在于缓存中, 将会把缓存位置放到最后, 并且`image`参数可以为`None`\n
-        如果`cache_hash`不存在于缓存中, 则`image`参数不可为`None`\n
-        如果缓存长度超过设定的最大长度, 将会删除第一个缓存
-
-        Args:
-            cache_hash (Hashable): 用于标记缓存的可哈希对象
-            image (WrappedImage, optional): 需要添加到缓存的`WrappedImage`实例. 默认为`None`.
-        """
-        if cache_hash in self.scalable_cache:
-            self.scalable_cache.move_to_end(cache_hash)
-            if image is not None:
-                self.scalable_cache[cache_hash] = image
-            return
-        assert image is not None, 'Image cannot be NoneType when the cache_hash does not exist in the cache.'
-        if len(self.scalable_cache) >= self.startup_parameters.maximum_redundant_cache_length:
-            self.scalable_cache.popitem(False)
-        self.scalable_cache[cache_hash] = image
-
-    def get_cache(self, cache_hash: 'ImageCacheHash') -> Optional[Union['WrappedImage', 'Bitmap']]:
-        """获取缓存(优先搜索普通缓存)
-
-        如果`cache_hash`不存在于缓存中, 将返回`None`
-
-        Args:
-            cache_hash (Hashable): 用于标记缓存的可哈希对象
-
-        Returns:
-            WrappedImage | Bitmap | None
-        """
-        if self.startup_parameters.disable_cache:
-            return None
-        if cache_hash in self.normal_cache:
-            self.add_normal_cache(cache_hash)
-            return self.normal_cache[cache_hash]
-        if cache_hash in self.scalable_cache:
-            self.add_scalable_cache(cache_hash)
-            return self.scalable_cache[cache_hash]
-        return None
-
-    def get_normal_cache(self, cache_hash: 'NormalImageCacheHash') -> Optional['Bitmap']:
-        """获取普通缓存
-
-        如果`cache_hash`不存在于缓存中, 将返回`None`
-
-        Args:
-            cache_hash (Hashable): 用于标记缓存的可哈希对象
-
-        Returns:
-            Bitmap | None
-        """
-        if self.startup_parameters.disable_cache:
-            return None
-        if cache_hash in self.normal_cache:
-            self.add_normal_cache(cache_hash)
-            return self.normal_cache[cache_hash]
-        return None
-
-    def get_scalable_cache(self, cache_hash: 'ScalableImageCacheHash') -> Optional['WrappedImage']:
-        """获取可缩放缓存
-
-        如果`cache_hash`不存在于缓存中, 将返回`None`
-
-        Args:
-            cache_hash (Hashable): 用于标记缓存的可哈希对象
-
-        Returns:
-            WrappedImage | None
-        """
-        if self.startup_parameters.disable_cache:
-            return None
-        if cache_hash in self.scalable_cache:
-            self.add_scalable_cache(cache_hash)
-            return self.scalable_cache[cache_hash]
-        return None
-
-    def clear(self):
-        """清空缓存"""
-        self.scalable_cache.clear()
-        self.normal_cache.clear()
-
-    def delete(self):
-        """删除缓存与自身实例"""
-        del self.scalable_cache
-        del self.normal_cache
-        del self
-
-
 class ImageEncryptionAttributes(object):
     __slots__ = ('decryption_mode', 'settings')
 
@@ -225,10 +96,27 @@ class ImageEncryptionAttributes(object):
 EmptyEncryptionAttributes = ImageEncryptionAttributes(None, EmptySettings)
 
 
+class PreviewCache(LRUCache):
+    __slots__ = ()
+
+    lru_cache_recorder = LRUCacheRecord()
+    startup_parameters: 'Parameters' = ...
+
+    def __init__(self) -> None:
+        super().__init__(self.startup_parameters.maximum_redundant_cache_length)
+
+    @property
+    def _maxlen(self):
+        return self.startup_parameters.maximum_redundant_cache_length
+
+    @_maxlen.setter
+    def _maxlen(self, v): pass
+
+
 class ImageItemCache(object):
     """图像项目缓存控制器"""
     __slots__ = (
-        '_item', 'initial_preview', 'previews', 'preview_size', '_encryption_attributes', '_loaded_image',
+        '_item', 'initial_preview', 'preview_cache', 'preview_size', '_encryption_attributes', '_loaded_image',
         'loading_encryption_attributes_error', '_best_layout', 'loaded_image_size', '_image_panel_size_for_best_layout',
         'encryption_attributes_from_file', '_size_factors'
     )
@@ -240,10 +128,10 @@ class ImageItemCache(object):
             item (ImageItem): `ImageItem`实例
             loaded_image (Image, optional): 已加载的图像. 默认为`None`.
         """
-        self._item = item
+        self._item: 'ImageItem' = item
         self.initial_preview: Image = None
         self.preview_size: tuple[int, int] = None
-        self.previews = PreviewCache(item.cache_id)
+        self.preview_cache: LRUCache['ImageCacheHash', 'WrappedImage'] = PreviewCache()
         self.loading_encryption_attributes_error: Optional[str] = None
         self._encryption_attributes: Optional['ImageEncryptionAttributes'] = None
         self._size_factors: Optional[tuple[int]] = None
@@ -338,7 +226,7 @@ class ImageItemCache(object):
     def clear_cache(self):
         """清除缓存"""
         self.initial_preview = None
-        self.previews.clear()
+        self.preview_cache.clear()
         self.preview_size = None
         self._encryption_attributes = None
         self.encryption_attributes_from_file = False
@@ -346,30 +234,10 @@ class ImageItemCache(object):
     def del_cache(self):
         """删除各缓存实例(不包括自身)"""
         del self.initial_preview
-        self.previews.delete()
+        del self.preview_cache
         del self.preview_size
         del self._encryption_attributes
         del self._loaded_image
-
-
-class PathData(object):
-    root_path: str
-    relative_path: str
-    file_name: str
-    relative_save_dir: str
-    full_path: str
-
-    def __setattr__(self, __name: str, __value: Any) -> None:
-        """`PathData`只读"""
-        raise AttributeError("can't set attribute")
-
-    def __init__(self, root_path: str, relative_path: str, file_name: str, no_save_dir=False):
-        setter = super().__setattr__
-        setter('root_path', root_path)
-        setter('relative_path', relative_path)
-        setter('file_name', file_name)
-        setter('relative_save_dir', '' if no_save_dir else join(split(root_path)[1], relative_path))
-        setter('full_path', join(self.root_path, self.relative_path, self.file_name))
 
 
 class ImageItem(Item):
@@ -401,11 +269,11 @@ class ImageItem(Item):
         self.item_id: TreeItemId = ...
         self.parent: Optional['FolderItem'] = None
         self.parent_id: Optional['TreeItemId'] = None
-        self.selected = False
-        self.no_file = no_file
-        self.keep_cache_loaded_image = keep_cache_loaded_image
-        self.loading_image_data_error = None
-        self.encrypted_image: bool = None
+        self.selected: bool = False
+        self.no_file: bool = no_file
+        self.keep_cache_loaded_image: bool = keep_cache_loaded_image
+        self.loading_image_data_error: Optional[str] = None
+        self.encrypted_image: Optional[bool] = None
 
         self.cache = ImageItemCache(self, loaded_image, keep_cache_loaded_image)
 
@@ -470,7 +338,8 @@ class ImageItem(Item):
                 self.cache._loaded_image = None
             self.cache.clear_cache()
         else:
-            self.cache.previews.clear_redundant_cache()
+            self.cache.preview_cache.reserve(1)
+            PreviewCache.lru_cache_recorder.record_cache(self.cache_id, self.cache.preview_cache.clear)
 
     def display_initial_preview(self, cache=True) -> bool:
         """在界面中显示原始图像预览图
@@ -503,23 +372,17 @@ class ImageItem(Item):
             bool: 命中缓存返回`False`, 未命中则生成并返回`True`
         """
         if cache and not self.frame.startup_parameters.disable_cache:
-            gen_hash = cache_hash is Ellipsis
-            if gen_hash:
-                cache_hash = self.scalable_cache_hash
-            if cache_hash in self.cache.previews.scalable_cache:
+            if cache_hash is Ellipsis:
+                cache_hash = self.normal_cache_hash if self.frame.controller.preview_source == 0 else self.scalable_cache_hash
+            cache = self.cache.preview_cache.get(cache_hash)
+            if cache is not None:
                 self.frame.controller.previewed_bitmap = (
-                    self.cache.previews.scalable_cache[cache_hash].gen_wxBitmap(
+                    cache.gen_wxBitmap(
                         self.frame.controller.preview_size,
-                        self.frame.controller.resampling_filter_id,
+                        self.frame.controller.resampling_filter_id
                     )
-                    if resize
-                    else self.cache.previews.scalable_cache[cache_hash].wxBitmap
+                    if resize and cache.scalable else cache.wxBitmap
                 )
-                return False
-            if gen_hash:
-                cache_hash = self.normal_cache_hash
-            if cache_hash in self.cache.previews.normal_cache:
-                self.frame.controller.previewed_bitmap = self.cache.previews.get_normal_cache(cache_hash)
                 return False
         self.frame.preview_generator.generate_preview()
         return True
@@ -640,8 +503,8 @@ class ImageItem(Item):
                 del self.parent.children[item_id]
         del self.frame.tree_manager.file_dict[self.loaded_image_path]
         self.cache.del_cache()
-        PreviewCache.lru_cache_recorder.remove_cache_recode(self.item_id)
-        ImageItemCache.lru_cache_recorder.remove_cache_recode(self.item_id)
+        PreviewCache.lru_cache_recorder.remove_cache_recode(self.cache_id)
+        ImageItemCache.lru_cache_recorder.remove_cache_recode(self.cache_id)
         del self.cache
         if del_item:
             self.frame.set_cursor(CURSOR_ARROW)

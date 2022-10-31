@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-10 08:58:39
+LastEditTime : 2022-10-24 15:02:34
 Description  : 图像相关工具
 """
 from abc import ABC
@@ -14,7 +14,7 @@ from random import seed as random_seed
 # from traceback import print_exc
 # from re import sub
 from weakref import ref as weak_ref
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 from numpy import ascontiguousarray, squeeze, uint8, zeros
 from numpy.random import randint
@@ -295,6 +295,10 @@ class wxImage(WrappedImage):
 class ImageData(WrappedImage):
     __slots__ = ('wxBitmap',)
     scalable = False
+    wxBitmap: 'Bitmap'
 
-    def __init__(self, array: 'ndarray', size: tuple = ...) -> None:
-        self.wxBitmap = array_to_bitmap(array, size)
+    def __init__(self, data: Union['ndarray', 'Bitmap'], size: tuple = ...) -> None:
+        if isinstance(data, Bitmap):
+            self.wxBitmap = data
+        else:
+            self.wxBitmap = array_to_bitmap(data, size)
