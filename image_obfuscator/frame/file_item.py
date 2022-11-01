@@ -2,15 +2,14 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-31 13:11:15
-Description  : 图像项目
+LastEditTime : 2022-11-01 10:56:57
 """
 from abc import ABC
 from gc import collect
 from os.path import isfile, join, split
-from typing import TYPE_CHECKING, Any, Generator, Hashable, Optional, Union
+from typing import TYPE_CHECKING, Any, Generator, Optional, Union
 
-from wx import BLACK, CURSOR_ARROWWAIT, CURSOR_ARROW, VERTICAL, HORIZONTAL, Bitmap, CallAfter
+from wx import BLACK, CURSOR_ARROWWAIT, CURSOR_ARROW, VERTICAL, HORIZONTAL, CallAfter
 
 from image_obfuscator.constants import LIGHT_RED, PIL_RESAMPLING_FILTERS
 from image_obfuscator.modes.base import EmptySettings
@@ -535,7 +534,7 @@ class ImageItem(Item):
         self.cache.loaded_image_size = loaded_image.size
         self.cache.refresh_cache()
         self.settings_source = 0
-        self.frame.controller.reset_settings_source()
+        self.frame.controller.reset_settings_source(sync_to_item=False)
 
         self.load_encryption_attributes_from_file()
         if dialog:

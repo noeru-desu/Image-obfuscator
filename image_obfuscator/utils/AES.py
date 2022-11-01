@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-08-30 11:33:06
 LastEditors  : noeru_desu
 LastEditTime : 2022-05-22 09:57:25
-Description  : 粗略包装的AES加密方法
 """
 from base64 import b85encode, b85decode
 

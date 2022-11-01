@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-24 15:02:34
-Description  : 图像相关工具
 """
 from abc import ABC
 from posixpath import splitext

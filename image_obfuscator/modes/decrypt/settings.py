@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2022-04-17 08:39:57
 LastEditors  : noeru_desu
 LastEditTime : 2022-09-09 11:17:59
-Description  : 设置选项
 """
 from base64 import b85decode
 from pickle import loads as pickle_loads

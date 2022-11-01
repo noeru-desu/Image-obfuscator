@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2022-09-11 17:31:05
 LastEditors  : noeru_desu
 LastEditTime : 2022-09-11 17:35:14
-Description  : 
 """
 from typing import TYPE_CHECKING, Union
 

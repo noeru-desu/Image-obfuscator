@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-31 09:10:16
-Description  : 文件保存功能
 """
 from atexit import register as at_exit
 from orjson import dumps

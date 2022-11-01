@@ -2,8 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-05-20 16:02:29
 LastEditors  : noeru_desu
-LastEditTime : 2022-05-21 06:16:52
-Description  : 自动加载_[文件名].py文件, 并调用其中gen_func以生成目标文件内容, 保存为[文件名].py, 替换其中"`"为"{", "~"为"}"
+LastEditTime : 2022-05-21 06:16:52 并调用其中gen_func以生成目标文件内容, 保存为[文件名].py, 替换其中"`"为"{", "~"为"}"
 """
 from os import getcwd, walk
 from os.path import splitext

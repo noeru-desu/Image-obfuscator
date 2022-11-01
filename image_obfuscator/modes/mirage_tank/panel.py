@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2022-05-28 18:35:11
 LastEditors  : noeru_desu
 LastEditTime : 2022-08-17 16:58:08
-Description  : 
 """
 from os.path import isfile
 from traceback import format_exc

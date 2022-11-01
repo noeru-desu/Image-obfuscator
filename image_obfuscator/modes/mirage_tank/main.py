@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
 LastEditTime : 2022-08-17 13:13:05
-Description  : 加密模式
 """
 from typing import TYPE_CHECKING, Callable, Union, Type
 

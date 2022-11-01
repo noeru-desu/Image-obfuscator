@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2022-05-08 15:16:41
 LastEditors  : noeru_desu
 LastEditTime : 2022-06-23 07:05:57
-Description  : 装饰器
 """
 from functools import wraps as functools_wraps
 from traceback import format_exc

@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2022-04-04 10:35:30
 LastEditors  : noeru_desu
 LastEditTime : 2022-06-07 06:21:45
-Description  : 预生成模板
 """
 from time import asctime, localtime
 

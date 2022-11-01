@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-31 08:59:55
-Description  : 界面控制相关
 """
 from orjson import dumps, OPT_INDENT_2
 from os.path import splitext

@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
 LastEditTime : 2022-07-15 17:45:10
-Description  : logger
 """
 if __debug__:
     from logging import StreamHandler, getLogger

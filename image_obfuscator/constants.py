@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-29 12:43:36
-Description  : 常量
 """
 from platform import machine, platform
 from sys import version as py_ver

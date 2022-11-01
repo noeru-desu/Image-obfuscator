@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-09 11:37:21
-Description  : 覆写窗口
 """
 from atexit import register as at_exit
 from concurrent.futures import ThreadPoolExecutor

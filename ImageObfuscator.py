@@ -4,7 +4,6 @@ Author       : noeru_desu
 Date         : 2021-08-28 18:34:08
 LastEditors  : noeru_desu
 LastEditTime : 2022-08-11 13:28:33
-Description  : GUI程序
 """
 from multiprocessing import freeze_support
 from warnings import filterwarnings

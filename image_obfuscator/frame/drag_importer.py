@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
 LastEditTime : 2022-05-22 06:42:46
-Description  : 拖放处理
 """
 from os.path import isdir
 from traceback import format_exc

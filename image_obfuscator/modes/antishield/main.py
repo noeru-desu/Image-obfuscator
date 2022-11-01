@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-10-10 10:46:17
 LastEditors  : noeru_desu
 LastEditTime : 2022-09-11 17:30:29
-Description  : 主要针对QQ群的图像反阻止发送功能
 """
 from typing import TYPE_CHECKING, Callable, Union, Type
 

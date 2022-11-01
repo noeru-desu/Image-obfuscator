@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-09-25 20:45:37
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-02 19:29:40
-Description  : 单文件解密功能
 """
 from typing import TYPE_CHECKING, Callable, Union, Type
 

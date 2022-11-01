@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-10-10 10:48:27
 LastEditors  : noeru_desu
 LastEditTime : 2022-05-27 21:11:21
-Description  : 粗略包装的密码验证器
 """
 from Crypto.Cipher import AES
 

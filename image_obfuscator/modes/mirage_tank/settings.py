@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-26 21:17:10
-Description  : 
 """
 from typing import TYPE_CHECKING, Callable, Iterable, Any
 from os.path import isfile

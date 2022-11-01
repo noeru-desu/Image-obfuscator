@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-31 07:52:07
-Description  : 一些小东西
 """
 from collections import OrderedDict, deque
 from collections.abc import Mapping

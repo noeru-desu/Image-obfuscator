@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2022-04-16 17:48:20
 LastEditors  : noeru_desu
 LastEditTime : 2022-08-12 19:24:20
-Description  : 模式管理器
 """
 from typing import TYPE_CHECKING, Type
 

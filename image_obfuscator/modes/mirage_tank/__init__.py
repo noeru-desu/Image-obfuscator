@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2022-04-16 17:43:06
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-10 09:12:11
-Description  : 
 """
 from image_obfuscator.modes.base import BaseModeInterface
 from image_obfuscator.modes.mirage_tank.controller import MirageTankModeController

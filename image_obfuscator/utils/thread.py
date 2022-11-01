@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-08 15:50:52
-Description  : 线程相关类
 """
 from concurrent.futures import (CancelledError, ProcessPoolExecutor,
                                 ThreadPoolExecutor)

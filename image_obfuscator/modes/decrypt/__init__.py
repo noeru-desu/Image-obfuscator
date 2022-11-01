@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2022-04-17 08:22:01
 LastEditors  : noeru_desu
 LastEditTime : 2022-08-10 14:01:17
-Description  : 
 """
 from typing import TYPE_CHECKING
 from image_obfuscator.constants import EA_VERSION

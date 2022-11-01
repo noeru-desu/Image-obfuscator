@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-31 11:19:13
-Description  : 图像生成功能
 """
 from typing import TYPE_CHECKING
 

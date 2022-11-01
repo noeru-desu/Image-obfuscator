@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-11-06 19:08:35
 LastEditors  : noeru_desu
 LastEditTime : 2022-08-06 12:17:29
-Description  : 节点树控制
 """
 from contextlib import suppress
 from os.path import join, sep, split

@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-29 12:33:37
-Description  : 事件处理
 """
 from base64 import b85encode
 from pickle import dumps as pickle_dumps, HIGHEST_PROTOCOL

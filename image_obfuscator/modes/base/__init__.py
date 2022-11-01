@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-09 10:40:59
-Description  : 基类
 """
 from abc import ABC
 from itertools import compress

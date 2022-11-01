@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-26 11:05:11
-Description  : 对话框相关
 """
 from base64 import b85decode
 from orjson import JSONDecodeError, dumps, loads, OPT_INDENT_2

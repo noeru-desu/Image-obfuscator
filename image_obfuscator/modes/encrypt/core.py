@@ -3,7 +3,6 @@ Author       : noeru_desu
 Date         : 2021-08-30 21:22:02
 LastEditors  : noeru_desu
 LastEditTime : 2022-10-26 12:37:32
-Description  : 图像加密模块
 """
 from copy import copy
 from itertools import pairwise, product
