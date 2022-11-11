@@ -61,7 +61,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install pip --upgrade
-          pip install -U -r requirements.txt
+          pip install -U "https://github.com/noeru-desu/noeru-desu/raw/main/assets/Image-obfuscator/wxPython-4.2.1a1.dev5538%2B2cf6b6dd-cp311-cp311-win_amd64.whl"
+          pip install pillow numpy colorlog pycryptodome pyperclip natsort orjson
           pip install -U zstandard ordered-set
           pip install -U "https://github.com/Nuitka/Nuitka/archive/develop.zip"
       #pip uninstall -y Pillow
