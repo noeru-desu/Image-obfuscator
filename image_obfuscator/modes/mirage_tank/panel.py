@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-05-28 18:35:11
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 16:58:08
+LastEditTime : 2022-11-12 16:14:04
 """
 from os.path import isfile
 from traceback import format_exc
@@ -35,6 +35,13 @@ class ProcSettingsPanel(BaseModeSettingsPanel, BaseProcSettingsPanel):
         self.SetDropTarget(DragOutsideImage(self))
 
     def settings_changed(self, event):
+        self.main_frame.settings_changed(event)
+
+    def toggle_replace_image(self, event: 'CommandEvent'):
+        if event.IsChecked():
+            self.outsideImage.PickerCtrl.SetLabel('选择里图')
+        else:
+            self.outsideImage.PickerCtrl.SetLabel('选择表图')
         self.main_frame.settings_changed(event)
 
     def toggle_colorful_mode(self, event: 'CommandEvent'):

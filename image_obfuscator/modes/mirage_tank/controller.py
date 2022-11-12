@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 13:38:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-15 08:08:19
+LastEditTime : 2022-11-12 15:45:18
 """
 from typing import TYPE_CHECKING, Optional
 
@@ -33,6 +33,12 @@ class MirageTankModeController(BaseModeController):
 
     @outside_image_path.setter
     def outside_image_path(self, v: str): self.settings_panel.outsideImage.SetPath(v)
+
+    @property
+    def replace_image(self): return self.settings_panel.replaceImage.GetValue()
+
+    @replace_image.setter
+    def replace_image(self, v: bool): self.settings_panel.replaceImage.SetValue(v)
 
     @property
     def outside_brightness_scale(self) -> float: return self.settings_panel.outsideBrightnessScale.GetValue()

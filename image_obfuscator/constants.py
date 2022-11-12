@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-29 12:43:36
+LastEditTime : 2022-11-12 16:16:55
 """
 from platform import machine, platform
 from sys import version as py_ver
@@ -34,8 +34,8 @@ BETA = 3
 ALPHA = 4
 VERSION_TYPE = BETA
 VERSION = '2.2.0'
-PRE_RELEASE_VERSION = 'beta.3'
-BATCH = '20221029a'
+PRE_RELEASE_VERSION = 'beta.4'
+BATCH = '20221112a'
 BUILD_METADATA = BATCH # 'build.1' / BATCH
 COMPILED = False
 BRANCH = 'dev/2.x'

@@ -19,7 +19,7 @@ class ProcSettingsPanel (wx.Panel):
     __slots__ = (
         'accuracy', 'colorfulMode', 'damierMode', 'insideBrightnessScale', 'insideColorScale', 'm_staticText6', 'm_staticText61',
         'm_staticText62', 'm_staticText7', 'm_staticText8', 'm_staticText9', 'outsideBrightnessScale', 'outsideColorScale',
-        'outsideImage', 'resizeMethod', 'toggleBg'
+        'outsideImage', 'replaceImage', 'resizeMethod', 'toggleBg'
     )
 
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(-1, -1), style=wx.TAB_TRAVERSAL, name=wx.EmptyString):
@@ -35,8 +35,15 @@ class ProcSettingsPanel (wx.Panel):
 
         bSizer1.Add(self.m_staticText62, 0, wx.ALIGN_CENTER, 2)
 
+        bSizer5 = wx.BoxSizer(wx.HORIZONTAL)
+
         self.outsideImage = wx.FilePickerCtrl(self, wx.ID_ANY, wx.EmptyString, u"选择表图", u"*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE | wx.FLP_FILE_MUST_EXIST)
-        bSizer1.Add(self.outsideImage, 0, wx.ALL | wx.EXPAND, 2)
+        bSizer5.Add(self.outsideImage, 1, wx.ALL | wx.EXPAND, 2)
+
+        self.replaceImage = wx.CheckBox(self, wx.ID_ANY, u"置换表里图", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer5.Add(self.replaceImage, 0, wx.ALIGN_CENTER, 5)
+
+        bSizer1.Add(bSizer5, 0, wx.EXPAND, 5)
 
         bSizer5 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -128,6 +135,7 @@ class ProcSettingsPanel (wx.Panel):
 
         # Connect Events
         self.outsideImage.Bind(wx.EVT_FILEPICKER_CHANGED, self.settings_changed)
+        self.replaceImage.Bind(wx.EVT_CHECKBOX, self.toggle_replace_image)
         self.resizeMethod.Bind(wx.EVT_RADIOBOX, self.settings_changed)
         self.toggleBg.Bind(wx.EVT_TOGGLEBUTTON, self.toggle_bg)
         self.outsideBrightnessScale.Bind(wx.EVT_SPINCTRLDOUBLE, self.settings_changed)
@@ -147,6 +155,9 @@ class ProcSettingsPanel (wx.Panel):
 
     # Virtual event handlers, override them in your derived class
     def settings_changed(self, event):
+        event.Skip()
+
+    def toggle_replace_image(self, event):
         event.Skip()
 
     def toggle_bg(self, event):

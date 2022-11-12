@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-09-25 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-17 13:13:05
+LastEditTime : 2022-11-12 15:51:49
 """
 from typing import TYPE_CHECKING, Callable, Union, Type
 
@@ -22,6 +22,8 @@ def normal_gen(source: 'Image.Image', original: bool, return_type: Type[Union['P
     outside_image = settings.outside_image
     if outside_image is None:
         return None
+    if settings.replace_image:
+        source, outside_image = outside_image, source
     gauge.SetValue(0)
     label_text_setter('正在处理')
     image = return_type(colorful_mode(
@@ -41,6 +43,8 @@ def normal_gen_quietly(source: 'Image.Image', original: bool, return_type: Type[
     outside_image = settings.outside_image
     if outside_image is None:
         return None
+    if settings.replace_image:
+        source, outside_image = outside_image, source
     image = return_type(colorful_mode(
         source, outside_image, settings.outside_brightness_scale / 100, settings.inside_brightness_scale / 100,
         settings.outside_color_scale / 100, settings.inside_color_scale / 100, settings.damier_mode, settings.resize_method,
