@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-31 07:52:07
+LastEditTime : 2022-11-21 07:18:01
 """
 from collections import OrderedDict, deque
 from collections.abc import Mapping
 from heapq import nsmallest
 from inspect import signature
-from math import isqrt
+from math import isqrt, sqrt
 from os import walk
 from os.path import normpath
 from threading import Lock, Semaphore
@@ -114,6 +114,22 @@ def get_factors(num: int, endpoints=True) -> Generator[int, None, None]:
 def nclosest(iterable: Iterable, num: int, length=1) -> list[int]:
     """`iterable`中最接近于`num`的`length`个数字"""
     return nsmallest(length, iterable, key=lambda x: abs(x - num))
+
+
+def cal_zoom_ratio(current_area: int, required_area: int) -> float:
+    """计算长宽等比缩放率"""
+    if current_area == required_area:
+        return 1.0
+    elif current_area < required_area:
+        # x为缩放率, s为原始面积, sx^2 + 2sx - (required_area - s) = 0
+        required_area -= current_area
+        orig_area_x2 = current_area * 2
+        delta = (orig_area_x2 * orig_area_x2) + (4 * current_area * required_area)
+        return sqrt(delta) / orig_area_x2
+    else:
+        # x为缩放率, s为原始面积, sx^2 - required_area = 0
+        delta = 4 * current_area * required_area
+        return sqrt(delta) / (current_area * 2)
 
 
 class FakeBar:

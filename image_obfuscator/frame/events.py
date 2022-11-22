@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-29 12:33:37
+LastEditTime : 2022-11-22 12:14:00
 """
 from base64 import b85encode
 from pickle import dumps as pickle_dumps, HIGHEST_PROTOCOL
@@ -104,13 +104,14 @@ class MainFrame(BasicMainFrame):
         self.refresh_preview(event)
 
     @catch_exc_for_frame_method
-    def sync_setting(self, obj: 'Object'):
+    def sync_setting(self, obj: 'Object', _refresh_preview=True):
         if self.image_item is None:
             self.controller.proc_mode_interface.default_settings.sync_from_object(obj)
             return
         if self.image_item.proc_mode.settings_cls is not None:
             self.image_item.settings.sync_from_object(obj)
-        self.refresh_preview(...)
+        if _refresh_preview:
+            self.refresh_preview(...)
 
     @catch_exc_for_frame_method
     def refresh_preview(self, event: Optional['Event'] = None):
@@ -200,6 +201,7 @@ class MainFrame(BasicMainFrame):
         if self.image_item is None:
             if not selected_mode.can_be_set_as_default_mode:    # 当所选模式不能被设置为默认模式时回退
                 self.controller.proc_mode_interface = self.controller.previous_proc_mode
+                self.mode_fallback_dialog.open_dialog()
                 return
             self.controller.previous_proc_mode = self.mode_manager.default_mode = selected_mode
             self.controller.backtrack_interface(selected_mode.default_settings, selected_mode)

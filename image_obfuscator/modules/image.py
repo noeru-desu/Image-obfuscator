@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-24 15:02:34
+LastEditTime : 2022-11-22 08:59:16
 """
 from abc import ABC
 from posixpath import splitext
@@ -179,11 +179,41 @@ def crop_array(array, width, height):
     return ascontiguousarray(array[:width, :height])
 
 
-def array_to_image(array: 'ndarray', size: tuple = ...) -> 'PIL_Image.Image':
+def array_to_image(array: 'ndarray', size: tuple = ..., mode='RGBA') -> 'PIL_Image.Image':
     if size is Ellipsis:
         shape = array.shape
         size = (shape[1], shape[0])
-    return PIL_Image.frombuffer('RGBA', size, array.data, "raw", 'RGBA', 0, 1)
+    return PIL_Image.frombuffer(mode, size, array.data, 'raw', mode, 0, 1)
+
+
+def PIL_image_from_array(obj, mode=None, use_memoryview=False):
+    """修改自PIL.Image.fromarray, 添加了use_memoryview, 为True时使用obj.data (在numpy中为memoryview, 需保证数组是C连续的)"""
+    arr = obj.__array_interface__
+    shape = arr["shape"]
+    ndim = len(shape)
+    strides = arr.get("strides", None)
+    if mode is None:
+        try:
+            typekey = (1, 1) + shape[2:], arr["typestr"]
+        except KeyError as e:
+            raise TypeError("Cannot handle this data type") from e
+        try:
+            mode, rawmode = PIL_Image._fromarray_typemap[typekey]
+        except KeyError as e:
+            raise TypeError("Cannot handle this data type: %s, %s" % typekey) from e
+    else:
+        rawmode = mode
+
+    size = 1 if ndim == 1 else shape[1], shape[0]
+    if strides is not None:
+        if use_memoryview:
+            obj = obj.data
+        elif hasattr(obj, "tobytes"):
+            obj = obj.tobytes()
+        else:
+            obj = obj.tostring()
+
+    return PIL_Image.frombuffer(mode, size, obj, "raw", rawmode, 0, 1)
 
 
 def array_to_bitmap(array: 'ndarray', size: tuple = ...) -> 'Bitmap':

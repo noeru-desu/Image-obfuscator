@@ -6,3 +6,4 @@ wxPython
 pyperclip
 natsort
 orjson
+stego-lsb==1.3.5

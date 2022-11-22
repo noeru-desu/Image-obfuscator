@@ -2,17 +2,14 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:48:20
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-12 19:24:20
+LastEditTime : 2022-11-12 14:38:56
 """
 from typing import TYPE_CHECKING, Type
 
 from wx import BoxSizer, VERTICAL, ALIGN_CENTER
 
 from image_obfuscator.modes.base import ModeConstants
-from image_obfuscator.modes.antishield import ModeInterface as AntiShieldModeInterface
-from image_obfuscator.modes.encrypt import ModeInterface as EncryptModeInterface
-from image_obfuscator.modes.decrypt import ModeInterface as DecryptModeInterface
-from image_obfuscator.modes.mirage_tank import ModeInterface as MirageTankModeInterface
+from image_obfuscator.modes import builtin_modes
 
 if TYPE_CHECKING:
     from wx import Panel
@@ -34,10 +31,8 @@ class ModeManager(object):
         self.proc_settings_bsizer.Fit(self.frame.procSettingsPanelContainer)
 
     def load_builtin_modes(self):
-        self.add_mode(EncryptModeInterface)
-        self.add_mode(DecryptModeInterface)
-        self.add_mode(AntiShieldModeInterface)
-        self.add_mode(MirageTankModeInterface)
+        for i in builtin_modes:
+            self.add_mode(i)
 
         if self.default_mode is None:
             self.default_mode = self.modes[0]

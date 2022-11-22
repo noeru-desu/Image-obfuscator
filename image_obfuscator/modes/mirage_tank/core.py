@@ -1,8 +1,8 @@
 """
-Author       : noeru_desu
+Author       : Aloxaf, noeru_desu
 Date         : 2022-08-13 16:27:28
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-16 09:49:48
+LastEditTime : 2022-11-20 11:11:47
 Reference    : https://github.com/Aloxaf/MirageTankGo
 """
 from typing import TYPE_CHECKING

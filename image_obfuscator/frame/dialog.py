@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-26 11:05:11
+LastEditTime : 2022-11-20 09:57:04
 """
 from base64 import b85decode
 from orjson import JSONDecodeError, dumps, loads, OPT_INDENT_2
@@ -11,7 +11,7 @@ from threading import Lock
 from typing import TYPE_CHECKING, Optional, Sequence
 
 from pyperclip import copy as clipboard_copy, paste as clipboard_paste
-from wx import (ALIGN_RIGHT, ALL, CANCEL, DIRP_CHANGE_DIR, DIRP_DEFAULT_STYLE,
+from wx import (ALL, CANCEL, DIRP_CHANGE_DIR, DIRP_DEFAULT_STYLE,
                 DIRP_DIR_MUST_EXIST, EVT_BUTTON, FD_CHANGE_DIR,
                 FD_DEFAULT_STYLE, FD_FILE_MUST_EXIST, FD_OPEN, FD_PREVIEW,
                 HELP, HORIZONTAL, ICON_ERROR, ICON_INFORMATION, ICON_QUESTION,
@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 
 
 class Dialog(object):
-    __slots__ = ('frame', 'dialog_thread')
+    __slots__ = ('frame', 'dialog_thread', 'memory_dialogs')
 
     def __init__(self, frame: 'MainFrame', maxlen: int = None):
         """
@@ -54,6 +54,7 @@ class Dialog(object):
         self.frame = frame
         self.dialog_thread = SingleThreadExecutor('dialog-thread', maxlen)
         self.dialog_thread.set_exception_callback(lambda err, dialog: dialog(err.traceback), self.error)
+        self.memory_dialogs: dict[int, 'ChooseActionDialog'] = {}
 
     def dialog(self, message: str, title: str, style: int, parent: 'Window' = ...) -> int:
         if parent is Ellipsis:
@@ -153,10 +154,24 @@ class Dialog(object):
             return_code = dialog.ShowModal()
         return dialog.succeeded if return_code == ID_OK else None
 
-    def choose_action_dialog(self, message: str, title: str = '选择操作', actions: Sequence[str] = ('是', '否'), default_action: int = ..., recordable=True, parent: 'Window' = ...):
+    def choose_action_dialog(self, message: str, title: str = '选择操作', actions: Sequence[str] = ('是', '否'), default_action: int = ..., recordable=True, record_btn_label: str = ..., parent: 'Window' = ...):
         if parent is Ellipsis:
             parent = self.frame
-        return ChooseActionDialog(parent, message, title, actions, default_action, recordable)
+        return ChooseActionDialog(parent, message, title, actions, default_action, recordable, record_btn_label)
+
+    def memory_dialog(self, message: str, title: str = ..., actions: Sequence[str] = ..., default_action: int = ..., recordable=True, record_btn_label: str = ..., parent: 'Window' = ...):
+        """通过`message`, `title`, `actions`参数弹出并存储记忆性对话框"""
+        dialog_hash = hash((message, title, actions))
+        dialog = self.memory_dialogs.get(dialog_hash)
+        if dialog is not None:
+            if title is Ellipsis:
+                title = '选择操作'
+            if actions is Ellipsis:
+                actions = ('是', '否')
+            dialog.open_dialog(parent, message, title, default_action, recordable, record_btn_label)
+        else:
+            dialog = self.memory_dialogs[dialog_hash] = ChooseActionDialog(self.frame if parent is Ellipsis else parent, message, title, default_action, recordable, record_btn_label)
+            dialog.open_dialog()
 
     """
     def _register_async_dialog(self, force: bool = False) -> bool:
@@ -468,26 +483,36 @@ class ModifiedChoiceDialog(MCD):
         'action', 'record'
     )
 
-    def __init__(self, parent: 'Window', message: str, title: str = '选择操作', actions: Sequence[str] = ('是', '否'), default_action: int = ..., recordable=True):
+    def __init__(self, parent: 'Window', message: str, title: str = '选择操作', actions: Sequence[str] = ('是', '否'), default_action: int = ..., recordable=True, record_btn_label: str = ...):
         super().__init__(parent)
-        if not recordable:
-            self.remember.Hide()
+        self.remember.Show(recordable)
         self.SetTitle(title)
         self.info.SetLabelText(message)
+        if record_btn_label is not Ellipsis:
+            self.remember.SetLabelText(record_btn_label)
         sizer = BoxSizer(HORIZONTAL)
+        sizer.Add((0, 0), 1)
         for i, j in enumerate(actions):
-            btn = Button(self, label=j)
-            sizer.Add(btn, 0, ALL, 2)
+            btn = Button(self.btnPanel, label=j)
+            sizer.Add(btn, 0, ALL, 10)
             btn.Bind(EVT_BUTTON, self.choice)
             btn.action = i
-        self.GetSizer().Add(sizer, 0, ALIGN_RIGHT, 5)
+        self.btnPanel.SetSizer(sizer)
         self.Layout()
+        sizer.Fit(self.btnPanel)
         self.SetSize(self.GetBestSize())
         if default_action is Ellipsis:
             default_action = len(actions) - 1
         self.action = default_action
         self.record = False
         self.SetReturnCode(ID_CANCEL)
+
+    def reset(self, default_action = ..., recordable=True, record_btn_label = ...):
+        if default_action is not Ellipsis:
+            self.action = default_action
+        self.remember.Show(recordable)
+        if record_btn_label is not Ellipsis:
+            self.remember.SetLabelText(record_btn_label)
 
     def choice(self, event: 'CommandEvent'):
         self.action = event.GetEventObject().action
@@ -498,10 +523,10 @@ class ModifiedChoiceDialog(MCD):
 class ChooseActionDialog(object):
     __slots__ = (
         'parent', 'message', 'title', 'actions', 'default_action', 'record',
-        '_dialog', 'lock', 'recordable'
+        '_dialog', 'lock', 'recordable', 'record_btn_label', '_dialog_hash'
     )
 
-    def __init__(self, parent: 'Window', message: str, title: str = '选择操作', actions: Sequence[str] = ('是', '否'), default_action: int = ..., recordable=True) -> None:
+    def __init__(self, parent: 'Window', message: str, title: str = '选择操作', actions: Sequence[str] = ('是', '否'), default_action: int = ..., recordable=True, record_btn_label: str = ...) -> None:
         self.parent = parent
         self.message = message
         self.title = title
@@ -509,16 +534,26 @@ class ChooseActionDialog(object):
         self.default_action = default_action
         self.recordable = recordable
         self.record = None
+        self.record_btn_label = record_btn_label
+        self._dialog_hash = None
         self._dialog = None
         self.lock = Lock()
 
-    def _open_dialog(self, parent, message, title, default_action, recordable):
-        self._dialog = ModifiedChoiceDialog(parent, message, title, self.actions, default_action, recordable)
-        with self._dialog:
-            self._dialog.ShowModal()
-        self.lock.release()
+    def _open_dialog(self, parent, message, title, default_action, recordable, record_btn_label):
+        dialog_hash = hash((parent, message, title))
+        if self._dialog_hash == dialog_hash:
+            dialog = self._dialog
+            dialog.reset(default_action, recordable, record_btn_label)
+        else:
+            if self._dialog is not None:
+                self._dialog.Destroy()
+            dialog = self._dialog = ModifiedChoiceDialog(parent, message, title, self.actions, default_action, recordable, record_btn_label)
+            self._dialog_hash = dialog_hash
+        dialog.ShowModal()
+        if self.lock.locked():
+            self.lock.release()
 
-    def open_dialog(self, parent: 'Window' = ..., message: str = ..., title: str = ..., default_action: int = ..., recordable: bool = ...):
+    def open_dialog(self, parent: 'Window' = ..., message: str = ..., title: str = ..., default_action: int = ..., recordable: bool = ..., record_btn_label: str = ...):
         if self.record is not None:
             return self.record
         if parent is Ellipsis:
@@ -531,11 +566,13 @@ class ChooseActionDialog(object):
             default_action = self.default_action
         if recordable is Ellipsis:
             recordable = self.recordable
+        if record_btn_label is Ellipsis:
+            record_btn_label = self.record_btn_label
         if IsMainThread():
-            self._open_dialog(parent, message, title, default_action, recordable)
+            self._open_dialog(parent, message, title, default_action, recordable, record_btn_label)
         else:
             self.lock.acquire()
-            CallAfter(self._open_dialog, parent, message, title, default_action, recordable)
+            CallAfter(self._open_dialog, parent, message, title, default_action, recordable, record_btn_label)
             self.lock.acquire()
             self.lock.release()
         if self._dialog.record:

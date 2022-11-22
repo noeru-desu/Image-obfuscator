@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-31 09:10:16
+LastEditTime : 2022-11-22 09:39:56
 """
 from atexit import register as at_exit
 from orjson import dumps
@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 from wx import CURSOR_ARROW, CURSOR_WAIT, DIRP_CHANGE_DIR, DIRP_DIR_MUST_EXIST, DirDialog
 
-from image_obfuscator.constants import DialogReturnCodes
+from image_obfuscator.constants import DialogReturnCodes, SKIP_CUSTOM_SAVE, SKIP_DISPLAY_PREVIEW
 from image_obfuscator.frame.controller import ProgressBar
 from image_obfuscator.frame.file_item import ImageItem
 from image_obfuscator.modules.image import PillowImage
@@ -192,6 +192,8 @@ class ImageSaver(object):
 
     def _save_task(self, mode_interface: 'ModeInterface', image_item: 'ImageItem', settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters', save_settings: 'SaveSettings', relative_save_path: str = '', quiet=False):
         loaded_image = image_item.cache.loaded_image
+        if mode_interface.save_image(loaded_image, image_item, settings, encryption_parameters, save_settings, relative_save_path, quiet) is not SKIP_CUSTOM_SAVE:
+            return None, None
         result = (mode_interface.proc_image_quietly(
             loaded_image, True, PillowImage, settings, encryption_parameters
         ) if quiet else mode_interface.proc_image(
@@ -204,7 +206,7 @@ class ImageSaver(object):
                 return result
         else:
             image = result
-        if image is None:
+        if (image is None) or (image is SKIP_DISPLAY_PREVIEW):
             self.frame.dialog.async_warning('根据当前模式设置无法生成结果', '无图像可供保存')
             return result
         self._post_save_processing(

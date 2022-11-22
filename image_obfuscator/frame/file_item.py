@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-01 10:56:57
+LastEditTime : 2022-11-12 16:08:37
 """
 from abc import ABC
 from gc import collect
@@ -372,7 +372,7 @@ class ImageItem(Item):
         """
         if cache and not self.frame.startup_parameters.disable_cache:
             if cache_hash is Ellipsis:
-                cache_hash = self.normal_cache_hash if self.frame.controller.preview_source == 0 else self.scalable_cache_hash
+                cache_hash = self.scalable_cache_hash if (self.frame.controller.preview_source == 1) or (self.frame.controller.proc_mode_interface.decryption_mode) else self.normal_cache_hash
             cache = self.cache.preview_cache.get(cache_hash)
             if cache is not None:
                 self.frame.controller.previewed_bitmap = (

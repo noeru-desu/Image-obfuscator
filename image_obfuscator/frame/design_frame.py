@@ -1259,7 +1259,7 @@ class MultiLineTextEntryDialog (wx.Dialog):
 ###########################################################################
 
 class ModifiedChoiceDialog (wx.Dialog):
-    __slots__ = ('info', 'remember')
+    __slots__ = ('btnPanel', 'info', 'remember')
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition, size=wx.Size(-1, -1), style=wx.DEFAULT_DIALOG_STYLE)
@@ -1271,10 +1271,23 @@ class ModifiedChoiceDialog (wx.Dialog):
         self.info = wx.StaticText(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0)
         self.info.Wrap(-1)
 
-        bSizer58.Add(self.info, 0, wx.ALL, 15)
+        bSizer58.Add(self.info, 0, wx.ALL, 10)
+
+        bSizer60 = wx.BoxSizer(wx.HORIZONTAL)
+
+        bSizer60.Add((0, 0), 0, wx.ALL, 5)
 
         self.remember = wx.CheckBox(self, wx.ID_ANY, u"此次批量操作记住此次选择", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer58.Add(self.remember, 0, wx.ALL, 10)
+        bSizer60.Add(self.remember, 0, 0, 10)
+
+        bSizer58.Add(bSizer60, 1, wx.EXPAND, 5)
+
+        bSizer58.Add((0, 0), 0, wx.ALL, 5)
+
+        self.btnPanel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.btnPanel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DLIGHT))
+
+        bSizer58.Add(self.btnPanel, 0, wx.EXPAND, 0)
 
         self.SetSizer(bSizer58)
         self.Layout()

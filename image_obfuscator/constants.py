@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-12 16:16:55
+LastEditTime : 2022-11-22 12:54:28
 """
 from platform import machine, platform
 from sys import version as py_ver
@@ -34,8 +34,8 @@ BETA = 3
 ALPHA = 4
 VERSION_TYPE = BETA
 VERSION = '2.2.0'
-PRE_RELEASE_VERSION = 'beta.4'
-BATCH = '20221112a'
+PRE_RELEASE_VERSION = 'beta.5'
+BATCH = '20221122a'
 BUILD_METADATA = BATCH # 'build.1' / BATCH
 COMPILED = False
 BRANCH = 'dev/2.x'
@@ -55,6 +55,8 @@ MANUALLY_REFRESH = 1
 AUTO_REFRESH = 2
 PREVIEW_IMAGE = 0
 ORIG_IMAGE = 1
+SKIP_CUSTOM_SAVE = 0x1000
+SKIP_DISPLAY_PREVIEW = 0x1001
 
 BLACK_IMAGE = new('RGBA', (1, 1))
 

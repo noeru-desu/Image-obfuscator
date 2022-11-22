@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-09 11:37:21
+LastEditTime : 2022-11-21 17:27:36
 """
 from atexit import register as at_exit
 from concurrent.futures import ThreadPoolExecutor
@@ -57,7 +57,7 @@ class MainFrame(MF):
         'startup_parameters', 'logger', 'controller', 'settings', 'dialog', 'universal_thread_pool',
         'password_dict', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator', 'folder_item',
         'image_saver', 'stop_loading_func', 'stop_reloading_func', 'image_item', 'run_path','mode_manager',
-        'config', 'disable_switching_image'
+        'config', 'disable_switching_image', 'mode_fallback_dialog'
     )
 
     def __init__(self, parent: 'Window', run_path: 'PathLike[str]' = getcwd()):
@@ -108,6 +108,9 @@ class MainFrame(MF):
         self.image_saver = ImageSaver(self)
         self.stop_loading_func = SegmentTrigger((self.set_stop_loading_signal, self.stop_loading), self.init_loading_btn)
         self.stop_reloading_func = SegmentTrigger((self.set_reloading_btn_text, self.set_stop_reloading_signal, self.stop_reloading), self.init_reloading_btn)
+
+        # 部分记忆弹窗
+        self.mode_fallback_dialog = self.dialog.choose_action_dialog('所选模式无法在未选中图像时选择', '提示', ('确定',), 0, record_btn_label='不再提示')
 
         # 同步启动参数至界面
         if len(argv) > 1:

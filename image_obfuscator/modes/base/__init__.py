@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-09 10:40:59
+LastEditTime : 2022-11-21 21:31:08
 """
 from abc import ABC
 from itertools import compress
@@ -12,6 +12,7 @@ from warnings import warn
 
 from wx import WHITE
 
+from image_obfuscator.constants import SKIP_CUSTOM_SAVE
 from image_obfuscator.modules.decorator import catch_exc_and_return
 
 if TYPE_CHECKING:
@@ -19,6 +20,8 @@ if TYPE_CHECKING:
     from wx import Colour, Event, Gauge, Object
     from image_obfuscator.frame.controller import Controller as MainController
     from image_obfuscator.frame.events import MainFrame
+    from image_obfuscator.frame.file_item import ImageItem
+    from image_obfuscator.frame.image_saver import SaveSettings
     from image_obfuscator.modules.image import (ImageData, PillowImage,
                                                WrappedImage)
     from image_obfuscator.types import (ItemSettings, ItemSettingsMappingDict,
@@ -370,7 +373,7 @@ class BaseModeInterface(ABC):
     default_settings_args: Optional[tuple[Any]] = None   # 实例化默认设置时使用的参数
     default_settings: 'ItemSettings'                     # 使用上方属性实例化默认设置, 一般为自动, 手动时请注意顺序
 
-    requires_encryption_parameters: bool = False        # 是否需要读取文件末尾的加密参数
+    requires_encryption_parameters: bool = False          # 是否需要读取文件末尾的加密参数
     encryption_parameters_must_be_used: bool = False      # 是否必须使用加密参数, 为True且图像加密参数不存在或不对应时将阻止用户使用此模式
     encryption_parameters_cls: Optional[Type['ItemEncryptionParameters']] = None  # 读取加密参数后实例化的参数类
     corresponding_decryption_mode: Optional[str] = None # 对应的解密模式的唯一名称
@@ -384,7 +387,7 @@ class BaseModeInterface(ABC):
     settings_panel_cls: Optional[Type['ModeSettingsPanel']] = None      # 该模式的设置面板(BaseModeSettingsPanel和wx.Panel的子类(务必使MRO中BaseModeSettingsPanel优先))
 
     file_name_suffix: Optional[tuple[str, str]] = None      # 添加到文件名末尾的后缀信息(非格式后缀)
-    mode_constants_required: Iterable = ()
+    mode_constants_required: Iterable = ()                  # 需要mode_constants属性的自定义类
 
     supports_multiprocessing = False
 
@@ -418,6 +421,10 @@ class BaseModeInterface(ABC):
 
     def proc_image_multiprocessing(self, source: 'Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'ItemSettings') -> tuple[Optional['WrappedImage'], Optional[str]]:
         raise NotImplementedError()
+
+    def save_image(self, loaded_image: 'Image', image_item: 'ImageItem', settings: 'ItemSettings', encryption_parameters: 'ItemEncryptionParameters', save_settings: 'SaveSettings', relative_save_path: str = '', quiet=False) -> Optional[SKIP_CUSTOM_SAVE]:
+        """用于完全自定义文件保存方式, 非特殊用途无需覆写"""
+        return SKIP_CUSTOM_SAVE
 
     def instantiate_settings_cls(self, data: Optional[Any] = None) -> Union[EmptySettingsType, 'ItemSettings']:
         return EmptySettings if self.settings_cls is None else self.settings_cls(data, None)

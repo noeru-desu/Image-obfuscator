@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-31 11:19:13
+LastEditTime : 2022-11-22 09:39:37
 """
 from typing import TYPE_CHECKING
 
 from wx import CURSOR_ARROWWAIT, CURSOR_ARROW
 
-from image_obfuscator.constants import ORIG_IMAGE
+from image_obfuscator.constants import ORIG_IMAGE, SKIP_DISPLAY_PREVIEW
 from image_obfuscator.modules.image import ImageData, PillowImage
 from image_obfuscator.utils.thread import SingleThreadExecutor
 
@@ -54,7 +54,7 @@ class PreviewGenerator(object):
                 return
         if result is None:
             self.frame.controller.clear_proc_preview()
-        else:
+        elif result is not SKIP_DISPLAY_PREVIEW:
             self.frame.controller.display_and_cache_processed_preview(result, cache_hash=cache_hash)
         self.frame.controller.preview_panel_title = '处理结果-预览图'
         self.frame.set_cursor(CURSOR_ARROW)

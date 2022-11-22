@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-08 15:50:52
+LastEditTime : 2022-11-22 12:32:22
 """
 from concurrent.futures import (CancelledError, ProcessPoolExecutor,
                                 ThreadPoolExecutor)
@@ -424,9 +424,7 @@ class SingleThreadExecutor(object):
 
 
 class ThreadManager(object):
-    """重复创建线程执行任务的线程管理器
-    # ! 已弃用 !
-    """
+    """重复创建线程执行任务的线程管理器"""
     __slots__ = ('thread_name', '_force', '_thread', '_raise_error', 'exit_signal')
 
     class Thread(threading_Thread):
@@ -479,7 +477,7 @@ class ThreadManager(object):
         self._thread.start()
 
     def kill(self):
-        if self._thread.is_alive():
+        if self._thread is not None and self._thread.is_alive():
             res = pythonapi.PyThreadState_SetAsyncExc(c_long(self._thread.ident), py_object(self._raise_error))
             if res not in (1, 0):
                 pythonapi.PyThreadState_SetAsyncExc(self._thread.ident, None)
