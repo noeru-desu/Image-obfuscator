@@ -37,20 +37,19 @@ __[仅修改4个角的各1个像素点，使图像不会被特征匹配机制拦
 
 __[彩色模式就看个乐子，效果不好]__
 
-> 核心实现参考:
-[Aloxaf/MirageTankGo的核心实现](https://github.com/Aloxaf/MirageTankGo/blob/master/MTCore/MTCore.py)、
-[幻影坦克架构指南(一)](https://zhuanlan.zhihu.com/p/31164700)、
-[幻影坦克架构指南(三)](https://zhuanlan.zhihu.com/p/32532733)、
-[棋盘格与幻影坦克](https://zhuanlan.zhihu.com/p/33148445)
-
 <img style="max-width:100%;overflow:hidden;height:500px" src="https://github.com/noeru-desu/noeru-desu/blob/main/assets/Image-obfuscator/mirage_tank.jpg?raw=true">
+
+---
+
+### LSB(Least Significant Bit, 最低有效位)隐写模式
+
+__*`v2.2.0`稳定版发布后将上传效果图*__ (主要是等待Nuitka支持Python3.11)
 
 ---
 
 __*未来将添加更多模式*__
 
 </details>
-
 
 ## 网页版
 
@@ -68,7 +67,7 @@ __*未来将添加更多模式*__
 
 ## 已计划新增的模式
 
-1. LSB(最低有效位)隐写模式 (俗称无影坦克)
+暂无
 
 *类似于 一个**非图像文件**中隐藏一张图像 的模式暂时没有计划添加*
 
@@ -103,3 +102,9 @@ __只有发布时的构建才会禁用控制台并使用`-OO`参数来进行性�
 __目前CI仅测试程序能否正常启动，没有测试各项功能是否存在问题__
 
 压缩包命名格式为：`适用系统`-`Python编译器`-`C编译器`-`MSVC版本`-build.`Github Actions运行ID`
+
+# Thanks
+### references:
+* https://github.com/Aloxaf/MirageTankGo
+* https://zhuanlan.zhihu.com/p/31164700
+* https://github.com/ragibson/Steganography
