@@ -2,10 +2,9 @@
 Author       : noeru_desu
 Date         : 2022-11-20 12:33:03
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-22 09:43:53
+LastEditTime : 2022-11-26 10:24:50
 """
 from sys import byteorder
-from os.path import getsize
 from typing import TYPE_CHECKING, Optional
 
 from numpy import array, frombuffer, uint8
@@ -14,7 +13,6 @@ from stego_lsb.bit_manipulation import roundup, lsb_interleave_bytes, lsb_deinte
 from image_obfuscator.modules.image import PIL_image_from_array
 
 if TYPE_CHECKING:
-    from os import PathLike
     from PIL.Image import Image
     from numpy import ndarray
 
@@ -57,7 +55,7 @@ def decode(steg_image: 'Image', num_lsb: int, use_alpha: bool = False) -> tuple[
     return file_data, extra_data
 
 
-def encode(outside: 'Image', inside: 'PathLike', num_lsb: int, extra_data: Optional[bytes] = None, use_alpha: bool = False) -> 'Image':
+def encode(outside: 'Image', inside_data: bytes, num_lsb: int, extra_data: Optional[bytes] = None, use_alpha: bool = False) -> 'Image':
     # image_data = outside.getdata()
     # num_channels = len(image_data[0])
     # flattened_color_data = list(chain.from_iterable(image_data))
@@ -65,8 +63,6 @@ def encode(outside: 'Image', inside: 'PathLike', num_lsb: int, extra_data: Optio
     flattened_color_data = image_data.flatten()
 
     # We add the size of the input file to the beginning of the payload.
-    with open(inside, 'rb') as f:
-        inside_data = f.read()
     inside_size = len(inside_data) + DELIMITER_LEN + (1 if extra_data is None else len(extra_data))
     file_size_tag = inside_size.to_bytes(bytes_in_max_file_size(outside, num_lsb), byteorder=byteorder)
     data = file_size_tag + (b'\0' if extra_data is None else extra_data) + DELIMITER + inside_data
@@ -114,8 +110,7 @@ def bytes_in_max_file_size(image: 'Image', num_lsb: int, channel: int = 3):
     return roundup(max_bits_to_hide(image, num_lsb, channel).bit_length() / 8)
 
 
-def cal_required_size(outside: 'Image', inside: 'PathLike', num_lsb: int, extra_data_length: int = 1, use_alpha: bool = False):
+def cal_required_size(outside: 'Image', inside_size: int, num_lsb: int, extra_data_length: int = 1, use_alpha: bool = False):
     """使用`inside`文件属性提供的大小计算隐写所需比特数"""
-    inside_size = getsize(inside)
     file_size_tag = inside_size.to_bytes(bytes_in_max_file_size(outside, num_lsb, 4 if use_alpha else 3), byteorder=byteorder)
     return (len(file_size_tag) + DELIMITER_LEN + (1 if extra_data_length is None else extra_data_length) + inside_size) * 8

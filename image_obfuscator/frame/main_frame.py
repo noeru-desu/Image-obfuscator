@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-21 17:27:36
+LastEditTime : 2022-11-26 14:35:22
 """
 from atexit import register as at_exit
 from concurrent.futures import ThreadPoolExecutor
@@ -38,7 +38,7 @@ from image_obfuscator.modules.argparse import Arguments, Parameters
 from image_obfuscator.modules.decorator import catch_exc_for_frame_method
 from image_obfuscator.modules.password_verifier import PasswordDict
 from image_obfuscator.utils.logger import Logger
-from image_obfuscator.utils.thread import ProcessTaskManager
+# TODO from image_obfuscator.utils.thread import ProcessTaskManager
 
 # from image_obfuscator.utils.debugging_utils import gen_slots_str
 
@@ -101,7 +101,7 @@ class MainFrame(MF):
         if self.startup_parameters.record_password_dict:
             self.config.load_password_dict()
         self.universal_thread_pool = ThreadPoolExecutor(8, 'universal_thread_pool')
-        self.process_pool = ProcessTaskManager(1 if cpu_count() < 4 else cpu_count() - 2)
+        # TODO self.process_pool = ProcessTaskManager(1 if cpu_count() < 4 else cpu_count() - 2)
         self.tree_manager = TreeManager(self, self.imageTreeCtrl, '已加载文件列表')
         self.image_loader = ImageLoader(self)
         self.preview_generator = PreviewGenerator(self)
@@ -126,8 +126,8 @@ class MainFrame(MF):
         self.imageTreeCtrl.SetDropTarget(DragLoadingFile(self))
         self.saveOptions.SetDropTarget(DragSavePath(self))
 
-        # hook
-        at_exit(self.process_pool.shutdown, wait=False, cancel_futures=True)
+        # 退出时操作
+        # TODO at_exit(self.process_pool.shutdown, wait=False, cancel_futures=True)
         at_exit(self.universal_thread_pool.shutdown, wait=False, cancel_futures=True)
 
         # 快捷键
@@ -178,7 +178,7 @@ class MainFrame(MF):
             startup_parameters (Parameters): 启动参数实例
             run_path (str, optional): 运行路径. 默认为`os.getcwd()`.
         """
-        app = App(useBestVisual=True)
+        app = App()
         try:
             cls(None, path).Enable()
         except BaseException:

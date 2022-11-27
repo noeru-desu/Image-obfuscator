@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-06-07 06:20:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-06 06:37:53
+LastEditTime : 2022-11-24 08:29:07
 """
 from pickle import dumps as pickle_dumps, load as pickle_load, HIGHEST_PROTOCOL
 from pickletools import optimize
@@ -13,7 +13,7 @@ from os.path import join, exists, isfile
 from traceback import format_exc
 from typing import TYPE_CHECKING
 
-from image_obfuscator.constants import FRAME_SETTINGS_MAIN_VERSION, FRAME_SETTINGS_SUB_VERSION
+from image_obfuscator.constants import FRAME_SETTINGS_MAIN_VERSION, FRAME_SETTINGS_SUB_VERSION, LOCAL_APPDATA
 
 if TYPE_CHECKING:
     from image_obfuscator.frame.events import MainFrame
@@ -21,17 +21,16 @@ if TYPE_CHECKING:
 
 class ConfigManager(object):
     __slots__ = (
-        'frame', 'data_path', 'frame_settings_path', 'password_dict_path', 'default_frame_settings',
+        'frame', 'frame_settings_path', 'password_dict_path', 'default_frame_settings',
         'FrameConfig'
     )
 
     def __init__(self, frame: 'MainFrame') -> None:
         self.frame = frame
-        self.data_path = join(getenv('LOCALAPPDATA', 'pickles'), 'ImageObfuscator')
-        self.frame_settings_path = join(self.data_path, 'frame_settings.pickle')
-        self.password_dict_path = join(self.data_path, 'password_dict.pickle')
-        if not exists(self.data_path):
-            mkdir(self.data_path)
+        self.frame_settings_path = join(LOCAL_APPDATA, 'frame_settings.pickle')
+        self.password_dict_path = join(LOCAL_APPDATA, 'password_dict.pickle')
+        if not exists(LOCAL_APPDATA):
+            mkdir(LOCAL_APPDATA)
         self.default_frame_settings = self.gen_frame_settings()
         self.FrameConfig = namedtuple('FrameConfig', (
             'config_version', 'default_proc_mode', 'default_mode_settings', 'startup_parameters',
@@ -41,7 +40,7 @@ class ConfigManager(object):
         ), defaults=tuple(self.default_frame_settings.items()))
 
     def open_config_folder(self):
-        startfile(self.data_path)
+        startfile(LOCAL_APPDATA)
 
     def gen_frame_settings(self):
         if not self.frame.controller.proc_mode_interface.can_be_set_as_default_mode:

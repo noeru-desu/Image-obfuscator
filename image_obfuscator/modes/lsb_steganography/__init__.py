@@ -2,13 +2,14 @@
 Author       : noeru_desu
 Date         : 2022-11-20 17:43:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-22 10:14:48
+LastEditTime : 2022-11-26 16:10:54
 """
 from image_obfuscator.modes.base import BaseModeInterface
 from image_obfuscator.modes.lsb_steganography.controller import LsbModeController
 from image_obfuscator.modes.lsb_steganography.main import normal_gen, normal_gen_quietly, save_image
 from image_obfuscator.modes.lsb_steganography.settings import Settings
-from image_obfuscator.modes.lsb_steganography.panel import ProcSettingsPanel, DetectLsbDialog
+from image_obfuscator.modes.lsb_steganography.panel import ProcSettingsPanel, DetectLsbDialog, CompressionDialog
+from image_obfuscator.modes.lsb_steganography.utils import CompressedFileManager
 
 
 class ModeInterface(BaseModeInterface):
@@ -17,14 +18,14 @@ class ModeInterface(BaseModeInterface):
 
     mode_name = 'LSB隐写'
     mode_qualname = 'builtin.lsb_steganography.v1'
-    decryption_mode = True
-    can_be_set_as_default_mode = True
+    always_use_orig_image = True
     settings_panel_cls = ProcSettingsPanel
     settings_cls = Settings
-    default_settings_arg = ('', 0, 1, False, True, False, False)
+    default_settings_arg = ('', 0, 1, False, True, False, False, None)
     settings_controller_cls = LsbModeController
     file_name_suffix = ('', '-LSB')
-    mode_constants_required = (DetectLsbDialog,)
+    mode_constants_required = (DetectLsbDialog, CompressionDialog)
+    compressed_file_manager = CompressedFileManager()
 
     def proc_image(*args):
         return normal_gen(*args)

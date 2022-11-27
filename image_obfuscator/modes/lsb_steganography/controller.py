@@ -2,26 +2,30 @@
 Author       : noeru_desu
 Date         : 2022-11-20 13:38:35
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-22 09:45:12
+LastEditTime : 2022-11-26 11:18:29
 """
 from os.path import isfile, splitext
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional
 
 from wx import BLACK
 
 from image_obfuscator.constants import LIGHT_RED
 from image_obfuscator.modes.base import BaseModeController
+from image_obfuscator.modes.lsb_steganography.constants import LSB_INFO_LEN
 from image_obfuscator.modes.lsb_steganography.core import cal_required_size, max_bits_to_hide
+from image_obfuscator.modes.lsb_steganography.utils import cal_estimated_size
 from image_obfuscator.utils.misc_utils import cal_zoom_ratio
 
 if TYPE_CHECKING:
+    from image_obfuscator.modes.lsb_steganography import ModeInterface
     from image_obfuscator.modes.lsb_steganography.panel import ProcSettingsPanel
 
 
 class LsbModeController(BaseModeController):
-    __slots__ = ()
+    __slots__ = ('_compression_ratio', '_lsb_ratio')
     _instance: Optional['LsbModeController'] = None
     settings_panel: 'ProcSettingsPanel'
+    mode_interface: 'ModeInterface'
 
     def __new__(cls: type['LsbModeController'], *_):
         return super().__new__(cls) if cls._instance is None else cls._instance
@@ -30,12 +34,17 @@ class LsbModeController(BaseModeController):
         if self.__class__._instance is not None:
             return
         self.__class__._instance = self
+        self._compression_ratio: Optional[float] = None
+        self._lsb_ratio: Optional[float] = None
 
     @property
     def inside_file(self) -> str: return self.settings_panel.insideFile.GetPath()
 
     @inside_file.setter
     def inside_file(self, v: str): self.settings_panel.insideFile.SetPath(v)
+
+    @property
+    def inside_file_suffix(self) -> str: return splitext(self.inside_file)[1]
 
     @property
     def lsb_mode(self) -> int: return self.settings_panel.lsbMode.GetSelection()
@@ -74,20 +83,38 @@ class LsbModeController(BaseModeController):
     def auto_zoom_out(self, v: bool): self.settings_panel.autoZoomOut.SetValue(v)
 
     @property
-    def lsb_ratio(self) -> str: return self.settings_panel.lsbRatio.GetLabelText()
+    def compression_ratio(self) -> Optional[float]: return self._compression_ratio
+
+    @compression_ratio.setter
+    def compression_ratio(self, v: Optional[float]):
+        self._compression_ratio = v
+        percentage = f'{round(v * 100, 1)}%' if isinstance(v, float) else '待压缩'
+        self.settings_panel.compressionRatio.SetLabelText(percentage)
+
+    @property
+    def estimated_size(self) -> str: return self.settings_panel.estimatedSize.GetLabelText()
+
+    @estimated_size.setter
+    def estimated_size(self, v: str): self.settings_panel.estimatedSize.SetLabelText(v)
+
+    @property
+    def lsb_ratio(self) -> Optional[float]: return self._lsb_ratio
 
     @lsb_ratio.setter
-    def lsb_ratio(self, v: Union[float, str]):
+    def lsb_ratio(self, v: Optional[float]):
+        self.settings_panel.lsbRatio.SetForegroundColour(BLACK)
+        self._lsb_ratio = v
         if not isinstance(v, float):
             self.settings_panel.lsbRatio.SetLabelText('待计算')
-            self.settings_panel.lsbRatio.SetForegroundColour(BLACK)
+            self.estimated_size = '待计算'
             return
         self.settings_panel.lsbRatio.SetLabelText(f'{round(v * 100, 1)}%')
-        if (not self.auto_zoom_in) and v > 1:
+        image = self.main_frame.image_item.cache.loaded_image
+        if not self.auto_zoom_in and v > 1:
             self.settings_panel.lsbRatio.SetForegroundColour(LIGHT_RED)
-        else:
-            self.settings_panel.lsbRatio.SetForegroundColour(BLACK)
+        self.estimated_size = '{0}x{1}'.format(*cal_estimated_size(image, v))
         self.settings_panel.lsbRatio.Refresh()
+        self.settings_panel.textPanel.Layout()
 
     def refresh_lsb_ratio_color(self):
         if self.can_cal_lsb_ratio():
@@ -104,12 +131,13 @@ class LsbModeController(BaseModeController):
         self.lsb_ratio = lsb_ratio = self.cal_lsb_ratio()
         return lsb_ratio
 
-    @staticmethod
-    def _cal_lsb_ratio(image, lsb_num, use_alpha, inside_file) -> float:
-        file_suffix_size = len(splitext(inside_file)[1]) - 1
-        return cal_zoom_ratio(max_bits_to_hide(image, lsb_num, 4 if use_alpha else 3), cal_required_size(image, inside_file, lsb_num, 4 + file_suffix_size, use_alpha))
+    def _cal_lsb_ratio(self, image, lsb_num, use_alpha, inside_file) -> float:
+        file_suffix_size = len(self.inside_file_suffix) - 1
+        inside_size = self.mode_interface.compressed_file_manager.get_size(inside_file)
+        return cal_zoom_ratio(max_bits_to_hide(image, lsb_num, 4 if use_alpha else 3), cal_required_size(image, inside_size, lsb_num, LSB_INFO_LEN + file_suffix_size, use_alpha))
 
     def cal_lsb_ratio(self) -> float:
         image = self.main_frame.image_item.cache.loaded_image
-        file_suffix_size = len(splitext(self.inside_file)[1]) - 1
-        return cal_zoom_ratio(max_bits_to_hide(image, self.lsb_num, 4 if self.use_alpha else 3), cal_required_size(image, self.inside_file, self.lsb_num, 4 + file_suffix_size, self.use_alpha))
+        file_suffix_size = len(self.inside_file_suffix) - 1
+        inside_size = self.mode_interface.compressed_file_manager.get_size(self.inside_file)
+        return cal_zoom_ratio(max_bits_to_hide(image, self.lsb_num, 4 if self.use_alpha else 3), cal_required_size(image, inside_size, self.lsb_num, LSB_INFO_LEN + file_suffix_size, self.use_alpha))

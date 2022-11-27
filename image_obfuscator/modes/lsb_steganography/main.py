@@ -2,17 +2,19 @@
 Author       : noeru_desu
 Date         : 2021-11-20 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-22 12:53:06
+LastEditTime : 2022-11-26 09:42:53
 """
 from os.path import isfile, splitext, join
 from math import ceil
 from typing import TYPE_CHECKING, Callable, Union, Type
 
 from PIL import Image
+from orjson import loads
 
 from image_obfuscator.constants import SKIP_CUSTOM_SAVE, SKIP_DISPLAY_PREVIEW
 from image_obfuscator.modes.lsb_steganography.settings import Settings
 from image_obfuscator.modes.lsb_steganography.core import encode, decode
+from image_obfuscator.modes.lsb_steganography.utils import gen_lsb_info_json
 from image_obfuscator.modules.image import WrappedPillowImage
 
 if TYPE_CHECKING:
@@ -39,6 +41,8 @@ def normal_gen(interface: 'ModeInterface', source: 'Image.Image', original: bool
 
 def encode_mode(interface: 'ModeInterface', outside: 'Image.Image', settings: 'Settings'):
     if not isfile(settings.inside_file_path):
+        settings.inside_file_path = interface.settings_controller.inside_file = ''
+        settings.compression_ratio = interface.settings_controller.compression_ratio = None
         return
     if settings.lsb_ratio is None:
         settings.lsb_ratio = interface.settings_controller._cal_lsb_ratio(outside, settings.lsb_num, settings.use_alpha, settings.inside_file_path)
@@ -53,8 +57,14 @@ def encode_mode(interface: 'ModeInterface', outside: 'Image.Image', settings: 'S
     if not settings.use_alpha:
         alpha = outside.getchannel('A')
         outside = outside.convert('RGB')
-    file_suffix = splitext(settings.inside_file_path)[1].encode().lstrip(b'.')
-    image = encode(outside, settings.inside_file_path, settings.lsb_num, file_suffix + b'\xdd\xcc\xbb\xaa', settings.use_alpha)
+    outside_data = interface.compressed_file_manager.open_file(settings.inside_file_path)
+    if not isinstance(outside_data, bytes):
+        compressor = outside_data.compressor
+        outside_data = outside_data.load_compressed_data()
+    else:
+        compressor = 0
+    lsb_info = gen_lsb_info_json(compressor, settings.inside_file_path)
+    image = encode(outside, outside_data, settings.lsb_num, lsb_info + b'\xdd\xcc\xbb\xaa', settings.use_alpha)
     if not settings.use_alpha:
         image.putalpha(alpha)
     return WrappedPillowImage(image)
@@ -100,13 +110,14 @@ def detect(outside: 'Image.Image', lsb_num: int, use_alpha: bool):
 def save_image(interface: 'ModeInterface', source: 'Image.Image', image_item: 'ImageItem', settings: 'Settings', _, save_settings: 'SaveSettings', relative_save_path: str, quiet: bool):
     if settings.lsb_mode == 0:
         return SKIP_CUSTOM_SAVE
-    file_data, file_suffix = decode_mode(interface, source, settings)
+    file_data, info_json = decode_mode(interface, source, settings)
     if file_data is None:
         interface.main_frame.dialog.async_error('无法从所载入的图像中提取文件', '无法提取')
         return
-    save_path = join(save_settings.path, relative_save_path, f'{splitext(image_item.path_data.file_name)[0]}-extracted.{file_suffix.decode()}')
+    lsb_info = loads(info_json)
+    save_path = join(save_settings.path, relative_save_path, f'{splitext(image_item.path_data.file_name)[0]}-extracted.{lsb_info["FS"]}')
     with open(save_path, 'wb') as f:
-        f.write(file_data)
+        f.write(file_data if lsb_info['CA'] == 0 else interface.compressed_file_manager.decompress_data(file_data, lsb_info['CA']))
 
 
 def normal_gen_quietly(interface, source: 'Image.Image', original: bool, return_type: Type[Union['PillowImage', 'ImageData']], settings: 'Settings', encryption_parameters: 'EmptySettings') -> 'WrappedImage':

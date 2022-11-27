@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-22 09:39:37
+LastEditTime : 2022-11-26 16:07:15
 """
 from typing import TYPE_CHECKING
 
@@ -35,7 +35,7 @@ class PreviewGenerator(object):
         mode_interface = image_item.proc_mode
         self.frame.controller.preview_panel_title = '处理结果-预览图 [正在生成]'
         self.frame.set_cursor(CURSOR_ARROWWAIT)
-        if mode_interface.decryption_mode or self.frame.controller.preview_source == ORIG_IMAGE:
+        if mode_interface.always_use_orig_image or self.frame.controller.preview_source == ORIG_IMAGE:
             self.preview_thread.add_task(mode_interface.proc_image, (
                 image_item.cache.loaded_image, True, PillowImage,
                 *image_item.available_settings_inst, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress

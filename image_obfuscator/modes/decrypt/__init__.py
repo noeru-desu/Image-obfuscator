@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:22:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-08-10 14:01:17
+LastEditTime : 2022-11-26 16:09:53
 """
 from typing import TYPE_CHECKING
 from image_obfuscator.constants import EA_VERSION
@@ -24,7 +24,8 @@ class ModeInterface(BaseModeInterface):
     file_name_suffix = ('-encrypted', '-decrypted')
     mode_name = '解密模式'
     mode_qualname = 'builtin.decrypt.v1'
-    decryption_mode = True
+    always_use_orig_image = True
+    can_be_set_as_default_mode = False
     requires_encryption_parameters = True
     settings_cls = Settings
     default_settings_arg = (40, 40, True, True, Channels((False, False, False, False)), False, Channels((True, True, True, False)), False, 128, 'none', 1, 1, EA_VERSION)

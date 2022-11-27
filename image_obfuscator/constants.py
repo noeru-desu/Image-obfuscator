@@ -2,8 +2,10 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-22 12:54:28
+LastEditTime : 2022-11-27 13:00:32
 """
+from os import getenv
+from os.path import join
 from platform import machine, platform
 from sys import version as py_ver
 
@@ -34,14 +36,17 @@ BETA = 3
 ALPHA = 4
 VERSION_TYPE = BETA
 VERSION = '2.2.0'
-PRE_RELEASE_VERSION = 'beta.5'
-BATCH = '20221122a'
+PRE_RELEASE_VERSION = 'beta.6'
+BATCH = '20221127a'
 BUILD_METADATA = BATCH # 'build.1' / BATCH
 COMPILED = False
 BRANCH = 'dev/2.x'
 
 OPEN_SOURCE_URL = 'https://github.com/noeru-desu/Image-obfuscator'
 
+_APPDATA = getenv('LOCALAPPDATA', 'AppData')
+LOCAL_APPDATA = join(_APPDATA, 'ImageObfuscator')
+LOCAL_APPDATA_TEMP = join(_APPDATA, 'Temp', 'ImageObfuscator')
 EXTENSION_KEYS = [i.lstrip('.') for i in EXTENSION.keys()]
 EXTENSION_KEYS_STRING = ' '.join(EXTENSION_KEYS)
 LOSSY_FORMATS = (

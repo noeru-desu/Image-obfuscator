@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:43:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-10 09:12:11
+LastEditTime : 2022-11-26 16:10:50
 """
 from image_obfuscator.modes.base import BaseModeInterface
 from image_obfuscator.modes.mirage_tank.controller import MirageTankModeController
@@ -17,8 +17,7 @@ class ModeInterface(BaseModeInterface):
 
     mode_name = '幻影坦克'
     mode_qualname = 'builtin.mirage_tank.v1'
-    decryption_mode = True
-    can_be_set_as_default_mode = True
+    always_use_orig_image = True
     settings_panel_cls = ProcSettingsPanel
     settings_cls = Settings
     default_settings_arg = (None, '', 100, 18, 50, 70, False, False, 1)

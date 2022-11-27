@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 18:08:19
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-21 21:31:08
+LastEditTime : 2022-11-26 16:49:06
 """
 from abc import ABC
 from itertools import compress
@@ -132,7 +132,7 @@ class SettingsMapping(dict):
             attr = v[0]
             assert hasattr(self.settings, attr), f"'{type(self.settings)}' object has no attribute '{attr}'"
 
-    def sync_from_object_to_settings(self, _object: 'Object'):
+    def sync_from_object_to_settings(self, _object: Union['Object', int]):
         _hash = hash(_object)
         if _hash in self:
             attr, setter = self[_hash]
@@ -186,7 +186,7 @@ class BaseSettings(SupportConstantProperty):
     def sync_from_event(self, event: 'Event'):
         self.SETTINGS_MAPPING.sync_from_event_to_settings(event)
 
-    def sync_from_object(self, obj: 'Object'):
+    def sync_from_object(self, obj: Union['Object', int]):
         self.SETTINGS_MAPPING.sync_from_object_to_settings(obj)
 
     def sync_from_tuple(self, settings: 'Settings', check_length=True):
@@ -364,10 +364,10 @@ class BaseModeInterface(ABC):
     #以上属性值均为只可自动设置
 
     default_mode: bool = False           # 是否为默认模式
-    decryption_mode: bool = False   # 是否属于解密模式, 为True在生成预览图时，将始终提供原图进行处理
+    always_use_orig_image: bool = False   # 是否始终需要使用原图进行处理
     mode_name: str = NotImplemented      # 模式的显示名称
     mode_qualname: str = NotImplemented  # 模式唯一名称 (如`builtin.mode_a`)
-    can_be_set_as_default_mode: Optional[bool] = None    # 是否可被设置为默认模式(包括在没有选择图像时是否可被选择), 为None时与decryption_mode值相反
+    can_be_set_as_default_mode: bool = True    # 是否可被设置为默认模式(包括在没有选择图像时是否可被选择)
 
     settings_cls: Optional[Type['ItemSettings']] = None  # 该模式需使用的设置类
     default_settings_args: Optional[tuple[Any]] = None   # 实例化默认设置时使用的参数
@@ -396,8 +396,6 @@ class BaseModeInterface(ABC):
             cls.proc_image = catch_exc_and_return(cls.proc_image)
             cls.proc_image_quietly = catch_exc_and_return(cls.proc_image_quietly)
         # TODO [需要SharedMemory支持] cls.proc_image_independently = catch_exc_and_return(lambda image_data, original)
-        if cls.can_be_set_as_default_mode is None:
-            cls.can_be_set_as_default_mode = not cls.decryption_mode
         return super().__new__(cls)
 
     def __init__(self):

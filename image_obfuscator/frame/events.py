@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-22 12:14:00
+LastEditTime : 2022-11-25 08:33:32
 """
 from base64 import b85encode
 from pickle import dumps as pickle_dumps, HIGHEST_PROTOCOL
@@ -104,7 +104,7 @@ class MainFrame(BasicMainFrame):
         self.refresh_preview(event)
 
     @catch_exc_for_frame_method
-    def sync_setting(self, obj: 'Object', _refresh_preview=True):
+    def sync_setting(self, obj: Union['Object', int], _refresh_preview=True):
         if self.image_item is None:
             self.controller.proc_mode_interface.default_settings.sync_from_object(obj)
             return
