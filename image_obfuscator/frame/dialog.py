@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-20 09:57:04
+LastEditTime : 2022-12-05 09:26:55
 """
 from base64 import b85decode
 from orjson import JSONDecodeError, dumps, loads, OPT_INDENT_2
@@ -356,8 +356,10 @@ class JsonEditorDialog(JED):
         try:
             data = loads(value)
         except JSONDecodeError as e:
-            if e.doc[e.pos] == '/':
-                self._parent.dialog.async_warning(f'注释功能不被Python中的json标准库支持: 第{e.lineno}行, 第{e.colno}列 (从文本开头开始第{e.pos}个字符)\n', 'Json格式检查', parent=self)
+            if e.pos >= len(value):
+                self._parent.dialog.async_warning(f'{e.msg}\n输入的Json不完整', 'Json格式检查', parent=self)
+            elif value[e.pos] == '/':
+                self._parent.dialog.async_warning(f'不支持注释功能: 第{e.lineno}行, 第{e.colno}列 (从文本开头开始第{e.pos}个字符)', 'Json格式检查', parent=self)
             else:
                 self._parent.dialog.async_warning(f'{e.msg}: 第{e.lineno}行, 第{e.colno}列 (从文本开头开始第{e.pos}个字符)', 'Json格式检查', parent=self)
             return None
