@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-11-20 12:33:03
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-26 10:24:50
+LastEditTime : 2022-12-05 10:53:12
 """
 from sys import byteorder
 from typing import TYPE_CHECKING, Optional
@@ -64,7 +64,7 @@ def encode(outside: 'Image', inside_data: bytes, num_lsb: int, extra_data: Optio
 
     # We add the size of the input file to the beginning of the payload.
     inside_size = len(inside_data) + DELIMITER_LEN + (1 if extra_data is None else len(extra_data))
-    file_size_tag = inside_size.to_bytes(bytes_in_max_file_size(outside, num_lsb), byteorder=byteorder)
+    file_size_tag = inside_size.to_bytes(cal_bit_length(outside, inside_size, num_lsb, use_alpha), byteorder=byteorder)
     data = file_size_tag + (b'\0' if extra_data is None else extra_data) + DELIMITER + inside_data
 
     available_size = max_bits_to_hide(outside, num_lsb, 4 if use_alpha else 3)
@@ -112,5 +112,11 @@ def bytes_in_max_file_size(image: 'Image', num_lsb: int, channel: int = 3):
 
 def cal_required_size(outside: 'Image', inside_size: int, num_lsb: int, extra_data_length: int = 1, use_alpha: bool = False):
     """使用`inside`文件属性提供的大小计算隐写所需比特数"""
-    file_size_tag = inside_size.to_bytes(bytes_in_max_file_size(outside, num_lsb, 4 if use_alpha else 3), byteorder=byteorder)
+    file_size_tag = inside_size.to_bytes(cal_bit_length(outside, inside_size, num_lsb, use_alpha), byteorder=byteorder)
     return (len(file_size_tag) + DELIMITER_LEN + (1 if extra_data_length is None else extra_data_length) + inside_size) * 8
+
+
+def cal_bit_length(outside: 'Image', inside_size: int, num_lsb: int, use_alpha: bool = False):
+    minimum_length = (inside_size.bit_length() + 7) // 8
+    maximum_available = bytes_in_max_file_size(outside, num_lsb, 4 if use_alpha else 3)
+    return minimum_length if minimum_length > maximum_available else maximum_available

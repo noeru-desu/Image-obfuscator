@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-12 16:50:59
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-27 13:00:32
+LastEditTime : 2022-12-05 11:34:26
 """
 from os import getenv
 from os.path import join
@@ -36,8 +36,8 @@ BETA = 3
 ALPHA = 4
 VERSION_TYPE = BETA
 VERSION = '2.2.0'
-PRE_RELEASE_VERSION = 'beta.6'
-BATCH = '20221127a'
+PRE_RELEASE_VERSION = 'beta.7'
+BATCH = '20221205a'
 BUILD_METADATA = BATCH # 'build.1' / BATCH
 COMPILED = False
 BRANCH = 'dev/2.x'
