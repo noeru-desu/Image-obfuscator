@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-11-26 09:14:39
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-26 16:21:32
+LastEditTime : 2022-12-05 10:02:54
 """
 from atexit import register
 from os import makedirs, remove, listdir
@@ -52,7 +52,7 @@ class CompressedFileManager(object):
             makedirs(self.temp_dir)
         else:
             for i in listdir(self.temp_dir):
-                remove(i)
+                remove(join(self.temp_dir, i))
         self.cache: dict[str, CompressedFile] = {}
         register(self.clear_cache)
 
