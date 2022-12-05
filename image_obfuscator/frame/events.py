@@ -471,6 +471,7 @@ class MainFrame(BasicMainFrame):
     def exit(self, event):
         self.Hide()
         if not self.startup_parameters.test:
+            self.preview_generator.preview_thread.pause()
             if self.startup_parameters.record_interface_settings:
                 self.config.save_frame_settings()
             if self.startup_parameters.record_password_dict:
