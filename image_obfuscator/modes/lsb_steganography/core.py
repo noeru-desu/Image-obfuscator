@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-11-20 12:33:03
 LastEditors  : noeru_desu
-LastEditTime : 2022-12-05 10:53:12
+LastEditTime : 2022-12-06 09:15:42
 """
 from sys import byteorder
 from typing import TYPE_CHECKING, Optional
@@ -112,8 +112,7 @@ def bytes_in_max_file_size(image: 'Image', num_lsb: int, channel: int = 3):
 
 def cal_required_size(outside: 'Image', inside_size: int, num_lsb: int, extra_data_length: int = 1, use_alpha: bool = False):
     """使用`inside`文件属性提供的大小计算隐写所需比特数"""
-    file_size_tag = inside_size.to_bytes(cal_bit_length(outside, inside_size, num_lsb, use_alpha), byteorder=byteorder)
-    return (len(file_size_tag) + DELIMITER_LEN + (1 if extra_data_length is None else extra_data_length) + inside_size) * 8
+    return (cal_bit_length(outside, inside_size, num_lsb, use_alpha) + DELIMITER_LEN + (1 if extra_data_length is None else extra_data_length) + inside_size) * 8
 
 
 def cal_bit_length(outside: 'Image', inside_size: int, num_lsb: int, use_alpha: bool = False):
