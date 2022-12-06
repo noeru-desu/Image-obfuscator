@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2022-11-20 18:35:11
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-26 16:22:00
+LastEditTime : 2022-12-06 15:43:15
 """
 from os.path import isfile
 from traceback import format_exc
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
-from wx import FileDropTarget, ID_CANCEL, ID_APPLY, ID_OK, BLACK, ID_NO, ID_CANCEL
+from wx import FileDropTarget, ID_CANCEL, ID_APPLY, ID_OK, BLACK, ID_NO, ID_CANCEL, YES_NO
 from image_obfuscator.constants import LIGHT_RED
 
 from image_obfuscator.frame.controller import ProgressBar
@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from image_obfuscator.modes.base import ModeConstants
     from image_obfuscator.modes.lsb_steganography import ModeInterface
     from image_obfuscator.modes.lsb_steganography.controller import LsbModeController
+    from image_obfuscator.modes.lsb_steganography.utils import CompressedFile
 
 
 class ProcSettingsPanel(BaseModeSettingsPanel, BaseProcSettingsPanel):
@@ -187,18 +188,22 @@ class CompressionDialog(CD, SupportConstantProperty):
             self.delCompressBtn.Disable()
 
     def compress(self, event):
+        self.compressBtn.Disable()
         self.info.SetLabelText('正在压缩')
-        self.compressed_file = self.mode_interface.compressed_file_manager.compress_file(
-            self.mode_controller.inside_file,
+        self.compress_thread.start_new(
+            self.mode_interface.compressed_file_manager.compress_file,
+            self.compress_callback,
+            (self.mode_controller.inside_file,
             self.compressor[self.compressionAlgorithm.GetSelection()],
-            self.compressionLevel.GetValue()
+            self.compressionLevel.GetValue())
         )
+
+    def compress_callback(self, err, compressed_file: Optional['CompressedFile']):
+        self.compressed_file = compressed_file
         if self.compressed_file is None:
             self.file_not_found()
             return
-        self.info.SetLabelText('完成')
         self.compressionRatio.SetLabelText(self.compressed_file.compression_percentage)
-        self.compressBtn.Disable()
         self.recompressBtn.Enable()
         self.delCompressBtn.Enable()
         self.check_compression_ratio()
@@ -214,15 +219,25 @@ class CompressionDialog(CD, SupportConstantProperty):
         self.info.SetLabelText('')
 
     def recompress(self, event):
+        self.recompressBtn.Disable()
+        self.delCompressBtn.Disable()
         self.info.SetLabelText('正在重新压缩')
-        self.compressed_file = self.mode_interface.compressed_file_manager.recompress_data(
-            self.mode_controller.inside_file,
+        self.compressed_file = None
+        self.compress_thread.start_new(
+            self.mode_interface.compressed_file_manager.recompress_data,
+            self.recompress_callback,
+            (self.mode_controller.inside_file,
             self.compressor[self.compressionAlgorithm.GetSelection()],
-            self.compressionLevel.GetValue()
+            self.compressionLevel.GetValue())
         )
+
+    def recompress_callback(self, err, compressed_file: Optional['CompressedFile']):
+        self.compressed_file = compressed_file
         if self.compressed_file is None:
             self.file_not_found()
             return
+        self.recompressBtn.Enable()
+        self.delCompressBtn.Enable()
         self.compressionRatio.SetLabelText(self.compressed_file.compression_percentage)
         self.check_compression_ratio()
 
@@ -232,7 +247,7 @@ class CompressionDialog(CD, SupportConstantProperty):
             self.info.SetLabelText('压缩率大于等于100%时, 不建议压缩所选文件')
         else:
             self.compressionRatio.SetForegroundColour(BLACK)
-            self.info.SetLabelText('完成')
+            self.info.SetLabelText(f'{self.compressed_file.compressor}压缩完成')
 
     def file_not_found(self):
         self.compressBtn.Disable()
@@ -242,6 +257,13 @@ class CompressionDialog(CD, SupportConstantProperty):
         self.info.SetLabelText('所选文件不存在')
 
     def exit(self, event: 'CloseEvent'):
+        if self.compress_thread.is_alive:
+            code = self.main_frame.dialog.confirmation_frame(
+                '压缩尚未完成, 确定退出吗', '压缩未完成', style=YES_NO, parent=self
+            )
+            if code == ID_NO:
+                return
+            self.compress_thread.kill()
         if self.compressed_file is not None and self.compressed_file.compression_ratio > 1:
             code = self.main_frame.dialog.confirmation_frame(
                 '压缩率大于100%, 使用原始数据可以占用更少的像素。\n确定要使用压缩后的数据吗',
