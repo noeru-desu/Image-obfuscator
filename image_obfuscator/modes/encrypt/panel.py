@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-05-28 18:35:11
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-28 21:55:50
+LastEditTime : 2023-01-29 11:04:37
 """
 from typing import TYPE_CHECKING
 
@@ -30,11 +30,13 @@ class ProcSettingsPanel(BaseModeSettingsPanel, BaseProcSettingsPanel):
         self.main_frame.settings_changed(event)
 
     def cutting_col_changed(self, event):
-        self.mode_controller.set_width_factors_tip(event.Int)
+        if self.main_frame.image_item is not None:
+            self.mode_controller.set_width_factors_tip(event.Int)
         self.main_frame.settings_changed(event)
 
     def cutting_row_changed(self, event):
-        self.mode_controller.set_height_factors_tip(event.Int)
+        if self.main_frame.image_item is not None:
+            self.mode_controller.set_height_factors_tip(event.Int)
         self.main_frame.settings_changed(event)
 
     def toggle_factor_slider_switch(self, event: 'CommandEvent'):
