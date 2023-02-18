@@ -2,16 +2,18 @@
 Author       : noeru_desu
 Date         : 2021-11-06 19:06:56
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-25 08:33:32
+LastEditTime : 2023-02-03 17:25:53
 """
 from base64 import b85encode
+from os import listdir, startfile
+from os.path import isdir
 from pickle import dumps as pickle_dumps, HIGHEST_PROTOCOL
 from typing import TYPE_CHECKING, Optional, Union
 
 from PIL.ImageGrab import grabclipboard
-from wx import VERTICAL, CallAfter
+from wx import VERTICAL, YES_NO, ID_YES, CallAfter
 
-from image_obfuscator.constants import DO_NOT_REFRESH, AUTO_REFRESH, EXTENSION_KEYS, EXTENSION_KEYS_STRING, LOSSY_FORMATS
+from image_obfuscator.constants import DO_NOT_REFRESH, AUTO_REFRESH, EXTENSION_KEYS, EXTENSION_KEYS_STRING, LOSSY_FORMATS, LOCAL_APPDATA_TEMP
 from image_obfuscator.frame.file_item import FolderItem, ImageItem, ImageItemCache, PreviewCache
 from image_obfuscator.frame.main_frame import MainFrame as BasicMainFrame
 from image_obfuscator.modes.mirage_tank.settings import Settings as MirageTankSettings
@@ -33,7 +35,7 @@ class MainFrame(BasicMainFrame):
 
     def on_move_end(self, event):
         if self.resized:
-            if self.startup_parameters.final_layout_widgets:
+            if self.program_options.final_layout_widgets:
                 self.Layout()
             if self.image_item is not None and self.controller.preview_layout == 2 and self.controller.displayed_preview == 2:
                 self.set_preview_layout(self.image_item.best_layout)
@@ -55,7 +57,7 @@ class MainFrame(BasicMainFrame):
 
     def on_size(self, event: 'SizeEvent'):
         self.resized = True
-        if not self.startup_parameters.final_layout_widgets:
+        if not self.program_options.final_layout_widgets:
             event.Skip()
 
     def change_displayed_preview(self, event: Union['CommandEvent', 'RadioBox']):
@@ -428,34 +430,62 @@ class MainFrame(BasicMainFrame):
         self.controller.save_subsampling_info = str(self.controller.save_subsampling_level)
 
     def change_redundant_cache_length(self, event: 'SpinEvent'):
-        self.startup_parameters.maximum_redundant_cache_length = event.Int
+        self.program_options.maximum_redundant_cache_length = event.Int
 
-    def toggle_low_memory_usage_mode(self, event: 'CommandEvent'):
-        self.startup_parameters.low_memory = event.IsChecked()
-        self.origImageCache.Enable(not event.IsChecked())
-        self.procResultCache.Enable(not event.IsChecked())
+    def change_temp_dir(self, event):
+        temp_dir = self.controller.temp_dir
+        if temp_dir.startswith(self.program_options.temp_dir):
+            self.dialog.async_warning('无法将当前缓存文件夹内的文件夹设为新的缓存文件夹')
+            return
+        if isdir(temp_dir):
+            if listdir(temp_dir) and (
+                self.dialog.confirmation_frame(
+                    '所选文件夹不为空, 若将所选文件夹作为临时文件夹, 文件夹内文件将被清空\n确定要将所选文件夹作为临时文件夹吗',
+                    '文件清空警告', YES_NO
+                ) != ID_YES
+            ):
+                self.controller.temp_dir = self.program_options.temp_dir
+                return
+        elif self.dialog.confirmation_frame(
+            '所选文件夹不存在, 要继续并自动创建文件夹吗',
+            '文件夹不存在', YES_NO
+        ) != ID_YES:
+            self.controller.temp_dir = self.program_options.temp_dir
+            return
+        self.program_options.temp_dir = temp_dir
+        self.dialog.info('新的缓存文件夹将在下次程序启动后被使用', '缓存文件夹预修改完成')
+
+    def show_image_info(self, event):
+        if self.image_item is not None:
+            self.dialog.image_info_dialog(self.image_item)
+
+    def toggle_no_extra_cache(self, event: 'CommandEvent'):
+        self.program_options.no_extra_data_cache = event.IsChecked()
 
     def toggle_disable_cache(self, event: 'CommandEvent'):
-        self.startup_parameters.disable_cache = event.IsChecked()
+        self.program_options.disable_cache = event.IsChecked()
 
     def toggle_record_interface_settings(self, event: 'CommandEvent'):
-        self.startup_parameters.record_interface_settings = event.IsChecked()
+        self.program_options.record_interface_settings = event.IsChecked()
 
     def toggle_record_password_dict(self, event: 'CommandEvent'):
-        self.startup_parameters.record_password_dict = event.IsChecked()
+        self.program_options.record_password_dict = event.IsChecked()
 
     def toggle_final_layout_widgets(self, event: 'CommandEvent'):
-        self.startup_parameters.final_layout_widgets = event.IsChecked()
+        self.program_options.final_layout_widgets = event.IsChecked()
 
     def change_maximum_orig_image_cache(self, event: 'SpinEvent'):
-        self.startup_parameters.maximum_orig_image_cache = event.Int
+        self.program_options.maximum_orig_image_cache = event.Int
         ImageItemCache.lru_cache_recorder.maxlen = MirageTankSettings.outside_image_cache.maxlen = event.Int
 
     def change_maximum_proc_result_cache(self, event: 'SpinEvent'):
-        self.startup_parameters.maximum_proc_result_cache = PreviewCache.lru_cache_recorder.maxlen = event.Int
+        self.program_options.maximum_proc_result_cache = PreviewCache.lru_cache_recorder.maxlen = event.Int
 
     def open_config_folder(self, event):
         self.config.open_config_folder()
+
+    def open_tamp_folder(self, event):
+        startfile(self.temp_dir_in_use)
 
     def edit_save_args_json(self, event):
         user_input = self.dialog.json_editor_dialog(
@@ -470,11 +500,11 @@ class MainFrame(BasicMainFrame):
 
     def exit(self, event):
         self.Hide()
-        if not self.startup_parameters.test:
+        if not self.program_options.test:
             self.preview_generator.preview_thread.pause()
-            if self.startup_parameters.record_interface_settings:
+            if self.program_options.record_interface_settings:
                 self.config.save_frame_settings()
-            if self.startup_parameters.record_password_dict:
+            if self.program_options.record_password_dict:
                 self.config.save_password_dict()
         self.logger.info('窗口退出')
         self.Destroy()

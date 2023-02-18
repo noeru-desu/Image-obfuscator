@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-11-13 21:43:57
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-26 16:07:15
+LastEditTime : 2023-01-20 21:20:04
 """
 from typing import TYPE_CHECKING
 
 from wx import CURSOR_ARROWWAIT, CURSOR_ARROW
 
-from image_obfuscator.constants import ORIG_IMAGE, SKIP_DISPLAY_PREVIEW
+from image_obfuscator.constants import EMPTY_IMAGE, ORIG_IMAGE, SKIP_DISPLAY_PREVIEW
 from image_obfuscator.modules.image import ImageData, PillowImage
 from image_obfuscator.utils.thread import SingleThreadExecutor
 
@@ -35,9 +35,13 @@ class PreviewGenerator(object):
         mode_interface = image_item.proc_mode
         self.frame.controller.preview_panel_title = '处理结果-预览图 [正在生成]'
         self.frame.set_cursor(CURSOR_ARROWWAIT)
+        loaded_image = image_item.cache.loaded_image
+        if loaded_image is EMPTY_IMAGE:
+            self._generate_preview_call_back(None, None)
+            return
         if mode_interface.always_use_orig_image or self.frame.controller.preview_source == ORIG_IMAGE:
             self.preview_thread.add_task(mode_interface.proc_image, (
-                image_item.cache.loaded_image, True, PillowImage,
+                loaded_image, True, PillowImage,
                 *image_item.available_settings_inst, self.frame.previewProgressInfo.SetLabelText, self.frame.previewProgress
             ), cb=self._generate_preview_call_back, cb_args=(image_item.scalable_cache_hash,))
         else:
@@ -47,7 +51,7 @@ class PreviewGenerator(object):
             ), cb=self._generate_preview_call_back, cb_args=(image_item.normal_cache_hash,))
 
     def _generate_preview_call_back(self, result: 'WrappedImage', cache_hash):
-        if __debug__:
+        if __debug__ and isinstance(result, tuple):
             result, error = result
             if error is not None:
                 self.frame.dialog.async_error(error, '生成加密图像时出现意外错误')

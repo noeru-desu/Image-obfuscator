@@ -2,10 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2022-09-04 20:23:34
+LastEditTime : 2023-01-21 12:39:43
 """
+from atexit import register
+from os import listdir, makedirs, remove
 from os.path import isdir, isfile, join, split
-from typing import TYPE_CHECKING, Iterable, overload
+from weakref import ref as weak_ref
+from typing import TYPE_CHECKING, Iterable, Optional, overload
 # from zipfile import is_zipfile
 
 from PIL import Image
@@ -15,7 +18,7 @@ from natsort import os_sort_key
 from image_obfuscator.constants import EXTENSION_KEYS, DialogReturnCodes
 from image_obfuscator.frame.controller import ProgressBar
 from image_obfuscator.frame.file_item import ImageItem, PathData
-from image_obfuscator.modules.image import open_image
+from image_obfuscator.modules.image import open_image, weak_ref_cache
 from image_obfuscator.modules.decorator import catch_exc_and_return
 from image_obfuscator.utils.misc_utils import walk_file
 from image_obfuscator.utils.thread import SingleThreadExecutor
@@ -89,18 +92,19 @@ class ImageLoader(object):
         """加载`Image`实例"""
         self.frame.loadingPanel.Disable()
         cache = True
-        if self.frame.startup_parameters.low_memory:
-            match self.frame.dialog.confirmation_frame('是否将该剪切板中的图像缓存在内存中?', cancel='取消载入'):
-                case DialogReturnCodes.yes:
-                    cache = True
-                case DialogReturnCodes.no:
-                    cache = False
-                case _:
-                    self.frame.stop_loading_func.init()
-                    return
+        match self.frame.dialog.confirmation_frame('是否将当前剪切板中的图像数据缓存在磁盘中?', cancel='取消载入'):
+            case DialogReturnCodes.yes:
+                cache = True
+            case DialogReturnCodes.no:
+                cache = False
+            case _:
+                self.frame.stop_loading_func.init()
+                return
         self.clipboard_count += 1
         name = f'clipboard-{self.clipboard_count}'
-        image_item = ImageItem(image.convert('RGBA'), PathData('', '', name), no_file=True, keep_cache_loaded_image=cache)
+        if cache:
+            self.frame.image_disk_cache.add(image, name)
+        image_item = ImageItem(image.convert('RGBA'), PathData('', '', name), no_file=True, cached_on_disk=cache)
         item_id = self.frame.tree_manager.add_file(image_item, '', '', name)
         self.frame.stop_loading_func.init()
         return item_id
@@ -152,7 +156,7 @@ class ImageLoader(object):
             item_id = self.frame.tree_manager.add_file(image_item, path_chosen)
             image_item.load_encryption_attributes_from_file()
         else:
-            self._output_image_loading_failure_info(error, file_name=split(path_chosen)[1])
+            self._output_image_loading_failure_info(error.info, file_name=split(path_chosen)[1])
             item_id = None
         self.frame.stop_loading_func.init()
         return item_id
@@ -205,7 +209,7 @@ class ImageLoader(object):
                     loaded_num += 1
                 else:
                     load_failures += 1
-                    self._output_image_loading_failure_info(error, False, n)
+                    self._output_image_loading_failure_info(error.info, False, n)
 
         self.finish_loading_progress()
         self.frame.stop_loading_func.init()
@@ -299,3 +303,47 @@ class ImageLoader(object):
         else:
             self.frame.loadingProgress.SetValue(100)
         self.frame.controller.loading_progress_info = f'{self.file_count}/{self.file_count} - 100%'
+
+
+class ImageDiskCache(object):
+    __slots__ = ('frame', 'temp_dir', 'cached_images')
+
+    def __init__(self, frame: 'MainFrame') -> None:
+        self.frame = frame
+        self.temp_dir = join(self.frame.program_options.temp_dir, 'image')
+        if isdir(self.temp_dir):
+            for i in listdir(self.temp_dir):
+                remove(i)
+        else:
+            makedirs(self.temp_dir)
+        self.cached_images: dict[str, str] = {}
+        register(self.clear_cache)
+
+    def clear_cache(self):
+        for i in self.cached_images.values():
+            remove(i)
+        self.cached_images.clear()
+
+    def add(self, image: 'Image.Image', cache_name: str, add_to_weak_ref_cache = True) -> 'PathLike[str]':
+        if cache_name in self.cached_images:
+            raise KeyError(f'A cache named {cache_name} already exists.')
+        self.cached_images[cache_name] = cache_path = join(self.temp_dir, cache_name)
+        image.save(cache_path, 'png', compress_level=0)
+        if add_to_weak_ref_cache:
+            weak_ref_cache.record(cache_path, weak_ref(image))
+        return cache_path
+
+    def remove(self, cache_name: str) -> Optional['PathLike[str]']:
+        if cache_name not in self.cached_images:
+            return None
+        cache_path = self.cached_images.pop(cache_name)
+        remove(cache_path)
+        return cache_path
+
+    def get(self, cache_name: str) -> Optional['Image.Image']:
+        if cache_name not in self.cached_images:
+            return None
+        return open_image(self.cached_images[cache_name])
+
+    def get_cache_path(self, cache_name: str):
+        return self.cached_images[cache_name]

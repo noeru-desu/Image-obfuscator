@@ -83,7 +83,10 @@ class MainFrame (wx.Frame):
         self.imageInfo = wx.StaticText(self.loadingPanel, wx.ID_ANY, u"未选择图像", wx.DefaultPosition, wx.DefaultSize, 0)
         self.imageInfo.Wrap(-1)
 
-        bSizer91.Add(self.imageInfo, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        bSizer91.Add(self.imageInfo, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+
+        self.m_button29 = wx.Button(self.loadingPanel, wx.ID_ANY, u"查看图像信息", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer91.Add(self.m_button29, 0, wx.ALL, 5)
 
         self.loadingPanel.SetSizer(bSizer91)
         self.loadingPanel.Layout()
@@ -225,16 +228,24 @@ class MainFrame (wx.Frame):
 
         bSizer282.Add(self.SettingsSourceUsed, 1, wx.EXPAND, 5)
 
-        self.m_staticText12 = wx.StaticText(self.processingOptions, wx.ID_ANY, u"密码", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.passwordPanel = wx.Panel(self.processingOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        bSizer60 = wx.BoxSizer(wx.VERTICAL)
+
+        self.m_staticText12 = wx.StaticText(self.passwordPanel, wx.ID_ANY, u"密码", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText12.Wrap(-1)
 
-        bSizer282.Add(self.m_staticText12, 0, wx.ALIGN_CENTER | wx.ALL, 2)
+        bSizer60.Add(self.m_staticText12, 0, wx.ALIGN_CENTER | wx.ALL, 2)
 
-        self.passwordCtrl = wx.TextCtrl(self.processingOptions, wx.ID_ANY, u"none", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_NO_VSCROLL | wx.TE_PROCESS_ENTER)
+        self.passwordCtrl = wx.TextCtrl(self.passwordPanel, wx.ID_ANY, u"none", wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_NO_VSCROLL | wx.TE_PROCESS_ENTER)
         self.passwordCtrl.SetMaxLength(32)
         self.passwordCtrl.SetToolTip(u"none表示不使用密码，密码长度不可超过32字节")
 
-        bSizer282.Add(self.passwordCtrl, 0, 0, 0)
+        bSizer60.Add(self.passwordCtrl, 0, 0, 0)
+
+        self.passwordPanel.SetSizer(bSizer60)
+        self.passwordPanel.Layout()
+        bSizer60.Fit(self.passwordPanel)
+        bSizer282.Add(self.passwordPanel, 0, wx.EXPAND, 5)
 
         bSizer12.Add(bSizer282, 0, wx.EXPAND, 5)
 
@@ -593,14 +604,33 @@ class MainFrame (wx.Frame):
 
         sbSizer7.Add(bSizer481, 0, wx.EXPAND, 5)
 
+        self.m_button28 = wx.Button(sbSizer7.GetStaticBox(), wx.ID_ANY, u"打开临时缓存文件夹", wx.DefaultPosition, wx.DefaultSize, 0)
+        sbSizer7.Add(self.m_button28, 0, 0, 5)
+
         bSizer47.Add(sbSizer7, 1, wx.ALL | wx.EXPAND, 5)
 
         bSizer74.Add(bSizer47, 0, wx.EXPAND, 5)
 
         self.m_panel25 = wx.Panel(self.otherOptions, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.m_panel25.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行")
+        sbSizer17 = wx.StaticBoxSizer(wx.StaticBox(self.m_panel25, wx.ID_ANY, u"程序设置"), wx.VERTICAL)
 
-        sbSizer17 = wx.StaticBoxSizer(wx.StaticBox(self.m_panel25, wx.ID_ANY, u"启动参数"), wx.HORIZONTAL)
+        bSizer62 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText31 = wx.StaticText(sbSizer17.GetStaticBox(), wx.ID_ANY, u"临时文件存储路径", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText31.Wrap(-1)
+
+        self.m_staticText31.SetToolTip(u"临时文件存储路径: 缓存在磁盘中的文件的存储路径，该文件夹将在程序启动与正常退出时被清空。如需更改，建议择一个新的空文件夹")
+
+        bSizer62.Add(self.m_staticText31, 0, wx.ALL, 4)
+
+        self.tempDir = wx.DirPickerCtrl(sbSizer17.GetStaticBox(), wx.ID_ANY, wx.EmptyString, u"Select a folder", wx.DefaultPosition, wx.DefaultSize, wx.DIRP_DEFAULT_STYLE | wx.DIRP_DIR_MUST_EXIST)
+        self.tempDir.SetToolTip(u"临时文件存储路径: 缓存在磁盘中的文件的存储路径，该文件夹将在程序启动与正常退出时被清空。如需更改，建议择一个新的空文件夹")
+
+        bSizer62.Add(self.tempDir, 1, wx.EXPAND, 5)
+
+        sbSizer17.Add(bSizer62, 0, wx.EXPAND, 5)
+
+        bSizer61 = wx.BoxSizer(wx.HORIZONTAL)
 
         bSizer45 = wx.BoxSizer(wx.VERTICAL)
 
@@ -609,81 +639,83 @@ class MainFrame (wx.Frame):
         self.m_staticText34 = wx.StaticText(sbSizer17.GetStaticBox(), wx.ID_ANY, u"预览图冗余缓存量", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText34.Wrap(-1)
 
-        self.m_staticText34.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n预览图冗余缓存量: 使用加密模式时缓存多个不同加密设置下的处理结果，在取消选中时会仅保留最新的结果，其余结果将从缓存中删除")
+        self.m_staticText34.SetToolTip(u"预览图冗余缓存量: 使用加密模式时缓存多个不同加密设置下的处理结果，在取消选中时会仅保留最新的结果，其余结果将从缓存中删除")
 
         bSizer75.Add(self.m_staticText34, 0, wx.ALL, 4)
 
-        self.redundantCacheLength = wx.SpinCtrl(sbSizer17.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 1, 20, 5)
-        self.redundantCacheLength.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n预览图冗余缓存量: 使用加密模式时缓存多个不同加密设置下的处理结果，在取消选中时会仅保留最新的结果，其余结果将从缓存中删除")
+        self.redundantCacheLength = wx.SpinCtrl(sbSizer17.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 1, 20, 5)
+        self.redundantCacheLength.SetToolTip(u"预览图冗余缓存量: 使用加密模式时缓存多个不同加密设置下的处理结果，在取消选中时会仅保留最新的结果，其余结果将从缓存中删除")
 
-        bSizer75.Add(self.redundantCacheLength, 0, wx.EXPAND, 0)
+        bSizer75.Add(self.redundantCacheLength, 1, wx.EXPAND, 0)
 
         bSizer45.Add(bSizer75, 0, wx.EXPAND, 5)
-
-        self.lowMemoryMode = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"低内存占用模式", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.lowMemoryMode.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n低内存占用模式: 取消选中图像项目时，不缓存原始图像数据(在需要时重新加载)、不缓存图像处理结果(在需要时重新生成)")
-
-        bSizer45.Add(self.lowMemoryMode, 0, wx.ALL, 5)
-
-        self.recordInterfaceSettings = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"记录界面设置", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.recordInterfaceSettings.SetValue(True)
-        self.recordInterfaceSettings.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n记录界面设置: 在退出时记录界面设置, 并在下次启动时回溯界面")
-
-        bSizer45.Add(self.recordInterfaceSettings, 0, wx.ALL, 5)
-
-        self.recordPasswordDict = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"记录密码字典", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.recordPasswordDict.SetValue(True)
-        self.recordPasswordDict.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n记录密码字典: 在退出时保存密码字典, 并在下次启动时重新载入")
-
-        bSizer45.Add(self.recordPasswordDict, 0, wx.ALL, 5)
-
-        self.disableCache = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"禁止使用缓存", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.disableCache.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n禁止使用缓存: 与低内存占用模式不同，开启此选项后仍会保存缓存，但会在请求处理结果缓存时忽略缓存")
-
-        bSizer45.Add(self.disableCache, 0, wx.ALL, 5)
-
-        sbSizer17.Add(bSizer45, 0, wx.EXPAND, 5)
-
-        bSizer46 = wx.BoxSizer(wx.VERTICAL)
-
-        self.finalLayoutWidgets = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"不实时刷新部件大小", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.finalLayoutWidgets.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n不实时刷新部件大小: 在拖动更改窗口大小时不实时刷新部件大小，而是在拖动结束后刷新")
-
-        bSizer46.Add(self.finalLayoutWidgets, 0, wx.ALL, 5)
 
         bSizer571 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.m_staticText2911 = wx.StaticText(sbSizer17.GetStaticBox(), wx.ID_ANY, u"原始图像缓存上限", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText2911.Wrap(-1)
 
-        self.m_staticText2911.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n原始图像缓存上限: 未开启低内存占用模式时, 可缓存原始图像数据的数量上限。0为无限制")
+        self.m_staticText2911.SetToolTip(u"原始图像缓存上限: 可缓存原始图像数据的数量上限。0为无限制")
 
         bSizer571.Add(self.m_staticText2911, 0, wx.ALL, 4)
 
         self.origImageCache = wx.SpinCtrl(sbSizer17.GetStaticBox(), wx.ID_ANY, u"20", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 0, 1000, 20)
-        self.origImageCache.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n原始图像缓存上限: 未开启低内存占用模式时, 可缓存原始图像数据的数量上限。0为无限制")
+        self.origImageCache.SetToolTip(u"原始图像缓存上限: 可缓存原始图像数据的数量上限。0为无限制")
 
         bSizer571.Add(self.origImageCache, 0, wx.EXPAND, 0)
 
-        bSizer46.Add(bSizer571, 0, wx.EXPAND, 5)
+        bSizer45.Add(bSizer571, 0, wx.EXPAND, 5)
 
         bSizer57 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.m_staticText291 = wx.StaticText(sbSizer17.GetStaticBox(), wx.ID_ANY, u"处理结果缓存上限", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText291.Wrap(-1)
 
-        self.m_staticText291.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n处理结果缓存上限：未开启低内存占用模式时, 可缓存处理结果数据的数量上限。0为无限制")
+        self.m_staticText291.SetToolTip(u"处理结果缓存上限: 可缓存处理结果数据的数量上限。0为无限制")
 
         bSizer57.Add(self.m_staticText291, 0, wx.ALL, 4)
 
         self.procResultCache = wx.SpinCtrl(sbSizer17.GetStaticBox(), wx.ID_ANY, u"20", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_HORIZONTAL | wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER, 0, 1000, 20)
-        self.procResultCache.SetToolTip(u"热更改启动参数注意事项：\n热更改时不会立即将更改应用到所有已加载项目\n - 如开关低内存占用模式时，不会立即对所有已加载项目创建/清除缓存，而是在切换各项目时进行\n\n处理结果缓存上限：未开启低内存占用模式时, 可缓存处理结果数据的数量上限。0为无限制")
+        self.procResultCache.SetToolTip(u"处理结果缓存上限: 可缓存处理结果数据的数量上限。0为无限制")
 
         bSizer57.Add(self.procResultCache, 0, wx.EXPAND, 0)
 
-        bSizer46.Add(bSizer57, 0, wx.EXPAND, 5)
+        bSizer45.Add(bSizer57, 0, wx.EXPAND, 5)
 
-        sbSizer17.Add(bSizer46, 0, wx.EXPAND, 5)
+        self.noExtraDataCache = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"切换时不保留数据缓存", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.noExtraDataCache.SetToolTip(u"切换时不保留数据缓存: 取消选中图像项目时，不缓存原始预览图、不缓存已读取的加密参数。原始图像与处理结果不受影响\n\n注意：该设置在更改后不会立刻删除所有已存在的图像项目的缓存")
+
+        bSizer45.Add(self.noExtraDataCache, 0, wx.ALL, 5)
+
+        self.disableCache = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"禁止使用缓存", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.disableCache.SetToolTip(u"禁止使用缓存: 与其他缓存限制不同，开启此选项后仍会保存缓存，但会在请求处理结果缓存时忽略缓存")
+
+        bSizer45.Add(self.disableCache, 0, wx.ALL, 5)
+
+        bSizer61.Add(bSizer45, 0, wx.EXPAND, 5)
+
+        bSizer46 = wx.BoxSizer(wx.VERTICAL)
+
+        self.finalLayoutWidgets = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"不实时刷新部件大小", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.finalLayoutWidgets.SetToolTip(u"不实时刷新部件大小: 在拖动更改窗口大小时不实时刷新部件大小，而是在拖动结束后刷新")
+
+        bSizer46.Add(self.finalLayoutWidgets, 0, wx.ALL, 5)
+
+        self.recordInterfaceSettings = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"记录界面设置", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.recordInterfaceSettings.SetValue(True)
+        self.recordInterfaceSettings.SetToolTip(u"记录界面设置: 在退出时记录界面设置, 并在下次启动时回溯界面")
+
+        bSizer46.Add(self.recordInterfaceSettings, 0, wx.ALL, 5)
+
+        self.recordPasswordDict = wx.CheckBox(sbSizer17.GetStaticBox(), wx.ID_ANY, u"记录密码字典", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.recordPasswordDict.SetValue(True)
+        self.recordPasswordDict.SetToolTip(u"记录密码字典: 在退出时保存密码字典, 并在下次启动时重新载入")
+
+        bSizer46.Add(self.recordPasswordDict, 0, wx.ALL, 5)
+
+        bSizer61.Add(bSizer46, 0, wx.EXPAND, 5)
+
+        sbSizer17.Add(bSizer61, 1, wx.EXPAND, 5)
 
         self.m_panel25.SetSizer(sbSizer17)
         self.m_panel25.Layout()
@@ -713,6 +745,7 @@ class MainFrame (wx.Frame):
         self.loadingFileBtn.Bind(wx.EVT_BUTTON, self.load_file)
         self.m_button6.Bind(wx.EVT_BUTTON, self.load_dir)
         self.loadingClipboardBtn.Bind(wx.EVT_BUTTON, self.load_image_from_clipboard)
+        self.m_button29.Bind(wx.EVT_BUTTON, self.show_image_info)
         self.delBtn.Bind(wx.EVT_BUTTON, self.del_item)
         self.reloadingBtn.Bind(wx.EVT_BUTTON, self.reload_item)
         self.expandAllBtn.Bind(wx.EVT_BUTTON, self.expand_all_item)
@@ -741,17 +774,19 @@ class MainFrame (wx.Frame):
         self.subsamplingLevel.Bind(wx.EVT_SCROLL, self.update_subsampling_num)
         self.m_button18.Bind(wx.EVT_BUTTON, self.edit_save_args_json)
         self.m_button23.Bind(wx.EVT_BUTTON, self.open_config_folder)
+        self.m_button28.Bind(wx.EVT_BUTTON, self.open_tamp_folder)
+        self.tempDir.Bind(wx.EVT_DIRPICKER_CHANGED, self.change_temp_dir)
         self.redundantCacheLength.Bind(wx.EVT_SPINCTRL, self.change_redundant_cache_length)
         self.redundantCacheLength.Bind(wx.EVT_TEXT_ENTER, self.change_redundant_cache_length)
-        self.lowMemoryMode.Bind(wx.EVT_CHECKBOX, self.toggle_low_memory_usage_mode)
-        self.recordInterfaceSettings.Bind(wx.EVT_CHECKBOX, self.toggle_record_interface_settings)
-        self.recordPasswordDict.Bind(wx.EVT_CHECKBOX, self.toggle_record_password_dict)
-        self.disableCache.Bind(wx.EVT_CHECKBOX, self.toggle_disable_cache)
-        self.finalLayoutWidgets.Bind(wx.EVT_CHECKBOX, self.toggle_final_layout_widgets)
         self.origImageCache.Bind(wx.EVT_SPINCTRL, self.change_maximum_orig_image_cache)
         self.origImageCache.Bind(wx.EVT_TEXT_ENTER, self.change_maximum_orig_image_cache)
         self.procResultCache.Bind(wx.EVT_SPINCTRL, self.change_maximum_proc_result_cache)
         self.procResultCache.Bind(wx.EVT_TEXT_ENTER, self.change_maximum_proc_result_cache)
+        self.noExtraDataCache.Bind(wx.EVT_CHECKBOX, self.toggle_no_extra_cache)
+        self.disableCache.Bind(wx.EVT_CHECKBOX, self.toggle_disable_cache)
+        self.finalLayoutWidgets.Bind(wx.EVT_CHECKBOX, self.toggle_final_layout_widgets)
+        self.recordInterfaceSettings.Bind(wx.EVT_CHECKBOX, self.toggle_record_interface_settings)
+        self.recordPasswordDict.Bind(wx.EVT_CHECKBOX, self.toggle_record_password_dict)
 
     def __del__(self):
         pass
@@ -779,6 +814,9 @@ class MainFrame (wx.Frame):
         event.Skip()
 
     def load_image_from_clipboard(self, event):
+        event.Skip()
+
+    def show_image_info(self, event):
         event.Skip()
 
     def del_item(self, event):
@@ -862,16 +900,22 @@ class MainFrame (wx.Frame):
     def open_config_folder(self, event):
         event.Skip()
 
+    def open_tamp_folder(self, event):
+        event.Skip()
+
+    def change_temp_dir(self, event):
+        event.Skip()
+
     def change_redundant_cache_length(self, event):
         event.Skip()
 
-    def toggle_low_memory_usage_mode(self, event):
+    def change_maximum_orig_image_cache(self, event):
         event.Skip()
 
-    def toggle_record_interface_settings(self, event):
+    def change_maximum_proc_result_cache(self, event):
         event.Skip()
 
-    def toggle_record_password_dict(self, event):
+    def toggle_no_extra_cache(self, event):
         event.Skip()
 
     def toggle_disable_cache(self, event):
@@ -880,10 +924,10 @@ class MainFrame (wx.Frame):
     def toggle_final_layout_widgets(self, event):
         event.Skip()
 
-    def change_maximum_orig_image_cache(self, event):
+    def toggle_record_interface_settings(self, event):
         event.Skip()
 
-    def change_maximum_proc_result_cache(self, event):
+    def toggle_record_password_dict(self, event):
         event.Skip()
 
 
@@ -1292,6 +1336,148 @@ class ModifiedChoiceDialog (wx.Dialog):
         self.SetSizer(bSizer58)
         self.Layout()
         bSizer58.Fit(self)
+
+        self.Centre(wx.BOTH)
+
+    def __del__(self):
+        pass
+
+
+###########################################################################
+# Class ImageInfoDialog
+###########################################################################
+
+class ImageInfoDialog (wx.Dialog):
+    __slots__ = (
+        'imageExif', 'imageFormat', 'imageMemoryUsed', 'imagePath', 'imageSize', 'itemMemoryUsed', 'm_panel23', 'm_staticText33',
+        'm_staticText35', 'm_staticText36', 'm_staticText37', 'm_staticText38', 'm_staticText381', 'm_staticText53',
+        'm_staticline4', 'origImage'
+    )
+
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"当前图像信息", pos=wx.DefaultPosition, size=wx.Size(410, 220), style=wx.DEFAULT_DIALOG_STYLE)
+
+        self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
+
+        bSizer63 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.origImage = wx.StaticBitmap(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer63.Add(self.origImage, 1, wx.ALIGN_CENTER | wx.ALL, 5)
+
+        self.m_staticline4 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_VERTICAL)
+        bSizer63.Add(self.m_staticline4, 0, wx.ALL | wx.EXPAND, 5)
+
+        bSizer64 = wx.BoxSizer(wx.VERTICAL)
+
+        bSizer64.Add((0, 0), 0, wx.ALL, 5)
+
+        bSizer66 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText33 = wx.StaticText(self, wx.ID_ANY, u"载入路径", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText33.Wrap(-1)
+
+        bSizer66.Add(self.m_staticText33, 0, wx.ALL, 4)
+
+        self.imagePath = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_NO_VSCROLL | wx.TE_READONLY)
+        self.imagePath.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
+
+        bSizer66.Add(self.imagePath, 1, wx.ALIGN_CENTER_VERTICAL, 0)
+
+        bSizer64.Add(bSizer66, 0, wx.EXPAND, 5)
+
+        bSizer67 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText35 = wx.StaticText(self, wx.ID_ANY, u"图像格式(来自头信息):", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText35.Wrap(-1)
+
+        bSizer67.Add(self.m_staticText35, 0, wx.ALL, 4)
+
+        self.imageFormat = wx.StaticText(self, wx.ID_ANY, u"无", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.imageFormat.Wrap(-1)
+
+        bSizer67.Add(self.imageFormat, 0, wx.ALL, 4)
+
+        bSizer64.Add(bSizer67, 0, wx.EXPAND, 5)
+
+        bSizer68 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText36 = wx.StaticText(self, wx.ID_ANY, u"图像大小:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText36.Wrap(-1)
+
+        bSizer68.Add(self.m_staticText36, 0, wx.ALL, 4)
+
+        self.imageSize = wx.StaticText(self, wx.ID_ANY, u"无", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.imageSize.Wrap(-1)
+
+        bSizer68.Add(self.imageSize, 0, wx.ALL, 4)
+
+        bSizer64.Add(bSizer68, 0, wx.EXPAND, 5)
+
+        bSizer70 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText38 = wx.StaticText(self, wx.ID_ANY, u"EXIF:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText38.Wrap(-1)
+
+        bSizer70.Add(self.m_staticText38, 0, wx.ALL, 4)
+
+        self.imageExif = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_NO_VSCROLL | wx.TE_READONLY)
+        self.imageExif.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
+
+        bSizer70.Add(self.imageExif, 1, 0, 5)
+
+        bSizer64.Add(bSizer70, 0, wx.EXPAND, 5)
+
+        self.m_panel23 = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.m_panel23.Hide()
+
+        bSizer81 = wx.BoxSizer(wx.VERTICAL)
+
+        bSizer69 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText37 = wx.StaticText(self.m_panel23, wx.ID_ANY, u"原始数据内存占用:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText37.Wrap(-1)
+
+        bSizer69.Add(self.m_staticText37, 0, wx.ALL, 4)
+
+        self.imageMemoryUsed = wx.StaticText(self.m_panel23, wx.ID_ANY, u"无", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.imageMemoryUsed.Wrap(-1)
+
+        bSizer69.Add(self.imageMemoryUsed, 0, wx.ALL, 4)
+
+        bSizer81.Add(bSizer69, 0, wx.EXPAND, 5)
+
+        bSizer691 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText381 = wx.StaticText(self.m_panel23, wx.ID_ANY, u"当前项目总内存占用:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText381.Wrap(-1)
+
+        bSizer691.Add(self.m_staticText381, 0, wx.ALL, 4)
+
+        self.itemMemoryUsed = wx.StaticText(self.m_panel23, wx.ID_ANY, u"无", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.itemMemoryUsed.Wrap(-1)
+
+        bSizer691.Add(self.itemMemoryUsed, 0, wx.ALL, 4)
+
+        bSizer81.Add(bSizer691, 1, wx.EXPAND, 5)
+
+        self.m_staticText53 = wx.StaticText(self.m_panel23, wx.ID_ANY, u"内存占用量的准确性无法保证", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText53.Wrap(-1)
+
+        self.m_staticText53.SetForegroundColour(wx.Colour(255, 90, 15))
+
+        bSizer81.Add(self.m_staticText53, 0, wx.ALL, 4)
+
+        self.m_panel23.SetSizer(bSizer81)
+        self.m_panel23.Layout()
+        bSizer81.Fit(self.m_panel23)
+        bSizer64.Add(self.m_panel23, 1, wx.EXPAND, 5)
+
+        bSizer63.Add(bSizer64, 1, wx.EXPAND, 5)
+
+        bSizer63.Add((0, 0), 0, wx.ALL | wx.EXPAND, 5)
+
+        self.SetSizer(bSizer63)
+        self.Layout()
 
         self.Centre(wx.BOTH)
 

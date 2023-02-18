@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-19 19:46:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-26 16:06:55
+LastEditTime : 2023-01-21 10:50:21
 """
 from abc import ABC
 from gc import collect
@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Generator, Optional, Union
 
 from wx import BLACK, CURSOR_ARROWWAIT, CURSOR_ARROW, VERTICAL, HORIZONTAL, CallAfter
 
-from image_obfuscator.constants import LIGHT_RED, PIL_RESAMPLING_FILTERS
+from image_obfuscator.constants import EMPTY_IMAGE, LIGHT_RED, PIL_RESAMPLING_FILTERS
 from image_obfuscator.modes.base import EmptySettings
 from image_obfuscator.modules.image import cal_best_size, cal_best_scale, open_image
 from image_obfuscator.modules.version_adapter import load_encryption_attributes
@@ -20,9 +20,10 @@ from image_obfuscator.utils.misc_utils import LRUCache, LRUCacheRecord, add_to, 
 if TYPE_CHECKING:
     from PIL.Image import Image
     from wx import TreeItemId
+    from image_obfuscator.constants import ImageReadErrorInfo
     from image_obfuscator.frame.events import MainFrame
     from image_obfuscator.types import ModeInterface, ItemSettings, ItemEncryptionParameters, ScalableImageCacheHash, NormalImageCacheHash, ImageCacheHash
-    from image_obfuscator.modules.argparse import Parameters
+    from image_obfuscator.modules.argparse import Options
     from image_obfuscator.modules.image import WrappedImage
 
 
@@ -99,14 +100,14 @@ class PreviewCache(LRUCache):
     __slots__ = ()
 
     lru_cache_recorder = LRUCacheRecord()
-    startup_parameters: 'Parameters' = ...
+    program_options: 'Options' = ...
 
     def __init__(self) -> None:
-        super().__init__(self.startup_parameters.maximum_redundant_cache_length)
+        super().__init__(self.program_options.maximum_redundant_cache_length)
 
     @property
     def _maxlen(self):
-        return self.startup_parameters.maximum_redundant_cache_length
+        return self.program_options.maximum_redundant_cache_length
 
     @_maxlen.setter
     def _maxlen(self, v): pass
@@ -121,7 +122,7 @@ class ImageItemCache(object):
     )
     lru_cache_recorder = LRUCacheRecord()
 
-    def __init__(self, item: 'ImageItem', loaded_image: 'Image', force_cache: bool = False):
+    def __init__(self, item: 'ImageItem', loaded_image: 'Image'):
         """
         Args:
             item (ImageItem): `ImageItem`实例
@@ -135,11 +136,8 @@ class ImageItemCache(object):
         self._encryption_attributes: Optional['ImageEncryptionAttributes'] = None
         self._size_factors: Optional[tuple[int]] = None
         self.encryption_attributes_from_file = False
-        if force_cache or not self._item.frame.startup_parameters.low_memory:
-            self._loaded_image = loaded_image
-            self.lru_cache_recorder.record_cache(item.cache_id, self.loaded_image_cache_deleter)
-        else:
-            self._loaded_image = None
+        self._loaded_image = loaded_image
+        self.lru_cache_recorder.record_cache(item.cache_id, self.loaded_image_cache_deleter)
         self.loaded_image_size = loaded_image.size
         self._image_panel_size_for_best_layout = None
         self._best_layout = VERTICAL
@@ -148,29 +146,26 @@ class ImageItemCache(object):
     def loaded_image(self) -> 'Image':
         """已加载的图像数据
 
-        如果缓存中不存在, 将重新从文件中加载图像\n
-        使用低内存占用模式时注意, 如果项目未被选中, 则每次使用此属性时都将重新从文件中加载图像, 所以如果有使用的必要, 请使用临时变量存储获取到的实例
+        如果缓存中不存在, 将重新从文件中加载图像
 
         Returns:
             Image: `PIL.Image.Image`实例
         """
-        if self._loaded_image is None:
+        if self._loaded_image is None or self._loaded_image is EMPTY_IMAGE:
+            if __debug__:
+                self._item.frame.logger.debug(f'从磁盘上读取图像[{self._item.loaded_image_path}]')
             reload_encryption_attributes = self._item.loading_image_data_error is not None    # 是否需要在读取图像数据后读取加密参数
-            self._loaded_image, self._item.loading_image_data_error = open_image(self._item.loaded_image_path)
-            if self._item.loading_image_data_error is not None:
-                self._item.frame.dialog.async_error(self._item.loading_image_data_error, '重新载入图像时出现错误')
-                self._item.encrypted_image = False
-                self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, LIGHT_RED)
-            else:
+            self._loaded_image, loading_image_data_error = open_image(self._item.loaded_image_path)
+            if loading_image_data_error is None:
                 self.loaded_image_size = self._loaded_image.size
                 if reload_encryption_attributes:
                     self._item.load_encryption_attributes_from_file()
                 self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, BLACK)
-        if self._item.frame.startup_parameters.low_memory:
-            if not self._item.selected:  # 为防止低内存占用模式下的内存泄露, 在项目未被选中时不可缓存图像数据
-                loaded_image = self._loaded_image
-                self._loaded_image = None
-                return loaded_image
+            elif loading_image_data_error != self._item.loading_image_data_error:
+                self._item.loading_image_data_error = loading_image_data_error
+                self._item.frame.dialog.async_error(loading_image_data_error.info, '重新载入图像时出现错误')
+                self._item.encrypted_image = False
+                self._item.frame.imageTreeCtrl.SetItemTextColour(self._item.item_id, LIGHT_RED)
         else:
             self.lru_cache_recorder.record_cache(self._item.cache_id, self.loaded_image_cache_deleter)
         return self._loaded_image
@@ -181,6 +176,8 @@ class ImageItemCache(object):
 
     def loaded_image_cache_deleter(self):
         self._loaded_image = None
+        if __debug__:
+            self._item.frame.logger.debug(f'原始图像缓存被删除[{self._item.loaded_image_path}]')
 
     @property
     def encryption_attributes(self) -> 'ImageEncryptionAttributes':
@@ -219,16 +216,16 @@ class ImageItemCache(object):
         return self._size_factors
 
     def refresh_cache(self):
-        self.clear_cache()
+        self.clear_extra_cache()
         self.loaded_image_size = self.loaded_image.size
 
-    def clear_cache(self):
+    def clear_extra_cache(self):
         """清除缓存"""
         self.initial_preview = None
-        self.preview_cache.clear()
         self.preview_size = None
         self._encryption_attributes = None
         self.encryption_attributes_from_file = False
+        self._image_panel_size_for_best_layout = None
 
     def del_cache(self):
         """删除各缓存实例(不包括自身)"""
@@ -242,12 +239,12 @@ class ImageItemCache(object):
 class ImageItem(Item):
     """存储每个载入的图像的相关信息"""
     __slots__ = (
-        'cache', 'path_data', 'loaded_image_path', '_settings_dict', '_settings', 'item_id', 'selected',
-        'no_file', 'keep_cache_loaded_image', 'encrypted_image', 'loading_image_data_error', '_proc_mode',
-        'settings_source', 'cache_id'
+        'cache', 'path_data', '_loaded_image_path', '_settings_dict', '_settings', 'item_id', 'selected',
+        'no_file', 'encrypted_image', 'loading_image_data_error', '_proc_mode', 'settings_source',
+        'cache_id', 'cached_on_disk'
     )
 
-    def __init__(self, loaded_image: Optional['Image'], path_data: 'PathData', settings: 'ItemSettings' = ..., no_file=False, keep_cache_loaded_image=False):
+    def __init__(self, loaded_image: Optional['Image'], path_data: 'PathData', settings: 'ItemSettings' = ..., no_file=False, cached_on_disk=False):
         """
         Args:
             frame (MainFrame): `MainFrame`实例
@@ -255,13 +252,13 @@ class ImageItem(Item):
             path_data (PathData): 记录了图像原始文件路径的`PathData`实例
             settings (Settings, optional): 图像当前的加密设置(不给出时将使用当前的默认加密设置)
             no_file (bool, optional): 是否没有原始文件. `默认为False`
-            keep_cache_loaded_image (bool, optional): 是否在低内存占用模式下保留原始图像数据缓存(一般用于从剪切板加载的图像). 默认为`False`
+            cached_on_disk (bool, optional): 是否已将图像缓存到磁盘中
         """
         self.path_data = path_data
         self._proc_mode = self.frame.mode_manager.default_mode
         self.settings_source = 0
-        self.loaded_image_path = path_data.file_name if no_file else path_data.full_path
-        self.cache_id = hash(self.loaded_image_path)
+        self._loaded_image_path = path_data.file_name if no_file else path_data.full_path
+        self.cache_id = hash(self._loaded_image_path)
         self._settings_dict: dict[int, 'ItemSettings'] = {self.proc_mode.mode_id: self.frame.mode_manager.default_settings.copy() if settings is Ellipsis else settings}
         self._settings = self._settings_dict[self.proc_mode.mode_id]
 
@@ -270,11 +267,11 @@ class ImageItem(Item):
         self.parent_id: Optional['TreeItemId'] = None
         self.selected: bool = False
         self.no_file: bool = no_file
-        self.keep_cache_loaded_image: bool = keep_cache_loaded_image
-        self.loading_image_data_error: Optional[str] = None
+        self.cached_on_disk: bool = cached_on_disk
+        self.loading_image_data_error: Optional['ImageReadErrorInfo'] = None
         self.encrypted_image: Optional[bool] = None
 
-        self.cache = ImageItemCache(self, loaded_image, keep_cache_loaded_image)
+        self.cache = ImageItemCache(self, loaded_image)
 
         if self.no_file:
             self.encrypted_image = False
@@ -287,6 +284,10 @@ class ImageItem(Item):
         self.settings_source = source
         if self.selected:
             self.frame.controller.set_settings_source(source, False)
+
+    @property
+    def loaded_image_path(self):
+        return self.frame.image_disk_cache.get_cache_path(self._loaded_image_path) if self.cached_on_disk else self._loaded_image_path
 
     @property
     def proc_mode(self):
@@ -332,13 +333,12 @@ class ImageItem(Item):
     def unselect(self):
         """取消选中时的相关操作"""
         self.selected = False
-        if self.frame.startup_parameters.low_memory:
-            if not self.keep_cache_loaded_image:
-                self.cache._loaded_image = None
-            self.cache.clear_cache()
-        else:
-            self.cache.preview_cache.reserve(1)
-            PreviewCache.lru_cache_recorder.record_cache(self.cache_id, self.cache.preview_cache.clear)
+        if self.frame.program_options.no_extra_data_cache:
+            self.cache.clear_extra_cache()
+            if __debug__:
+                self.frame.logger.debug(f'额外缓存被删除[{self.loaded_image_path}]')
+        self.cache.preview_cache.reserve(1)
+        PreviewCache.lru_cache_recorder.record_cache(self.cache_id, self.cache.preview_cache.clear)
 
     def display_initial_preview(self, cache=True) -> bool:
         """在界面中显示原始图像预览图
@@ -350,9 +350,11 @@ class ImageItem(Item):
             bool: 命中缓存返回`False`, 未命中则生成并返回`True`
         """
         size = self.frame.controller.preview_size
-        if cache and not self.frame.startup_parameters.disable_cache and self.cache.initial_preview is not None and size == self.cache.preview_size:
+        if cache and not self.frame.program_options.disable_cache and self.cache.initial_preview is not None and size == self.cache.preview_size:
             self.frame.controller.imported_image = self.cache.initial_preview
             return False
+        if __debug__:
+            self.frame.logger.debug(f'重新生成原始图像预览图并缓存(原本是否为None: {self.cache.initial_preview is None})[{self.loaded_image_path}]')
         image = self.cache.loaded_image.resize(cal_best_size(*self.cache.loaded_image.size, *size), PIL_RESAMPLING_FILTERS[self.frame.controller.resampling_filter_id])
         self.frame.controller.imported_image = image
         self.cache.preview_size = size
@@ -370,7 +372,7 @@ class ImageItem(Item):
         Returns:
             bool: 命中缓存返回`False`, 未命中则生成并返回`True`
         """
-        if cache and not self.frame.startup_parameters.disable_cache:
+        if cache and not self.frame.program_options.disable_cache:
             if cache_hash is Ellipsis:
                 cache_hash = self.scalable_cache_hash if (self.frame.controller.preview_source == 1) or (self.frame.controller.proc_mode_interface.always_use_orig_image) else self.normal_cache_hash
             cache = self.cache.preview_cache.get(cache_hash)
@@ -383,6 +385,8 @@ class ImageItem(Item):
                     if resize and cache.scalable else cache.wxBitmap
                 )
                 return False
+        if __debug__:
+            self.frame.logger.debug(f'重新生成处理结果并缓存[{self.loaded_image_path}]')
         self.frame.preview_generator.generate_preview()
         return True
 
@@ -397,18 +401,20 @@ class ImageItem(Item):
 
     def load_encryption_attributes_from_file(self):
         """加载图像加密参数\n
-        如果当前实例`no_file`属性为`True`或图像原始文件不存在, 则跳过操作\n
-        加载成功后, 将自动切换项目设置中的处理模式为解密模式
+        如果当前实例`no_file`属性为`True`或图像原始文件不存在, 则跳过操作
         """
         if self.no_file or not isfile(self.loaded_image_path):
+            self.cache._encryption_attributes = EmptyEncryptionAttributes
             return
         self.load_encryption_attributes(*load_encryption_attributes(self.loaded_image_path), True)
 
     def load_encryption_attributes(self, encryption_attributes, loading_encryption_attributes_error, from_file: bool):
         """加载图像加密参数\n
         如果当前实例`no_file`属性为`True`或图像原始文件不存在, 则跳过操作\n
-        加载成功后, 将自动切换项目设置中的处理模式为解密模式, 返回True
+        加载成功后, 返回True
         """
+        if __debug__:
+            self.frame.logger.debug(f'尝试读取加密参数[{self.loaded_image_path}]')
         self.cache.loading_encryption_attributes_error = loading_encryption_attributes_error
         if self.cache.loading_encryption_attributes_error is None:
             mode = self.frame.mode_manager.modes.get(encryption_attributes['corresponding_decryption_mode'], None)
@@ -500,7 +506,9 @@ class ImageItem(Item):
             self.frame.imageTreeCtrl.Delete(item_id)
             if self.parent is not None:
                 del self.parent.children[item_id]
-        del self.frame.tree_manager.file_dict[self.loaded_image_path]
+        if self.cached_on_disk:
+            self.frame.image_disk_cache.remove(self._loaded_image_path)
+        del self.frame.tree_manager.file_dict[self._loaded_image_path]
         self.cache.del_cache()
         PreviewCache.lru_cache_recorder.remove_cache_recode(self.cache_id)
         ImageItemCache.lru_cache_recorder.remove_cache_recode(self.cache_id)

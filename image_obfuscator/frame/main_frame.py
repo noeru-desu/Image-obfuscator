@@ -2,15 +2,13 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-26 14:35:22
+LastEditTime : 2023-02-03 19:41:06
 """
 from atexit import register as at_exit
 from concurrent.futures import ThreadPoolExecutor
 from functools import cached_property
 from inspect import isroutine
-from multiprocessing import cpu_count
 from os import getcwd
-from sys import argv
 from traceback import format_exc
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -26,7 +24,7 @@ from image_obfuscator.frame.design_frame import MainFrame as MF
 from image_obfuscator.frame.dialog import Dialog
 from image_obfuscator.frame.drag_importer import DragLoadingFile, DragSavePath
 from image_obfuscator.frame.file_item import ImageItemCache, Item, PreviewCache
-from image_obfuscator.frame.image_loader import ImageLoader
+from image_obfuscator.frame.image_loader import ImageDiskCache, ImageLoader
 from image_obfuscator.frame.image_saver import ImageSaver
 from image_obfuscator.frame.mode_manager import ModeManager
 from image_obfuscator.frame.preview_generator import PreviewGenerator
@@ -34,7 +32,7 @@ from image_obfuscator.frame.tree_manager import TreeManager
 from image_obfuscator.frame.config import ConfigManager
 from image_obfuscator.modes.base import EmptySettings, ModeConstants
 from image_obfuscator.modes.mirage_tank.settings import Settings as MirageTankSettings
-from image_obfuscator.modules.argparse import Arguments, Parameters
+from image_obfuscator.modules.argparse import Options
 from image_obfuscator.modules.decorator import catch_exc_for_frame_method
 from image_obfuscator.modules.password_verifier import PasswordDict
 from image_obfuscator.utils.logger import Logger
@@ -54,10 +52,10 @@ class MainFrame(MF):
     主窗口类
     """
     __slots__ = (
-        'startup_parameters', 'logger', 'controller', 'settings', 'dialog', 'universal_thread_pool',
+        'program_options', 'logger', 'controller', 'settings', 'dialog', 'universal_thread_pool',
         'password_dict', 'process_pool', 'tree_manager', 'image_loader', 'preview_generator', 'folder_item',
         'image_saver', 'stop_loading_func', 'stop_reloading_func', 'image_item', 'run_path','mode_manager',
-        'config', 'disable_switching_image', 'mode_fallback_dialog'
+        'config', 'disable_switching_image', 'mode_fallback_dialog', 'image_disk_cache', 'temp_dir_in_use'
     )
 
     def __init__(self, parent: 'Window', run_path: 'PathLike[str]' = getcwd()):
@@ -75,16 +73,16 @@ class MainFrame(MF):
             self.SetTitle(f'Image Obfuscator GUI {FULL_VERSION_STRING}')
         else:
             self.SetTitle(f'Image Obfuscator GUI {SHORT_VERSION_STRING}')
-        self.logger = Logger('image-obfuscator')
+        self.logger = Logger('image-obfuscator', 10)
         for i in VERSION_INFO:
             self.logger.info(i)
         self.image_item: Optional['ImageItem'] = None
         self.folder_item: Optional['FolderItem'] = None
-        self.startup_parameters = Parameters()
+        self.program_options = Options()
 
         # 设置部分类的常量
         Item.frame = self
-        PreviewCache.startup_parameters = self.startup_parameters
+        PreviewCache.program_options = self.program_options
 
         # 实例化各功能实现
         self.dialog = Dialog(self)
@@ -96,14 +94,15 @@ class MainFrame(MF):
         self.mode_manager.load_builtin_modes()
         self.password_dict = PasswordDict()
         self.config = ConfigManager(self)
-        if self.startup_parameters.record_interface_settings:
+        if self.program_options.record_interface_settings:
             self.config.load_frame_settings()
-        if self.startup_parameters.record_password_dict:
+        if self.program_options.record_password_dict:
             self.config.load_password_dict()
         self.universal_thread_pool = ThreadPoolExecutor(8, 'universal_thread_pool')
         # TODO self.process_pool = ProcessTaskManager(1 if cpu_count() < 4 else cpu_count() - 2)
         self.tree_manager = TreeManager(self, self.imageTreeCtrl, '已加载文件列表')
         self.image_loader = ImageLoader(self)
+        self.image_disk_cache = ImageDiskCache(self)
         self.preview_generator = PreviewGenerator(self)
         self.image_saver = ImageSaver(self)
         self.stop_loading_func = SegmentTrigger((self.set_stop_loading_signal, self.stop_loading), self.init_loading_btn)
@@ -112,14 +111,12 @@ class MainFrame(MF):
         # 部分记忆弹窗
         self.mode_fallback_dialog = self.dialog.choose_action_dialog('所选模式无法在未选中图像时选择', '提示', ('确定',), 0, record_btn_label='不再提示')
 
-        # 同步启动参数至界面
-        if len(argv) > 1:
-            Arguments().parse_args(self.startup_parameters)
-            if self.startup_parameters.dark_mode:
-                self.dark_mode()
-        ImageItemCache.lru_cache_recorder.maxlen = MirageTankSettings.outside_image_cache.maxlen = self.startup_parameters.maximum_orig_image_cache
-        PreviewCache.lru_cache_recorder.maxlen = self.startup_parameters.maximum_proc_result_cache
-        self.startup_parameters.apply_to_interface(self.controller)
+        # 同步程序设置至界面
+        if self.program_options.dark_mode:
+            self.dark_mode()
+        ImageItemCache.lru_cache_recorder.maxlen = MirageTankSettings.outside_image_cache.maxlen = self.program_options.maximum_orig_image_cache
+        PreviewCache.lru_cache_recorder.maxlen = self.program_options.maximum_proc_result_cache
+        self.program_options.apply_to_interface(self.controller)
         self.Show()
 
         # 文件拖入
@@ -148,11 +145,12 @@ class MainFrame(MF):
         self.saveFormat.ToolTip = f'{self.saveFormat.GetToolTipText()}{EXTENSION_KEYS_STRING}'
         self.selectSavePath.PickerCtrl.SetLabel('选择文件夹')
         self.disable_switching_image = False
+        self.temp_dir_in_use = self.program_options.temp_dir
 
         self.logger.info('窗口初始化完成')
         # self.Show()
 
-        if self.startup_parameters.test:
+        if self.program_options.test:
             CallAfter(self.exit, ...)
 
     @cached_property
@@ -175,7 +173,7 @@ class MainFrame(MF):
         """运行窗口
 
         Args:
-            startup_parameters (Parameters): 启动参数实例
+            program_options (Parameters): 启动参数实例
             run_path (str, optional): 运行路径. 默认为`os.getcwd()`.
         """
         app = App()

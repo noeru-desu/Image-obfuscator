@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-22 08:59:16
+LastEditTime : 2023-02-03 17:42:06
 """
 from abc import ABC
 from posixpath import splitext
@@ -23,8 +23,8 @@ from PIL import UnidentifiedImageError, ImageFile
 from wx import Bitmap
 from wx import Image as wx_Image
 
-from image_obfuscator.constants import (BLACK_IMAGE, OIERR_EXCEED_LIMIT,
-                                       OIERR_NOT_EXIST, OIERR_OS_ERROR,
+from image_obfuscator.constants import (EMPTY_IMAGE, OIERR_EXCEED_LIMIT,
+                                       OIERR_NOT_EXIST, OIERR_OS_ERROR, OIERR_UNEXPECTED_ERROR,
                                        OIERR_UNSUPPORTED_FORMAT,
                                        PIL_RESAMPLING_FILTERS,
                                        WX_RESAMPLING_FILTERS)
@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from os import PathLike
     from weakref import ReferenceType
     from numpy import ndarray
+    from image_obfuscator.constants import ImageReadErrorInfo
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -109,34 +110,35 @@ def random_noise(width: int, height: int, nc: int, seed, factor: int, ndarray=Tr
 weak_ref_cache: 'LRUCache[str, ReferenceType[PIL_Image.Image]]' = LRUCache(100)
 
 
-def open_image(file: 'PathLike[str]', use_cache=True) -> tuple['PIL_Image.Image', Optional[str]]:
+def open_image(file: 'PathLike[str]', use_cache=True) -> tuple['PIL_Image.Image', Optional['ImageReadErrorInfo']]:
     """使用PIL打开图像, 并使用弱引用缓存
 
     Args:
         file (str): 要打开的文件
         use_cache (bool): 是否在弱引用中查找缓存(重载图像时请设为False)
     Returns:
-        tuple[PIL.Image, Optional[str]]: 成功时, 返回(Image实例, None); 失败时, 返回(黑色Image实例, 错误提示)
+        tuple[PIL.Image, Optional[ImageReadErrorInfo]]: 成功时, 返回(Image实例, None); 失败时, 返回(透明Image实例, 错误提示)
     """
     if use_cache and file in weak_ref_cache:
         orig = weak_ref_cache[file]()
         if orig is not None:
             return orig, None
     try:
-        image = PIL_Image.open(file).convert('RGBA')
+        image = PIL_Image.open(file)
     except FileNotFoundError:
-        return BLACK_IMAGE, OIERR_NOT_EXIST
+        return EMPTY_IMAGE, OIERR_NOT_EXIST
     except UnidentifiedImageError:
-        return BLACK_IMAGE, OIERR_UNSUPPORTED_FORMAT.format(splitext(file)[1])
+        return EMPTY_IMAGE, OIERR_UNSUPPORTED_FORMAT.format_info(file)
     except PIL_Image.DecompressionBombWarning:
-        return BLACK_IMAGE, OIERR_EXCEED_LIMIT
+        return EMPTY_IMAGE, OIERR_EXCEED_LIMIT
     except OSError as e:
-        # print_exc()
-        return BLACK_IMAGE, OIERR_OS_ERROR.format(e.args[0] if e.strerror is None else e.strerror)
+        return EMPTY_IMAGE, OIERR_OS_ERROR.format_info(e.args[0] if e.strerror is None else e.strerror)
     except Exception as e:
-        return BLACK_IMAGE, repr(e)
+        return EMPTY_IMAGE, OIERR_UNEXPECTED_ERROR.format_info(repr(e))
     weak_ref_cache.record(file, weak_ref(image))
-    return image, None
+    rgba_image = image.convert('RGBA')
+    rgba_image.format = image.format
+    return rgba_image, None
 
 
 def cal_best_scale(orig_width: int, orig_height: int, visible_width: int, visible_height: int) -> float:

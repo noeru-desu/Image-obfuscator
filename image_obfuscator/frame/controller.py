@@ -2,18 +2,19 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2022-10-31 08:59:55
+LastEditTime : 2023-02-03 18:12:50
 """
 from orjson import dumps, OPT_INDENT_2
-from os.path import splitext
+from os.path import splitext, isdir
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Sequence, Union
 
 from wx import VERTICAL, HORIZONTAL, Bitmap
 
-from image_obfuscator.constants import EXTENSION_KEYS, Orientations
+from image_obfuscator.constants import EMPTY_IMAGE, EXTENSION_KEYS, Orientations
 from image_obfuscator.modes.base import BaseSettings, EmptySettings
 
 if TYPE_CHECKING:
+    from os import PathLike
     from PIL.Image import Image
     from wx import Gauge, Panel, Colour, StaticBox
     from image_obfuscator.frame.events import MainFrame
@@ -420,7 +421,7 @@ class Controller(object):
 
     @property
     def redundant_cache_length(self) -> int:
-        """启动参数: 冗余缓存最大长度
+        """程序设置: 冗余缓存最大长度
 
         处理结果缓存中会同时缓存多个不同加密设置生成的图像数据
         (处理结果缓存类似于LRU缓存)
@@ -435,25 +436,36 @@ class Controller(object):
     def redundant_cache_length(self, v: int): self.frame.redundantCacheLength.SetValue(v)
 
     @property
-    def low_memory_mode(self) -> bool:
-        """启动参数: 低内存占用模式
+    def temp_dir(self) -> 'PathLike[str]':
+        """程序设置: 临时文件存储路径
 
-        开启后，将在取消选中图像项目时删除相关的图像数据(包括原始数据与缓存，图像和文件信息除外)
+        Returns:
+            str: 文件夹路径
+        """
+        return self.frame.tempDir.GetPath()
+
+    @temp_dir.setter
+    def temp_dir(self, v: 'PathLike[str]'):
+        self.frame.tempDir.SetPath(v)
+
+    @property
+    def no_extra_data_cache(self) -> bool:
+        """程序设置: 切换时不保留数据缓存
+
+        开启后，将在取消选中图像项目时删除相关的数据
 
         Returns:
             bool: 是否开启
         """
-        return self.frame.lowMemoryMode.GetValue()
+        return self.frame.noExtraDataCache.GetValue()
 
-    @low_memory_mode.setter
-    def low_memory_mode(self, v: bool):
-        self.frame.lowMemoryMode.SetValue(v)
-        self.frame.origImageCache.Enable(not v)
-        self.frame.procResultCache.Enable(not v)
+    @no_extra_data_cache.setter
+    def no_extra_data_cache(self, v: bool):
+        self.frame.noExtraDataCache.SetValue(v)
 
     @property
     def disable_cache(self) -> bool:
-        """启动参数: 禁用处理结果缓存
+        """程序设置: 禁用处理结果缓存
 
         Returns:
             bool: 是否禁用
@@ -465,7 +477,7 @@ class Controller(object):
 
     @property
     def record_interface_settings(self) -> bool:
-        """启动参数: 记录界面设置
+        """程序设置: 记录界面设置
 
         Returns:
             bool: 是否记录
@@ -477,7 +489,7 @@ class Controller(object):
 
     @property
     def record_password_dict(self) -> bool:
-        """启动参数: 记录密码字典
+        """程序设置: 记录密码字典
 
         Returns:
             bool: 是否记录
@@ -489,7 +501,7 @@ class Controller(object):
 
     @property
     def final_layout_widgets(self) -> bool:
-        """启动参数: 记录密码字典
+        """程序设置: 记录密码字典
 
         Returns:
             bool: 是否记录
@@ -501,7 +513,7 @@ class Controller(object):
 
     @property
     def maximum_orig_image_cache(self) -> int:
-        """启动参数: 原始图像缓存上限
+        """程序设置: 原始图像缓存上限
 
         Returns:
             int: 原始图像缓存上限
@@ -513,7 +525,7 @@ class Controller(object):
 
     @property
     def maximum_proc_result_cache(self) -> int:
-        """启动参数: 处理结果缓存上限
+        """程序设置: 处理结果缓存上限
 
         Returns:
             int: 处理结果缓存上限
@@ -534,10 +546,12 @@ class Controller(object):
         """
         if item is None:
             self.image_info = '未选择图像'
+            return
+        loaded_image = item.cache.loaded_image
+        if loaded_image is not EMPTY_IMAGE:
+            self.image_info = '大小: {}x{}'.format(*loaded_image.size)
         else:
-            self.image_info = '大小: {}x{} 格式: {}'.format(*item.cache.loaded_image.size,
-                                                        '未知' if item.no_file else splitext(item.loaded_image_path)[1].lstrip('.')
-                                                        )
+            self.image_info = '无法加载当前图像'
 
     def clear_preview(self):
         """取消显示所有预览图"""
@@ -575,6 +589,7 @@ class Controller(object):
             self.previewed_bitmap = image.wxBitmap
 
     def change_mode_plane(self, proc_mode: 'ModeInterface', image_item: 'ImageItem', settings_instance: 'ItemSettings'):
+        self.auto_show_additional_widget(proc_mode)
         self.proc_settings_panel = proc_mode.settings_panel
         if settings_instance is not EmptySettings:
             self.frame.passwordCtrl.Enable(settings_instance.enable_password)
@@ -591,6 +606,12 @@ class Controller(object):
             mode_interface = self.proc_mode_interface = proc_mode
         self.change_mode_plane(mode_interface, image_item, settings_instance)
         settings_instance.backtrack_interface()
+
+    def auto_show_additional_widget(self, proc_mode: 'ModeInterface' = ...):
+        if proc_mode is Ellipsis:
+            proc_mode = self.proc_mode_interface
+        self.frame.SettingsSourceUsed.Show(proc_mode.requires_encryption_parameters)
+        self.frame.passwordPanel.Show(proc_mode.enable_password)
 
     '''
     @property

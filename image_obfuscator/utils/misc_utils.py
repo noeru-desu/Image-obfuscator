@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-21 07:18:01
+LastEditTime : 2023-01-20 20:59:36
 """
 from collections import OrderedDict, deque
 from collections.abc import Mapping
@@ -249,6 +249,12 @@ class LRUCacheRecord(object):
         self._maxlen = maxlen
         self.dict: OrderedDict[Hashable, tuple[Callable, tuple, dict]] = OrderedDict()
 
+    def __repr__(self) -> str:
+        return (
+            f'size: {len(self.dict)}/{self._maxlen}\n'
+            f'items: \n{repr(self.dict)}'
+        )
+
     def __eq__(self, __o: object) -> bool:
         return self.dict.__eq__(__o)
 
@@ -305,6 +311,12 @@ class LRUCache(Mapping[_KT, _VT], Generic[_KT, _VT]):
     def __init__(self, maxlen=10) -> None:
         self._maxlen = maxlen
         self.dict: OrderedDict[_KT, _VT] = OrderedDict()
+
+    def __repr__(self) -> str:
+        return (
+            f'size: {len(self.dict)}/{self._maxlen}\n'
+            f'items: \n{repr(self.dict)}'
+        )
 
     def __eq__(self, __o: object) -> bool:
         return self.dict.__eq__(__o)

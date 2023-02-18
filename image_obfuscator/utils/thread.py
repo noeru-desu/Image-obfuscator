@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-05 19:42:33
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-22 12:32:22
+LastEditTime : 2023-01-29 10:29:58
 """
 from concurrent.futures import (CancelledError, ProcessPoolExecutor,
                                 ThreadPoolExecutor)
@@ -277,7 +277,7 @@ class SingleThreadExecutor(object):
             name (str, optional): 线程名. 默认为`single-thread-executor`
             maxlen (int, optional): 最大队列长度. 默认为`None`, 即无限.
 
-        注意: 当队列长度到达上限时添加任务, 将会删除某一任务(添加普通任务时删除下一个将被执行的任务, 添加最高优先级任务时删除最后将被执行的任务)
+        注意: 当队列长度到达上限时添加任务, 将会挤出多余的任务(添加普通任务时删除下一个将被执行的任务, 添加最高优先级任务时删除最后将被执行的任务)
         """
         self.name = name
         self.exc_cb: Optional[Callable] = None
@@ -325,7 +325,7 @@ class SingleThreadExecutor(object):
         """获取当前任务列表"""
         return list(self.deque)
 
-    def clear_task(self):   # ! 可能出现信号量未重置的问题
+    def clear_task(self):   # ? 待验证-可能出现信号量未重置的问题
         self.deque.clear()
         self.thread.semaphore = Semaphore(0)
 

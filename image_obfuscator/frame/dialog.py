@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2022-12-05 09:26:55
+LastEditTime : 2023-02-18 21:05:38
 """
 from base64 import b85decode
 from orjson import JSONDecodeError, dumps, loads, OPT_INDENT_2
@@ -17,7 +17,8 @@ from wx import (ALL, CANCEL, DIRP_CHANGE_DIR, DIRP_DEFAULT_STYLE,
                 HELP, HORIZONTAL, ICON_ERROR, ICON_INFORMATION, ICON_QUESTION,
                 ICON_WARNING, ID_CANCEL, ID_NO, ID_OK, ID_YES, RED,
                 STAY_ON_TOP, WHITE, YES_NO, BoxSizer, Button, CallAfter,
-                Colour, DirDialog, FileDialog, IsMainThread, MessageDialog)
+                Colour, DirDialog, FileDialog, IsMainThread, MessageDialog,
+                Bitmap)
 from wx.stc import (STC_JSON_BLOCKCOMMENT, STC_JSON_COMPACTIRI,
                     STC_JSON_DEFAULT, STC_JSON_ERROR, STC_JSON_ESCAPESEQUENCE,
                     STC_JSON_KEYWORD, STC_JSON_LDKEYWORD, STC_JSON_LINECOMMENT,
@@ -25,21 +26,25 @@ from wx.stc import (STC_JSON_BLOCKCOMMENT, STC_JSON_COMPACTIRI,
                     STC_JSON_STRING, STC_JSON_STRINGEOL, STC_JSON_URI,
                     STC_LEX_JSON)
 
+from image_obfuscator.constants import PIL_RESAMPLING_FILTERS
 from image_obfuscator.frame.design_frame import JsonEditorDialog as JED
 from image_obfuscator.frame.design_frame import ModifiedChoiceDialog as MCD
 from image_obfuscator.frame.design_frame import MultiLineTextEntryDialog as MLTED
 from image_obfuscator.frame.design_frame import PasswordDialog as PD
 from image_obfuscator.frame.design_frame import TextDisplayDialog as TDD
+from image_obfuscator.frame.design_frame import ImageInfoDialog as IID
 from image_obfuscator.modules.version_adapter import check_version
+from image_obfuscator.modules.image import cal_best_size
 from image_obfuscator.utils.thread import SingleThreadExecutor
 
 # from image_obfuscator.utils.debugging_utils import gen_slots_str
 
 if TYPE_CHECKING:
     from os import PathLike
+    from wx import CloseEvent, CommandEvent, Window
 
     from image_obfuscator.frame.events import MainFrame
-    from wx import CloseEvent, CommandEvent, Window
+    from image_obfuscator.frame.file_item import ImageItem
 
 
 class Dialog(object):
@@ -172,6 +177,11 @@ class Dialog(object):
         else:
             dialog = self.memory_dialogs[dialog_hash] = ChooseActionDialog(self.frame if parent is Ellipsis else parent, message, title, default_action, recordable, record_btn_label)
             dialog.open_dialog()
+
+    def image_info_dialog(self, image_item: 'ImageItem'):
+        dialog = ImageInfoDialog(self.frame, image_item)
+        with dialog:
+            dialog.ShowModal()
 
     """
     def _register_async_dialog(self, force: bool = False) -> bool:
@@ -580,3 +590,23 @@ class ChooseActionDialog(object):
         if self._dialog.record:
             self.record = self._dialog.action
         return self._dialog.action
+
+
+class ImageInfoDialog(IID):
+    __slots__ = ()
+
+    def __init__(self, main_frame: 'MainFrame', image_item: 'ImageItem'):
+        # o_args = set(dir(self))
+        super().__init__(main_frame)
+        # n_args = set(dir(self))
+        # gen_slots_str(n_args - o_args)
+        orig_image = image_item.cache.loaded_image
+        image = orig_image.resize(cal_best_size(*orig_image.size, 176, 171), PIL_RESAMPLING_FILTERS[main_frame.controller.resampling_filter_id])
+        self.origImage.SetBitmap(Bitmap.FromBufferRGBA(*image.size, image.tobytes()))
+        self.imagePath.SetValue(image_item.loaded_image_path)
+        if orig_image.format is not None:
+            self.imageFormat.SetLabelText(orig_image.format)
+        self.imageSize.SetLabelText(f'{orig_image.size[0]}x{orig_image.size[1]}')
+        # self.imageMemoryUsed.SetLabelText(f'{round(asizeof(orig_image) / 1024, 2)}KB')
+        # self.itemMemoryUsed.SetLabelText(f'{round(asizeof(image_item) / 1024, 2)}KB')
+        self.imageExif.SetValue(str(orig_image.getexif()))

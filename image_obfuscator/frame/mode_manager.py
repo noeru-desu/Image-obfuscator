@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:48:20
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-12 14:38:56
+LastEditTime : 2022-12-02 08:26:01
 """
 from typing import TYPE_CHECKING, Type
 
@@ -39,6 +39,7 @@ class ModeManager(object):
         self.frame.controller.previous_proc_mode = self.default_mode
         self.frame.controller.proc_settings_panel = self.default_mode.settings_panel
         self.frame.procMode.Select(self.default_mode.mode_id)
+        self.frame.controller.auto_show_additional_widget()
 
     def add_mode(self, mode_interface_cls: Type['ModeInterface']):
         mode_interface_cls.main_frame = self.frame

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-04-17 08:40:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-12 15:55:44
+LastEditTime : 2022-12-30 11:52:24
 """
 from typing import TYPE_CHECKING, Callable, Iterable, Any
 from os.path import isfile
@@ -41,8 +41,7 @@ class OutsideImageCache(LRUCache):
             self.remove(path)
             self.mode_constants.main_frame.dialog.async_error(error, '载入所选表图时出现错误')
             return None
-        if not self.mode_constants.main_frame.startup_parameters.low_memory:
-            self.record(path, image)
+        self.record(path, image)
         return image
 
 

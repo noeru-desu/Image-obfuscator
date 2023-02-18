@@ -2,13 +2,13 @@
 Author       : noeru_desu
 Date         : 2022-06-07 06:20:01
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-24 08:29:07
+LastEditTime : 2022-11-30 20:18:21
 """
 from pickle import dumps as pickle_dumps, load as pickle_load, HIGHEST_PROTOCOL
 from pickletools import optimize
 from contextlib import suppress
 from collections import namedtuple
-from os import getenv, mkdir, startfile
+from os import mkdir, startfile
 from os.path import join, exists, isfile
 from traceback import format_exc
 from typing import TYPE_CHECKING
@@ -33,7 +33,7 @@ class ConfigManager(object):
             mkdir(LOCAL_APPDATA)
         self.default_frame_settings = self.gen_frame_settings()
         self.FrameConfig = namedtuple('FrameConfig', (
-            'config_version', 'default_proc_mode', 'default_mode_settings', 'startup_parameters',
+            'config_version', 'default_proc_mode', 'default_mode_settings', 'program_options',
             'preview_mode', 'displayed_preview', 'preview_layout', 'preview_source',
             'resampling_filter', 'save_settings', 'max_image_pixels', 'window_size',
             'window_maximized'
@@ -55,7 +55,7 @@ class ConfigManager(object):
             'window_size': self.frame.GetSize(),
             'default_proc_mode': default_proc_mode.mode_qualname,
             'default_mode_settings': default_mode_settings.settings_dict,
-            'startup_parameters': self.frame.startup_parameters.parameters_dict,
+            'program_options': self.frame.program_options.parameters_dict,
             'preview_mode': self.frame.controller.preview_mode,
             'displayed_preview': self.frame.controller.displayed_preview,
             'preview_layout': self.frame.controller.preview_layout,
@@ -97,7 +97,7 @@ class ConfigManager(object):
                 self.frame.logger.warning('读取配置文件时出现错误\n{}'.format(format_exc().rstrip('\r\n')))
                 self.frame.logger.warning('出现此问题不影响程序使用, 可能是配置文件版本过高导致')
                 return
-        if not frame_settings.startup_parameters.get('record_interface_settings', True):
+        if not frame_settings.program_options.get('record_interface_settings', True):
             return
         try:
             if frame_settings.window_maximized:
@@ -112,7 +112,7 @@ class ConfigManager(object):
                 default_settings.settings_dict = frame_settings.default_mode_settings
                 self.frame.mode_manager.default_settings = default_settings
                 self.frame.controller.backtrack_interface(default_settings, default_mode)
-            self.frame.startup_parameters.parameters_dict = frame_settings.startup_parameters
+            self.frame.program_options.parameters_dict = frame_settings.program_options
             self.frame.controller.preview_mode = frame_settings.preview_mode
             self.frame.controller.displayed_preview = frame_settings.displayed_preview
             self.frame.controller.preview_layout = frame_settings.preview_layout

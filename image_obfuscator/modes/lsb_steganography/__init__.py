@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-11-20 17:43:06
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-26 16:10:54
+LastEditTime : 2023-01-14 13:14:09
 """
 from image_obfuscator.modes.base import BaseModeInterface
 from image_obfuscator.modes.lsb_steganography.controller import LsbModeController
@@ -13,7 +13,7 @@ from image_obfuscator.modes.lsb_steganography.utils import CompressedFileManager
 
 
 class ModeInterface(BaseModeInterface):
-    __slots__ = ()
+    __slots__ = ('compressed_file_manager',)
     settings_controller: 'LsbModeController'
 
     mode_name = 'LSB隐写'
@@ -25,7 +25,10 @@ class ModeInterface(BaseModeInterface):
     settings_controller_cls = LsbModeController
     file_name_suffix = ('', '-LSB')
     mode_constants_required = (DetectLsbDialog, CompressionDialog)
-    compressed_file_manager = CompressedFileManager()
+
+    def __init__(self):
+        super().__init__()
+        self.compressed_file_manager = CompressedFileManager(self.main_frame.program_options.temp_dir)
 
     def proc_image(*args):
         return normal_gen(*args)

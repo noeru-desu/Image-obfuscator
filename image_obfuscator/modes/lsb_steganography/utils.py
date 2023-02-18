@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-11-26 09:14:39
 LastEditors  : noeru_desu
-LastEditTime : 2022-12-05 10:02:54
+LastEditTime : 2023-01-19 21:57:59
 """
 from atexit import register
 from os import makedirs, remove, listdir
@@ -15,7 +15,6 @@ from lzma import compress as lzma_compress, decompress as lzma_decompress
 
 from orjson import dumps
 
-from image_obfuscator.constants import LOCAL_APPDATA_TEMP
 from image_obfuscator.modes.lsb_steganography.constants import LSB_INFO_VERSION
 
 if TYPE_CHECKING:
@@ -44,10 +43,10 @@ class CompressedFile(object):
 
 
 class CompressedFileManager(object):
-    __slots__ = ('cache',)
-    temp_dir = join(LOCAL_APPDATA_TEMP, 'compressed_files')
+    __slots__ = ('cache', 'temp_dir')
 
-    def __init__(self) -> None:
+    def __init__(self, temp_dir: str) -> None:
+        self.temp_dir = join(temp_dir, 'compressed_files')
         if not exists(self.temp_dir):
             makedirs(self.temp_dir)
         else:
