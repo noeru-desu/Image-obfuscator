@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-11-20 12:33:03
 LastEditors  : noeru_desu
-LastEditTime : 2022-12-06 09:15:42
+LastEditTime : 2023-03-25 20:24:36
 """
 from sys import byteorder
 from typing import TYPE_CHECKING, Optional
@@ -118,4 +118,4 @@ def cal_required_size(outside: 'Image', inside_size: int, num_lsb: int, extra_da
 def cal_bit_length(outside: 'Image', inside_size: int, num_lsb: int, use_alpha: bool = False):
     minimum_length = (inside_size.bit_length() + 7) // 8
     maximum_available = bytes_in_max_file_size(outside, num_lsb, 4 if use_alpha else 3)
-    return minimum_length if minimum_length > maximum_available else maximum_available
+    return max(minimum_length, maximum_available)

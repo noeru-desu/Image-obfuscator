@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-20 20:43:02
 LastEditors  : noeru_desu
-LastEditTime : 2022-11-26 09:42:53
+LastEditTime : 2023-03-25 20:20:59
 """
 from os.path import isfile, splitext, join
 from math import ceil
@@ -77,8 +77,8 @@ def decode_mode(interface: 'ModeInterface', outside: 'Image.Image', settings: 'S
         file_data, extra_data = decode(outside, settings.lsb_num, settings.use_alpha)
     except Exception as e:
         if test:
-            interface.main_frame.dialog.async_error(
-                '尝试提取时出现以下错误: \n(注: 程序运行正常, 这不是Bug)\n'
+            interface.main_frame.dialog.async_warning(
+                '尝试提取时出现以下错误: \n(程序运行正常, 这不是Bug)\n'
                 '{}\n请检查设置是否正确\n已自动切换到 写入 模式'.format(repr(e).replace("\\n", " ")), '无法提取')
             interface.settings_controller.lsb_mode = 0
             interface.main_frame.sync_setting(interface.settings_panel.lsbMode)
