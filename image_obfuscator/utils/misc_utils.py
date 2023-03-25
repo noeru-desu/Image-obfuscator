@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-08-28 18:35:58
 LastEditors  : noeru_desu
-LastEditTime : 2023-01-20 20:59:36
+LastEditTime : 2023-03-22 22:48:25
 """
 from collections import OrderedDict, deque
 from collections.abc import Mapping
@@ -128,8 +128,7 @@ def cal_zoom_ratio(current_area: int, required_area: int) -> float:
         return sqrt(delta) / orig_area_x2
     else:
         # x为缩放率, s为原始面积, sx^2 - required_area = 0
-        delta = 4 * current_area * required_area
-        return sqrt(delta) / (current_area * 2)
+        return sqrt(required_area / current_area)
 
 
 class FakeBar:
