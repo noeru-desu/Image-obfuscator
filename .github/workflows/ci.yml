@@ -74,11 +74,10 @@ jobs:
             C:/Users/runneradmin/AppData/Local/Nuitka/Nuitka/depends/x86_64/depends.exe
           key: ${{ env.ORIGINAL_PROJECT }}-DependencyWalker
       - name: Build artifacts (normal)
-        shell: cmd
         run: |
           mkdir build_normal
           nuitka --disable-console --python-flag=-OO,no_docstrings --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=colorlog,pydoc,urllib,socket,tkinter,click,http,email --output-dir=build_normal --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow ImageObfuscator.py
-          copy ".\build_normal\ImageObfuscator.exe" ".\ImageObfuscator.exe"
+          copy ".\build_normal\ImageObfuscator.exe" ".\ImageObfuscator.normal.exe"
       - name: Build artifacts (without dependencies and runtime)
         run: |
           mkdir build_without_runtime
@@ -95,7 +94,7 @@ jobs:
         with:
           name: ${{ env.BUILD_ENV }}-${{ env.VCToolsVersion }}-build.${{ github.run_number }}
           path: |
-            ImageObfuscator.exe
+            ImageObfuscator.normal.exe
             ImageObfuscator.without_runtime.exe
             ImageObfuscator.without_runtime.cmd
             ImageObfuscator.with_console.exe
@@ -110,7 +109,7 @@ jobs:
         shell: cmd
         run: |
           set ver=${{ github.ref_name }}
-          copy ".\ImageObfuscator.exe" ".\ImageObfuscator_%ver:v=%.exe"
+          copy ".\ImageObfuscator.normal.exe" ".\ImageObfuscator_%ver:v=%.exe"
           copy ".\ImageObfuscator.without_runtime.exe" ".\ImageObfuscator_%ver:v=%.without_runtime.exe"
           copy ".\ImageObfuscator.with_console.exe" ".\ImageObfuscator_%ver:v=%.with_console.exe"
       - name: Draft release
