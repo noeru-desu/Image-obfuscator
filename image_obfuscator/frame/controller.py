@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-12-18 21:01:55
 LastEditors  : noeru_desu
-LastEditTime : 2023-02-03 18:12:50
+LastEditTime : 2023-03-25 20:56:51
 """
 from orjson import dumps, OPT_INDENT_2
 from os.path import splitext, isdir
@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, Sequence, U
 
 from wx import VERTICAL, HORIZONTAL, Bitmap
 
-from image_obfuscator.constants import EMPTY_IMAGE, EXTENSION_KEYS, Orientations
+from image_obfuscator.constants import AUTO_IMAGE, EMPTY_IMAGE, EXTENSION_KEYS, Orientations
 from image_obfuscator.modes.base import BaseSettings, EmptySettings
 
 if TYPE_CHECKING:
@@ -280,7 +280,12 @@ class Controller(object):
         self.frame.preview_mode_change(...)
 
     @property
-    def preview_source(self) -> int: return self.frame.previewSource.GetSelection()
+    def preview_source(self) -> int:
+        selection = self.frame.previewSource.GetSelection()
+        image_item = self.frame.image_item
+        if selection == AUTO_IMAGE and image_item is not None:
+            selection = 1 if image_item.cache.loaded_image_size[0] <= image_item.cache.preview_size[0] else 0
+        return selection
 
     @preview_source.setter
     def preview_source(self, v: int): self.frame.previewSource.Select(v)

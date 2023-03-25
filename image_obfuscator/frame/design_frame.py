@@ -339,10 +339,10 @@ class MainFrame (wx.Frame):
         self.previewLayout.SetSelection(2)
         bSizer40.Add(self.previewLayout, 0, wx.ALL | wx.EXPAND, 3)
 
-        previewSourceChoices = [u"预览图", u"原图"]
+        previewSourceChoices = [u"预览图", u"原图", u"自动(最小)"]
         self.previewSource = wx.RadioBox(self.previewOptions, wx.ID_ANY, u"加密时使用图源", wx.DefaultPosition, wx.DefaultSize, previewSourceChoices, 1, wx.RA_SPECIFY_COLS)
-        self.previewSource.SetSelection(0)
-        self.previewSource.SetToolTip(u"生成\"处理结果-预览图\"时使用的图源\n选择\"预览图\"可获得更好的性能，但结果会有所偏差\n选择\"原图\"将不会出现偏差，但性能低于\"预览图\"选项")
+        self.previewSource.SetSelection(2)
+        self.previewSource.SetToolTip(u"生成\"处理结果-预览图\"时使用的图源\n选择\"预览图\"可获得更好的性能，但结果会有所偏差\n选择\"原图\"将不会出现偏差，但图像较大时性能将低于\"预览图\"选项\n选择\"自动\"将自动选择像素量较少的图源")
 
         bSizer40.Add(self.previewSource, 0, wx.ALL | wx.EXPAND, 3)
 
@@ -762,7 +762,7 @@ class MainFrame (wx.Frame):
         self.previewMode.Bind(wx.EVT_RADIOBOX, self.preview_mode_change)
         self.displayedPreview.Bind(wx.EVT_RADIOBOX, self.change_displayed_preview)
         self.previewLayout.Bind(wx.EVT_RADIOBOX, self.change_preview_layout)
-        self.previewSource.Bind(wx.EVT_RADIOBOX, self.force_refresh_preview)
+        self.previewSource.Bind(wx.EVT_RADIOBOX, self.refresh_preview)
         self.manuallyRefreshBtn.Bind(wx.EVT_BUTTON, self.manually_refresh)
         self.resamplingFilter.Bind(wx.EVT_RADIOBOX, self.force_refresh_preview)
         self.saveFormat.Bind(wx.EVT_COMBOBOX, self.record_save_format)
@@ -867,10 +867,13 @@ class MainFrame (wx.Frame):
     def change_preview_layout(self, event):
         event.Skip()
 
-    def force_refresh_preview(self, event):
+    def refresh_preview(self, event):
         event.Skip()
 
     def manually_refresh(self, event):
+        event.Skip()
+
+    def force_refresh_preview(self, event):
         event.Skip()
 
     def record_save_format(self, event):
@@ -1349,7 +1352,7 @@ class ModifiedChoiceDialog (wx.Dialog):
 
 class ImageInfoDialog (wx.Dialog):
     __slots__ = (
-        'imageExif', 'imageFormat', 'imageMemoryUsed', 'imagePath', 'imageSize', 'itemMemoryUsed', 'm_panel23', 'm_staticText33',
+        'imageInfo', 'imageFormat', 'imageMemoryUsed', 'imagePath', 'imageSize', 'itemMemoryUsed', 'm_panel23', 'm_staticText33',
         'm_staticText35', 'm_staticText36', 'm_staticText37', 'm_staticText38', 'm_staticText381', 'm_staticText53',
         'm_staticline4', 'origImage'
     )
@@ -1415,17 +1418,17 @@ class ImageInfoDialog (wx.Dialog):
 
         bSizer70 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText38 = wx.StaticText(self, wx.ID_ANY, u"EXIF:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText38 = wx.StaticText(self, wx.ID_ANY, u"其\n他\n信\n息", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText38.Wrap(-1)
 
-        bSizer70.Add(self.m_staticText38, 0, wx.ALL, 4)
+        bSizer70.Add(self.m_staticText38, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 4)
 
-        self.imageExif = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_NO_VSCROLL | wx.TE_READONLY)
-        self.imageExif.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
+        self.imageInfo = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_MULTILINE | wx.TE_NO_VSCROLL | wx.TE_READONLY)
+        self.imageInfo.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
 
-        bSizer70.Add(self.imageExif, 1, 0, 5)
+        bSizer70.Add(self.imageInfo, 1, wx.EXPAND, 5)
 
-        bSizer64.Add(bSizer70, 0, wx.EXPAND, 5)
+        bSizer64.Add(bSizer70, 1, wx.EXPAND, 5)
 
         self.m_panel23 = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.m_panel23.Hide()
@@ -1471,6 +1474,8 @@ class ImageInfoDialog (wx.Dialog):
         self.m_panel23.Layout()
         bSizer81.Fit(self.m_panel23)
         bSizer64.Add(self.m_panel23, 1, wx.EXPAND, 5)
+
+        bSizer64.Add((0, 0), 0, wx.ALL, 5)
 
         bSizer63.Add(bSizer64, 1, wx.EXPAND, 5)
 
