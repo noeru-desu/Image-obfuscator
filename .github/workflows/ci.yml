@@ -78,13 +78,13 @@ jobs:
         shell: cmd
         run: |
           mkdir nuitka
-          nuitka --disable-console --python-flag=-OO,no_docstrings --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=colorlog,pydoc,urllib,socket,tkinter,click --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow ImageObfuscator.py
+          nuitka --disable-console --python-flag=-OO,no_docstrings --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=colorlog,pydoc,urllib,socket,tkinter,click --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow ImageObfuscator.py
       - name: Build artifacts (without dependencies and runtime)
         run: |
-          nuitka --disable-console --python-flag=-OO,no_docstrings --clang --msvc=latest --lto=yes --prefer-source-code --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-imports --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow -o "ImageObfuscator.without_runtime.exe" ImageObfuscator.py
+          nuitka --disable-console --python-flag=-OO,no_docstrings --msvc=latest --lto=yes --prefer-source-code --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-imports --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow -o "ImageObfuscator.without_runtime.exe" ImageObfuscator.py
       - name: Build artifacts (with console)
         run: |
-          nuitka --enable-console --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=pydoc,urllib,socket,tkinter,click --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow --warn-implicit-exceptions -o ImageObfuscator.with_console.exe ImageObfuscator.py
+          nuitka --enable-console --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=pydoc,urllib,socket,tkinter,click --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow --warn-implicit-exceptions -o ImageObfuscator.with_console.exe ImageObfuscator.py
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
