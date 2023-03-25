@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-02-06 19:28:02
 LastEditors  : noeru_desu
-LastEditTime : 2023-02-03 17:42:06
+LastEditTime : 2023-03-25 20:16:41
 """
 from abc import ABC
 from posixpath import splitext
@@ -138,6 +138,7 @@ def open_image(file: 'PathLike[str]', use_cache=True) -> tuple['PIL_Image.Image'
     weak_ref_cache.record(file, weak_ref(image))
     rgba_image = image.convert('RGBA')
     rgba_image.format = image.format
+    rgba_image.info = image.info
     return rgba_image, None
 
 

@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-01-11 21:03:00
 LastEditors  : noeru_desu
-LastEditTime : 2023-02-18 21:05:38
+LastEditTime : 2023-03-25 20:13:28
 """
 from base64 import b85decode
 from orjson import JSONDecodeError, dumps, loads, OPT_INDENT_2
@@ -609,4 +609,4 @@ class ImageInfoDialog(IID):
         self.imageSize.SetLabelText(f'{orig_image.size[0]}x{orig_image.size[1]}')
         # self.imageMemoryUsed.SetLabelText(f'{round(asizeof(orig_image) / 1024, 2)}KB')
         # self.itemMemoryUsed.SetLabelText(f'{round(asizeof(image_item) / 1024, 2)}KB')
-        self.imageExif.SetValue(str(orig_image.getexif()))
+        self.imageInfo.SetValue(str(orig_image.info))
