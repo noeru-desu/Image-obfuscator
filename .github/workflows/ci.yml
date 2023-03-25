@@ -73,25 +73,31 @@ jobs:
           path: |
             C:/Users/runneradmin/AppData/Local/Nuitka/Nuitka/depends/x86_64/depends.exe
           key: ${{ env.ORIGINAL_PROJECT }}-DependencyWalker
-      - name: Build artifacts
-        if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
+      - name: Build artifacts (normal)
         shell: cmd
         run: |
-          mkdir nuitka
-          nuitka --disable-console --python-flag=-OO,no_docstrings --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=colorlog,pydoc,urllib,socket,tkinter,click --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow ImageObfuscator.py
+          mkdir build_normal
+          nuitka --disable-console --python-flag=-OO,no_docstrings --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=colorlog,pydoc,urllib,socket,tkinter,click,http,email --output-dir=build_normal --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow ImageObfuscator.py
+          copy ".\build_normal\ImageObfuscator.exe" ".\ImageObfuscator.exe"
       - name: Build artifacts (without dependencies and runtime)
         run: |
-          nuitka --disable-console --python-flag=-OO,no_docstrings --clang --msvc=latest --lto=yes --prefer-source-code --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-imports --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow -o "ImageObfuscator.without_runtime.exe" ImageObfuscator.py
+          mkdir build_without_runtime
+          nuitka --disable-console --python-flag=-OO,no_docstrings --clang --msvc=latest --lto=yes --prefer-source-code --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-imports --output-dir=build_without_runtime --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow ImageObfuscator.py
+          copy ".\build_without_runtime\ImageObfuscator.exe" ".\ImageObfuscator.without_runtime.exe"
+          copy ".\build_without_runtime\ImageObfuscator.cmd" ".\ImageObfuscator.without_runtime.cmd"
       - name: Build artifacts (with console)
         run: |
-          nuitka --enable-console --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=pydoc,urllib,socket,tkinter,click --output-dir=nuitka --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow --warn-implicit-exceptions -o ImageObfuscator.with_console.exe ImageObfuscator.py
+          mkdir build_with_console
+          nuitka --enable-console --clang --msvc=latest --lto=yes --prefer-source-code --onefile --show-anti-bloat-changes --assume-yes-for-downloads --plugin-enable=numpy --include-module=wx._xml --nofollow-import-to=pydoc,urllib,socket,tkinter,click,http,email --output-dir=build_with_console --noinclude-pytest-mode=nofollow --noinclude-unittest-mode=nofollow --noinclude-setuptools-mode=nofollow --noinclude-IPython-mode=nofollow --warn-implicit-exceptions ImageObfuscator.py
+          copy ".\build_with_console\ImageObfuscator.exe" ".\ImageObfuscator.with_console.exe"
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{ env.BUILD_ENV }}-${{ env.VCToolsVersion }}-build.${{ github.run_number }}
           path: |
-            nuitka/ImageObfuscator.exe
+            ImageObfuscator.exe
             ImageObfuscator.without_runtime.exe
+            ImageObfuscator.without_runtime.cmd
             ImageObfuscator.with_console.exe
       # - name: Basic tests
       #   shell: cmd
@@ -104,7 +110,7 @@ jobs:
         shell: cmd
         run: |
           set ver=${{ github.ref_name }}
-          copy ".\nuitka\ImageObfuscator.exe" ".\ImageObfuscator_%ver:v=%.exe"
+          copy ".\ImageObfuscator.exe" ".\ImageObfuscator_%ver:v=%.exe"
           copy ".\ImageObfuscator.without_runtime.exe" ".\ImageObfuscator_%ver:v=%.without_runtime.exe"
           copy ".\ImageObfuscator.with_console.exe" ".\ImageObfuscator_%ver:v=%.with_console.exe"
       - name: Draft release
