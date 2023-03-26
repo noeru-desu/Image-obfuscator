@@ -2,8 +2,9 @@
 Author       : noeru_desu
 Date         : 2022-04-16 17:48:20
 LastEditors  : noeru_desu
-LastEditTime : 2022-12-02 08:26:01
+LastEditTime : 2023-03-25 22:26:15
 """
+from traceback import format_exc
 from typing import TYPE_CHECKING, Type
 
 from wx import BoxSizer, VERTICAL, ALIGN_CENTER
@@ -45,7 +46,11 @@ class ModeManager(object):
         mode_interface_cls.main_frame = self.frame
         mode_interface_cls.mode_id = self.mode_id_count
         mode_constants = mode_interface_cls.mode_constants = ModeConstants()
-        interface = mode_interface_cls()
+        try:
+            interface = mode_interface_cls()
+        except Exception:
+            self.frame.dialog.async_warning(f'加载{mode_interface_cls.mode_qualname}时出现错误:\n{format_exc()}')
+            return
         mode_constants.mode_interface = interface
         if __debug__ and not interface.check_metadata():
             return
