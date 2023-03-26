@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-11-13 10:18:16
 LastEditors  : noeru_desu
-LastEditTime : 2023-01-21 12:39:43
+LastEditTime : 2023-03-26 09:48:38
 """
 from atexit import register
 from os import listdir, makedirs, remove
@@ -313,7 +313,10 @@ class ImageDiskCache(object):
         self.temp_dir = join(self.frame.program_options.temp_dir, 'image')
         if isdir(self.temp_dir):
             for i in listdir(self.temp_dir):
-                remove(i)
+                try:
+                    remove(join(self.temp_dir, i))
+                except PermissionError as e:
+                    frame.dialog.async_warning(f'清空残留缓存文件({i})时出现错误:\n{repr(e)}')
         else:
             makedirs(self.temp_dir)
         self.cached_images: dict[str, str] = {}
@@ -321,7 +324,10 @@ class ImageDiskCache(object):
 
     def clear_cache(self):
         for i in self.cached_images.values():
-            remove(i)
+            try:
+                remove(join(self.temp_dir, i))
+            except PermissionError as e:
+                self.frame.dialog.async_warning(f'清空残留缓存文件({i})时出现错误:\n{repr(e)}')
         self.cached_images.clear()
 
     def add(self, image: 'Image.Image', cache_name: str, add_to_weak_ref_cache = True) -> 'PathLike[str]':

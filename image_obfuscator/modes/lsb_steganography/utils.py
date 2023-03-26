@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-11-26 09:14:39
 LastEditors  : noeru_desu
-LastEditTime : 2023-01-19 21:57:59
+LastEditTime : 2023-03-26 09:54:45
 """
 from atexit import register
 from os import makedirs, remove, listdir
@@ -20,6 +20,7 @@ from image_obfuscator.modes.lsb_steganography.constants import LSB_INFO_VERSION
 if TYPE_CHECKING:
     from os import PathLike
     from PIL.Image import Image
+    from image_obfuscator.modes.base import ModeConstants
 
 
 class CompressedFile(object):
@@ -44,6 +45,7 @@ class CompressedFile(object):
 
 class CompressedFileManager(object):
     __slots__ = ('cache', 'temp_dir')
+    mode_constants: 'ModeConstants'
 
     def __init__(self, temp_dir: str) -> None:
         self.temp_dir = join(temp_dir, 'compressed_files')
@@ -51,7 +53,10 @@ class CompressedFileManager(object):
             makedirs(self.temp_dir)
         else:
             for i in listdir(self.temp_dir):
-                remove(join(self.temp_dir, i))
+                try:
+                    remove(join(self.temp_dir, i))
+                except PermissionError as e:
+                    self.mode_constants.main_frame.dialog.async_warning(f'清空残留缓存文件({i})时出现错误:\n{repr(e)}')
         self.cache: dict[str, CompressedFile] = {}
         register(self.clear_cache)
 
