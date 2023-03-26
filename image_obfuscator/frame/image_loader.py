@@ -315,7 +315,7 @@ class ImageDiskCache(object):
             for i in listdir(self.temp_dir):
                 try:
                     remove(join(self.temp_dir, i))
-                except PermissionError as e:
+                except Exception as e:
                     frame.dialog.async_warning(f'清空残留缓存文件({i})时出现错误:\n{repr(e)}')
         else:
             makedirs(self.temp_dir)
@@ -326,7 +326,7 @@ class ImageDiskCache(object):
         for i in self.cached_images.values():
             try:
                 remove(join(self.temp_dir, i))
-            except PermissionError as e:
+            except Exception as e:
                 self.frame.dialog.async_warning(f'清空残留缓存文件({i})时出现错误:\n{repr(e)}')
         self.cached_images.clear()
 

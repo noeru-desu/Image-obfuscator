@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2022-11-26 09:14:39
 LastEditors  : noeru_desu
-LastEditTime : 2023-03-26 09:54:45
+LastEditTime : 2023-03-26 10:03:16
 """
 from atexit import register
 from os import makedirs, remove, listdir
@@ -55,7 +55,7 @@ class CompressedFileManager(object):
             for i in listdir(self.temp_dir):
                 try:
                     remove(join(self.temp_dir, i))
-                except PermissionError as e:
+                except Exception as e:
                     self.mode_constants.main_frame.dialog.async_warning(f'清空残留缓存文件({i})时出现错误:\n{repr(e)}')
         self.cache: dict[str, CompressedFile] = {}
         register(self.clear_cache)
