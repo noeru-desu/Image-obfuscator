@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2023-02-03 19:41:06
+LastEditTime : 2023-03-26 08:14:19
 """
 from atexit import register as at_exit
 from concurrent.futures import ThreadPoolExecutor
@@ -90,12 +90,13 @@ class MainFrame(MF):
         ModeConstants.main_frame = self
         ModeConstants.main_controller = self.controller
         EmptySettings.create_settings_mapping()
+        self.config = ConfigManager(self)
+        self.config.load_frame_settings()
         self.mode_manager = ModeManager(self)
         self.mode_manager.load_builtin_modes()
+        self.config.init()
+        self.config.apply_frame_settings()
         self.password_dict = PasswordDict()
-        self.config = ConfigManager(self)
-        if self.program_options.record_interface_settings:
-            self.config.load_frame_settings()
         if self.program_options.record_password_dict:
             self.config.load_password_dict()
         self.universal_thread_pool = ThreadPoolExecutor(8, 'universal_thread_pool')
