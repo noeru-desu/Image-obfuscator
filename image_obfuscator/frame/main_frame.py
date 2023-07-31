@@ -2,7 +2,7 @@
 Author       : noeru_desu
 Date         : 2021-10-22 18:15:34
 LastEditors  : noeru_desu
-LastEditTime : 2023-03-26 08:14:19
+LastEditTime : 2023-03-27 22:21:01
 """
 from atexit import register as at_exit
 from concurrent.futures import ThreadPoolExecutor
@@ -17,7 +17,7 @@ from wx import (ACCEL_CTRL, ACCEL_NORMAL, CURSOR_ARROW, CURSOR_WAIT, WXK_DELETE,
 from wx.core import EmptyString
 
 from image_obfuscator.constants import (EXTENSION_KEYS_STRING, FULL_VERSION_STRING,
-                                       SHORT_VERSION_STRING,
+                                       LOGGER_LEVEL, SHORT_VERSION_STRING,
                                        VERSION_INFO, VERSION_TYPE)
 from image_obfuscator.frame.controller import Controller, SegmentTrigger
 from image_obfuscator.frame.design_frame import MainFrame as MF
@@ -73,7 +73,10 @@ class MainFrame(MF):
             self.SetTitle(f'Image Obfuscator GUI {FULL_VERSION_STRING}')
         else:
             self.SetTitle(f'Image Obfuscator GUI {SHORT_VERSION_STRING}')
-        self.logger = Logger('image-obfuscator', 10)
+        self.logger = Logger('image-obfuscator', LOGGER_LEVEL)
+        if not __debug__:
+            for i in VERSION_INFO[-2:]:
+                print(i)
         for i in VERSION_INFO:
             self.logger.info(i)
         self.image_item: Optional['ImageItem'] = None

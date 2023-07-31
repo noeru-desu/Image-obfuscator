@@ -1358,14 +1358,14 @@ class ImageInfoDialog (wx.Dialog):
     )
 
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"当前图像信息", pos=wx.DefaultPosition, size=wx.Size(410, 220), style=wx.DEFAULT_DIALOG_STYLE)
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"当前图像信息", pos=wx.DefaultPosition, size=wx.Size(420, 240), style=wx.DEFAULT_DIALOG_STYLE)
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
 
         bSizer63 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.origImage = wx.StaticBitmap(self, wx.ID_ANY, wx.NullBitmap, wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer63.Add(self.origImage, 1, wx.ALIGN_CENTER | wx.ALL, 5)
+        bSizer63.Add(self.origImage, 1, wx.ALIGN_CENTER | wx.ALL, 3)
 
         self.m_staticline4 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_VERTICAL)
         bSizer63.Add(self.m_staticline4, 0, wx.ALL | wx.EXPAND, 5)
@@ -1423,7 +1423,7 @@ class ImageInfoDialog (wx.Dialog):
 
         bSizer70.Add(self.m_staticText38, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 4)
 
-        self.imageInfo = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_MULTILINE | wx.TE_NO_VSCROLL | wx.TE_READONLY)
+        self.imageInfo = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_CENTER | wx.TE_MULTILINE | wx.TE_READONLY)
         self.imageInfo.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
 
         bSizer70.Add(self.imageInfo, 1, wx.EXPAND, 5)
