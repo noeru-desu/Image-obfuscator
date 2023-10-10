@@ -6,7 +6,7 @@ LastEditTime : 2023-02-03 17:25:53
 """
 from base64 import b85encode
 from os import listdir, startfile
-from os.path import isdir
+from os.path import isdir, sep
 from pickle import dumps as pickle_dumps, HIGHEST_PROTOCOL
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -434,8 +434,9 @@ class MainFrame(BasicMainFrame):
 
     def change_temp_dir(self, event):
         temp_dir = self.controller.temp_dir
-        if temp_dir.startswith(self.program_options.temp_dir):
+        if temp_dir.startswith(self.program_options.temp_dir) and (temp_dir.count(sep) > self.program_options.temp_dir.count(sep)):
             self.dialog.async_warning('无法将当前缓存文件夹内的文件夹设为新的缓存文件夹')
+            self.controller.temp_dir = temp_dir
             return
         if isdir(temp_dir):
             if listdir(temp_dir) and (

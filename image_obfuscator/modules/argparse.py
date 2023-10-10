@@ -5,6 +5,7 @@ LastEditors  : noeru_desu
 LastEditTime : 2023-01-15 09:55:52
 """
 # from argparse import ArgumentParser
+from os import makedirs
 from os.path import isdir
 from sys import argv
 from typing import TYPE_CHECKING
@@ -76,8 +77,9 @@ class Options(object):
 
     @temp_dir.setter
     def temp_dir(self, v: str):
-        if isdir(v):
-            self._temp_dir = v
+        if not isdir(v):
+            makedirs(v)
+        self._temp_dir = v
 
     @property
     def parameters_dict(self) -> dict:
