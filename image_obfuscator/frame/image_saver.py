@@ -233,11 +233,16 @@ class ImageSaver(object):
         output_path = join(save_path, name)
         if relative_save_path and not isdir(save_path):
             makedirs(save_path)
+        kwds = save_settings.kwds
         if save_settings.format in ('jpg', 'jpeg'):
             image.convert('RGB')
+            if save_settings.exif:
+                del kwds['exif']
+            else:
+                save_settings.exif = b''
         if not quiet:
             self.frame.saveProgressInfo.SetLabelText('正在保存文件')  # ! 未测试批量时的效果
-        image.save(output_path, **save_settings.kwds)
+        image.save(output_path, **kwds)
         return output_path
 
     def _post_save_processing(self, mode_interface: 'ModeInterface', data, output_path: str):
