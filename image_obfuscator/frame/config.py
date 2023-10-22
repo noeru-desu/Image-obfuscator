@@ -45,8 +45,8 @@ class ConfigManager(object):
     def open_config_folder(self):
         startfile(LOCAL_APPDATA)
 
-    def gen_frame_settings(self):
-        if not self.frame.controller.proc_mode_interface.can_be_set_as_default_mode:
+    def gen_frame_settings(self, init=False):
+        if not (init or self.frame.controller.proc_mode_interface.can_be_set_as_default_mode):
             default_proc_mode = self.frame.mode_manager.default_mode_that_can_be_set_as_default
             default_mode_settings = default_proc_mode.default_settings
         else:
@@ -91,7 +91,7 @@ class ConfigManager(object):
 
     def load_frame_settings(self):
         if not isfile(self.frame_settings_path):
-            return
+            return False
         with open(self.frame_settings_path, 'rb') as f:
             try:
                 self.loaded_frame_settings_dict = pickle_load(f)
@@ -102,11 +102,13 @@ class ConfigManager(object):
                 self.loaded_frame_settings_dict = {}
                 self.frame.logger.warning('载入配置文件时出现错误\n{}'.format(format_exc().rstrip('\r\n')))
                 self.frame.logger.warning('出现此问题不影响程序使用, 可能是配置文件版本过高导致')
-                return
+            finally:
+                return True
 
     def apply_frame_settings(self):
         if self.loaded_frame_settings_dict is None:
-            self.load_frame_settings()
+            if not self.load_frame_settings():
+                return
         data_dict = self.default_frame_settings.copy() | self.loaded_frame_settings_dict
         if not self.frame.program_options.record_interface_settings:
             return

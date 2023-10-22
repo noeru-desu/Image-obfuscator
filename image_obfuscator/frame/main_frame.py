@@ -73,6 +73,7 @@ class MainFrame(MF):
             self.SetTitle(f'Image Obfuscator GUI {FULL_VERSION_STRING}')
         else:
             self.SetTitle(f'Image Obfuscator GUI {SHORT_VERSION_STRING}')
+        self.Show()
         self.logger = Logger('image-obfuscator', LOGGER_LEVEL)
         if not __debug__:
             for i in VERSION_INFO[-2:]:
@@ -121,7 +122,6 @@ class MainFrame(MF):
         ImageItemCache.lru_cache_recorder.maxlen = MirageTankSettings.outside_image_cache.maxlen = self.program_options.maximum_orig_image_cache
         PreviewCache.lru_cache_recorder.maxlen = self.program_options.maximum_proc_result_cache
         self.program_options.apply_to_interface(self.controller)
-        self.Show()
 
         # 文件拖入
         self.imageTreeCtrl.SetDropTarget(DragLoadingFile(self))
